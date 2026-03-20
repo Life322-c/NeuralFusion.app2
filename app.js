@@ -3,7 +3,7 @@ const SURL='https://civwcmteqidppscbpqni.supabase.co';
 const SKEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNpdndjbXRlcWlkcHBzY2JwcW5pIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM5Mjc3MDYsImV4cCI6MjA4OTUwMzcwNn0.kRaEGNQw-vsXE9NaSExO3RC4KyHzV3kl9JpnKzDN2Sk';
 const PKEY='pk_live_dfa71eca29f942cadc337cb8e41834857e2b129b';
 const AMT=250000;
-let sb;try{sb=supabase.createClient(SURL,SKEY);}catch(e){sb=null;}
+let sb=null;
 
 // STATE
 const S={user:null,profile:null,cohort:null,certs:[],done:new Set(),preCFI:null,postCFI:null,preA:null,postA:null,premium:false,lesson:null,cfiType:'pre',cfiA:[],cfiI:0,authMode:'login',role:'participant'};
@@ -225,4 +225,4 @@ function renderLessons(){
     <p>Lessons 2–5 — the complete NeuralFusion™ training programme.</p>
     <div class="paywall-price">₦2,500</div>
     <div class="paywall-sub">One-time · Lifetime access</div>
-    <div style="margin-bottom:18px;">${['Mode Activation & Mental Control','Synthesis & Decision Mastery','Stabilisation Under Pressure','Automatic Integration & Fluency'].map(t=>`<div class="feature-row"><spa
+    <div style="margin-bottom:18px;">${['Mode Activation & Mental Control','Synthesis & Decision Mastery','Stabilisation Under Pressure','Automatic Integration & Fluency'].map(t=>`<div class="feature-row"><span style="color:var(--gold2);">✓</span>${t}</div>`).joi
