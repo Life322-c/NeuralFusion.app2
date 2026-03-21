@@ -1,0 +1,1443 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>NeuralFusion™ · Admin Console</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,600;0,9..144,700;1,9..144,400&family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+:root {
+  --bg:      #05080e;
+  --bg2:     #080d16;
+  --bg3:     #0c1220;
+  --surface: #0e1624;
+  --surf2:   #111c2e;
+  --border:  #142033;
+  --border2: #1a2d47;
+  --accent:  #0ea5e9;
+  --accent2: #38bdf8;
+  --green:   #10b981;
+  --amber:   #f59e0b;
+  --purple:  #8b5cf6;
+  --red:     #ef4444;
+  --gold:    #c4952a;
+  --gold2:   #e8b84b;
+  --text:    #cfe0f0;
+  --text2:   #7a9ab8;
+  --text3:   #3a5570;
+  --glow:    rgba(14,165,233,.14);
+  --glow2:   rgba(14,165,233,.06);
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html,body{height:100%;background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;overflow-x:hidden;}
+
+/* ── GRID BACKGROUND ── */
+body::before{
+  content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
+  background-image:
+    radial-gradient(ellipse 55% 35% at 90% 5%, rgba(14,165,233,.07) 0%, transparent 65%),
+    radial-gradient(ellipse 35% 45% at 5% 90%, rgba(139,92,246,.05) 0%, transparent 65%),
+    linear-gradient(rgba(14,165,233,.018) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(14,165,233,.018) 1px, transparent 1px);
+  background-size:100% 100%,100% 100%,44px 44px,44px 44px;
+}
+
+/* ──────────────────────────────── PIN SCREEN ─── */
+#pinScreen{
+  position:fixed;inset:0;z-index:200;
+  background:var(--bg);
+  display:flex;align-items:center;justify-content:center;
+  transition:opacity .4s ease;
+}
+#pinScreen.hiding{opacity:0;pointer-events:none;}
+
+.pin-wrap{
+  position:relative;width:100%;max-width:400px;padding:0 20px;
+  animation:pinIn .5s cubic-bezier(.22,1,.36,1) both;
+}
+@keyframes pinIn{
+  from{opacity:0;transform:translateY(22px) scale(.97);}
+  to{opacity:1;transform:none;}
+}
+.pin-card{
+  background:var(--surface);
+  border:1px solid var(--border2);
+  border-radius:20px;
+  padding:44px 36px 36px;
+  text-align:center;
+  box-shadow:0 32px 80px rgba(0,0,0,.6), 0 0 0 1px rgba(14,165,233,.05);
+}
+.pin-badge{
+  display:inline-flex;align-items:center;gap:7px;
+  padding:5px 12px;
+  border:1px solid rgba(239,68,68,.3);
+  border-radius:20px;
+  background:rgba(239,68,68,.07);
+  font-size:10px;color:#fca5a5;
+  font-family:'DM Mono',monospace;letter-spacing:.08em;
+  margin-bottom:22px;
+}
+.pin-badge-dot{width:5px;height:5px;border-radius:50%;background:#ef4444;box-shadow:0 0 6px #ef4444;animation:pulse 1.4s ease-in-out infinite;}
+.pin-icon{
+  width:60px;height:60px;
+  border:1.5px solid rgba(14,165,233,.4);
+  border-radius:14px;
+  display:flex;align-items:center;justify-content:center;
+  margin:0 auto 18px;
+  background:rgba(14,165,233,.06);
+  box-shadow:0 0 30px var(--glow);
+}
+.pin-icon svg{width:26px;height:26px;stroke:var(--accent);}
+.pin-card h2{
+  font-family:'Fraunces',serif;font-size:22px;font-weight:600;
+  color:var(--text);margin-bottom:5px;
+}
+.pin-card > p{font-size:12px;color:var(--text3);margin-bottom:28px;letter-spacing:.02em;}
+.pin-field{
+  display:flex;gap:10px;margin-bottom:6px;
+}
+.pin-input{
+  flex:1;background:var(--bg2);
+  border:1px solid var(--border2);
+  border-radius:11px;
+  padding:14px 18px;
+  font-family:'DM Mono',monospace;font-size:22px;
+  color:var(--text);outline:none;
+  text-align:center;letter-spacing:.4em;
+  transition:border-color .2s, box-shadow .2s;
+}
+.pin-input:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--glow2);}
+.pin-input.shake{animation:shake .35s ease;}
+@keyframes shake{0%,100%{transform:translateX(0);}25%{transform:translateX(-6px);}75%{transform:translateX(6px);}50%{transform:translateX(6px);}}
+.pin-btn{
+  padding:14px 22px;
+  background:var(--accent);border:none;border-radius:11px;
+  font-family:'Fraunces',serif;font-size:15px;font-weight:600;
+  color:#fff;cursor:pointer;
+  transition:all .2s;white-space:nowrap;
+  box-shadow:0 4px 16px rgba(14,165,233,.3);
+}
+.pin-btn:hover{background:var(--accent2);transform:translateY(-1px);}
+.pin-err{font-size:11px;color:#fca5a5;margin-top:10px;min-height:16px;transition:opacity .2s;}
+
+/* ──────────────────────────────── SHELL ─── */
+.shell{
+  position:relative;z-index:1;
+  min-height:100vh;display:flex;flex-direction:column;
+}
+
+/* ──────────────────────────────── HEADER ─── */
+header{
+  display:flex;align-items:center;gap:14px;
+  padding:12px 22px;
+  border-bottom:1px solid var(--border);
+  background:rgba(5,8,14,.88);
+  backdrop-filter:blur(14px);
+  position:sticky;top:0;z-index:10;flex-shrink:0;
+}
+.logo{display:flex;align-items:center;gap:10px;}
+.logo-mark{
+  width:36px;height:36px;
+  border:1.5px solid rgba(14,165,233,.5);
+  border-radius:9px;
+  display:flex;align-items:center;justify-content:center;
+  font-family:'DM Mono',monospace;font-size:11px;font-weight:500;
+  color:var(--accent);
+  box-shadow:0 0 20px var(--glow);
+  background:rgba(14,165,233,.06);
+}
+.logo-info h1{font-family:'Fraunces',serif;font-size:14px;font-weight:700;line-height:1;}
+.logo-info span{font-size:9px;color:var(--text3);letter-spacing:.1em;text-transform:uppercase;}
+.h-right{margin-left:auto;display:flex;align-items:center;gap:10px;}
+.live-pill{
+  display:flex;align-items:center;gap:5px;
+  padding:4px 10px;
+  border:1px solid rgba(16,185,129,.25);border-radius:20px;
+  background:rgba(16,185,129,.07);
+  font-size:10px;color:var(--green);font-family:'DM Mono',monospace;
+}
+.live-dot{width:5px;height:5px;border-radius:50%;background:var(--green);box-shadow:0 0 6px var(--green);animation:pulse 1.5s ease-in-out infinite;}
+@keyframes pulse{0%,100%{opacity:1;}50%{opacity:.3;}}
+.h-clock{font-family:'DM Mono',monospace;font-size:11px;color:var(--text3);}
+.icon-btn{
+  width:32px;height:32px;border-radius:8px;
+  border:1px solid var(--border2);background:transparent;
+  color:var(--text2);cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  transition:all .2s;font-size:14px;
+}
+.icon-btn:hover{border-color:var(--accent);color:var(--accent);background:var(--glow2);}
+.icon-btn.spinning svg{animation:spin .8s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg);}}
+.logout-btn{
+  padding:5px 12px;
+  border:1px solid rgba(239,68,68,.25);border-radius:8px;
+  background:transparent;font-size:11px;color:#fca5a5;
+  cursor:pointer;transition:all .2s;font-family:'DM Sans',sans-serif;
+}
+.logout-btn:hover{background:rgba(239,68,68,.1);}
+
+/* ──────────────────────────────── TABS ─── */
+.nav{
+  display:flex;align-items:center;gap:2px;
+  padding:10px 22px;
+  border-bottom:1px solid var(--border);
+  background:var(--bg2);
+  overflow-x:auto;scrollbar-width:none;flex-shrink:0;
+}
+.nav::-webkit-scrollbar{display:none;}
+.tab{
+  padding:6px 15px;border-radius:7px;
+  border:none;background:transparent;
+  font-size:12px;font-weight:500;
+  color:var(--text3);cursor:pointer;
+  transition:all .2s;white-space:nowrap;
+  font-family:'DM Sans',sans-serif;
+  display:flex;align-items:center;gap:6px;
+}
+.tab:hover{color:var(--text2);background:var(--bg3);}
+.tab.active{background:var(--surface);color:var(--text);border:1px solid var(--border2);}
+.tab-badge{
+  display:inline-flex;align-items:center;justify-content:center;
+  padding:1px 6px;border-radius:10px;
+  font-size:9px;font-family:'DM Mono',monospace;
+  background:var(--bg3);color:var(--text3);
+  min-width:18px;
+}
+.tab.active .tab-badge{background:rgba(14,165,233,.12);color:var(--accent);}
+
+/* ──────────────────────────────── MAIN ─── */
+main{flex:1;padding:20px 22px;max-width:1280px;width:100%;margin:0 auto;}
+
+/* ──────────────────────────────── STATS ─── */
+.stats-row{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:18px;}
+.stat-card{
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:13px;padding:16px 14px;
+  position:relative;overflow:hidden;cursor:default;
+  transition:border-color .2s,transform .2s;
+}
+.stat-card:hover{border-color:var(--border2);transform:translateY(-1px);}
+.stat-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;}
+.stat-card.s-users::before{background:linear-gradient(90deg,var(--accent),#38bdf8);}
+.stat-card.s-prem::before{background:linear-gradient(90deg,var(--green),#34d399);}
+.stat-card.s-rev::before{background:linear-gradient(90deg,var(--gold),var(--gold2));}
+.stat-card.s-cohorts::before{background:linear-gradient(90deg,var(--purple),#a78bfa);}
+.stat-card.s-cfi::before{background:linear-gradient(90deg,var(--amber),#fcd34d);}
+.stat-num{
+  font-family:'Fraunces',serif;font-size:28px;font-weight:700;
+  line-height:1;margin-bottom:4px;
+  transition:all .4s ease;
+}
+.stat-card.s-users .stat-num{color:var(--accent);}
+.stat-card.s-prem .stat-num{color:var(--green);}
+.stat-card.s-rev .stat-num{color:var(--gold2);}
+.stat-card.s-cohorts .stat-num{color:var(--purple);}
+.stat-card.s-cfi .stat-num{color:var(--amber);}
+.stat-lbl{font-size:9px;text-transform:uppercase;letter-spacing:.12em;color:var(--text3);font-family:'DM Mono',monospace;}
+.stat-delta{font-size:9px;color:var(--green);font-family:'DM Mono',monospace;margin-top:4px;}
+
+/* ──────────────────────────────── SECTIONS ─── */
+.section{display:none;}
+.section.active{display:block;animation:fadeIn .2s ease;}
+@keyframes fadeIn{from{opacity:0;transform:translateY(4px);}to{opacity:1;transform:none;}}
+.sec-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;}
+.sec-title{font-family:'Fraunces',serif;font-size:18px;font-weight:600;}
+.sec-sub{font-size:11px;color:var(--text3);margin-top:2px;}
+.sec-actions{display:flex;gap:8px;align-items:center;}
+
+/* ──────────────────────────────── SEARCH ─── */
+.search-bar{
+  display:flex;align-items:center;gap:8px;
+  background:var(--bg2);border:1px solid var(--border2);
+  border-radius:8px;padding:7px 12px;
+  font-size:12px;color:var(--text2);width:200px;
+  transition:border-color .2s;
+}
+.search-bar:focus-within{border-color:var(--accent);}
+.search-bar svg{width:13px;height:13px;stroke:var(--text3);flex-shrink:0;}
+.search-bar input{background:none;border:none;outline:none;color:var(--text);font-size:12px;width:100%;font-family:'DM Sans',sans-serif;}
+.search-bar input::placeholder{color:var(--text3);}
+
+/* ──────────────────────────────── CARD / TABLE ─── */
+.card{
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:13px;overflow:hidden;margin-bottom:14px;
+}
+.card-head{
+  padding:11px 16px;
+  background:var(--bg2);border-bottom:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between;
+}
+.card-title{font-size:10px;text-transform:uppercase;letter-spacing:.12em;color:var(--text3);font-family:'DM Mono',monospace;}
+.card-count{font-size:10px;color:var(--text3);font-family:'DM Mono',monospace;}
+.tbl-scroll{overflow-x:auto;}
+table{width:100%;border-collapse:collapse;}
+thead th{
+  padding:8px 14px;
+  font-size:9px;text-transform:uppercase;letter-spacing:.1em;
+  color:var(--text3);font-family:'DM Mono',monospace;
+  text-align:left;border-bottom:1px solid var(--border);
+  background:var(--bg2);white-space:nowrap;
+}
+tbody tr{border-bottom:1px solid var(--border);transition:background .12s;}
+tbody tr:last-child{border-bottom:none;}
+tbody tr:hover{background:rgba(14,165,233,.025);}
+td{padding:9px 14px;font-size:12px;color:var(--text2);vertical-align:middle;white-space:nowrap;}
+td.strong{color:var(--text);font-weight:500;}
+td.mono{font-family:'DM Mono',monospace;font-size:11px;}
+
+/* ──────────────────────────────── BADGES ─── */
+.badge{display:inline-block;padding:2px 8px;border-radius:5px;font-size:10px;font-weight:500;font-family:'DM Mono',monospace;}
+.b-admin{background:rgba(239,68,68,.12);color:#fca5a5;}
+.b-fac{background:rgba(245,158,11,.12);color:#fcd34d;}
+.b-part{background:rgba(14,165,233,.1);color:var(--accent);}
+.b-prem{background:rgba(16,185,129,.12);color:#6ee7b7;}
+.b-free{background:var(--bg3);color:var(--text3);}
+.b-active{background:rgba(16,185,129,.1);color:#6ee7b7;}
+.b-ended{background:var(--bg3);color:var(--text3);}
+.b-hi{background:rgba(239,68,68,.1);color:#fca5a5;}
+.b-med{background:rgba(245,158,11,.1);color:#fcd34d;}
+.b-lo{background:rgba(16,185,129,.1);color:#6ee7b7;}
+.b-ok{background:rgba(16,185,129,.12);color:#6ee7b7;}
+.b-fail{background:rgba(239,68,68,.1);color:#fca5a5;}
+.b-pre{background:rgba(139,92,246,.12);color:#c4b5fd;}
+.b-post{background:rgba(14,165,233,.1);color:var(--accent);}
+
+/* ──────────────────────────────── MINI BUTTONS ─── */
+.mbtn{
+  padding:3px 9px;
+  border:1px solid var(--border2);border-radius:6px;
+  font-size:10px;color:var(--text3);
+  background:transparent;cursor:pointer;
+  transition:all .15s;margin-right:3px;
+  font-family:'DM Sans',sans-serif;
+}
+.mbtn:hover{border-color:var(--text2);color:var(--text);}
+.mbtn.danger{border-color:rgba(239,68,68,.3);color:#fca5a5;}
+.mbtn.danger:hover{background:rgba(239,68,68,.1);}
+.mbtn.ok{border-color:rgba(16,185,129,.3);color:#6ee7b7;}
+.mbtn.ok:hover{background:rgba(16,185,129,.1);}
+.mbtn.accent{border-color:rgba(14,165,233,.3);color:var(--accent);}
+.mbtn.accent:hover{background:var(--glow2);}
+
+/* ──────────────────────────────── OVERVIEW 2-COL ─── */
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+
+/* ──────────────────────────────── LIVE FEED ─── */
+.feed-grid{display:grid;grid-template-columns:1fr 340px;gap:14px;}
+.feed-list{
+  max-height:480px;overflow-y:auto;
+  padding:8px;
+  scrollbar-width:thin;scrollbar-color:var(--border) transparent;
+}
+.feed-list::-webkit-scrollbar{width:3px;}
+.feed-list::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px;}
+.event{
+  display:flex;gap:10px;align-items:flex-start;
+  padding:10px 12px;border-radius:9px;
+  border:1px solid var(--border);
+  background:var(--bg3);
+  margin-bottom:6px;
+  animation:evIn .25s ease;
+  position:relative;overflow:hidden;
+}
+.event::before{content:'';position:absolute;left:0;top:0;bottom:0;width:2px;}
+.event.ev-cfi::before{background:var(--purple);}
+.event.ev-lesson::before{background:var(--green);}
+.event.ev-cert::before{background:var(--gold);}
+.event.ev-user::before{background:var(--accent);}
+.event.ev-pay::before{background:var(--green);}
+@keyframes evIn{from{opacity:0;transform:translateX(-8px);}to{opacity:1;transform:none;}}
+.ev-ico{
+  width:30px;height:30px;border-radius:8px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:14px;flex-shrink:0;
+}
+.ev-ico.cfi{background:rgba(139,92,246,.15);}
+.ev-ico.lesson{background:rgba(16,185,129,.15);}
+.ev-ico.cert{background:rgba(196,149,42,.15);}
+.ev-ico.user{background:rgba(14,165,233,.15);}
+.ev-ico.pay{background:rgba(16,185,129,.15);}
+.ev-body{flex:1;min-width:0;}
+.ev-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:1px;}
+.ev-title{font-size:11px;font-weight:600;color:var(--text);}
+.ev-time{font-size:10px;color:var(--text3);font-family:'DM Mono',monospace;flex-shrink:0;}
+.ev-detail{font-size:11px;color:var(--text2);}
+.live-side-card{
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:13px;overflow:hidden;
+}
+.live-side-card + .live-side-card{margin-top:12px;}
+.live-side-row{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:9px 14px;border-bottom:1px solid var(--border);
+  font-size:12px;
+}
+.live-side-row:last-child{border-bottom:none;}
+.live-side-lbl{color:var(--text3);}
+.live-side-val{font-family:'DM Mono',monospace;font-size:13px;color:var(--text);}
+
+/* ──────────────────────────────── EMPTY / LOADING ─── */
+.empty-state{
+  padding:44px 20px;text-align:center;
+}
+.empty-state .empty-ico{font-size:32px;margin-bottom:12px;opacity:.5;}
+.empty-state p{font-size:13px;color:var(--text3);}
+.loading-row td{padding:32px;text-align:center;}
+.dots-loader{display:flex;gap:6px;align-items:center;justify-content:center;}
+.dots-loader span{
+  width:7px;height:7px;border-radius:50%;background:var(--accent);
+  animation:dotB 1.2s ease-in-out infinite;
+}
+.dots-loader span:nth-child(2){animation-delay:.18s;}
+.dots-loader span:nth-child(3){animation-delay:.36s;}
+@keyframes dotB{0%,100%{transform:translateY(0);opacity:.4;}50%{transform:translateY(-5px);opacity:1;}}
+
+/* ──────────────────────────────── TOAST ─── */
+.toast{
+  position:fixed;bottom:20px;right:20px;z-index:500;
+  background:var(--surface);border:1px solid var(--border2);
+  border-radius:10px;padding:10px 16px;
+  font-size:12px;color:var(--text);
+  box-shadow:0 12px 40px rgba(0,0,0,.5);
+  display:flex;align-items:center;gap:8px;
+  pointer-events:none;
+  opacity:0;transform:translateY(6px);
+  transition:opacity .25s, transform .25s;
+  max-width:280px;
+}
+.toast.show{opacity:1;transform:none;}
+.toast-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;}
+.toast-dot.ok{background:var(--green);box-shadow:0 0 6px var(--green);}
+.toast-dot.err{background:var(--red);box-shadow:0 0 6px var(--red);}
+.toast-dot.info{background:var(--accent);box-shadow:0 0 6px var(--accent);}
+
+/* ──────────────────────────────── MODAL ─── */
+.modal-bg{
+  position:fixed;inset:0;z-index:300;
+  background:rgba(0,0,0,.7);backdrop-filter:blur(4px);
+  display:flex;align-items:center;justify-content:center;
+  opacity:0;pointer-events:none;transition:opacity .2s;
+}
+.modal-bg.open{opacity:1;pointer-events:all;}
+.modal{
+  background:var(--surface);border:1px solid var(--border2);
+  border-radius:16px;padding:28px;width:100%;max-width:480px;
+  box-shadow:0 32px 80px rgba(0,0,0,.6);
+  transform:scale(.96);transition:transform .2s;
+}
+.modal-bg.open .modal{transform:scale(1);}
+.modal h3{font-family:'Fraunces',serif;font-size:17px;font-weight:600;margin-bottom:6px;}
+.modal p{font-size:12px;color:var(--text2);margin-bottom:18px;line-height:1.6;}
+.modal-row{display:flex;gap:8px;justify-content:flex-end;}
+.modal-btn{
+  padding:8px 18px;border-radius:9px;border:none;
+  font-size:12px;font-weight:500;cursor:pointer;
+  font-family:'DM Sans',sans-serif;transition:all .15s;
+}
+.modal-btn.cancel{background:var(--bg3);color:var(--text2);}
+.modal-btn.cancel:hover{color:var(--text);}
+.modal-btn.confirm{background:var(--red);color:#fff;}
+.modal-btn.confirm:hover{background:#dc2626;}
+.modal-btn.ok{background:var(--accent);color:#fff;}
+.modal-btn.ok:hover{background:var(--accent2);}
+
+/* ──────────────────────────────── RESPONSIVE ─── */
+@media(max-width:1000px){
+  .stats-row{grid-template-columns:repeat(3,1fr);}
+  .two-col{grid-template-columns:1fr;}
+  .feed-grid{grid-template-columns:1fr;}
+}
+@media(max-width:640px){
+  .stats-row{grid-template-columns:repeat(2,1fr);}
+  main{padding:14px 14px;}
+  header{padding:10px 14px;}
+  .nav{padding:8px 14px;}
+  .stat-num{font-size:22px;}
+}
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════════ PIN SCREEN ═══════════════════════ -->
+<div id="pinScreen">
+  <div class="pin-wrap">
+    <div class="pin-card">
+      <div class="pin-badge">
+        <span class="pin-badge-dot"></span>
+        RESTRICTED ACCESS
+      </div>
+      <div class="pin-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+          <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+        </svg>
+      </div>
+      <h2>Admin Console</h2>
+      <p>NeuralFusion™ · Authorised Access Only</p>
+      <div class="pin-field">
+        <input class="pin-input" type="password" id="pinInput"
+          placeholder="••••" maxlength="6"
+          onkeydown="if(event.key==='Enter')checkPin()"
+          oninput="document.getElementById('pinErr').textContent=''"
+        />
+        <button class="pin-btn" onclick="checkPin()">Enter →</button>
+      </div>
+      <div class="pin-err" id="pinErr"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════ APP SHELL ═══════════════════════ -->
+<div class="shell" id="appShell" style="display:none;">
+
+  <!-- HEADER -->
+  <header>
+    <div class="logo">
+      <div class="logo-mark">NF</div>
+      <div class="logo-info">
+        <h1>NeuralFusion™</h1>
+        <span>Admin Console</span>
+      </div>
+    </div>
+    <div class="h-right">
+      <div class="live-pill"><div class="live-dot"></div><span>LIVE</span></div>
+      <div class="h-clock" id="hClock"></div>
+      <button class="icon-btn" id="refreshBtn" onclick="refreshAll()" title="Refresh data">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="15" height="15">
+          <polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/>
+          <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
+        </svg>
+      </button>
+      <button class="logout-btn" onclick="doLogout()">Sign out</button>
+    </div>
+  </header>
+
+  <!-- NAV TABS -->
+  <nav class="nav">
+    <button class="tab active" data-tab="overview" onclick="switchTab('overview',this)">
+      Overview
+    </button>
+    <button class="tab" data-tab="users" onclick="switchTab('users',this)">
+      Users <span class="tab-badge" id="tbUsers">—</span>
+    </button>
+    <button class="tab" data-tab="cohorts" onclick="switchTab('cohorts',this)">
+      Cohorts <span class="tab-badge" id="tbCohorts">—</span>
+    </button>
+    <button class="tab" data-tab="assessments" onclick="switchTab('assessments',this)">
+      CFI Assessments <span class="tab-badge" id="tbCfi">—</span>
+    </button>
+    <button class="tab" data-tab="payments" onclick="switchTab('payments',this)">
+      Payments <span class="tab-badge" id="tbPay">—</span>
+    </button>
+    <button class="tab" data-tab="live" onclick="switchTab('live',this)">
+      Live Feed
+    </button>
+  </nav>
+
+  <!-- MAIN -->
+  <main>
+
+    <!-- ─── OVERVIEW ─── -->
+    <div class="section active" id="sec-overview">
+      <div class="stats-row">
+        <div class="stat-card s-users">
+          <div class="stat-num" id="stUsers">—</div>
+          <div class="stat-lbl">Total Users</div>
+        </div>
+        <div class="stat-card s-prem">
+          <div class="stat-num" id="stPrem">—</div>
+          <div class="stat-lbl">Premium</div>
+        </div>
+        <div class="stat-card s-rev">
+          <div class="stat-num" id="stRev">—</div>
+          <div class="stat-lbl">Revenue (₦)</div>
+        </div>
+        <div class="stat-card s-cohorts">
+          <div class="stat-num" id="stCohorts">—</div>
+          <div class="stat-lbl">Cohorts</div>
+        </div>
+        <div class="stat-card s-cfi">
+          <div class="stat-num" id="stCfi">—</div>
+          <div class="stat-lbl">CFI Taken</div>
+        </div>
+      </div>
+      <div class="two-col">
+        <div class="card">
+          <div class="card-head">
+            <span class="card-title">Recent Registrations</span>
+          </div>
+          <table>
+            <thead><tr><th>Name</th><th>Role</th><th>Plan</th><th>Joined</th></tr></thead>
+            <tbody id="ovRecentUsers">
+              <tr class="loading-row"><td colspan="4"><div class="dots-loader"><span></span><span></span><span></span></div></td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="card">
+          <div class="card-head">
+            <span class="card-title">Recent Payments</span>
+          </div>
+          <table>
+            <thead><tr><th>User</th><th>Amount</th><th>Status</th><th>Date</th></tr></thead>
+            <tbody id="ovRecentPay">
+              <tr class="loading-row"><td colspan="4"><div class="dots-loader"><span></span><span></span><span></span></div></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ─── USERS ─── -->
+    <div class="section" id="sec-users">
+      <div class="sec-header">
+        <div>
+          <div class="sec-title">Users</div>
+          <div class="sec-sub" id="userSubtitle">Loading…</div>
+        </div>
+        <div class="sec-actions">
+          <div class="search-bar">
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            <input type="text" id="userSearch" placeholder="Search users…" oninput="filterUsers()" />
+          </div>
+          <button class="mbtn accent" onclick="exportUsers()">⬇ Export CSV</button>
+        </div>
+      </div>
+      <div class="card">
+        <div class="tbl-scroll">
+          <table>
+            <thead>
+              <tr>
+                <th>Name</th><th>Email</th><th>Organisation</th>
+                <th>Role</th><th>Plan</th><th>Joined</th><th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="usersBody">
+              <tr class="loading-row"><td colspan="7"><div class="dots-loader"><span></span><span></span><span></span></div></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ─── COHORTS ─── -->
+    <div class="section" id="sec-cohorts">
+      <div class="sec-header">
+        <div>
+          <div class="sec-title">Cohorts</div>
+          <div class="sec-sub" id="cohortSubtitle">Loading…</div>
+        </div>
+        <div class="sec-actions">
+          <button class="mbtn accent" onclick="exportCohorts()">⬇ Export CSV</button>
+        </div>
+      </div>
+      <div class="card">
+        <div class="tbl-scroll">
+          <table>
+            <thead>
+              <tr>
+                <th>Cohort Name</th><th>Code</th><th>Organisation</th>
+                <th>Facilitator</th><th>Members</th><th>Status</th><th>Created</th><th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="cohortsBody">
+              <tr class="loading-row"><td colspan="8"><div class="dots-loader"><span></span><span></span><span></span></div></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ─── ASSESSMENTS ─── -->
+    <div class="section" id="sec-assessments">
+      <div class="sec-header">
+        <div>
+          <div class="sec-title">CFI Assessments</div>
+          <div class="sec-sub" id="cfiSubtitle">Loading…</div>
+        </div>
+        <div class="sec-actions">
+          <button class="mbtn accent" onclick="exportCfi()">⬇ Export CSV</button>
+        </div>
+      </div>
+      <div class="card">
+        <div class="tbl-scroll">
+          <table>
+            <thead>
+              <tr>
+                <th>Participant</th><th>Type</th><th>Score</th>
+                <th>Dim A</th><th>Dim B</th><th>Dim C</th><th>Dim D</th><th>Dim E</th>
+                <th>Risk</th><th>Date</th>
+              </tr>
+            </thead>
+            <tbody id="cfiBody">
+              <tr class="loading-row"><td colspan="10"><div class="dots-loader"><span></span><span></span><span></span></div></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ─── PAYMENTS ─── -->
+    <div class="section" id="sec-payments">
+      <div class="sec-header">
+        <div>
+          <div class="sec-title">Payments</div>
+          <div class="sec-sub" id="paySubtitle">Loading…</div>
+        </div>
+        <div class="sec-actions">
+          <button class="mbtn accent" onclick="exportPay()">⬇ Export CSV</button>
+        </div>
+      </div>
+      <div class="card">
+        <div class="tbl-scroll">
+          <table>
+            <thead>
+              <tr>
+                <th>User</th><th>Amount</th><th>Currency</th>
+                <th>Reference</th><th>Gateway</th><th>Status</th><th>Date</th>
+              </tr>
+            </thead>
+            <tbody id="payBody">
+              <tr class="loading-row"><td colspan="7"><div class="dots-loader"><span></span><span></span><span></span></div></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ─── LIVE FEED ─── -->
+    <div class="section" id="sec-live">
+      <div class="feed-grid">
+        <div class="card">
+          <div class="card-head">
+            <span class="card-title">Real-time Activity</span>
+            <button class="mbtn" onclick="clearFeed()">Clear</button>
+          </div>
+          <div class="feed-list" id="feedList">
+            <div class="empty-state">
+              <div class="empty-ico">📡</div>
+              <p>Listening for live events…</p>
+            </div>
+          </div>
+        </div>
+        <div>
+          <div class="live-side-card">
+            <div class="card-head"><span class="card-title">Session Counts</span></div>
+            <div class="live-side-row"><span class="live-side-lbl">CFI Submissions</span><span class="live-side-val" id="lsCfi">0</span></div>
+            <div class="live-side-row"><span class="live-side-lbl">Lesson Completions</span><span class="live-side-val" id="lsLesson">0</span></div>
+            <div class="live-side-row"><span class="live-side-lbl">Certificates Issued</span><span class="live-side-val" id="lsCert">0</span></div>
+            <div class="live-side-row"><span class="live-side-lbl">New Sign-ups</span><span class="live-side-val" id="lsUser">0</span></div>
+            <div class="live-side-row"><span class="live-side-lbl">Payments</span><span class="live-side-val" id="lsPay">0</span></div>
+          </div>
+          <div class="live-side-card" style="margin-top:12px;">
+            <div class="card-head"><span class="card-title">Snapshot</span></div>
+            <div class="live-side-row"><span class="live-side-lbl">Total Users</span><span class="live-side-val" id="snUsers">—</span></div>
+            <div class="live-side-row"><span class="live-side-lbl">Premium Users</span><span class="live-side-val" id="snPrem">—</span></div>
+            <div class="live-side-row"><span class="live-side-lbl">Revenue (₦)</span><span class="live-side-val" id="snRev">—</span></div>
+            <div class="live-side-row"><span class="live-side-lbl">Assessments</span><span class="live-side-val" id="snCfi">—</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div><!-- /shell -->
+
+<!-- TOAST -->
+<div class="toast" id="toast">
+  <div class="toast-dot info" id="toastDot"></div>
+  <span id="toastMsg"></span>
+</div>
+
+<!-- CONFIRM MODAL -->
+<div class="modal-bg" id="modalBg">
+  <div class="modal">
+    <h3 id="modalTitle">Confirm Action</h3>
+    <p id="modalBody">Are you sure?</p>
+    <div class="modal-row">
+      <button class="modal-btn cancel" onclick="closeModal()">Cancel</button>
+      <button class="modal-btn confirm" id="modalConfirm">Confirm</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ════════════════════════════════════════════
+//  CONFIG — edit these if needed
+// ════════════════════════════════════════════
+const ADMIN_PIN = '2026';
+const SURL = 'https://civwcmteqidppscbpqni.supabase.co';
+const SKEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNpdndjbXRlcWlkcHBzY2JwcW5pIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM5Mjc3MDYsImV4cCI6MjA4OTUwMzcwNn0.kRaEGNQw-vsXE9NaSExO3RC4KyHzV3kl9JpnKzDN2Sk';
+
+// ════════════════════════════════════════════
+//  STATE
+// ════════════════════════════════════════════
+let sb = null;
+let allUsersData     = [];
+let allCohortsData   = [];
+let allCfiData       = [];
+let allPayData       = [];
+let liveCounts       = {cfi:0, lesson:0, cert:0, user:0, pay:0};
+let realtimeSub      = null;
+let modalCallback    = null;
+
+// ════════════════════════════════════════════
+//  PIN
+// ════════════════════════════════════════════
+function checkPin() {
+  const val = document.getElementById('pinInput').value.trim();
+  const err = document.getElementById('pinErr');
+  if (val === ADMIN_PIN) {
+    const screen = document.getElementById('pinScreen');
+    screen.classList.add('hiding');
+    setTimeout(() => {
+      screen.style.display = 'none';
+      document.getElementById('appShell').style.display = 'flex';
+    }, 380);
+    sessionStorage.setItem('nf_admin','1');
+    init();
+  } else {
+    err.textContent = 'Incorrect PIN. Try again.';
+    const inp = document.getElementById('pinInput');
+    inp.classList.add('shake');
+    inp.value = '';
+    setTimeout(() => inp.classList.remove('shake'), 400);
+    inp.focus();
+  }
+}
+
+// Auto-restore session
+if (sessionStorage.getItem('nf_admin') === '1') {
+  document.getElementById('pinScreen').style.display = 'none';
+  document.getElementById('appShell').style.display = 'flex';
+  window.addEventListener('load', init);
+}
+
+function doLogout() {
+  sessionStorage.removeItem('nf_admin');
+  document.getElementById('appShell').style.display = 'none';
+  document.getElementById('pinInput').value = '';
+  document.getElementById('pinErr').textContent = '';
+  document.getElementById('pinScreen').style.display = 'flex';
+  if (realtimeSub) { try { sb.removeChannel(realtimeSub); } catch(e) {} }
+}
+
+// ════════════════════════════════════════════
+//  INIT
+// ════════════════════════════════════════════
+async function init() {
+  sb = supabase.createClient(SURL, SKEY);
+  startClock();
+  await loadAll();
+  subscribeRealtime();
+}
+
+function startClock() {
+  const tick = () => {
+    document.getElementById('hClock').textContent =
+      new Date().toLocaleTimeString('en-GB', {hour:'2-digit',minute:'2-digit',second:'2-digit'});
+  };
+  tick();
+  setInterval(tick, 1000);
+}
+
+// ════════════════════════════════════════════
+//  TABS
+// ════════════════════════════════════════════
+function switchTab(id, btn) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('sec-' + id).classList.add('active');
+  btn.classList.add('active');
+}
+
+// ════════════════════════════════════════════
+//  LOAD ALL DATA
+// ════════════════════════════════════════════
+async function loadAll() {
+  setRefreshSpin(true);
+  await Promise.all([loadUsers(), loadCohorts(), loadCfi(), loadPayments()]);
+  updateStats();
+  renderOverview();
+  setRefreshSpin(false);
+  toast('Data refreshed', 'ok');
+}
+
+async function refreshAll() {
+  await loadAll();
+}
+
+function setRefreshSpin(on) {
+  document.getElementById('refreshBtn').classList.toggle('spinning', on);
+}
+
+// ── TABLE: profiles / users ──
+async function loadUsers() {
+  try {
+    // Try 'profiles' first, fall back to 'users'
+    let { data, error } = await sb.from('profiles').select('*').order('created_at', { ascending: false });
+    if (error) {
+      const r2 = await sb.from('users').select('*').order('created_at', { ascending: false });
+      if (r2.error) throw r2.error;
+      data = r2.data;
+    }
+    allUsersData = data || [];
+  } catch(e) {
+    allUsersData = [];
+    console.warn('Users table error:', e.message);
+  }
+  renderUsers();
+}
+
+// ── TABLE: cohorts ──
+async function loadCohorts() {
+  try {
+    const { data, error } = await sb.from('cohorts').select('*').order('created_at', { ascending: false });
+    if (error) throw error;
+    allCohortsData = data || [];
+  } catch(e) {
+    allCohortsData = [];
+    console.warn('Cohorts table error:', e.message);
+  }
+  renderCohorts();
+}
+
+// ── TABLE: cfi_results / cfi_submissions / assessments ──
+async function loadCfi() {
+  const tables = ['cfi_results', 'cfi_submissions', 'assessments', 'cfi_assessments'];
+  let found = false;
+  for (const t of tables) {
+    try {
+      const { data, error } = await sb.from(t).select('*').order('created_at', { ascending: false });
+      if (!error) { allCfiData = data || []; found = true; break; }
+    } catch(e) {}
+  }
+  if (!found) allCfiData = [];
+  renderCfi();
+}
+
+// ── TABLE: payments ──
+async function loadPayments() {
+  try {
+    const { data, error } = await sb.from('payments').select('*').order('created_at', { ascending: false });
+    if (error) throw error;
+    allPayData = data || [];
+  } catch(e) {
+    allPayData = [];
+    console.warn('Payments table error:', e.message);
+  }
+  renderPayments();
+}
+
+// ════════════════════════════════════════════
+//  STATS
+// ════════════════════════════════════════════
+function updateStats() {
+  const totalUsers = allUsersData.length;
+  const premCount  = allUsersData.filter(u => u.is_premium || u.premium).length;
+  const revTotal   = allPayData
+    .filter(p => (p.status || '').toLowerCase() === 'success' || (p.status || '').toLowerCase() === 'completed')
+    .reduce((s, p) => s + (parseFloat(p.amount) || 0), 0);
+  const cohortCount = allCohortsData.length;
+  const cfiCount    = allCfiData.length;
+
+  animNum('stUsers',  totalUsers);
+  animNum('stPrem',   premCount);
+  document.getElementById('stRev').textContent = fmtNum(revTotal);
+  animNum('stCohorts', cohortCount);
+  animNum('stCfi',    cfiCount);
+
+  // tab badges
+  setText('tbUsers',   totalUsers);
+  setText('tbCohorts', cohortCount);
+  setText('tbCfi',     cfiCount);
+  setText('tbPay',     allPayData.length);
+
+  // live snapshot
+  setText('snUsers', totalUsers);
+  setText('snPrem',  premCount);
+  setText('snRev',   fmtNum(revTotal));
+  setText('snCfi',   cfiCount);
+
+  // subtitle lines
+  document.getElementById('userSubtitle').textContent =
+    `${totalUsers} registered · ${premCount} premium`;
+  document.getElementById('cohortSubtitle').textContent =
+    `${cohortCount} cohorts total`;
+  document.getElementById('cfiSubtitle').textContent =
+    `${cfiCount} submissions recorded`;
+  document.getElementById('paySubtitle').textContent =
+    `${allPayData.length} transactions · ₦${fmtNum(revTotal)} confirmed`;
+}
+
+function animNum(id, target) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  const start = parseInt(el.textContent) || 0;
+  const diff = target - start;
+  if (diff === 0) { el.textContent = target; return; }
+  const steps = 20;
+  let step = 0;
+  const timer = setInterval(() => {
+    step++;
+    el.textContent = Math.round(start + diff * (step / steps));
+    if (step >= steps) { el.textContent = target; clearInterval(timer); }
+  }, 18);
+}
+
+function fmtNum(n) {
+  if (n >= 1000000) return (n/1000000).toFixed(1) + 'M';
+  if (n >= 1000) return (n/1000).toFixed(1) + 'k';
+  return Math.round(n).toString();
+}
+function setText(id, v) { const el = document.getElementById(id); if(el) el.textContent = v; }
+
+// ════════════════════════════════════════════
+//  OVERVIEW
+// ════════════════════════════════════════════
+function renderOverview() {
+  // recent users (top 5)
+  const tbody = document.getElementById('ovRecentUsers');
+  const slice = allUsersData.slice(0, 5);
+  if (!slice.length) {
+    tbody.innerHTML = `<tr><td colspan="4"><div class="empty-state"><p>No users yet</p></div></td></tr>`;
+  } else {
+    tbody.innerHTML = slice.map(u => `
+      <tr>
+        <td class="strong">${esc(fullName(u))}</td>
+        <td>${roleBadge(u.role)}</td>
+        <td>${premBadge(u)}</td>
+        <td class="mono">${fmtDate(u.created_at)}</td>
+      </tr>`).join('');
+  }
+
+  // recent payments (top 5)
+  const ptbody = document.getElementById('ovRecentPay');
+  const pslice = allPayData.slice(0, 5);
+  if (!pslice.length) {
+    ptbody.innerHTML = `<tr><td colspan="4"><div class="empty-state"><p>No payments yet</p></div></td></tr>`;
+  } else {
+    ptbody.innerHTML = pslice.map(p => `
+      <tr>
+        <td class="strong">${esc(payUser(p))}</td>
+        <td class="mono">₦${fmtNum(parseFloat(p.amount)||0)}</td>
+        <td>${payStatus(p.status)}</td>
+        <td class="mono">${fmtDate(p.created_at)}</td>
+      </tr>`).join('');
+  }
+}
+
+// ════════════════════════════════════════════
+//  USERS TABLE
+// ════════════════════════════════════════════
+let usersFiltered = [];
+
+function renderUsers(data) {
+  usersFiltered = data || allUsersData;
+  const tbody = document.getElementById('usersBody');
+  if (!usersFiltered.length) {
+    tbody.innerHTML = `<tr><td colspan="7"><div class="empty-state"><div class="empty-ico">👤</div><p>No users found</p></div></td></tr>`;
+    return;
+  }
+  tbody.innerHTML = usersFiltered.map(u => `
+    <tr>
+      <td class="strong">${esc(fullName(u))}</td>
+      <td class="mono">${esc(u.email || '—')}</td>
+      <td>${esc(u.organisation || u.org || '—')}</td>
+      <td>${roleBadge(u.role)}</td>
+      <td>${premBadge(u)}</td>
+      <td class="mono">${fmtDate(u.created_at)}</td>
+      <td>
+        ${(u.is_premium || u.premium)
+          ? `<button class="mbtn danger" onclick="revokeAccess('${u.id}')">Revoke</button>`
+          : `<button class="mbtn ok" onclick="grantAccess('${u.id}')">Grant Premium</button>`
+        }
+        <button class="mbtn danger" onclick="confirmDelete('${u.id}','${esc(fullName(u))}')">Delete</button>
+      </td>
+    </tr>`).join('');
+}
+
+function filterUsers() {
+  const q = document.getElementById('userSearch').value.toLowerCase();
+  if (!q) { renderUsers(); return; }
+  renderUsers(allUsersData.filter(u =>
+    (fullName(u) + ' ' + (u.email||'') + ' ' + (u.organisation||'') + ' ' + (u.org||'')).toLowerCase().includes(q)
+  ));
+}
+
+async function grantAccess(id) {
+  const tables = ['profiles','users'];
+  for (const t of tables) {
+    const { error } = await sb.from(t).update({ is_premium: true, premium: true }).eq('id', id);
+    if (!error) {
+      toast('Premium access granted ✓', 'ok');
+      await loadUsers();
+      updateStats();
+      return;
+    }
+  }
+  toast('Could not update user', 'err');
+}
+
+async function revokeAccess(id) {
+  confirm2('Revoke premium access?', 'The user will lose access to paid lessons immediately.', async () => {
+    const tables = ['profiles','users'];
+    for (const t of tables) {
+      const { error } = await sb.from(t).update({ is_premium: false, premium: false }).eq('id', id);
+      if (!error) { toast('Premium revoked', 'info'); await loadUsers(); updateStats(); return; }
+    }
+    toast('Could not update user', 'err');
+  });
+}
+
+async function confirmDelete(id, name) {
+  confirm2(`Delete "${name}"?`, 'This will permanently remove the user account. This cannot be undone.', async () => {
+    const tables = ['profiles','users'];
+    for (const t of tables) {
+      const { error } = await sb.from(t).delete().eq('id', id);
+      if (!error) { toast(`${name} deleted`, 'err'); await loadUsers(); updateStats(); return; }
+    }
+    toast('Delete failed — check RLS policies', 'err');
+  });
+}
+
+function exportUsers() {
+  downloadCSV(usersFiltered.map(u => ({
+    Name: fullName(u), Email: u.email, Organisation: u.organisation || u.org || '',
+    Role: u.role || '', Premium: (u.is_premium || u.premium) ? 'Yes' : 'No',
+    Joined: u.created_at
+  })), 'nf-users');
+}
+
+// ════════════════════════════════════════════
+//  COHORTS TABLE
+// ════════════════════════════════════════════
+function renderCohorts() {
+  const tbody = document.getElementById('cohortsBody');
+  if (!allCohortsData.length) {
+    tbody.innerHTML = `<tr><td colspan="8"><div class="empty-state"><div class="empty-ico">🏢</div><p>No cohorts yet</p></div></td></tr>`;
+    return;
+  }
+  tbody.innerHTML = allCohortsData.map(c => `
+    <tr>
+      <td class="strong">${esc(c.name || c.cohort_name || '—')}</td>
+      <td class="mono">${esc(c.code || c.cohort_code || '—')}</td>
+      <td>${esc(c.organisation || c.org || '—')}</td>
+      <td>${esc(c.facilitator_name || c.facilitator || '—')}</td>
+      <td class="mono">${c.member_count || c.members || '—'}</td>
+      <td>${cohortStatus(c.status || c.is_active)}</td>
+      <td class="mono">${fmtDate(c.created_at)}</td>
+      <td>
+        <button class="mbtn" onclick="copyCohortCode('${esc(c.code || c.cohort_code || '')}')">Copy Code</button>
+        <button class="mbtn danger" onclick="deleteCohort('${c.id}','${esc(c.name||'')}')">Delete</button>
+      </td>
+    </tr>`).join('');
+}
+
+function copyCohortCode(code) {
+  if (!code) return;
+  navigator.clipboard.writeText(code).then(() => toast(`Copied: ${code}`, 'ok'));
+}
+
+async function deleteCohort(id, name) {
+  confirm2(`Delete cohort "${name}"?`, 'Members will lose cohort association.', async () => {
+    const { error } = await sb.from('cohorts').delete().eq('id', id);
+    if (!error) { toast('Cohort deleted', 'info'); await loadCohorts(); updateStats(); }
+    else toast('Delete failed', 'err');
+  });
+}
+
+function exportCohorts() {
+  downloadCSV(allCohortsData.map(c => ({
+    Name: c.name || c.cohort_name || '',
+    Code: c.code || c.cohort_code || '',
+    Organisation: c.organisation || c.org || '',
+    Facilitator: c.facilitator_name || c.facilitator || '',
+    Status: c.status || '',
+    Created: c.created_at
+  })), 'nf-cohorts');
+}
+
+// ════════════════════════════════════════════
+//  CFI TABLE
+// ════════════════════════════════════════════
+function renderCfi() {
+  const tbody = document.getElementById('cfiBody');
+  if (!allCfiData.length) {
+    tbody.innerHTML = `<tr><td colspan="10"><div class="empty-state"><div class="empty-ico">📊</div><p>No CFI submissions yet</p></div></td></tr>`;
+    return;
+  }
+  tbody.innerHTML = allCfiData.map(r => {
+    const score = parseFloat(r.total_score || r.score || 0);
+    return `
+    <tr>
+      <td class="strong">${esc(r.participant_name || r.name || r.user_name || '—')}</td>
+      <td>${cfiType(r.assessment_type || r.type)}</td>
+      <td class="mono" style="color:${scoreColor(score)}">${score.toFixed(1)}</td>
+      <td class="mono">${fmt1(r.dim_a || r.dimension_a || r.a)}</td>
+      <td class="mono">${fmt1(r.dim_b || r.dimension_b || r.b)}</td>
+      <td class="mono">${fmt1(r.dim_c || r.dimension_c || r.c)}</td>
+      <td class="mono">${fmt1(r.dim_d || r.dimension_d || r.d)}</td>
+      <td class="mono">${fmt1(r.dim_e || r.dimension_e || r.e)}</td>
+      <td>${riskBadge(score)}</td>
+      <td class="mono">${fmtDate(r.created_at)}</td>
+    </tr>`;
+  }).join('');
+}
+
+function exportCfi() {
+  downloadCSV(allCfiData.map(r => ({
+    Participant: r.participant_name || r.name || r.user_name || '',
+    Type: r.assessment_type || r.type || '',
+    Score: r.total_score || r.score || '',
+    DimA: r.dim_a || r.dimension_a || r.a || '',
+    DimB: r.dim_b || r.dimension_b || r.b || '',
+    DimC: r.dim_c || r.dimension_c || r.c || '',
+    DimD: r.dim_d || r.dimension_d || r.d || '',
+    DimE: r.dim_e || r.dimension_e || r.e || '',
+    Date: r.created_at
+  })), 'nf-cfi-results');
+}
+
+// ════════════════════════════════════════════
+//  PAYMENTS TABLE
+// ════════════════════════════════════════════
+function renderPayments() {
+  const tbody = document.getElementById('payBody');
+  if (!allPayData.length) {
+    tbody.innerHTML = `<tr><td colspan="7"><div class="empty-state"><div class="empty-ico">💳</div><p>No payments yet</p></div></td></tr>`;
+    return;
+  }
+  tbody.innerHTML = allPayData.map(p => `
+    <tr>
+      <td class="strong">${esc(payUser(p))}</td>
+      <td class="mono">₦${(parseFloat(p.amount)||0).toLocaleString()}</td>
+      <td class="mono">${esc(p.currency || 'NGN')}</td>
+      <td class="mono" style="font-size:10px;">${esc(p.reference || p.tx_ref || p.ref || '—')}</td>
+      <td>${esc(p.gateway || p.provider || '—')}</td>
+      <td>${payStatus(p.status)}</td>
+      <td class="mono">${fmtDate(p.created_at)}</td>
+    </tr>`).join('');
+}
+
+function exportPay() {
+  downloadCSV(allPayData.map(p => ({
+    User: payUser(p), Amount: p.amount, Currency: p.currency || 'NGN',
+    Reference: p.reference || p.tx_ref || p.ref || '',
+    Gateway: p.gateway || p.provider || '',
+    Status: p.status, Date: p.created_at
+  })), 'nf-payments');
+}
+
+// ════════════════════════════════════════════
+//  REALTIME SUBSCRIPTIONS
+// ════════════════════════════════════════════
+function subscribeRealtime() {
+  if (!sb) return;
+  try {
+    // Subscribe to multiple tables
+    const tables = ['profiles','users','cfi_results','cfi_submissions','assessments','payments','cohorts'];
+    tables.forEach(tbl => {
+      sb.channel(`rt-${tbl}`)
+        .on('postgres_changes', { event: '*', schema: 'public', table: tbl }, payload => {
+          handleRealtimeEvent(tbl, payload);
+        })
+        .subscribe();
+    });
+  } catch(e) {
+    console.warn('Realtime subscription error:', e);
+  }
+}
+
+function handleRealtimeEvent(table, payload) {
+  const ev = payload.eventType;
+  const rec = payload.new || payload.old || {};
+  const now = new Date().toLocaleTimeString('en-GB', {hour:'2-digit',minute:'2-digit',second:'2-digit'});
+
+  let type, icon, iconClass, title, detail;
+
+  if (table === 'profiles' || table === 'users') {
+    if (ev === 'INSERT') {
+      type='ev-user'; icon='👤'; iconClass='user';
+      title='New Registration'; detail = fullName(rec) || rec.email || 'Unknown';
+      liveCounts.user++;
+      setText('lsUser', liveCounts.user);
+      allUsersData.unshift(rec);
+      updateStats(); renderUsers(); renderOverview();
+    }
+  } else if (table.includes('cfi') || table === 'assessments') {
+    if (ev === 'INSERT') {
+      type='ev-cfi'; icon='🧠'; iconClass='cfi';
+      title='CFI Submitted'; detail = rec.participant_name || rec.name || 'Participant';
+      liveCounts.cfi++;
+      setText('lsCfi', liveCounts.cfi);
+      allCfiData.unshift(rec);
+      updateStats(); renderCfi();
+    }
+  } else if (table === 'payments') {
+    if (ev === 'INSERT' || ev === 'UPDATE') {
+      type='ev-pay'; icon='💳'; iconClass='pay';
+      title='Payment ' + (ev === 'INSERT' ? 'Received' : 'Updated');
+      detail = `₦${(parseFloat(rec.amount)||0).toLocaleString()}`;
+      liveCounts.pay++;
+      setText('lsPay', liveCounts.pay);
+      if (ev === 'INSERT') allPayData.unshift(rec);
+      updateStats(); renderPayments(); renderOverview();
+    }
+  } else if (table === 'cohorts') {
+    if (ev === 'INSERT') {
+      type='ev-user'; icon='🏢'; iconClass='user';
+      title='New Cohort'; detail = rec.name || rec.cohort_name || 'Untitled';
+      allCohortsData.unshift(rec);
+      updateStats(); renderCohorts();
+    }
+  }
+
+  if (type) addFeedEvent({ type, icon, iconClass, title, detail, time: now });
+}
+
+function addFeedEvent({ type, icon, iconClass, title, detail, time }) {
+  const list = document.getElementById('feedList');
+  const empty = list.querySelector('.empty-state');
+  if (empty) empty.remove();
+
+  const el = document.createElement('div');
+  el.className = `event ${type}`;
+  el.innerHTML = `
+    <div class="ev-ico ${iconClass}">${icon}</div>
+    <div class="ev-body">
+      <div class="ev-row">
+        <span class="ev-title">${esc(title)}</span>
+        <span class="ev-time">${time}</span>
+      </div>
+      <div class="ev-detail">${esc(detail)}</div>
+    </div>`;
+  list.insertBefore(el, list.firstChild);
+  // keep max 40
+  while (list.children.length > 40) list.removeChild(list.lastChild);
+}
+
+function clearFeed() {
+  document.getElementById('feedList').innerHTML =
+    `<div class="empty-state"><div class="empty-ico">📡</div><p>Feed cleared. Listening…</p></div>`;
+}
+
+// ════════════════════════════════════════════
+//  HELPERS
+// ════════════════════════════════════════════
+function esc(s) {
+  return String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+function fullName(u) {
+  if (u.full_name) return u.full_name;
+  if (u.name) return u.name;
+  if (u.first_name || u.last_name) return ((u.first_name||'')+' '+(u.last_name||'')).trim();
+  return u.email || '—';
+}
+function payUser(p) {
+  return p.user_name || p.full_name || p.name || p.email || p.user_id || '—';
+}
+function fmtDate(s) {
+  if (!s) return '—';
+  try {
+    return new Date(s).toLocaleDateString('en-GB', {day:'2-digit',month:'short',year:'numeric'});
+  } catch(e) { return s; }
+}
+function fmt1(v) { return v != null ? parseFloat(v).toFixed(1) : '—'; }
+function scoreColor(n) {
+  if (n >= 70) return '#fca5a5';
+  if (n >= 40) return '#fcd34d';
+  return '#6ee7b7';
+}
+
+function roleBadge(r) {
+  const roles = { admin:'b-admin', facilitator:'b-fac', participant:'b-part', fac:'b-fac', part:'b-part' };
+  const cls = roles[(r||'participant').toLowerCase()] || 'b-part';
+  return `<span class="badge ${cls}">${r || 'participant'}</span>`;
+}
+function premBadge(u) {
+  const p = u.is_premium || u.premium;
+  return p
+    ? `<span class="badge b-prem">Premium</span>`
+    : `<span class="badge b-free">Free</span>`;
+}
+function cohortStatus(s) {
+  if (s === true || s === 'active') return `<span class="badge b-active">Active</span>`;
+  if (s === false || s === 'ended') return `<span class="badge b-ended">Ended</span>`;
+  return `<span class="badge b-free">${s || 'Active'}</span>`;
+}
+function cfiType(t) {
+  if (!t) return `<span class="badge b-pre">Pre</span>`;
+  const l = t.toLowerCase();
+  if (l.includes('post')) return `<span class="badge b-post">Post</span>`;
+  return `<span class="badge b-pre">Pre</span>`;
+}
+function riskBadge(score) {
+  if (score >= 70) return `<span class="badge b-hi">High</span>`;
+  if (score >= 40) return `<span class="badge b-med">Medium</span>`;
+  return `<span class="badge b-lo">Low</span>`;
+}
+function payStatus(s) {
+  const l = (s||'').toLowerCase();
+  if (l === 'success' || l === 'completed' || l === 'paid') return `<span class="badge b-ok">Success</span>`;
+  if (l === 'failed' || l === 'cancelled') return `<span class="badge b-fail">Failed</span>`;
+  return `<span class="badge b-free">${s || 'Pending'}</span>`;
+}
+
+// ════════════════════════════════════════════
+//  CSV EXPORT
+// ════════════════════════════════════════════
+function downloadCSV(rows, filename) {
+  if (!rows.length) { toast('No data to export', 'err'); return; }
+  const keys = Object.keys(rows[0]);
+  const csv = [keys.join(','), ...rows.map(r =>
+    keys.map(k => `"${String(r[k]||'').replace(/"/g,'""')}"`).join(',')
+  )].join('\n');
+  const blob = new Blob([csv], { type: 'text/csv' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `${filename}-${new Date().toISOString().slice(0,10)}.csv`;
+  a.click();
+  toast(`Exported ${rows.length} rows`, 'ok');
+}
+
+// ════════════════════════════════════════════
+//  TOAST
+// ════════════════════════════════════════════
+let toastTimer = null;
+function toast(msg, type='info') {
+  const el = document.getElementById('toast');
+  const dot = document.getElementById('toastDot');
+  const txt = document.getElementById('toastMsg');
+  dot.className = `toast-dot ${type}`;
+  txt.textContent = msg;
+  el.classList.add('show');
+  if (toastTimer) clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.classList.remove('show'), 2800);
+}
+
+// ════════════════════════════════════════════
+//  CONFIRM MODAL
+// ════════════════════════════════════════════
+function confirm2(title, body, cb) {
+  document.getElementById('modalTitle').textContent = title;
+  document.getElementById('modalBody').textContent = body;
+  modalCallback = cb;
+  document.getElementById('modalBg').classList.add('open');
+}
+document.getElementById('modalConfirm').addEventListener('click', () => {
+  closeModal();
+  if (modalCallback) modalCallback();
+});
+function closeModal() {
+  document.getElementById('modalBg').classList.remove('open');
+  modalCallback = null;
+}
+document.getElementById('modalBg').addEventListener('click', e => {
+  if (e.target === document.getElementById('modalBg')) closeModal();
+});
+</script>
+</body>
+</html>
