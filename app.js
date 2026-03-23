@@ -91,9 +91,6 @@ function goAuth(mode){
   document.getElementById('authSwB').textContent=mode==='login'?'Sign up':'Sign in';
   document.getElementById('authErr').style.display='none';
   show('auth');
-}
-function switchAuth(){goAuth(S.authMode==='login'?'signup':'login');}
-function setRole(r){S.role=r;document.getElementById('rP').classList.toggle('active',r==='participant');document.getElementById('rF').classList.toggle('active',r==='facilitator');}
 
 async function submitAuth(){
   const email=document.getElementById('aEmail').value.trim(),pass=document.getElementById('aPass').value;
@@ -106,15 +103,11 @@ async function submitAuth(){
       const{data,error:e}=await sb.auth.signUp({email,password:pass,options:{data:{full_name:name,role:S.role,organisation:org}}});
       if(e)throw e;
       if(data.user)await sb.from('profiles').upsert({id:data.user.id,full_name:name,role:S.role,organisation:org,is_premium:false});
-      // If no session, email confirmation is required
       if(!data.session){
         btn.textContent='Create Account';btn.disabled=false;
         const errEl=document.getElementById('authErr');
-        errEl.style.display='block';
-        errEl.style.color='#10B981';
-        errEl.style.background='#D1FAE5';
-        errEl.style.borderRadius='8px';
-        errEl.style.padding='12px';
+        errEl.style.display='block';errEl.style.color='#10B981';
+        errEl.style.background='#D1FAE5';errEl.style.borderRadius='8px';errEl.style.padding='12px';
         errEl.textContent='✅ Account created! Check your email and click the confirmation link before signing in.';
         return;
       }
@@ -123,10 +116,27 @@ async function submitAuth(){
       if(e)throw e;
     }
     await initUser();
+
+    // Flush pending CFI score if user completed CFI as a guest
+    if(sb&&S.user&&S._pendingCFI){
+      try{
+        const{score,ans,type}=S._pendingCFI;
+        const dims={
+          dim_a:dSc(ans,'A'),dim_b:dSc(ans,'B'),dim_c:dSc(ans,'C'),
+          dim_d:dSc(ans,'D'),dim_e:dSc(ans,'E')
+        };
+        await sb.from('cfi_assessments').insert({
+          participant_id:S.user.id,
+          cohort_id:S.cohort?.id||null,
+          type,answers:ans,total_score:score,...dims
+        });
+        S._pendingCFI=null;
+      }catch(e){console.error('Pending CFI flush failed:',e);}
+    }
+
   }catch(e){err('authErr',e.message);btn.textContent=S.authMode==='signup'?'Create Account':'Sign In';btn.disabled=false;}
 }
-async function signOut(){if(sb)await sb.auth.signOut();Object.assign(S,{user:null,profile:null,cohort:null,certs:[],done:new Set(),preCFI:null,postCFI:null,preA:null,postA:null,premium:false});show('landing');}
-function startFree(){startCFI('pre');}
+        
 
 // INIT
 async function initUser(){
