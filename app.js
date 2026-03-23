@@ -153,32 +153,41 @@ async function initUser(){
 }
 
 // CFI
-function startCFI(type){S.cfiType=type;S.cfiA=new Array(13).fill(null);S.cfiI=0;show('cfi');renderCFI();}
-
-function renderCFI(){
-  const q=CFI[S.cfiI],isP=S.cfiType==='post';
-  document.getElementById('cfiLbl').textContent=isP?'Post-Training CFI':'CFI Assessment';
-  document.getElementById('cfiCnt').textContent=`${S.cfiI+1}/13`;
-  document.getElementById('cfiBar').style.width=`${(S.cfiI/13)*100}%`;
-  const n=document.getElementById('cfiNote');if(isP&&S.preCFI){n.style.display='block';n.textContent=`Your pre-score was ${S.preCFI}.`;}else n.style.display='none';
-  document.getElementById('cfiBk').style.visibility=S.cfiI>0?'visible':'hidden';
-  const nx=document.getElementById('cfiNx');nx.disabled=S.cfiA[S.cfiI]===null;nx.textContent=S.cfiI<12?'Continue →':'Submit';
-  document.getElementById('cfiDim').innerHTML=`<span class="tag" style="background:${DC[q.d]}18;color:${DC[q.d]};">${DL[q.d]}</span>`;
-  document.getElementById('cfiQ').textContent=q.t;
-  document.getElementById('cfiOpts').innerHTML=LABS.map((l,i)=>`<div class="opt${S.cfiA[S.cfiI]===i?' sel':''}" onclick="selCFI(${i})"><div class="opt-dot"><div class="opt-inner"></div></div><span style="font-size:14px;">${l}</span></div>`).join('');
-}
-function selCFI(i){S.cfiA[S.cfiI]=i;renderCFI();}
-function cfiBack(){if(S.cfiI>0){S.cfiI--;renderCFI();}}
 async function cfiNext(){
   if(S.cfiA[S.cfiI]===null)return;
   if(S.cfiI<12){S.cfiI++;renderCFI();}
   else{
     const score=calcCFI(S.cfiA),ans=[...S.cfiA];
     if(S.cfiType==='pre'){S.preCFI=score;S.preA=ans;}else{S.postCFI=score;S.postA=ans;}
-    if(sb&&S.user){const dims={dim_a:dSc(ans,'A'),dim_b:dSc(ans,'B'),dim_c:dSc(ans,'C'),dim_d:dSc(ans,'D'),dim_e:dSc(ans,'E')};await sb.from('cfi_assessments').insert({participant_id:S.user.id,cohort_id:S.cohort?.id||null,type:S.cfiType,answers:ans,total_score:score,...dims});}
+
+    // Save to Supabase if user is signed in
+    if(sb&&S.user){
+      try{
+        const dims={
+          dim_a:dSc(ans,'A'),dim_b:dSc(ans,'B'),dim_c:dSc(ans,'C'),
+          dim_d:dSc(ans,'D'),dim_e:dSc(ans,'E')
+        };
+        const{error}=await sb.from('cfi_assessments').insert({
+          participant_id:S.user.id,
+          cohort_id:S.cohort?.id||null,
+          type:S.cfiType,
+          answers:ans,
+          total_score:score,
+          ...dims
+        });
+        if(error)console.error('CFI save error:',error.message);
+      }catch(e){
+        console.error('CFI save failed:',e);
+      }
+    } else {
+      // Guest: store pending CFI so it can be saved after signup
+      S._pendingCFI={score,ans,type:S.cfiType};
+    }
+
     renderScore(score,ans,S.cfiType);show('score');
   }
 }
+  
 
 // SCORE
 function renderScore(score,ans,type){
