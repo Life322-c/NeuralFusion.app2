@@ -111,6 +111,7 @@ async function submitAuth(){
   try{
     if(S.authMode==='signup'){
       const{data,error:e}=await sb.auth.signUp({email,password:pass,options:{data:{full_name:name,role:S.role,organisation:org}}});
+      redirectTo: 'https://life322-c.github.io/NeuralFusion.app2/'
       if(e)throw e;
       if(data.user)await sb.from('profiles').upsert({id:data.user.id,full_name:name,role:S.role,organisation:org,is_premium:false});
       if(!data.session){
