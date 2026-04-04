@@ -146,7 +146,7 @@ async function sendOTP(){
 async function verifyOTP(){
   const email=document.getElementById('aEmail').value.trim();
   const token=document.getElementById('aOtp').value.trim();
-  if(!token||token.length<6){showAuthMsg('Enter the 6-digit code from your email.',true);return;}
+  if(!token||token.length<8){showAuthMsg('Enter the 8-digit code from your email.',true);return;}
   const btn=document.getElementById('verifyOtpBtn');
   btn.textContent='Verifying…';btn.disabled=true;
   try{
