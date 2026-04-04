@@ -147,9 +147,9 @@
 
     <!-- STEP 2: OTP VERIFY -->
     <div id="otpVerifyStep" style="display:none;">
-      <p style="font-size:14px;color:var(--ink3);line-height:1.7;margin-bottom:4px;">We sent a 6-digit code to</p>
+      <p style="font-size:14px;color:var(--ink3);line-height:1.7;margin-bottom:4px;">We sent a 8-digit code to</p>
       <p id="otpEmailDisplay" style="font-size:14px;font-weight:600;color:var(--ink);margin-bottom:24px;word-break:break-all;"></p>
-      <div class="field"><label class="lbl">Enter Code</label><input id="aOtp" class="inp" type="text" maxlength="6" placeholder="000000" inputmode="numeric" onkeydown="if(event.key==='Enter')verifyOTP()"/></div>
+      <div class="field"><label class="lbl">Enter Code</label><input id="aOtp" class="inp" type="text" maxlength="8" placeholder="00000000" inputmode="numeric" onkeydown="if(event.key==='Enter')verifyOTP()"/></div>
       <button class="btn btn-dark" id="verifyOtpBtn" onclick="verifyOTP()" style="margin-top:4px;">Verify & Continue →</button>
       <div style="text-align:center;margin-top:16px;">
         <button class="btn-ghost" onclick="resetOtpFlow()" style="font-size:13px;color:var(--ink3);">← Use a different email</button>
