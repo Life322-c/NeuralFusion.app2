@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="NeuralFusion™ — Turn mental chaos into clear decisions in 5 minutes. A structural cognitive skill framework invented by Life Edet." />
+  <meta name="author" content="Life Edet" />
+  <meta property="og:title" content="NeuralFusion™ — Cognitive Operating System" />
+  <meta property="og:description" content="Turn mental chaos into clear decisions in 5 minutes. Structured cognitive skill framework." />
+  <meta property="og:type" content="website" />
+  <meta name="theme-color" content="#070F1E" />
+  <title>NeuralFusion™ — Cognitive Operating System</title>
+
+  <!-- ── Fonts ── -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400;1,600&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+
+  <!-- ── Styles ── -->
+  <link rel="stylesheet" href="style.css" />
+
+  <!-- ── React 18 (CDN) ── -->
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+
+  <!-- ── Babel (JSX transform — remove in production if you pre-compile) ── -->
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+  <!-- ── Supabase JS v2 ── -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+
+  <!-- ── Paystack Inline JS ── -->
+  <script src="https://js.paystack.co/v2/inline.js"></script>
+
+  <style>
+    /* Critical above-the-fold paint */
+    html, body { background: #070F1E; margin: 0; padding: 0; }
+    #root { min-height: 100vh; }
+    #splash {
+      position: fixed; inset: 0; background: #070F1E;
+      display: flex; align-items: center; justify-content: center;
+      z-index: 9999; transition: opacity 0.4s ease;
+    }
+    #splash.hidden { opacity: 0; pointer-events: none; }
+    .splash-inner { text-align: center; }
+    .splash-logo {
+      width: 56px; height: 56px; border-radius: 14px;
+      background: linear-gradient(135deg, #C9A84C, #E8D08A);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 28px; margin: 0 auto 16px;
+    }
+    .splash-title {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 26px; color: #F0EDE4; margin-bottom: 8px;
+    }
+    .splash-sub {
+      font-family: 'DM Sans', sans-serif;
+      font-size: 13px; color: #6B7FA0; letter-spacing: 2px;
+    }
+    .splash-bar {
+      width: 160px; height: 2px; background: #112240;
+      border-radius: 2px; margin: 20px auto 0; overflow: hidden;
+    }
+    .splash-fill {
+      height: 100%; background: linear-gradient(90deg, #C9A84C, #E8D08A);
+      border-radius: 2px; animation: splashLoad 1.2s ease forwards;
+    }
+    @keyframes splashLoad {
+      from { width: 0; }
+      to   { width: 100%; }
+    }
+  </style>
+</head>
+
+<body>
+  <!-- ── Splash Screen ── -->
+  <div id="splash">
+    <div class="splash-inner">
+      <div class="splash-logo">⚡</div>
+      <div class="splash-title">NeuralFusion™</div>
+      <div class="splash-sub">COGNITIVE OPERATING SYSTEM</div>
+      <div class="splash-bar"><div class="splash-fill"></div></div>
+    </div>
+  </div>
+
+  <!-- ── React root ── -->
+  <div id="root"></div>
+
+  <!-- ── App (Babel transforms JSX inline) ── -->
+  <script type="text/babel" src="app.js" data-presets="env,react"></script>
+
+  <script>
+    // Hide splash after React mounts
+    window.addEventListener("load", function () {
+      setTimeout(function () {
+        var s = document.getElementById("splash");
+        if (s) {
+          s.classList.add("hidden");
+          setTimeout(function () { s.remove(); }, 450);
+        }
+      }, 1400);
+    });
+  </script>
+</body>
+</html>
