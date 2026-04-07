@@ -221,7 +221,8 @@ function AuthModal({ onClose, onAuthSuccess }) {
     if (error) setMsg({ text: error.message, type: "error" });
     else setMsg({ text: "Account created! Check your email to confirm, then log in.", type: "success" });
   };
-
+redirectTo: 'https://life322-c.github.io/NeuralFusion.app2/' // Redirect after verification
+}
   return (
     <div style={{ position:"fixed", inset:0, background:"rgba(7,15,30,0.96)", zIndex:1000, display:"flex", alignItems:"center", justifyContent:"center", padding:20 }}>
       <div style={{ ...card(), maxWidth:420, width:"100%", padding:"36px 28px", animation:"fadeIn 0.35s ease" }}>
