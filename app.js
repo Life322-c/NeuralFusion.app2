@@ -5,11 +5,11 @@
    ============================================================ */
 
 // ── Supabase Config ──────────────────────────────────────────
-const SUPABASE_URL  = "https://YOUR_PROJECT_ID.supabase.co";
-const SUPABASE_ANON = "YOUR_SUPABASE_ANON_KEY";
+const SUPABASE_URL  = "https://civwcmteqidppscbpqni.supabase.co";
+const SUPABASE_ANON = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNpdndjbXRlcWlkcHBzY2JwcW5pIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM5Mjc3MDYsImV4cCI6MjA4OTUwMzcwNn0.kRaEGNQw-vsXE9NaSExO3RC4KyHzV3kl9JpnKzDN2Sk";
 
 // ── Paystack Config ──────────────────────────────────────────
-const PAYSTACK_PUBLIC_KEY = "pk_live_YOUR_PAYSTACK_PUBLIC_KEY";
+const PAYSTACK_PUBLIC_KEY = "pk_live_dfa71eca29f942cadc337cb8e41834857e2b129b";
 
 // ── Supabase Client ──────────────────────────────────────────
 const { createClient } = supabase;
@@ -1310,7 +1310,7 @@ function Footer({ setView }) {
             {[["FAQ","faq"],["Contact","faq"],["Feedback","faq"]].map(([l,v])=>(
               <button key={l} onClick={()=>setView(v)} style={{ display:"block", background:"none", border:"none", color:T.muted, fontSize:13, cursor:"pointer", marginBottom:8, padding:0, textAlign:"left", ...sans }}>{l}</button>
             ))}
-            <p style={{ color:T.muted, fontSize:12, marginTop:12, ...sans }}>life@neuralfusion.app</p>
+            <p style={{ color:T.muted, fontSize:12, marginTop:12, ...sans }}>edetlife94@gmail.com</p>
           </div>
         </div>
         <div style={{ borderTop:`1px solid ${T.goldBorder}`, paddingTop:24, display:"flex", justifyContent:"space-between", alignItems:"center", flexWrap:"wrap", gap:12 }}>
