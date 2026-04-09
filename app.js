@@ -849,7 +849,8 @@ function CFIView({ setView, items, cfiAnswers, setCfiAnswers, cfiStep, setCfiSte
               ))}
             </div>
           </div>
-          <button onClick={()=>setCfiAnswers({})} style={{ ...goldBtn(), padding:"16px 32px", fontSize:15, width:"100%" }}>
+          <button type=
+"button"onClick={()=>setCfiAnswers({})} style={{ ...goldBtn(), padding:"16px 32px", fontSize:15, width:"100%" }}>
             Begin CFI™ Assessment →
           </button>
         </div>
