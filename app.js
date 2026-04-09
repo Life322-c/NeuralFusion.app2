@@ -1046,7 +1046,7 @@ function UpgradeView({ prices, isPro, setIsPro, setView, user, setShowAuth }) {
 
   const handlePay = () => {
     if (!user) { setShowAuth(true); return; }
-    if (selected==="facilitator") { alert("Facilitator applications are reviewed individually. Please email life@neuralfusion.app"); return; }
+    if (selected==="facilitator") { alert("Facilitator applications are reviewed individually. Please email edetlife94@gmail.com"); return; }
     setPaying(true);
     paystackPay({
       email: user.email,
