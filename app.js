@@ -273,7 +273,7 @@ function AuthModal({ onClose, onAuthSuccess }) {
       password,
       options: {
         data: { full_name: name },
-        emailRedirectTo: "https://life322-c.github.io/NeuralFusion.app2/"
+        emailRedirectTo: "https://neural-fusion-app2.vercel.app/"
       }
     });
     setLoading(false);
