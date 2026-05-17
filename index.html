@@ -1,0 +1,1964 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="NeuralFusion™ — The World's First Cognitive Performance Operating System. Teach individuals how to think using the Four Brains Framework." />
+  <meta name="author" content="Life Edet" />
+  <meta property="og:title" content="NeuralFusion™ — Cognitive Performance Operating System" />
+  <meta property="og:description" content="Most people were never taught HOW to think. NeuralFusion™ changes that." />
+  <meta property="og:type" content="website" />
+  <meta name="theme-color" content="#03060D" />
+  <title>NeuralFusion™ — Cognitive Performance Operating System</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />
+
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --void: #03060D;
+      --deep: #060C18;
+      --surface: #0A1220;
+      --panel: #0E1A2E;
+      --border: rgba(99,179,237,0.1);
+      --border-bright: rgba(99,179,237,0.25);
+
+      --cyan: #63B3ED;
+      --cyan-bright: #90CDF4;
+      --cyan-dim: rgba(99,179,237,0.08);
+      --cyan-glow: rgba(99,179,237,0.15);
+
+      --text: #E8F0FE;
+      --text-muted: #6B82A0;
+      --text-dim: #3D5270;
+
+      /* Four Brains Colors */
+      --analytical: #4FC3F7;
+      --analytical-dim: rgba(79,195,247,0.1);
+      --intuitive: #CE93D8;
+      --intuitive-dim: rgba(206,147,216,0.1);
+      --associative: #80CBC4;
+      --associative-dim: rgba(128,203,196,0.1);
+      --reflective: #FFD54F;
+      --reflective-dim: rgba(255,213,79,0.1);
+
+      --font-display: 'Syne', sans-serif;
+      --font-mono: 'Space Mono', monospace;
+      --font-body: 'Inter', sans-serif;
+    }
+
+    html { scroll-behavior: smooth; }
+    body {
+      background: var(--void);
+      color: var(--text);
+      font-family: var(--font-body);
+      min-height: 100vh;
+      -webkit-font-smoothing: antialiased;
+      overflow-x: hidden;
+    }
+
+    ::-webkit-scrollbar { width: 3px; }
+    ::-webkit-scrollbar-track { background: var(--void); }
+    ::-webkit-scrollbar-thumb { background: rgba(99,179,237,0.2); border-radius: 2px; }
+
+    #root { min-height: 100vh; }
+
+    /* SPLASH */
+    #splash {
+      position: fixed; inset: 0; background: var(--void);
+      display: flex; align-items: center; justify-content: center;
+      z-index: 9999; transition: opacity 0.6s ease;
+    }
+    #splash.hidden { opacity: 0; pointer-events: none; }
+    .splash-inner { text-align: center; }
+    .splash-logo-ring {
+      width: 72px; height: 72px; border-radius: 50%;
+      border: 1px solid rgba(99,179,237,0.3);
+      display: flex; align-items: center; justify-content: center;
+      margin: 0 auto 24px; position: relative;
+      box-shadow: 0 0 40px rgba(99,179,237,0.1), inset 0 0 20px rgba(99,179,237,0.05);
+      animation: ringPulse 2s ease-in-out infinite;
+    }
+    .splash-logo-ring::before {
+      content: ''; position: absolute; inset: -4px; border-radius: 50%;
+      border: 1px solid rgba(99,179,237,0.1);
+    }
+    .splash-neural { font-size: 32px; }
+    .splash-title {
+      font-family: var(--font-display);
+      font-size: 20px; font-weight: 800; color: var(--text);
+      letter-spacing: 2px; margin-bottom: 6px;
+    }
+    .splash-sub {
+      font-family: var(--font-mono);
+      font-size: 9px; color: var(--cyan); letter-spacing: 4px;
+      text-transform: uppercase; margin-bottom: 32px;
+    }
+    .splash-track {
+      width: 200px; height: 1px; background: var(--panel);
+      margin: 0 auto; overflow: hidden; position: relative;
+    }
+    .splash-fill {
+      height: 100%; background: linear-gradient(90deg, transparent, var(--cyan), transparent);
+      animation: scanLine 1.4s ease forwards;
+    }
+    @keyframes scanLine { from { transform: translateX(-100%); } to { transform: translateX(100%); } }
+    @keyframes ringPulse {
+      0%, 100% { box-shadow: 0 0 20px rgba(99,179,237,0.1), inset 0 0 20px rgba(99,179,237,0.05); }
+      50% { box-shadow: 0 0 60px rgba(99,179,237,0.2), inset 0 0 30px rgba(99,179,237,0.1); }
+    }
+
+    /* GLOBAL ANIMATIONS */
+    @keyframes fadeUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
+    @keyframes neuralPulse {
+      0%, 100% { opacity: 0.4; transform: scale(1); }
+      50% { opacity: 1; transform: scale(1.05); }
+    }
+    @keyframes scanH {
+      0% { transform: translateX(-100%); opacity: 0; }
+      20% { opacity: 1; }
+      80% { opacity: 1; }
+      100% { transform: translateX(100%); opacity: 0; }
+    }
+    @keyframes rotate { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+    @keyframes counterRotate { from { transform: rotate(0deg); } to { transform: rotate(-360deg); } }
+    @keyframes orbitDot {
+      from { transform: rotate(0deg) translateX(40px) rotate(0deg); }
+      to   { transform: rotate(360deg) translateX(40px) rotate(-360deg); }
+    }
+    @keyframes gridShimmer {
+      0%, 100% { opacity: 0.03; }
+      50% { opacity: 0.06; }
+    }
+    @keyframes dataStream {
+      0% { transform: translateY(0); opacity: 1; }
+      100% { transform: translateY(-100%); opacity: 0; }
+    }
+    @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
+    @keyframes progressFill { from { width: 0; } to { width: var(--target-width, 70%); } }
+    @keyframes ringDraw {
+      from { stroke-dasharray: 0, 283; }
+      to { stroke-dasharray: var(--dash, 200), 283; }
+    }
+
+    .fade-up { animation: fadeUp 0.6s ease both; }
+    .fade-in { animation: fadeIn 0.4s ease both; }
+
+    button { cursor: pointer; transition: all 0.2s ease; border: none; outline: none; }
+    button:active:not(:disabled) { transform: scale(0.97); }
+
+    .btn-primary {
+      background: var(--cyan);
+      color: var(--void);
+      font-family: var(--font-display);
+      font-weight: 700;
+      font-size: 13px;
+      letter-spacing: 1px;
+      padding: 14px 28px;
+      border-radius: 2px;
+      border: none;
+      text-transform: uppercase;
+      position: relative;
+      overflow: hidden;
+    }
+    .btn-primary::after {
+      content: ''; position: absolute; inset: 0;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+      transform: translateX(-100%); transition: transform 0.4s;
+    }
+    .btn-primary:hover::after { transform: translateX(100%); }
+    .btn-primary:hover { background: var(--cyan-bright); }
+
+    .btn-outline {
+      background: transparent;
+      color: var(--cyan);
+      font-family: var(--font-mono);
+      font-size: 11px;
+      letter-spacing: 2px;
+      padding: 12px 24px;
+      border: 1px solid var(--border-bright);
+      border-radius: 2px;
+      text-transform: uppercase;
+    }
+    .btn-outline:hover {
+      background: var(--cyan-dim);
+      border-color: var(--cyan);
+    }
+
+    .btn-ghost {
+      background: none; border: none;
+      color: var(--text-muted); font-family: var(--font-body);
+      font-size: 13px;
+    }
+    .btn-ghost:hover { color: var(--text); }
+
+    /* INPUT */
+    input, textarea, select {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 2px;
+      color: var(--text);
+      font-family: var(--font-body);
+      font-size: 14px;
+      padding: 12px 16px;
+      width: 100%;
+      outline: none;
+      transition: border-color 0.2s;
+      resize: none;
+    }
+    input:focus, textarea:focus { border-color: var(--cyan); }
+    input::placeholder, textarea::placeholder { color: var(--text-dim); }
+
+    /* CARD */
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+    }
+    .card-glass {
+      background: rgba(10,18,32,0.7);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      backdrop-filter: blur(20px);
+    }
+
+    /* LABEL */
+    .label {
+      font-family: var(--font-mono);
+      font-size: 9px;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: var(--cyan);
+    }
+
+    /* GRID BG */
+    .grid-bg {
+      background-image:
+        linear-gradient(rgba(99,179,237,0.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(99,179,237,0.04) 1px, transparent 1px);
+      background-size: 40px 40px;
+      animation: gridShimmer 4s ease-in-out infinite;
+    }
+
+    /* SCROLLBAR for panels */
+    .scroll-panel::-webkit-scrollbar { width: 2px; }
+    .scroll-panel::-webkit-scrollbar-thumb { background: var(--border); }
+  </style>
+</head>
+<body>
+  <div id="splash">
+    <div class="splash-inner">
+      <div class="splash-logo-ring">
+        <span class="splash-neural">◈</span>
+      </div>
+      <div class="splash-title">NEURALFUSION™</div>
+      <div class="splash-sub">Cognitive Performance OS · v3.0</div>
+      <div class="splash-track"><div class="splash-fill"></div></div>
+    </div>
+  </div>
+
+  <div id="root"></div>
+
+  <script type="text/babel" data-presets="env,react">
+    const { useState, useEffect, useCallback, useRef, useMemo } = React;
+
+    // ── Supabase ──────────────────────────────────────────────────────
+    const SUPABASE_URL  = "https://civwcmteqidppscbpqni.supabase.co";
+    const SUPABASE_ANON = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNpdndjbXRlcWlkcHBzY2JwcW5pIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM5Mjc3MDYsImV4cCI6MjA4OTUwMzcwNn0.kRaEGNQw-vsXE9NaSExO3RC4KyHzV3kl9JpnKzDN2Sk";
+    const { createClient } = supabase;
+    const sb = createClient(SUPABASE_URL, SUPABASE_ANON);
+
+    // ── Design Tokens ─────────────────────────────────────────────────
+    const C = {
+      void: '#03060D', deep: '#060C18', surface: '#0A1220', panel: '#0E1A2E',
+      border: 'rgba(99,179,237,0.1)', borderBright: 'rgba(99,179,237,0.25)',
+      cyan: '#63B3ED', cyanBright: '#90CDF4', cyanDim: 'rgba(99,179,237,0.08)',
+      text: '#E8F0FE', muted: '#6B82A0', dim: '#3D5270',
+      brains: {
+        analytical: { color: '#4FC3F7', dim: 'rgba(79,195,247,0.1)', label: 'Analytical Brain', code: 'A', symbol: '◰' },
+        intuitive:  { color: '#CE93D8', dim: 'rgba(206,147,216,0.1)', label: 'Intuitive Brain', code: 'I', symbol: '◱' },
+        associative:{ color: '#80CBC4', dim: 'rgba(128,203,196,0.1)', label: 'Associative Brain', code: 'S', symbol: '◲' },
+        reflective: { color: '#FFD54F', dim: 'rgba(255,213,79,0.1)', label: 'Reflective Brain', code: 'R', symbol: '◳' },
+      }
+    };
+
+    const syne = { fontFamily: "'Syne', sans-serif" };
+    const mono = { fontFamily: "'Space Mono', monospace" };
+    const inter = { fontFamily: "'Inter', sans-serif" };
+
+    // ── Four Brains Data ──────────────────────────────────────────────
+    const FOUR_BRAINS = {
+      analytical: {
+        label: 'Analytical Brain', code: 'A', symbol: '◰', color: '#4FC3F7',
+        tagline: 'Logic · Structure · Precision',
+        description: 'The Analytical Brain processes information through systematic decomposition. It thrives on data, evidence, and logical frameworks — transforming complexity into structured certainty.',
+        strengths: ['Logical deduction', 'Pattern verification', 'Data synthesis', 'Risk assessment', 'Systematic planning'],
+        weaknesses: ['Analysis paralysis', 'Emotional disconnect', 'Rigidity under ambiguity', 'Overcomplication'],
+        thinkingStyle: 'Sequential, evidence-based, framework-driven',
+        decisionPattern: 'Evaluates all variables before committing. Seeks certainty. Can delay under incomplete information.',
+        trainingFocus: 'Structured reasoning drills, logical sequencing, deductive exercises',
+        profile: 'You are a builder of mental architecture. You need information organized before action. Your superpower is precision — your blind spot is forgetting that not everything can be quantified.',
+      },
+      intuitive: {
+        label: 'Intuitive Brain', code: 'I', symbol: '◱', color: '#CE93D8',
+        tagline: 'Pattern · Signal · Insight',
+        description: 'The Intuitive Brain operates through rapid subconscious pattern recognition. It integrates vast experiential data into instantaneous knowing — bypassing conscious reasoning.',
+        strengths: ['Rapid situational reads', 'Emotional intelligence', 'Implicit pattern detection', 'Holistic understanding'],
+        weaknesses: ['Confirmation bias', 'Difficulty articulating reasoning', 'Inconsistency under logic pressure', 'Overthinking that kills the signal'],
+        thinkingStyle: 'Holistic, non-linear, feeling-based, experience-driven',
+        decisionPattern: 'Knows the answer before the analysis arrives. Commits quickly. Struggles to defend the why.',
+        trainingFocus: 'Pattern recognition acceleration, signal vs noise calibration, intuitive accuracy logging',
+        profile: 'You process reality faster than you can explain it. Your instincts carry compressed intelligence. The training challenge: learning to trust, verify, and communicate what your gut already knows.',
+      },
+      associative: {
+        label: 'Associative Brain', code: 'S', symbol: '◲', color: '#80CBC4',
+        tagline: 'Connection · Synthesis · Creation',
+        description: 'The Associative Brain generates meaning through cross-domain connection. It sees relationships invisible to linear thinkers — producing creative synthesis and breakthrough ideas.',
+        strengths: ['Creative problem solving', 'Metaphorical thinking', 'Cross-domain insight', 'Innovation', 'Reframing'],
+        weaknesses: ['Scattered focus', 'Over-ideation', 'Execution gaps', 'Difficulty with repetitive precision'],
+        thinkingStyle: 'Lateral, divergent, metaphor-driven, connection-seeking',
+        decisionPattern: 'Generates multiple solutions rapidly. Struggles to commit to one path. Needs structure to execute.',
+        trainingFocus: 'Creative constraint exercises, idea compression, systematic divergence protocols',
+        profile: 'Your mind is a connective tissue between ideas. You see things others miss entirely. The training challenge: transforming brilliant connections into executable precision.',
+      },
+      reflective: {
+        label: 'Reflective Brain', code: 'R', symbol: '◳', color: '#FFD54F',
+        tagline: 'Awareness · Meaning · Integration',
+        description: 'The Reflective Brain generates meta-cognitive awareness. It observes the thinking process itself — evaluating quality, extracting lessons, and integrating experience into wisdom.',
+        strengths: ['Self-awareness', 'Learning acceleration', 'Emotional regulation', 'Long-term strategic thinking', 'Value alignment'],
+        weaknesses: ['Rumination', 'Action delay', 'Excessive self-evaluation', 'Getting stuck in meaning-making'],
+        thinkingStyle: 'Meta-cognitive, evaluative, meaning-seeking, integrative',
+        decisionPattern: 'Processes decisions through the lens of values and long-term consequence. Wise but sometimes slow.',
+        trainingFocus: 'Structured reflection protocols, rumination interruption, clarity journaling, pattern review',
+        profile: 'You are the observer of your own mind. You see not just what happened — but why, and what it means. The training challenge: using reflection as a weapon, not a prison.',
+      },
+    };
+
+    // ── CFI Assessment Items ──────────────────────────────────────────
+    const CFI_ITEMS = [
+      { id:1, dim:'A', brain:'analytical', text:'I struggle to organize thoughts into clear logical sequences under pressure.' },
+      { id:2, dim:'A', brain:'analytical', text:'I find it difficult to isolate key facts before making complex decisions.' },
+      { id:3, dim:'A', brain:'analytical', text:'My structured planning breaks down in ambiguous or high-stakes situations.' },
+      { id:4, dim:'I', brain:'intuitive', text:'I frequently override gut instinct with logic, only to regret it later.' },
+      { id:5, dim:'I', brain:'intuitive', text:'I distrust my pattern recognition in fast-moving, high-uncertainty situations.' },
+      { id:6, dim:'I', brain:'intuitive', text:'My intuitive responses conflict with my conscious reasoning more often than not.' },
+      { id:7, dim:'S', brain:'associative', text:'I struggle to generate creative alternatives when my primary approach fails.' },
+      { id:8, dim:'S', brain:'associative', text:'I find it difficult to connect ideas across different domains of my life.' },
+      { id:9, dim:'S', brain:'associative', text:'My creative thinking shuts down under time pressure or external judgment.' },
+      { id:10, dim:'R', brain:'reflective', text:'I rarely evaluate my own thinking process after completing important tasks.' },
+      { id:11, dim:'R', brain:'reflective', text:'Deep self-reflection tends to lead me into rumination rather than clarity.' },
+      { id:12, dim:'R', brain:'reflective', text:'I find it hard to identify which thinking pattern caused a poor outcome.' },
+      { id:13, dim:'E', brain:'analytical', text:'Under pressure, my thinking modes feel fragmented and hard to coordinate.' },
+      { id:14, dim:'E', brain:'intuitive', text:'I experience cognitive fatigue when managing multiple competing priorities.' },
+      { id:15, dim:'E', brain:'reflective', text:'I know what I should think, but rarely how to deliberately shift thinking modes.' },
+    ];
+
+    // ── Lesson Data ───────────────────────────────────────────────────
+    const LESSONS = [
+      { id:1, title:'Foundation of Integrated Cognition', sub:'Understand the Four Brains. Begin control.', level:'Foundation', free:true, duration:'12 min', brain:'all' },
+      { id:2, title:'Brain Mode Activation & Switching', sub:'Enter and exit thinking modes deliberately.', level:'Intermediate', free:false, duration:'15 min', brain:'analytical' },
+      { id:3, title:'Synthesis & Decision Architecture', sub:'Convert cognitive fragmentation into unified decisions.', level:'Intermediate', free:false, duration:'18 min', brain:'associative' },
+      { id:4, title:'Cognitive Stabilization Under Pressure', sub:'Maintain mental clarity when urgency strikes.', level:'Advanced', free:false, duration:'20 min', brain:'reflective' },
+      { id:5, title:'Cognitive Fluency Installation', sub:'From deliberate effort to automatic integration.', level:'Mastery', free:false, duration:'16 min', brain:'intuitive' },
+    ];
+
+    const LESSON_CONTENT = {
+      1: { pages: [
+        { title: 'What is NeuralFusion™?', body: 'NeuralFusion™ is a cognitive performance operating system — not a productivity tool, not a wellness app, not a personality framework.\n\nIt is a structured system for training how you think.\n\nMost people have never been taught the mechanics of thinking itself. They have been taught what to think. They have been taught facts, beliefs, and behaviors. But not the cognitive architecture that produces them.\n\nNeuralFusion™ changes that.' },
+        { title: 'The Four Brains Framework', body: 'Every human being operates through four fundamental thinking modes. These are not personality types — they are cognitive instruments:\n\n◰ ANALYTICAL BRAIN — Logic, structure, evidence, precision\n◱ INTUITIVE BRAIN — Pattern recognition, signal, gut intelligence\n◲ ASSOCIATIVE BRAIN — Creative connection, synthesis, lateral expansion\n◳ REFLECTIVE BRAIN — Meta-cognition, meaning, self-awareness\n\nMost people are dominated by one or two modes and barely activate the others. This is cognitive fragmentation — and it is the source of most poor thinking.' },
+        { title: 'The Integration Protocol', body: 'NeuralFusion™ trains you to deliberately activate all four brains in sequence:\n\n1. DECOMPOSE — Analytical Brain activates. Break the problem into precise parts.\n2. SENSE — Intuitive Brain activates. Read the signal beneath the data.\n3. EXPAND — Associative Brain activates. Generate connections and alternatives.\n4. REFLECT — Reflective Brain activates. Evaluate and synthesize.\n5. FUSE — All four outputs integrate into a unified cognitive position.\n\nThis is the Core Loop. With training, it completes in under 90 seconds.' },
+        { title: 'First Activation Exercise', body: 'Select a real situation you are currently navigating.\n\nActivate each brain deliberately:\n\n◰ ANALYTICAL: State the situation as pure fact. No interpretation. No emotion. Just structure.\n◱ INTUITIVE: Pause. What does your gut signal? What feels true before analysis arrives?\n◲ ASSOCIATIVE: What else is this connected to? What pattern have you seen before? What alternative frame exists?\n◳ REFLECTIVE: What does this reveal about your thinking? What assumption is operating below the surface?\n\nWrite one sentence for each brain. Observe what emerges when all four speak.' },
+      ]},
+      2: { pages: [
+        { title: 'The Architecture of Mental Control', body: 'Mental control is not suppression. It is not forced calm. It is not discipline over thought.\n\nMental control is the ability to choose which brain is operating at any given moment.\n\nMost people have no access to this choice. Their brains switch automatically — driven by emotion, habit, urgency, and fear. NeuralFusion™ installs the switch.\n\nYou do not control what happens. You control which cognitive mode processes it.' },
+        { title: 'Brain Mode Entry Signals', body: 'Each brain has a deliberate activation protocol:\n\n◰ ANALYTICAL ENTRY: Ask — "What are the verifiable facts here?"\nThis collapses emotion and engages structural processing.\n\n◱ INTUITIVE ENTRY: Pause for 3 seconds. Ask — "What does my body signal?"\nThis quiets logic noise and allows pattern data to surface.\n\n◲ ASSOCIATIVE ENTRY: Ask — "What does this remind me of? What else is this?"\nThis triggers lateral thinking and cross-domain connection.\n\n◳ REFLECTIVE ENTRY: Ask — "What does this reveal about my thinking?"\nThis activates meta-cognition and recursive self-evaluation.' },
+        { title: 'The Mode Switching Drill', body: 'Exercise: Deliberate Mode Cycling (8 minutes)\n\nChoose a current challenge.\n\nSet a 90-second timer for each brain:\n◰ 90 sec → List only facts. No judgment.\n◱ 90 sec → Write your gut signal. No editing.\n◲ 90 sec → Write 3 unexpected connections or alternatives.\n◳ 90 sec → Write one honest observation about your own thinking.\n\nThen synthesize: write one sentence that integrates all four outputs.\n\nThis is cognitive mode training. Repeat daily for 14 days.' },
+        { title: 'Emergency Cognitive Reset', body: 'When mental state becomes overwhelmed:\n\n1. IDENTIFY — Which brain is currently dominating? (Usually Intuitive under fear, or Analytical under stress)\n2. NAME IT — "I am in Analytical overdrive."\n3. SWITCH — Deliberately activate Reflective Brain: "What is one thing I can observe about this moment?"\n4. RETURN — From Reflective, you can consciously choose the next mode.\n\nThe reset protocol takes under 60 seconds.\n\nKey insight: The goal is not to eliminate any brain mode. Every mode has intelligence. The goal is to choose — not react.' },
+      ]},
+      3: { pages: [
+        { title: 'Why Decisions Fragment', body: 'Most people make poor decisions not because they lack intelligence — but because their four brains are arguing.\n\nAnalytical says: "The data is unclear. Wait."\nIntuitive says: "Something feels wrong. Do not commit."\nAssociative says: "There is another option. Keep exploring."\nReflective says: "This does not align with your values."\n\nFour brains. Zero synthesis. No decision.\n\nNeuralFusion™ does not ask you to silence any brain. It trains you to integrate them into a single, unified cognitive position.' },
+        { title: 'The Synthesis Framework', body: 'After running all four brain modes, synthesis follows a precise sequence:\n\n1. EXTRACT — Identify the primary output from each brain. One sentence per mode.\n2. IDENTIFY CONFLICT — Where do the outputs contradict? Name it explicitly.\n3. RESOLVE CONFLICT — Which brain has the most relevant information for THIS decision? Grant it temporary authority.\n4. COMPRESS — Reduce all four outputs into one unified position. This is your synthesis.\n5. LOCK — Commit mentally to the synthesis. Stop reprocessing.\n\nThis is the Commitment Lock. Once activated, re-analysis requires new data — not old doubt.' },
+        { title: 'Recognizing Cognitive Loops', body: 'A cognitive loop occurs when you revisit a decision repeatedly without new information.\n\nSymptoms:\n· Returning to the same question multiple times\n· Feeling "something is off" without identifying what\n· Inability to commit despite having sufficient data\n· Mental exhaustion from circular thinking\n\nLoop Interruption Protocol:\n1. Name the loop: "I am in a decision loop about X"\n2. Identify the dominant brain: Which mode is generating the re-analysis?\n3. Perform a Reflective check: Is there actually new information? If no — lock the synthesis.\n4. Take one concrete action in the direction of the decision.' },
+        { title: 'The Unified Decision Protocol', body: 'Practice:\n\nChoose one decision you have been circling.\n\nRun each brain:\n◰ Facts only — what do I know for certain?\n◱ Gut signal — what does my instinct say, independent of logic?\n◲ Connections — what alternative frame or option have I not fully considered?\n◳ Reflection — what does my hesitation reveal about my values or assumptions?\n\nWrite one synthesis sentence: "Based on the integration of all four cognitive inputs, my position is: ____"\n\nActivate the Commitment Lock. Take one action within 10 minutes. Clarity becomes real through action — not more thinking.' },
+      ]},
+      4: { pages: [
+        { title: 'Why Cognition Collapses Under Pressure', body: 'Pressure activates the threat-detection system of the brain — which prioritizes speed over accuracy, emotion over analysis, and habit over deliberation.\n\nThe cognitive result:\n· One brain dominates completely (usually Intuitive under fear)\n· All other modes go offline\n· Fragmented output masquerades as decision-making\n· Regret follows\n\nNeuralFusion™ does not remove pressure. It trains the nervous system to maintain multi-brain integration while under it. Pressure is not the enemy. Fragmentation is.' },
+        { title: 'The Three Cognitive Stabilizers', body: '1. COGNITIVE ANCHOR\nA short internal declaration that grounds the synthesis.\nExamples: "I have already processed this." / "My analysis is complete."\nThis prevents the Analytical Brain from reopening resolved questions.\n\n2. TEMPORAL COMPRESSION\nPressure distorts time perception. Reduce the frame: "What matters in the next 10 minutes?"\nThis collapses decision space to what is actionable and immediate.\n\n3. DOMINANT MODE REGULATION\nIdentify which brain has hijacked the process. Name it. Consciously reduce its influence. This is not suppression — it is recalibration.\n\nAll three can be deployed in under 30 seconds.' },
+        { title: 'High-Pressure Stabilization Drill', body: 'Exercise: Pressure Integration Training (10 minutes)\n\n1. Recall a recent high-pressure moment where your thinking fragmented\n2. Identify the dominant brain at the time\n3. Replay the situation — this time deploying all four brains:\n   · What were the verifiable facts? (Analytical)\n   · What was your gut signaling that you may have overridden? (Intuitive)\n   · What alternative response existed? (Associative)\n   · What did the moment reveal about your default patterns? (Reflective)\n4. Write a one-sentence stabilized synthesis\n5. Notice: the pressure does not change — only the integration quality does\n\nRepeat this drill with increasing pressure scenarios weekly.' },
+        { title: 'Long-Term Pressure Immunity', body: 'Cognitive pressure immunity is not built through motivation. It is built through repetition.\n\nThe stabilization protocol must become reflexive — deployed automatically before conscious choice is required.\n\nSigns of developing immunity:\n· Noticing brain fragmentation as it begins rather than after it happens\n· Deploying anchors automatically in conflict\n· Feeling the pressure but maintaining integrated cognition\n· Recovering to synthesis 40-60% faster than baseline\n\nThis is the training objective of Lesson Four. It is not a mindset shift — it is a neurological upgrade through structured practice.\n\nYou cannot think your way to pressure immunity. You must practice your way there.' },
+      ]},
+      5: { pages: [
+        { title: 'The Definition of Cognitive Fluency', body: 'Cognitive Fluency is the state in which integrated four-brain thinking becomes automatic.\n\nIt is not about thinking harder. It is not about thinking faster. It is about thinking without friction — where the Core Loop activates below conscious awareness, where synthesis happens before deliberate effort begins.\n\nElite performers in every domain share one cognitive signature: they do not appear to think. They appear to know. This is not magic. It is fluency — the end state of structured cognitive training.\n\nNeuralFusion™ Lesson Five initiates the installation of this state.' },
+        { title: 'From Deliberate to Automatic', body: 'All cognitive skills pass through the same developmental arc:\n\nSTAGE 1 — CONSCIOUS INCOMPETENCE\nYou do not know that your thinking is fragmented.\n\nSTAGE 2 — CONSCIOUS COMPETENCE\nYou deliberately apply the four-brain protocol.\n\nSTAGE 3 — AUTOMATIC COMPETENCE\nThe integration happens without deliberate activation.\n\nSTAGE 4 — COGNITIVE FLUENCY\nThe system runs so smoothly you forget it was ever trained.\n\nLessons 1–4 built Stage 2. This lesson initiates Stage 3–4.' },
+        { title: 'The One-Word Activation Protocol', body: 'Cognitive fluency is anchored by a single internal trigger word: FUSE\n\nThis word, when used consistently, becomes a neural shortcut that activates:\n· Automatic decomposition\n· Relevant brain mode activation\n· Rapid synthesis\n· Instant stabilization\n\nInstallation process:\n1. Use the word internally before every decision, conversation, or challenge — regardless of size\n2. The first 21 days are deliberate (Stage 2)\n3. By day 28–35, activation begins to precede the conscious choice\n4. By day 42–60, fluency installs\n\nOne word. Consistent application. Permanent upgrade.' },
+        { title: 'Cognitive Fluency Maintenance', body: 'You have completed NeuralFusion™ Core Training.\n\nWhat you now have:\n· Conceptual knowledge of the Four Brains Framework\n· Deliberate activation ability for all four cognitive modes\n· Integration and synthesis protocols\n· Pressure stabilization tools\n· The FUSE trigger for automatic deployment\n\nWhat maintenance looks like:\n· Daily FUSE activation on at least three real situations\n· Weekly CFI self-assessment to monitor fragmentation levels\n· Monthly reflection on cognitive growth patterns\n· Ongoing engagement with Cognitive Labs for advanced training\n\nThe platform continues to evolve. So should you.' },
+      ]},
+    };
+
+    // ── Supabase Helpers ──────────────────────────────────────────────
+    const getProfile = async (id) => { const {data} = await sb.from('profiles').select('*').eq('id',id).single(); return data; };
+    const upsertProfile = async (id, u) => await sb.from('profiles').upsert({id,...u},{onConflict:'id'});
+    const saveCFIResult = async (id, r, a) => await sb.from('cfi_results').insert({user_id:id, total_score:r.total, band:r.band, dim_scores:r.dimScores, answers:a});
+    const upsertLessonProgress = async (id, lid, p) => await sb.from('lesson_progress').upsert({user_id:id, lesson_id:lid, progress:p, completed:p===100},{onConflict:'user_id,lesson_id'});
+    const loadLessonProgress = async (id) => {
+      const {data} = await sb.from('lesson_progress').select('*').eq('user_id',id);
+      const map = {}; (data||[]).forEach(r=>{map[r.lesson_id]=r.progress;}); return map;
+    };
+
+    // ── NEURAL VISUAL ─────────────────────────────────────────────────
+    function NeuralOrb({ size=120, color='#63B3ED', animated=true }) {
+      return (
+        <div style={{ width:size, height:size, position:'relative', display:'flex', alignItems:'center', justifyContent:'center' }}>
+          <div style={{
+            position:'absolute', inset:0, borderRadius:'50%',
+            border:`1px solid ${color}22`,
+            animation: animated ? 'rotate 12s linear infinite' : 'none',
+          }} />
+          <div style={{
+            position:'absolute', inset:8, borderRadius:'50%',
+            border:`1px dashed ${color}33`,
+            animation: animated ? 'counterRotate 8s linear infinite' : 'none',
+          }} />
+          <div style={{
+            width:size*0.4, height:size*0.4, borderRadius:'50%',
+            background:`radial-gradient(circle, ${color}20 0%, transparent 70%)`,
+            border:`1px solid ${color}44`,
+            display:'flex', alignItems:'center', justifyContent:'center',
+            animation: animated ? 'neuralPulse 3s ease-in-out infinite' : 'none',
+            boxShadow:`0 0 ${size/3}px ${color}20`,
+          }}>
+            <div style={{ fontFamily:"'Space Mono'", fontSize:size/8, color, opacity:0.9 }}>◈</div>
+          </div>
+          {/* Orbit dots */}
+          {[0,90,180,270].map((deg,i)=>(
+            <div key={i} style={{
+              position:'absolute', width:6, height:6, borderRadius:'50%',
+              background:color, opacity:0.6,
+              top: '50%', left: '50%',
+              transformOrigin:'0 0',
+              transform:`rotate(${deg}deg) translateX(${size/2-3}px)`,
+              animation: animated ? `rotate ${8+i}s linear infinite` : 'none',
+              boxShadow:`0 0 8px ${color}`,
+            }} />
+          ))}
+        </div>
+      );
+    }
+
+    // ── SCAN LINE EFFECT ──────────────────────────────────────────────
+    function ScanLine() {
+      return (
+        <div style={{ position:'absolute', inset:0, overflow:'hidden', pointerEvents:'none', borderRadius:'inherit' }}>
+          <div style={{
+            position:'absolute', left:0, right:0, height:1,
+            background:'linear-gradient(90deg, transparent, rgba(99,179,237,0.3), transparent)',
+            animation:'scanH 4s ease-in-out infinite',
+          }} />
+        </div>
+      );
+    }
+
+    // ── BRAIN MODE CARD ───────────────────────────────────────────────
+    function BrainCard({ brainKey, compact=false, onClick, active=false }) {
+      const brain = FOUR_BRAINS[brainKey];
+      const b = C.brains[brainKey];
+      return (
+        <div onClick={onClick} style={{
+          background: active ? `${b.color}12` : C.surface,
+          border: `1px solid ${active ? b.color+'44' : C.border}`,
+          borderRadius:4, padding: compact ? '16px' : '24px',
+          cursor: onClick ? 'pointer' : 'default',
+          transition:'all 0.25s ease',
+          position:'relative', overflow:'hidden',
+        }} onMouseEnter={e=>{if(onClick){e.currentTarget.style.borderColor=b.color+'66'; e.currentTarget.style.background=b.color+'10';}}}
+           onMouseLeave={e=>{if(onClick && !active){e.currentTarget.style.borderColor=C.border; e.currentTarget.style.background=C.surface;}}}>
+          <div style={{ display:'flex', alignItems:compact?'center':'flex-start', gap:16 }}>
+            <div style={{
+              width:compact?36:48, height:compact?36:48, borderRadius:'50%',
+              background:`radial-gradient(circle, ${b.color}20, transparent)`,
+              border:`1px solid ${b.color}33`,
+              display:'flex', alignItems:'center', justifyContent:'center',
+              flexShrink:0,
+              fontSize:compact?16:20, color:b.color,
+              fontFamily:"'Space Mono'",
+            }}>{b.symbol}</div>
+            <div style={{flex:1}}>
+              <div style={{ ...mono, fontSize:9, letterSpacing:3, color:b.color, marginBottom:4 }}>BRAIN — {b.code}</div>
+              <div style={{ ...syne, fontSize:compact?15:18, fontWeight:700, color:C.text, marginBottom:compact?0:8 }}>{brain.label}</div>
+              {!compact && <div style={{ fontSize:12, color:C.muted, lineHeight:1.5 }}>{brain.tagline}</div>}
+            </div>
+          </div>
+          {!compact && (
+            <div style={{ marginTop:16, fontSize:13, color:C.muted, lineHeight:1.7 }}>{brain.description.slice(0,140)}...</div>
+          )}
+          {active && <div style={{ position:'absolute', top:0, left:0, width:2, height:'100%', background:b.color }} />}
+        </div>
+      );
+    }
+
+    // ── PROGRESS RING ─────────────────────────────────────────────────
+    function ProgressRing({ value=70, size=80, color='#63B3ED', label='' }) {
+      const r = (size-8)/2;
+      const circ = 2*Math.PI*r;
+      const dash = (value/100)*circ;
+      return (
+        <div style={{ position:'relative', width:size, height:size, display:'flex', alignItems:'center', justifyContent:'center' }}>
+          <svg width={size} height={size} style={{position:'absolute', transform:'rotate(-90deg)'}}>
+            <circle cx={size/2} cy={size/2} r={r} fill="none" stroke={`${color}15`} strokeWidth={2} />
+            <circle cx={size/2} cy={size/2} r={r} fill="none" stroke={color} strokeWidth={2}
+              strokeDasharray={`${dash} ${circ}`} strokeLinecap="round"
+              style={{ transition:'stroke-dasharray 1s ease' }} />
+          </svg>
+          <div style={{ textAlign:'center' }}>
+            <div style={{ ...syne, fontSize:size/5, fontWeight:800, color }}>{value}%</div>
+            {label && <div style={{ ...mono, fontSize:7, letterSpacing:2, color:C.muted, marginTop:2 }}>{label}</div>}
+          </div>
+        </div>
+      );
+    }
+
+    // ── AUTH MODAL ────────────────────────────────────────────────────
+    function AuthModal({ onClose, onSuccess }) {
+      const [tab, setTab] = useState('login');
+      const [email, setEmail] = useState('');
+      const [password, setPassword] = useState('');
+      const [name, setName] = useState('');
+      const [loading, setLoading] = useState(false);
+      const [msg, setMsg] = useState({ text:'', type:'' });
+
+      const handleLogin = async () => {
+        if (!email || !password) { setMsg({text:'Email and password required.',type:'error'}); return; }
+        setLoading(true); setMsg({text:'',type:''});
+        const { error } = await sb.auth.signInWithPassword({ email, password });
+        setLoading(false);
+        if (error) setMsg({text:error.message,type:'error'});
+        else { onSuccess(); onClose(); }
+      };
+
+      const handleSignup = async () => {
+        if (!email||!password||!name) { setMsg({text:'All fields required.',type:'error'}); return; }
+        if (password.length<6) { setMsg({text:'Password must be at least 6 characters.',type:'error'}); return; }
+        setLoading(true); setMsg({text:'',type:''});
+        const { error } = await sb.auth.signUp({ email, password, options:{ data:{full_name:name} } });
+        setLoading(false);
+        if (error) setMsg({text:error.message,type:'error'});
+        else setMsg({text:'Account created. Check your email to activate.',type:'success'});
+      };
+
+      return (
+        <div style={{
+          position:'fixed', inset:0, background:'rgba(3,6,13,0.95)', zIndex:1000,
+          display:'flex', alignItems:'center', justifyContent:'center', padding:20,
+          backdropFilter:'blur(8px)',
+        }}>
+          <div className="card fade-up" style={{ maxWidth:420, width:'100%', padding:'36px 32px', position:'relative' }}>
+            <button onClick={onClose} style={{ position:'absolute', top:16, right:16, background:'none', border:'none', color:C.muted, fontSize:20, cursor:'pointer', lineHeight:1 }}>×</button>
+
+            <div style={{ ...mono, fontSize:9, letterSpacing:3, color:C.cyan, marginBottom:20 }}>COGNITIVE OS · AUTHENTICATION</div>
+            <div style={{ ...syne, fontSize:24, fontWeight:800, color:C.text, marginBottom:6 }}>
+              {tab==='login' ? 'Access Your System' : 'Initialize Profile'}
+            </div>
+            <div style={{ fontSize:13, color:C.muted, marginBottom:28 }}>
+              {tab==='login' ? 'Enter credentials to resume cognitive training.' : 'Create your cognitive profile to begin.'}
+            </div>
+
+            <div style={{ display:'flex', gap:2, marginBottom:24, background:C.deep, padding:4, borderRadius:2 }}>
+              {['login','signup'].map(t=>(
+                <button key={t} onClick={()=>setTab(t)} style={{
+                  flex:1, padding:'10px', background:tab===t?C.cyan:'transparent',
+                  color:tab===t?C.void:C.muted, ...syne, fontSize:11, fontWeight:700,
+                  letterSpacing:1, borderRadius:2, border:'none', textTransform:'uppercase',
+                }}>
+                  {t==='login'?'Sign In':'Register'}
+                </button>
+              ))}
+            </div>
+
+            {tab==='signup' && (
+              <div style={{ marginBottom:14 }}>
+                <div style={{ ...mono, fontSize:9, letterSpacing:2, color:C.muted, marginBottom:8 }}>FULL NAME</div>
+                <input value={name} onChange={e=>setName(e.target.value)} placeholder="Your name" />
+              </div>
+            )}
+            <div style={{ marginBottom:14 }}>
+              <div style={{ ...mono, fontSize:9, letterSpacing:2, color:C.muted, marginBottom:8 }}>EMAIL ADDRESS</div>
+              <input type="email" value={email} onChange={e=>setEmail(e.target.value)} placeholder="you@example.com" />
+            </div>
+            <div style={{ marginBottom:24 }}>
+              <div style={{ ...mono, fontSize:9, letterSpacing:2, color:C.muted, marginBottom:8 }}>PASSWORD</div>
+              <input type="password" value={password} onChange={e=>setPassword(e.target.value)} placeholder="••••••••"
+                onKeyDown={e=>e.key==='Enter'&&(tab==='login'?handleLogin():handleSignup())} />
+            </div>
+
+            {msg.text && (
+              <div style={{ marginBottom:20, padding:'12px 16px', background:msg.type==='error'?'rgba(248,113,113,0.1)':'rgba(128,203,196,0.1)',
+                border:`1px solid ${msg.type==='error'?'#F8717144':'#80CBC444'}`, borderRadius:2,
+                color:msg.type==='error'?'#F87171':'#80CBC4', fontSize:13 }}>
+                {msg.text}
+              </div>
+            )}
+
+            <button className="btn-primary" style={{ width:'100%', fontSize:12, opacity:loading?0.6:1 }} disabled={loading}
+              onClick={tab==='login'?handleLogin:handleSignup}>
+              {loading ? 'Processing...' : (tab==='login' ? 'Access System →' : 'Initialize Profile →')}
+            </button>
+          </div>
+        </div>
+      );
+    }
+
+    // ── NAVBAR ────────────────────────────────────────────────────────
+    function Navbar({ view, setView, user, setShowAuth, onSignOut }) {
+      const [menuOpen, setMenuOpen] = useState(false);
+      const navItems = [
+        { v:'home', label:'Dashboard' },
+        { v:'four-brains', label:'Four Brains' },
+        { v:'cfi', label:'CFI Assessment' },
+        { v:'training', label:'Training' },
+        { v:'analytics', label:'Analytics' },
+        { v:'lessons', label:'Lesson Manuals' },
+        { v:'about', label:'About' },
+      ];
+
+      return (
+        <>
+          <nav style={{
+            position:'fixed', top:0, left:0, right:0, zIndex:100,
+            background:'rgba(3,6,13,0.85)', backdropFilter:'blur(20px)',
+            borderBottom:`1px solid ${C.border}`,
+          }}>
+            <div style={{ maxWidth:1280, margin:'0 auto', padding:'0 24px', height:60, display:'flex', alignItems:'center', justifyContent:'space-between' }}>
+              <button onClick={()=>setView('home')} style={{ background:'none', border:'none', display:'flex', alignItems:'center', gap:12, cursor:'pointer' }}>
+                <div style={{
+                  width:32, height:32, borderRadius:'50%', border:`1px solid ${C.cyan}44`,
+                  display:'flex', alignItems:'center', justifyContent:'center',
+                  background:`radial-gradient(circle, ${C.cyan}15, transparent)`,
+                  ...mono, fontSize:14, color:C.cyan,
+                }}>◈</div>
+                <div>
+                  <div style={{ ...syne, fontSize:14, fontWeight:800, color:C.text, letterSpacing:1 }}>NEURALFUSION™</div>
+                  <div style={{ ...mono, fontSize:8, letterSpacing:3, color:C.muted }}>COGNITIVE OS</div>
+                </div>
+              </button>
+
+              <div style={{ display:'none' }} className="desktop-nav">
+                {navItems.map(item => (
+                  <button key={item.v} onClick={()=>setView(item.v)} style={{
+                    background:'none', border:'none', padding:'8px 12px',
+                    color: view===item.v ? C.cyan : C.muted,
+                    ...inter, fontSize:12, fontWeight:view===item.v?600:400,
+                    cursor:'pointer', transition:'color 0.2s',
+                    borderBottom: view===item.v ? `1px solid ${C.cyan}` : '1px solid transparent',
+                  }}>{item.label}</button>
+                ))}
+              </div>
+
+              <div style={{ display:'flex', alignItems:'center', gap:12 }}>
+                {user ? (
+                  <>
+                    <div style={{ ...mono, fontSize:9, letterSpacing:2, color:C.muted, display:'none' }}>
+                      {user.email?.split('@')[0].toUpperCase()}
+                    </div>
+                    <button className="btn-outline" style={{ fontSize:10, padding:'8px 16px' }} onClick={onSignOut}>Sign Out</button>
+                  </>
+                ) : (
+                  <button className="btn-primary" style={{ fontSize:11, padding:'10px 20px' }} onClick={()=>setShowAuth(true)}>
+                    Access System
+                  </button>
+                )}
+                <button onClick={()=>setMenuOpen(!menuOpen)} style={{
+                  background:'none', border:`1px solid ${C.border}`, borderRadius:2,
+                  color:C.muted, width:40, height:36, display:'flex', flexDirection:'column',
+                  alignItems:'center', justifyContent:'center', gap:5, cursor:'pointer',
+                }}>
+                  <div style={{ width:18, height:1, background:C.muted }} />
+                  <div style={{ width:14, height:1, background:C.muted }} />
+                  <div style={{ width:10, height:1, background:C.muted }} />
+                </button>
+              </div>
+            </div>
+          </nav>
+
+          {/* Mobile Menu */}
+          {menuOpen && (
+            <div style={{
+              position:'fixed', inset:0, zIndex:99, background:'rgba(3,6,13,0.97)',
+              backdropFilter:'blur(20px)', paddingTop:70,
+            }}>
+              <div style={{ padding:'32px 24px' }}>
+                {navItems.map((item,i) => (
+                  <button key={item.v} onClick={()=>{ setView(item.v); setMenuOpen(false); }} style={{
+                    display:'block', width:'100%', textAlign:'left',
+                    background:'none', border:'none', borderBottom:`1px solid ${C.border}`,
+                    padding:'20px 0', color: view===item.v ? C.cyan : C.text,
+                    ...syne, fontSize:20, fontWeight:700, cursor:'pointer',
+                    animation:`fadeUp 0.3s ease ${i*0.05}s both`,
+                  }}>{item.label}</button>
+                ))}
+              </div>
+              <button onClick={()=>setMenuOpen(false)} style={{
+                position:'absolute', top:20, right:24, background:'none', border:'none',
+                color:C.muted, fontSize:28, cursor:'pointer',
+              }}>×</button>
+            </div>
+          )}
+        </>
+      );
+    }
+
+    // ── BOTTOM NAV ────────────────────────────────────────────────────
+    function BottomNav({ view, setView }) {
+      const items = [
+        { v:'home', symbol:'⌂', label:'Dashboard' },
+        { v:'four-brains', symbol:'◈', label:'Four Brains' },
+        { v:'cfi', symbol:'◎', label:'CFI™' },
+        { v:'training', symbol:'▲', label:'Training' },
+        { v:'lessons', symbol:'▦', label:'Manuals' },
+      ];
+      return (
+        <div style={{
+          position:'fixed', bottom:0, left:0, right:0, zIndex:90,
+          background:'rgba(3,6,13,0.95)', backdropFilter:'blur(20px)',
+          borderTop:`1px solid ${C.border}`,
+          display:'flex',
+        }}>
+          {items.map(item => (
+            <button key={item.v} onClick={()=>setView(item.v)} style={{
+              flex:1, padding:'10px 4px 14px', background:'none', border:'none',
+              display:'flex', flexDirection:'column', alignItems:'center', gap:4, cursor:'pointer',
+            }}>
+              <div style={{ ...mono, fontSize:16, color:view===item.v?C.cyan:C.dim, transition:'color 0.2s' }}>{item.symbol}</div>
+              <div style={{ ...inter, fontSize:9, letterSpacing:1, color:view===item.v?C.cyan:C.dim, fontWeight:view===item.v?600:400, transition:'color 0.2s', textTransform:'uppercase' }}>{item.label}</div>
+            </button>
+          ))}
+        </div>
+      );
+    }
+
+    // ═══════════════════════════════════════════════════════════════════
+    //  HOME VIEW
+    // ═══════════════════════════════════════════════════════════════════
+    function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress, sessions }) {
+      const completedLessons = Object.values(lessonProgress).filter(v=>v===100).length;
+      const cogScore = cfiResult ? Math.max(0, 100 - cfiResult.total*2) : null;
+
+      return (
+        <div style={{ paddingTop:80, paddingBottom:100 }}>
+          {/* HERO — compact */}
+          <section style={{ padding:'48px 24px 40px', borderBottom:`1px solid ${C.border}` }}>
+            <div style={{ maxWidth:1200, margin:'0 auto' }}>
+              <div style={{ ...mono, fontSize:9, letterSpacing:4, color:C.cyan, marginBottom:16 }}>
+                NEURALFUSION™ · COGNITIVE PERFORMANCE OPERATING SYSTEM
+              </div>
+              <h1 style={{ ...syne, fontSize:'clamp(28px, 5vw, 52px)', fontWeight:800, color:C.text, lineHeight:1.05, marginBottom:16, maxWidth:700 }}>
+                Most people were never <span style={{ color:C.cyan }}>taught how to think.</span>
+              </h1>
+              <p style={{ fontSize:15, color:C.muted, lineHeight:1.7, maxWidth:560, marginBottom:28 }}>
+                NeuralFusion™ is built around the <strong style={{color:C.text}}>Four Brains Framework</strong> — a structured system for training how you think, not just what you think.
+              </p>
+              <div style={{ display:'flex', gap:12, flexWrap:'wrap' }}>
+                <button className="btn-primary" style={{ fontSize:12 }} onClick={()=>setView('cfi')}>Take CFI Assessment →</button>
+                <button className="btn-outline" style={{ fontSize:12 }} onClick={()=>setView('four-brains')}>Explore Four Brains</button>
+              </div>
+            </div>
+          </section>
+
+          {/* USER STATUS (if logged in) */}
+          {user && cfiResult && (
+            <section style={{ padding:'0 24px 80px', maxWidth:1200, margin:'0 auto' }}>
+              <div style={{ ...mono, fontSize:9, letterSpacing:3, color:C.cyan, marginBottom:24 }}>COGNITIVE PROFILE · ACTIVE</div>
+              <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(200px, 1fr))', gap:16 }}>
+                {[
+                  { label:'CFI BAND', value:cfiResult.band, color:cfiResult.band==='Integrated'?'#80CBC4':'#FFD54F' },
+                  { label:'LESSONS COMPLETED', value:`${completedLessons} / ${LESSONS.length}`, color:C.cyan },
+                  { label:'SESSIONS LOGGED', value:sessions.length.toString(), color:'#CE93D8' },
+                  { label:'DOMINANT BRAIN', value:cfiResult.dominantBrain?.toUpperCase()||'—', color:C.brains[cfiResult.dominantBrain]?.color||C.cyan },
+                ].map((stat,i) => (
+                  <div key={i} className="card" style={{ padding:'20px 24px' }}>
+                    <div style={{ ...mono, fontSize:8, letterSpacing:3, color:C.muted, marginBottom:8 }}>{stat.label}</div>
+                    <div style={{ ...syne, fontSize:22, fontWeight:800, color:stat.color }}>{stat.value}</div>
+                  </div>
+                ))}
+              </div>
+            </section>
+          )}
+
+          {/* THE PROBLEM */}
+          <section style={{ padding:'80px 24px', maxWidth:1200, margin:'0 auto' }}>
+            <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(300px, 1fr))', gap:48, alignItems:'center' }}>
+              <div>
+                <div style={{ ...mono, fontSize:9, letterSpacing:3, color:C.cyan, marginBottom:20 }}>THE CORE PROBLEM</div>
+                <h2 style={{ ...syne, fontSize:40, fontWeight:800, color:C.text, lineHeight:1.1, marginBottom:24 }}>
+                  Fragmented<br />thinking is<br /><span style={{color:'#F87171'}}>invisible.</span>
+                </h2>
+                <p style={{ fontSize:15, color:C.muted, lineHeight:1.8, marginBottom:24 }}>
+                  You have four cognitive modes. Most people are dominated by one or two
+                  — and have never been trained to activate the others deliberately.
+                  This is cognitive fragmentation. It produces poor decisions, mental fatigue,
+                  and persistent confusion — even in intelligent people.
+                </p>
+                <p style={{ fontSize:15, color:C.muted, lineHeight:1.8, marginBottom:32 }}>
+                  NeuralFusion™ is the intervention. It does not make you smarter.
+                  It makes your intelligence <em style={{color:C.text}}>coordinated.</em>
+                </p>
+                <button className="btn-outline" onClick={()=>setView('four-brains')}>Discover Your Brain Profile</button>
+              </div>
+              <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:12 }}>
+                {Object.entries(C.brains).map(([key,b],i)=>(
+                  <div key={key} className="card" style={{ padding:'20px', cursor:'pointer', transition:'all 0.25s' }}
+                    onClick={()=>setView('four-brains')}
+                    onMouseEnter={e=>{ e.currentTarget.style.borderColor=b.color+'44'; e.currentTarget.style.background=b.color+'08'; }}
+                    onMouseLeave={e=>{ e.currentTarget.style.borderColor=C.border; e.currentTarget.style.background=C.surface; }}>
+                    <div style={{ ...mono, fontSize:24, color:b.color, marginBottom:12 }}>{b.symbol}</div>
+                    <div style={{ ...syne, fontSize:13, fontWeight:700, color:C.text, marginBottom:4 }}>{b.label}</div>
+                    <div style={{ fontSize:11, color:C.muted }}>
+                      {FOUR_BRAINS[key].tagline}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </section>
+
+          {/* HOW IT WORKS */}
+          <section style={{ padding:'80px 24px', background:`linear-gradient(180deg, transparent, ${C.deep}80, transparent)` }}>
+            <div style={{ maxWidth:1200, margin:'0 auto' }}>
+              <div style={{ textAlign:'center', marginBottom:64 }}>
+                <div style={{ ...mono, fontSize:9, letterSpacing:3, color:C.cyan, marginBottom:20 }}>THE CORE PROTOCOL</div>
+                <h2 style={{ ...syne, fontSize:40, fontWeight:800, color:C.text }}>How the system trains you</h2>
+              </div>
+              <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(220px, 1fr))', gap:24 }}>
+                {[
+                  { step:'01', title:'CFI Assessment', desc:'Measure your current level of cognitive fragmentation across five dimensions. Identify your dominant brain mode and blind spots.', icon:'◎', view:'cfi' },
+                  { step:'02', title:'Four Brains Profile', desc:'Understand which of your four cognitive modes is dominant, which is suppressed, and how the imbalance affects your thinking.', icon:'◈', view:'four-brains' },
+                  { step:'03', title:'Cognitive Training', desc:'Structured exercises, scenario drills, and reasoning protocols that systematically train all four brain modes.', icon:'▲', view:'training' },
+                  { step:'04', title:'Lesson Manuals', desc:'Elite cognitive training documents covering the complete NeuralFusion™ system from foundation to mastery.', icon:'▦', view:'lessons' },
+                  { step:'05', title:'Analytics & Evolution', desc:'Track your cognitive growth, reasoning consistency, and brain mode balance over time with precision metrics.', icon:'◧', view:'analytics' },
+                ].map((item,i)=>(
+                  <div key={i} className="card" style={{ padding:'28px 24px', cursor:'pointer' }}
+                    onClick={()=>setView(item.view)}
+                    onMouseEnter={e=>{ e.currentTarget.style.borderColor=C.borderBright; }}
+                    onMouseLeave={e=>{ e.currentTarget.style.borderColor=C.border; }}>
+                    <div style={{ ...mono, fontSize:9, letterSpacing:3, color:C.dim, marginBottom:16 }}>STEP {item.step}</div>
+                    <div style={{ ...mono, fontSize:28, color:C.cyan, marginBottom:16 }}>{item.icon}</div>
+                    <div style={{ ...syne, fontSize:16, fontWeight:700, color:C.text, marginBottom:12 }}>{item.title}</div>
+                    <div style={{ fontSize:13, color:C.muted, lineHeight:1.7 }}>{item.desc}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </section>
+
+          {/* CFI PREVIEW */}
+          <section style={{ padding:'80px 24px', maxWidth:1200, margin:'0 auto' }}>
+            <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(300px, 1fr))', gap:48, alignItems:'center' }}>
+              <div>
+                <div style={{ ...mono, fontSize:9, letterSpacing:3, color:C.cyan, marginBottom:20 }}>CFI ASSESSMENT SYSTEM</div>
+                <h2 style={{ ...syne, fontSize:36, fontWeight:800, color:C.text, lineHeight:1.1, marginBottom:20 }}>
+                  Measure your<br />cognitive<br /><span style={{color:C.cyan}}>fragmentation index</span>
+                </h2>
+                <p style={{ fontSize:14, color:C.muted, lineHeight:1.8, marginBottom:32 }}>
+                  The Cognitive Fragmentation Index (CFI™) is a precision diagnostic tool developed by Life Edet.
+                  It measures the degree of fragmentation across five cognitive dimensions and produces a
+                  detailed profile of your thinking architecture.
+                </p>
+                <button className="btn-primary" onClick={()=>setView('cfi')}>Begin CFI Assessment →</button>
+              </div>
+              <div className="card" style={{ padding:'32px', position:'relative', overflow:'hidden' }}>
+                <ScanLine />
+                <div style={{ ...mono, fontSize:9, letterSpacing:3, color:C.cyan, marginBottom:24 }}>SAMPLE OUTPUT</div>
+                {['Analytical Coherence', 'Intuitive Alignment', 'Associative Flexibility', 'Reflective Depth', 'Integration Stability'].map((dim,i)=>{
+                  const pct = [72,45,88,61,53][i];
+                  const col = pct>=75?'#80CBC4':pct>=60?C.cyan:'#FFD54F';
+                  return (
+                    <div key={i} style={{ marginBottom:16 }}>
+                      <div style={{ display:'flex', justifyContent:'space-between', marginBottom:6 }}>
+                        <div style={{ ...inter, fontSize:12, color:C.muted }}>{dim}</div>
+                        <div style={{ ...mono, fontSize:10, color:col }}>{pct}</div>
+                      </div>
+                      <div style={{ height:3, background:C.panel, borderRadius:2 }}>
+                        <div style={{ width:`${pct}%`, height:'100%', background:col, borderRadius:2, transition:'width 1s ease' }} />
+                      </div>
+                    </div>
+                  );
+                })}
+                <div style={{ marginTop:24, padding:'16px', background:C.deep, borderRadius:2, border:`1px solid ${C.border}` }}>
+                  <div style={{ ...mono, fontSize:8, letterSpacing:3, color:C.muted, marginBottom:8 }}>CFI BAND</div>
+                  <div style={{ ...syne, fontSize:18, fontWeight:800, color:'#FFD54F' }}>Moderate Fragmentation</div>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          {/* TRANSFORMATION */}
+          <section style={{ padding:'80px 24px', textAlign:'center', position:'relative', overflow:'hidden' }}>
+            <div className="grid-bg" style={{ position:'absolute', inset:0, opacity:0.5 }} />
+            <div style={{ position:'relative', zIndex:1, maxWidth:700, margin:'0 auto' }}>
+              <div style={{ ...mono, fontSize:9, letterSpacing:4, color:C.cyan, marginBottom:24 }}>THE OBJECTIVE</div>
+              <h2 style={{ ...syne, fontSize:'clamp(28px, 6vw, 52px)', fontWeight:800, color:C.text, lineHeight:1.1, marginBottom:24 }}>
+                This platform<br /><span style={{color:C.cyan}}>upgrades human thinking.</span>
+              </h2>
+              <p style={{ fontSize:15, color:C.muted, lineHeight:1.9, marginBottom:40 }}>
+                Not your attitude. Not your motivation. Not your mindset.<br />
+                The actual <strong style={{color:C.text}}>cognitive architecture</strong> through which you process reality.
+              </p>
+              <div style={{ display:'flex', gap:16, justifyContent:'center', flexWrap:'wrap' }}>
+                {user ? (
+                  <button className="btn-primary" onClick={()=>setView('training')}>Enter Training System →</button>
+                ) : (
+                  <>
+                    <button className="btn-primary" onClick={()=>setShowAuth(true)}>Initialize Cognitive Profile →</button>
+                    <button className="btn-outline" onClick={()=>setView('cfi')}>Start CFI Assessment</button>
+                  </>
+                )}
+              </div>
+            </div>
+          </section>
+        </div>
+      );
+    }
+
+    // ═══════════════════════════════════════════════════════════════════
+    //  FOUR BRAINS VIEW
+    // ═══════════════════════════════════════════════════════════════════
+    function FourBrainsView({ setView, cfiResult }) {
+      const [active, setActive] = useState('analytical');
+      const brain = FOUR_BRAINS[active];
+      const b = C.brains[active];
+
+      return (
+        <div style={{ paddingTop:80, paddingBottom:100 }}>
+          <div style={{ maxWidth:1200, margin:'0 auto', padding:'40px 24px' }}>
+            <div style={{ ...mono, fontSize:9, letterSpacing:4, color:C.cyan, marginBottom:16 }}>FOUR BRAINS FRAMEWORK</div>
+            <h1 style={{ ...syne, fontSize:'clamp(32px, 6vw, 56px)', fontWeight:800, color:C.text, marginBottom:16, lineHeight:1.05 }}>
+              The Architecture<br />of Human Thinking
+            </h1>
+            <p style={{ fontSize:15, color:C.muted, maxWidth:600, lineHeight:1.8, marginBottom:48 }}>
+              Every mind operates through four distinct cognitive modes. Most people have never
+              been taught to identify them — let alone coordinate them. This section is the
+              beginning of cognitive self-awareness.
+            </p>
+
+            {/* Brain selector */}
+            <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(200px, 1fr))', gap:12, marginBottom:48 }}>
+              {Object.keys(FOUR_BRAINS).map(key=>(
+                <BrainCard key={key} brainKey={key} compact active={active===key} onClick={()=>setActive(key)} />
+              ))}
+            </div>
+
+            {/* Active brain detail */}
+            <div key={active} style={{ animation:'fadeUp 0.4s ease both' }}>
+              <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(300px, 1fr))', gap:32, marginBottom:32 }}>
+                {/* Main info */}
+                <div className="card" style={{ padding:'32px', position:'relative', overflow:'hidden', borderColor:`${b.color}22` }}>
+                  <div style={{ position:'absolute', top:0, left:0, width:2, height:'100%', background:b.color }} />
+                  <div style={{ display:'flex', alignItems:'center', gap:20, marginBottom:28 }}>
+                    <div style={{
+                      width:72, height:72, borderRadius:'50%',
+                      background:`radial-gradient(circle, ${b.color}20, transparent)`,
+                      border:`1px solid ${b.color}33`,
+                      display:'flex', alignItems:'center', justifyContent:'center',
+                      ...mono, fontSize:32, color:b.color,
+                    }}>{b.symbol}</div>
+                    <div>
+                      <div style={{ ...mono, fontSize:9, letterSpacing:3, color:b.color, marginBottom:6 }}>BRAIN MODE — {b.code}</div>
+                      <div style={{ ...syne, fontSize:26, fontWeight:800, color:C.text }}>{brain.label}</div>
+                      <div style={{ fontSize:12, color:C.muted, marginTop:4 }}>{brain.tagline}</div>
+                    </div>
+                  </div>
+                  <p style={{ fontSize:14, color:C.muted, lineHeight:1.8, marginBottom:24 }}>{brain.description}</p>
+                  <div style={{ padding:'16px', background:C.deep, borderRadius:2, border:`1px solid ${C.border}`, fontStyle:'italic' }}>
+                    <div style={{ ...mono, fontSize:8, letterSpacing:3, color:C.muted, marginBottom:8 }}>PROFILE INSIGHT</div>
+                    <div style={{ fontSize:13, color:C.text, lineHeight:1.7 }}>{brain.profile}</div>
+                  </div>
+                </div>
+
+                {/* Strengths & Weaknesses */}
+                <div style={{ display:'flex', flexDirection:'column', gap:16 }}>
+                  <div className="card" style={{ padding:'24px' }}>
+                    <div style={{ ...mono, fontSize:9, letterSpacing:3, color:'#80CBC4', marginBottom:16 }}>COGNITIVE STRENGTHS</div>
+                    {brain.strengths.map((s,i)=>(
+                      <div key={i} style={{ display:'flex', alignItems:'center', gap:12, marginBottom:10 }}>
+                        <div style={{ width:6, height:6, borderRadius:'50%', background:'#80CBC4', flexShrink:0 }} />
+                        <div style={{ fontSize:13, color:C.muted }}>{s}</div>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="card" style={{ padding:'24px' }}>
+                    <div style={{ ...mono, fontSize:9, letterSpacing:3, color:'#F87171', marginBottom:16 }}>COGNITIVE BLIND SPOTS</div>
+                    {brain.weaknesses.map((w,i)=>(
+                      <div key={i} style={{ display:'flex', alignItems:'center', gap:12, marginBottom:10 }}>
+                        <div style={{ width:6, height:6, borderRadius:'50%', background:'#F87171', flexShrink:0 }} />
+                        <div style={{ fontSize:13, color:C.muted }}>{w}</div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              {/* Decision pattern + training */}
+              <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(280px, 1fr))', gap:16 }}>
+                {[
+                  { label:'THINKING STYLE', value:brain.thinkingStyle, icon:'◰' },
+                  { label:'DECISION PATTERN', value:brain.decisionPattern, icon:'◱' },
+                  { label:'TRAINING FOCUS', value:brain.trainingFocus, icon:'◲' },
+                ].map((item,i)=>(
+                  <div key={i} className="card" style={{ padding:'24px' }}>
+                    <div style={{ ...mono, fontSize:8, letterSpacing:3, color:C.muted, marginBottom:12 }}>{item.label}</div>
+                    <div style={{ ...mono, fontSize:14, color:b.color, marginBottom:10 }}>{item.icon}</div>
+                    <div style={{ fontSize:13, color:C.text, lineHeight:1.7 }}>{item.value}</div>
+                  </div>
+                ))}
+                <div className="card" style={{ padding:'24px', display:'flex', flexDirection:'column', justifyContent:'space-between' }}>
+                  <div style={{ ...mono, fontSize:8, letterSpacing:3, color:C.muted, marginBottom:12 }}>BEGIN TRAINING</div>
+                  <div style={{ ...syne, fontSize:18, fontWeight:700, color:C.text, marginBottom:16, lineHeight:1.3 }}>
+                    Train your {brain.label.split(' ')[0]} mode today
+                  </div>
+                  <button className="btn-primary" onClick={()=>setView('training')}>Enter Training →</button>
+                </div>
+              </div>
+            </div>
+
+            {/* Framework overview */}
+            <div style={{ marginTop:64, padding:'48px 0', borderTop:`1px solid ${C.border}` }}>
+              <div style={{ textAlign:'center', marginBottom:48 }}>
+                <div style={{ ...mono, fontSize:9, letterSpacing:3, color:C.cyan, marginBottom:16 }}>THE INTEGRATION PRINCIPLE</div>
+                <h2 style={{ ...syne, fontSize:32, fontWeight:800, color:C.text }}>No brain is superior. All four must integrate.</h2>
+              </div>
+              <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(250px, 1fr))', gap:24 }}>
+                {[
+                  { title:'Single-Brain Dominance', desc:'When one mode controls all processing, you get precision without creativity, or intuition without structure, or reflection without action.', color:'#F87171', label:'FRAGMENTED' },
+                  { title:'Two-Brain Balance', desc:'Partial integration. Most trained professionals operate here. Functional but limited. Blind spots remain. Under pressure, one mode takes over.', color:'#FFD54F', label:'PARTIAL' },
+                  { title:'Four-Brain Integration', desc:'The NeuralFusion™ objective. All four modes active and coordinated. Each informs the others. The result is cognitive precision at every level.', color:'#80CBC4', label:'INTEGRATED' },
+                ].map((item,i)=>(
+                  <div key={i} className="card" style={{ padding:'24px', borderColor:`${item.color}22` }}>
+                    <div style={{ ...mono, fontSize:8, letterSpacing:3, color:item.color, marginBottom:12 }}>{item.label}</div>
+                    <div style={{ ...syne, fontSize:16, fontWeight:700, color:C.text, marginBottom:12 }}>{item.title}</div>
+                    <div style={{ fontSize:13, color:C.muted, lineHeight:1.7 }}>{item.desc}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    // ═══════════════════════════════════════════════════════════════════
+    //  CFI ASSESSMENT VIEW
+    // ═══════════════════════════════════════════════════════════════════
+    function CFIView({ setView, user, setShowAuth, cfiResult, setCfiResult }) {
+      const [started, setStarted] = useState(false);
+      const [step, setStep] = useState(0);
+      const [answers, setAnswers] = useState({});
+      const [showResult, setShowResult] = useState(!!cfiResult);
+
+      const labels = ['Never','Rarely','Sometimes','Often','Always'];
+      const progress = started ? (step/CFI_ITEMS.length)*100 : 0;
+
+      const calculateCFI = () => {
+        const vals = Object.values(answers);
+        if (vals.length < CFI_ITEMS.length) return null;
+        const total = vals.reduce((a,b)=>a+b,0);
+        let band, desc, recommendation;
+        if (total<=20) {
+          band='Integrated'; desc='Low Cognitive Fragmentation. Your thinking modes are well-coordinated.';
+          recommendation='Maintain daily integration protocol. Advance to Lessons 4–5 for fluency installation.';
+        } else if (total<=33) {
+          band='Moderate Fragmentation'; desc='Some fragmentation detected. Specific modes need targeted training.';
+          recommendation='Focus on Mode Activation training (Lesson 2). Daily mode-switching drills for 14 days.';
+        } else if (total<=46) {
+          band='High Fragmentation'; desc='Significant cognitive fragmentation. Integration is inconsistent under pressure.';
+          recommendation='Begin full Core Loop training from Lesson 1. Run the integration protocol daily.';
+        } else {
+          band='Critical Fragmentation'; desc='Severe fragmentation. Decision-making and clarity are significantly compromised.';
+          recommendation='Intensive intervention required. Begin Lesson 1 immediately and track CFI weekly.';
+        }
+        const dims={A:[],I:[],S:[],R:[],E:[]};
+        CFI_ITEMS.forEach(item=>{ if(answers[item.id]) dims[item.dim].push(answers[item.id]); });
+        const dimScores={};
+        Object.keys(dims).forEach(d=>{ dimScores[d]=dims[d].length ? Math.round(dims[d].reduce((a,b)=>a+b,0)/dims[d].length*20) : 0; });
+
+        // Determine dominant brain from highest dim score (meaning highest fragmentation)
+        const brainMap = { A:'analytical', I:'intuitive', S:'associative', R:'reflective', E:'analytical' };
+        const sortedDims = Object.entries(dimScores).sort((a,b)=>b[1]-a[1]);
+        const dominantBrain = brainMap[sortedDims[0][0]] || 'analytical';
+
+        return { total, band, desc, recommendation, dimScores, dominantBrain };
+      };
+
+      const handleAnswer = (val) => {
+        const newAnswers = {...answers, [CFI_ITEMS[step].id]: val};
+        setAnswers(newAnswers);
+        if (step < CFI_ITEMS.length-1) {
+          setStep(s=>s+1);
+        } else {
+          // Calculate result
+          const tempAnswers = newAnswers;
+          const vals = Object.values(tempAnswers);
+          const total = vals.reduce((a,b)=>a+b,0);
+          let band, desc, recommendation;
+          if (total<=20) { band='Integrated'; desc='Low Cognitive Fragmentation. Your thinking modes are well-coordinated.'; recommendation='Maintain daily integration protocol. Advance to Lessons 4–5 for fluency installation.'; }
+          else if (total<=33) { band='Moderate Fragmentation'; desc='Some fragmentation detected. Specific modes need targeted training.'; recommendation='Focus on Mode Activation training (Lesson 2). Daily mode-switching drills for 14 days.'; }
+          else if (total<=46) { band='High Fragmentation'; desc='Significant cognitive fragmentation. Integration is inconsistent under pressure.'; recommendation='Begin full Core Loop training from Lesson 1. Run the integration protocol daily.'; }
+          else { band='Critical Fragmentation'; desc='Severe fragmentation. Decision-making and clarity are significantly compromised.'; recommendation='Intensive intervention required. Begin Lesson 1 immediately and track CFI weekly.'; }
+          const dims={A:[],I:[],S:[],R:[],E:[]};
+          CFI_ITEMS.forEach(item=>{ if(tempAnswers[item.id]) dims[item.dim].push(tempAnswers[item.id]); });
+          const dimScores={};
+          Object.keys(dims).forEach(d=>{ dimScores[d]=dims[d].length ? Math.round(dims[d].reduce((a,b)=>a+b,0)/dims[d].length*20) : 0; });
+          const brainMap = { A:'analytical', I:'intuitive', S:'associative', R:'reflective', E:'analytical' };
+          const sortedDims = Object.entries(dimScores).sort((a,b)=>b[1]-a[1]);
+          const dominantBrain = brainMap[sortedDims[0][0]] || 'analytical';
+          const result = { total, band, desc, recommendation, dimScores, dominantBrain };
+          setCfiResult(result);
+          setShowResult(true);
+          if (user) saveCFIResult(user.id, result, tempAnswers);
+        }
+      };
+
+      if (showResult && cfiResult) {
+        const bandColors = {
+          'Integrated':'#80CBC4',
+          'Moderate Fragmentation':'#FFD54F',
+          'High Fragmentation':'#FB8C00',
+          'Critical Fragmentation':'#F87171',
+        };
+        const bandColor = bandColors[cfiResult.band] || C.cyan;
+        const dimLabels = {A:'Analytical Coherence',I:'Intuitive Alignment',S:'Associative Flexibility',R:'Reflective Depth',E:'Integration Stability'};
+
+        return (
+          <div style={{ paddingTop:80, paddingBottom:40 }}>
+            <div style={{ maxWidth:900, margin:'0 auto', padding:'24px 24px' }}>
+              <div style={{ ...mono, fontSize:9, letterSpacing:4, color:C.cyan, marginBottom:16 }}>CFI ASSESSMENT · RESULTS</div>
+
+              {/* Score hero */}
+              <div className="card" style={{ padding:'40px', marginBottom:32, position:'relative', overflow:'hidden', borderColor:`${bandColor}22` }}>
+                <ScanLine />
+                <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(200px, 1fr))', gap:32, alignItems:'center' }}>
+                  <div>
+                    <div style={{ ...mono, fontSize:9, letterSpacing:3, color:C.muted, marginBottom:12 }}>COGNITIVE FRAGMENTATION INDEX</div>
+                    <div style={{ ...syne, fontSize:56, fontWeight:800, color:bandColor, lineHeight:1 }}>{cfiResult.total}</div>
+                    <div style={{ ...mono, fontSize:9, letterSpacing:3, color:C.muted, marginTop:8, marginBottom:16 }}>TOTAL FRAGMENTATION SCORE</div>
+                    <div style={{ display:'inline-block', padding:'8px 16px', background:`${bandColor}15`, border:`1px solid ${bandColor}33`, borderRadius:2 }}>
+                      <div style={{ ...syne, fontSize:16, fontWeight:800, color:bandColor }}>{cfiResult.band}</div>
+                    </div>
+                  </div>
+                  <div>
+                    <div style={{ ...mono, fontSize:9, letterSpacing:3, color:C.muted, marginBottom:16 }}>DOMINANT COGNITIVE PATTERN</div>
+                    <BrainCard brainKey={cfiResult.dominantBrain} compact />
+                  </div>
+                </div>
+                <div style={{ marginTop:32, padding:'20px', background:C.deep, borderRadius:2, border:`1px solid ${C.border}` }}>
+                  <div style={{ ...mono, fontSize:8, letterSpacing:3, color:C.muted, marginBottom:8 }}>DIAGNOSTIC SUMMARY</div>
+                  <div style={{ fontSize:14, color:C.text, lineHeight:1.7, marginBottom:12 }}>{cfiResult.desc}</div>
+                  <div style={{ ...mono, fontSize:8, letterSpacing:3, color:C.cyan, marginBottom:8 }}>TRAINING RECOMMENDATION</div>
+                  <div style={{ fontSize:13, color:C.muted, lineHeight:1.7 }}>{cfiResult.recommendation}</div>
+                </div>
+              </div>
+
+              {/* Dimensional analysis */}
+              <div style={{ ...mono, fontSize:9, letterSpacing:3, color:C.cyan, marginBottom:20 }}>DIMENSIONAL ANALYSIS</div>
+              <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(250px, 1fr))', gap:16, marginBottom:32 }}>
+                {Object.entries(cfiResult.dimScores).map(([dim,score])=>{
+                  const col = score>=70?'#F87171':score>=50?'#FFD54F':'#80CBC4';
+                  return (
+                    <div key={dim} className="card" style={{ padding:'24px' }}>
+                      <div style={{ ...mono, fontSize:8, letterSpacing:3, color:C.muted, marginBottom:12 }}>{dimLabels[dim]}</div>
+                      <div style={{ display:'flex', alignItems:'center', gap:16, marginBottom:12 }}>
+                        <div style={{ ...syne, fontSize:28, fontWeight:800, color:col }}>{score}</div>
+                        <div style={{ fontSize:11, color:C.muted }}>fragmentation<br />score</div>
+                      </div>
+                      <div style={{ height:3, background:C.panel, borderRadius:2 }}>
+                        <div style={{ width:`${score}%`, height:'100%', background:col, borderRadius:2 }} />
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              <div style={{ display:'flex', gap:16, flexWrap:'wrap' }}>
+                <button className="btn-primary" onClick={()=>setView('training')}>Begin Training Protocol →</button>
+                <button className="btn-outline" onClick={()=>setView('lessons')}>Open Lesson Manuals</button>
+                <button className="btn-ghost" onClick={()=>{ setStarted(false); setStep(0); setAnswers({}); setShowResult(false); }}>Retake Assessment</button>
+              </div>
+            </div>
+          </div>
+        );
+      }
+
+      if (!started) {
+        return (
+          <div style={{ paddingTop:80, paddingBottom:40 }}>
+            <div style={{ maxWidth:800, margin:'0 auto', padding:'32px 24px', textAlign:'center' }}>
+              <div style={{ ...mono, fontSize:9, letterSpacing:4, color:C.cyan, marginBottom:20 }}>COGNITIVE FRAGMENTATION INDEX™</div>
+              <h1 style={{ ...syne, fontSize:'clamp(32px, 6vw, 52px)', fontWeight:800, color:C.text, marginBottom:20, lineHeight:1.05 }}>
+                Measure your cognitive<br /><span style={{color:C.cyan}}>fragmentation level</span>
+              </h1>
+              <p style={{ fontSize:15, color:C.muted, lineHeight:1.8, marginBottom:40, maxWidth:520, margin:'0 auto 40px' }}>
+                The CFI™ is a precision diagnostic instrument that measures fragmentation across
+                five cognitive dimensions. The assessment consists of {CFI_ITEMS.length} statements.
+                Respond honestly — the accuracy of your profile depends on it.
+              </p>
+              <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(200px, 1fr))', gap:16, marginBottom:48, textAlign:'left' }}>
+                {['Five cognitive dimensions measured','Dominant brain mode identified','Fragmentation band assigned','Personalized training recommendation generated'].map((item,i)=>(
+                  <div key={i} className="card" style={{ padding:'16px 20px', display:'flex', alignItems:'center', gap:12 }}>
+                    <div style={{ ...mono, fontSize:14, color:C.cyan }}>◈</div>
+                    <div style={{ fontSize:13, color:C.muted }}>{item}</div>
+                  </div>
+                ))}
+              </div>
+              <button className="btn-primary" style={{ fontSize:14 }} onClick={()=>setStarted(true)}>
+                Begin CFI Assessment →
+              </button>
+            </div>
+          </div>
+        );
+      }
+
+      const item = CFI_ITEMS[step];
+      const brainInfo = C.brains[item.brain] || C.brains.analytical;
+
+      return (
+        <div style={{ paddingTop:80, paddingBottom:40 }}>
+          <div style={{ maxWidth:700, margin:'0 auto', padding:'40px 24px', width:'100%' }}>
+            {/* Progress */}
+            <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:32 }}>
+              <div style={{ ...mono, fontSize:9, letterSpacing:3, color:C.muted }}>CFI ASSESSMENT · {step+1} / {CFI_ITEMS.length}</div>
+              <div style={{ ...mono, fontSize:9, letterSpacing:3, color:C.cyan }}>{Math.round(progress)}%</div>
+            </div>
+            <div style={{ height:2, background:C.panel, borderRadius:2, marginBottom:48, overflow:'hidden' }}>
+              <div style={{ width:`${progress}%`, height:'100%', background:C.cyan, borderRadius:2, transition:'width 0.4s ease' }} />
+            </div>
+
+            {/* Question */}
+            <div key={step} style={{ animation:'fadeUp 0.4s ease both' }}>
+              <div style={{ display:'flex', alignItems:'center', gap:12, marginBottom:24 }}>
+                <div style={{ ...mono, fontSize:18, color:brainInfo.color }}>{brainInfo.symbol}</div>
+                <div style={{ ...mono, fontSize:9, letterSpacing:3, color:brainInfo.color }}>
+                  {FOUR_BRAINS[item.brain]?.label || 'COGNITIVE'}
+                </div>
+              </div>
+              <div style={{ ...syne, fontSize:'clamp(20px, 4vw, 28px)', fontWeight:700, color:C.text, lineHeight:1.3, marginBottom:48 }}>
+                "{item.text}"
+              </div>
+
+              {/* Answer scale */}
+              <div style={{ display:'grid', gridTemplateColumns:'repeat(5, 1fr)', gap:8 }}>
+                {labels.map((label,i)=>{
+                  const val = i+1;
+                  const isSelected = answers[item.id]===val;
+                  return (
+                    <button key={i} onClick={()=>handleAnswer(val)} style={{
+                      padding:'16px 8px', borderRadius:2, border:`1px solid ${isSelected?C.cyan:C.border}`,
+                      background: isSelected ? `${C.cyan}20` : C.surface,
+                      display:'flex', flexDirection:'column', alignItems:'center', gap:8,
+                      transition:'all 0.2s', cursor:'pointer',
+                    }}>
+                      <div style={{ ...syne, fontSize:20, fontWeight:800, color:isSelected?C.cyan:C.dim }}>{val}</div>
+                      <div style={{ ...mono, fontSize:8, letterSpacing:1, color:isSelected?C.cyan:C.dim, textAlign:'center' }}>{label}</div>
+                    </button>
+                  );
+                })}
+              </div>
+              <div style={{ display:'flex', justifyContent:'space-between', marginTop:12 }}>
+                <div style={{ ...mono, fontSize:8, letterSpacing:2, color:C.dim }}>NEVER</div>
+                <div style={{ ...mono, fontSize:8, letterSpacing:2, color:C.dim }}>ALWAYS</div>
+              </div>
+            </div>
+
+            {step > 0 && (
+              <button className="btn-ghost" style={{ marginTop:32 }} onClick={()=>setStep(s=>s-1)}>← Previous</button>
+            )}
+          </div>
+        </div>
+      );
+    }
+
+    // ═══════════════════════════════════════════════════════════════════
+    //  TRAINING VIEW
+    // ═══════════════════════════════════════════════════════════════════
+    function TrainingView({ setView, user, setShowAuth, sessions, setSessions }) {
+      const [activeModule, setActiveModule] = useState(null);
+      const [trainingStep, setTrainingStep] = useState(0);
+      const [inputs, setInputs] = useState({});
+
+      const modules = [
+        {
+          id:'core-loop', title:'Core Integration Loop', duration:'8 min', difficulty:'Foundation',
+          color:C.cyan, brain:'all', icon:'◈',
+          desc:'The primary NeuralFusion™ protocol. Run all four brains in sequence on a real situation.',
+          steps:[
+            { brain:'analytical', label:'◰ DECOMPOSE', prompt:'State the situation as pure fact.', detail:'No interpretation, no emotion, no judgment. Just the verifiable structure of what is happening.', placeholder:'What are the concrete facts here? List them.' },
+            { brain:'intuitive', label:'◱ SENSE', prompt:'What does your gut signal?', detail:'Before logic arrives, what does your body and instinct know? Trust the first signal — do not edit it.', placeholder:'My gut is telling me...' },
+            { brain:'associative', label:'◲ EXPAND', prompt:'What connections exist that you have not explored?', detail:'Think laterally. What does this remind you of? What alternative frame exists? What have you not considered?', placeholder:'This connects to... / An alternative view is...' },
+            { brain:'reflective', label:'◳ REFLECT', prompt:'What does your own thinking reveal?', detail:'What assumption is operating beneath the surface? What pattern are you repeating? What does your hesitation tell you?', placeholder:'My thinking reveals...' },
+            { brain:'synthesis', label:'◈ FUSE', prompt:'Write your integrated position.', detail:'One sentence that synthesizes all four brain outputs into a unified cognitive stance. Activate the Commitment Lock.', placeholder:'My fused position is: ...' },
+          ]
+        },
+        {
+          id:'pressure-drill', title:'Pressure Stabilization Drill', duration:'10 min', difficulty:'Advanced',
+          color:'#CE93D8', brain:'reflective', icon:'◱',
+          desc:'Train cognitive stability under simulated pressure conditions.',
+          steps:[
+            { brain:'reflective', label:'◳ IDENTIFY PRESSURE', prompt:'Name the pressure source precisely.', detail:'What exactly is creating the pressure? Be specific — vague pressure is more destabilizing than named pressure.', placeholder:'The specific pressure is...' },
+            { brain:'analytical', label:'◰ FACT-ONLY ASSESSMENT', prompt:'List only verifiable facts about this situation.', detail:'Strip all interpretation. What can you prove? What is objectively true regardless of how it feels?', placeholder:'Facts only:' },
+            { brain:'intuitive', label:'◱ SIGNAL CHECK', prompt:'What is your intuition saying beneath the pressure?', detail:'Separate the fear signal from the intelligence signal. What does your pattern recognition tell you, absent the adrenaline?', placeholder:'My signal, separate from the fear, is...' },
+            { brain:'associative', label:'◲ ALTERNATIVE RESPONSE', prompt:'What response exists that you have not yet considered?', detail:'Under pressure, the mind narrows to one option. Force it to generate at least two others.', placeholder:'Alternative responses: 1) ... 2) ... 3)...' },
+            { brain:'synthesis', label:'◈ STABILIZE', prompt:'Your stabilized cognitive position.', detail:'After running all four brains under simulated pressure — what is your clear, stable position? Name it. Lock it.', placeholder:'Stabilized position:' },
+          ]
+        },
+        {
+          id:'decision-architecture', title:'Decision Architecture Protocol', duration:'12 min', difficulty:'Intermediate',
+          color:'#80CBC4', brain:'analytical', icon:'◰',
+          desc:'Build a complete cognitive architecture for any complex decision.',
+          steps:[
+            { brain:'analytical', label:'◰ DEFINE', prompt:'Define the decision with precision.', detail:'What exactly is being decided? What are the specific options? What is the timeline? What resources are involved?', placeholder:'The decision I am making is...' },
+            { brain:'reflective', label:'◳ VALUES CHECK', prompt:'What do your core values say about this?', detail:'Which option is most aligned with who you are and who you want to become? Values-misaligned decisions fail over time.', placeholder:'My values indicate...' },
+            { brain:'intuitive', label:'◱ PATTERN READ', prompt:'What pattern does your experience reveal?', detail:'Have you been here before? What happened? What does your accumulated experience — not hope — tell you?', placeholder:'My experience pattern says...' },
+            { brain:'associative', label:'◲ SECOND-ORDER EFFECTS', prompt:'What are the downstream consequences?', detail:'Think two moves ahead. What does each option create? What does it close off? What unexpected connections exist?', placeholder:'Second-order effects:' },
+            { brain:'synthesis', label:'◈ ARCHITECTURAL DECISION', prompt:'Your structured decision.', detail:'Integrate all inputs. Name the decision. State why. Activate the Commitment Lock.', placeholder:'My decision is: ... because...' },
+          ]
+        },
+      ];
+
+      if (activeModule) {
+        const mod = modules.find(m=>m.id===activeModule);
+        const stepData = mod.steps[trainingStep];
+        const brainInfo = C.brains[stepData.brain] || { color:C.cyan, symbol:'◈' };
+        const isLast = trainingStep === mod.steps.length-1;
+        const canAdvance = inputs[`${activeModule}-${trainingStep}`]?.trim().length > 10;
+
+        const handleComplete = () => {
+          const session = {
+            id: Date.now(),
+            title: mod.title,
+            date: 'Just now',
+            score: Math.min(100, Object.values(inputs).join('').length/5 + 50),
+            module: mod.id,
+          };
+          setSessions(prev=>[session,...prev]);
+          setActiveModule(null);
+          setTrainingStep(0);
+          setInputs({});
+        };
+
+        return (
+          <div style={{ paddingTop:80, paddingBottom:100, minHeight:'100vh' }}>
+            <div style={{ maxWidth:760, margin:'0 auto', padding:'40px 24px' }}>
+              {/* Header */}
+              <div style={{ display:'flex', alignItems:'center', gap:16, marginBottom:32 }}>
+                <button className="btn-ghost" onClick={()=>{ setActiveModule(null); setTrainingStep(0); setInputs({}); }}>← Exit</button>
+                <div style={{ flex:1, height:1, background:C.border }} />
+                <div style={{ ...mono, fontSize:9, letterSpacing:3, color:C.muted }}>{trainingStep+1} / {mod.steps.length}</div>
+              </div>
+
+              {/* Progress */}
+              <div style={{ height:2, background:C.panel, borderRadius:2, marginBottom:48, overflow:'hidden' }}>
+                <div style={{ width:`${((trainingStep+1)/mod.steps.length)*100}%`, height:'100%', background:mod.color, borderRadius:2, transition:'width 0.4s ease' }} />
+              </div>
+
+              {/* Step */}
+              <div key={trainingStep} style={{ animation:'fadeUp 0.4s ease both' }}>
+                <div style={{ display:'flex', alignItems:'center', gap:12, marginBottom:20 }}>
+                  <div style={{ ...mono, fontSize:20, color:brainInfo.color }}>{brainInfo.symbol || '◈'}</div>
+                  <div style={{ ...mono, fontSize:9, letterSpacing:3, color:brainInfo.color }}>{stepData.label}</div>
+                </div>
+                <h2 style={{ ...syne, fontSize:'clamp(22px, 4vw, 32px)', fontWeight:800, color:C.text, marginBottom:12, lineHeight:1.2 }}>
+                  {stepData.prompt}
+                </h2>
+                <p style={{ fontSize:13, color:C.muted, lineHeight:1.7, marginBottom:32 }}>{stepData.detail}</p>
+
+                <textarea
+                  rows={8}
+                  value={inputs[`${activeModule}-${trainingStep}`]||''}
+                  onChange={e=>setInputs(p=>({...p, [`${activeModule}-${trainingStep}`]:e.target.value}))}
+                  placeholder={stepData.placeholder}
+                  style={{ width:'100%', minHeight:160, padding:'20px', fontSize:14, lineHeight:1.7, borderColor:`${brainInfo.color}33` }}
+                />
+
+                <div style={{ display:'flex', justifyContent:'space-between', marginTop:24, alignItems:'center' }}>
+                  <button className="btn-ghost" disabled={trainingStep===0} onClick={()=>setTrainingStep(s=>s-1)} style={{ opacity:trainingStep===0?0.3:1 }}>← Back</button>
+                  {isLast ? (
+                    <button className="btn-primary" onClick={handleComplete} disabled={!canAdvance} style={{ opacity:canAdvance?1:0.5 }}>
+                      Complete Session ✓
+                    </button>
+                  ) : (
+                    <button className="btn-primary" onClick={()=>setTrainingStep(s=>s+1)} disabled={!canAdvance} style={{ opacity:canAdvance?1:0.5 }}>
+                      Next Brain Mode →
+                    </button>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+      }
+
+      return (
+        <div style={{ paddingTop:80, paddingBottom:100 }}>
+          <div style={{ maxWidth:1200, margin:'0 auto', padding:'40px 24px' }}>
+            <div style={{ ...mono, fontSize:9, letterSpacing:4, color:C.cyan, marginBottom:16 }}>COGNITIVE TRAINING SYSTEM</div>
+            <h1 style={{ ...syne, fontSize:'clamp(32px, 6vw, 52px)', fontWeight:800, color:C.text, marginBottom:16, lineHeight:1.05 }}>
+              Precision Training<br />Protocols
+            </h1>
+            <p style={{ fontSize:15, color:C.muted, maxWidth:560, lineHeight:1.8, marginBottom:48 }}>
+              Each training module is a structured cognitive exercise designed to activate, challenge,
+              and integrate your four brain modes. Sessions range from 8 to 15 minutes.
+            </p>
+
+            <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(300px, 1fr))', gap:24, marginBottom:64 }}>
+              {modules.map((mod,i)=>(
+                <div key={mod.id} className="card" style={{ padding:'32px', cursor:'pointer', position:'relative', overflow:'hidden' }}
+                  onClick={()=>setActiveModule(mod.id)}
+                  onMouseEnter={e=>{ e.currentTarget.style.borderColor=mod.color+'44'; }}
+                  onMouseLeave={e=>{ e.currentTarget.style.borderColor=C.border; }}>
+                  <div style={{ position:'absolute', top:0, left:0, width:2, height:'100%', background:mod.color }} />
+                  <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', marginBottom:20 }}>
+                    <div style={{ ...mono, fontSize:28, color:mod.color }}>{mod.icon}</div>
+                    <div style={{ display:'flex', gap:8 }}>
+                      <div style={{ ...mono, fontSize:8, letterSpacing:2, color:C.muted, padding:'4px 8px', border:`1px solid ${C.border}`, borderRadius:2 }}>{mod.duration}</div>
+                      <div style={{ ...mono, fontSize:8, letterSpacing:2, color:mod.color, padding:'4px 8px', border:`1px solid ${mod.color}33`, borderRadius:2 }}>{mod.difficulty}</div>
+                    </div>
+                  </div>
+                  <div style={{ ...syne, fontSize:20, fontWeight:700, color:C.text, marginBottom:12 }}>{mod.title}</div>
+                  <div style={{ fontSize:13, color:C.muted, lineHeight:1.7, marginBottom:24 }}>{mod.desc}</div>
+                  <button className="btn-primary" style={{ fontSize:11, padding:'10px 20px', background:mod.color }}>
+                    Begin Protocol →
+                  </button>
+                </div>
+              ))}
+            </div>
+
+            {/* Session history */}
+            {sessions.length > 0 && (
+              <div>
+                <div style={{ ...mono, fontSize:9, letterSpacing:3, color:C.cyan, marginBottom:20 }}>RECENT SESSIONS</div>
+                <div style={{ display:'flex', flexDirection:'column', gap:8 }}>
+                  {sessions.slice(0,5).map((s,i)=>(
+                    <div key={s.id} className="card" style={{ padding:'16px 24px', display:'flex', justifyContent:'space-between', alignItems:'center' }}>
+                      <div>
+                        <div style={{ ...syne, fontSize:14, fontWeight:700, color:C.text }}>{s.title}</div>
+                        <div style={{ ...mono, fontSize:9, letterSpacing:2, color:C.muted, marginTop:4 }}>{s.date}</div>
+                      </div>
+                      <div style={{ ...mono, fontSize:9, letterSpacing:2, color:C.dim }}>COMPLETED ✓</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      );
+    }
+
+    // ═══════════════════════════════════════════════════════════════════
+    //  ANALYTICS VIEW
+    // ═══════════════════════════════════════════════════════════════════
+    function AnalyticsView({ cfiResult, sessions, lessonProgress }) {
+      const completedLessons = Object.values(lessonProgress).filter(v=>v===100).length;
+
+      return (
+        <div style={{ paddingTop:80, paddingBottom:100 }}>
+          <div style={{ maxWidth:1200, margin:'0 auto', padding:'40px 24px' }}>
+            <div style={{ ...mono, fontSize:9, letterSpacing:4, color:C.cyan, marginBottom:16 }}>COGNITIVE ANALYTICS</div>
+            <h1 style={{ ...syne, fontSize:'clamp(32px, 6vw, 52px)', fontWeight:800, color:C.text, marginBottom:16 }}>
+              Your Cognitive<br />Performance Map
+            </h1>
+            <p style={{ fontSize:15, color:C.muted, maxWidth:560, lineHeight:1.8, marginBottom:48 }}>
+              Track your thinking evolution, brain mode balance, and training effectiveness over time.
+            </p>
+
+            {!cfiResult ? (
+              <div className="card" style={{ padding:'60px', textAlign:'center' }}>
+                <div style={{ ...mono, fontSize:48, color:C.dim, marginBottom:24 }}>◎</div>
+                <div style={{ ...syne, fontSize:22, fontWeight:700, color:C.text, marginBottom:12 }}>No Cognitive Data Yet</div>
+                <div style={{ fontSize:14, color:C.muted, marginBottom:32, maxWidth:400, margin:'0 auto 32px' }}>
+                  Complete the CFI Assessment to generate your cognitive profile and unlock analytics.
+                </div>
+                <button className="btn-primary" onClick={()=>{}}>Take CFI Assessment →</button>
+              </div>
+            ) : (
+              <>
+                {/* Overview */}
+                <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(180px, 1fr))', gap:16, marginBottom:40 }}>
+                  {[
+                    { label:'CFI SCORE', value:cfiResult.total, unit:'/75', color:cfiResult.total<=20?'#80CBC4':cfiResult.total<=33?'#FFD54F':'#F87171' },
+                    { label:'SESSIONS LOGGED', value:sessions.length, unit:'', color:C.cyan },
+                    { label:'LESSONS DONE', value:completedLessons, unit:`/${LESSONS.length}`, color:'#CE93D8' },
+                    { label:'INTEGRATION BAND', value:cfiResult.band.split(' ')[0], unit:'', color:'#FFD54F', small:true },
+                  ].map((s,i)=>(
+                    <div key={i} className="card" style={{ padding:'24px' }}>
+                      <div style={{ ...mono, fontSize:8, letterSpacing:3, color:C.muted, marginBottom:12 }}>{s.label}</div>
+                      <div style={{ display:'flex', alignItems:'baseline', gap:4 }}>
+                        <div style={{ ...syne, fontSize:s.small?18:32, fontWeight:800, color:s.color }}>{s.value}</div>
+                        {s.unit && <div style={{ ...mono, fontSize:10, color:C.muted }}>{s.unit}</div>}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Brain mode balance */}
+                <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(300px, 1fr))', gap:24, marginBottom:40 }}>
+                  <div className="card" style={{ padding:'32px' }}>
+                    <div style={{ ...mono, fontSize:9, letterSpacing:3, color:C.cyan, marginBottom:24 }}>BRAIN MODE FRAGMENTATION</div>
+                    {Object.entries(cfiResult.dimScores).map(([dim,score])=>{
+                      const dimNames = {A:'Analytical',I:'Intuitive',S:'Associative',R:'Reflective',E:'Integration'};
+                      const brainKey = {A:'analytical',I:'intuitive',S:'associative',R:'reflective',E:'analytical'}[dim];
+                      const col = C.brains[brainKey]?.color || C.cyan;
+                      const fragPct = score;
+                      return (
+                        <div key={dim} style={{ marginBottom:20 }}>
+                          <div style={{ display:'flex', justifyContent:'space-between', marginBottom:8 }}>
+                            <div style={{ display:'flex', alignItems:'center', gap:8 }}>
+                              <div style={{ ...mono, fontSize:10, color:col }}>{C.brains[brainKey]?.symbol || '◈'}</div>
+                              <div style={{ fontSize:13, color:C.muted }}>{dimNames[dim]}</div>
+                            </div>
+                            <div style={{ ...mono, fontSize:9, color:col }}>{fragPct}%</div>
+                          </div>
+                          <div style={{ height:4, background:C.panel, borderRadius:2, overflow:'hidden' }}>
+                            <div style={{ width:`${fragPct}%`, height:'100%', background:col, borderRadius:2 }} />
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+
+                  <div className="card" style={{ padding:'32px' }}>
+                    <div style={{ ...mono, fontSize:9, letterSpacing:3, color:C.cyan, marginBottom:24 }}>COGNITIVE PROFILE</div>
+                    <div style={{ display:'flex', justifyContent:'center', flexWrap:'wrap', gap:24 }}>
+                      {Object.entries(C.brains).map(([key,b])=>{
+                        const dimKey = {analytical:'A',intuitive:'I',associative:'S',reflective:'R'}[key];
+                        const score = cfiResult.dimScores[dimKey] || 0;
+                        const strength = Math.max(0, 100-score);
+                        return (
+                          <div key={key} style={{ textAlign:'center' }}>
+                            <ProgressRing value={strength} size={72} color={b.color} />
+                            <div style={{ ...mono, fontSize:8, letterSpacing:2, color:C.muted, marginTop:8 }}>{b.label.split(' ')[0].toUpperCase()}</div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                    <div style={{ marginTop:24, padding:'16px', background:C.deep, borderRadius:2, border:`1px solid ${C.border}` }}>
+                      <div style={{ ...mono, fontSize:8, letterSpacing:3, color:C.muted, marginBottom:8 }}>DOMINANT COGNITIVE MODE</div>
+                      <div style={{ ...syne, fontSize:16, fontWeight:800, color:C.brains[cfiResult.dominantBrain]?.color||C.cyan }}>
+                        {FOUR_BRAINS[cfiResult.dominantBrain]?.label || '—'}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Lesson progress */}
+                <div className="card" style={{ padding:'32px' }}>
+                  <div style={{ ...mono, fontSize:9, letterSpacing:3, color:C.cyan, marginBottom:24 }}>LESSON MANUAL PROGRESS</div>
+                  {LESSONS.map((lesson,i)=>{
+                    const prog = lessonProgress[lesson.id] || 0;
+                    const col = lesson.level==='Foundation'?C.cyan:lesson.level==='Intermediate'?'#CE93D8':lesson.level==='Advanced'?'#FFD54F':'#80CBC4';
+                    return (
+                      <div key={lesson.id} style={{ marginBottom:20 }}>
+                        <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:8 }}>
+                          <div>
+                            <div style={{ fontSize:13, color:C.text, fontWeight:500 }}>Lesson {lesson.id}: {lesson.title}</div>
+                            <div style={{ ...mono, fontSize:8, letterSpacing:2, color:C.muted, marginTop:4 }}>{lesson.level}</div>
+                          </div>
+                          <div style={{ ...mono, fontSize:9, color:prog===100?'#80CBC4':C.muted }}>{prog===100?'COMPLETE':prog>0?`${prog}%`:'—'}</div>
+                        </div>
+                        <div style={{ height:3, background:C.panel, borderRadius:2, overflow:'hidden' }}>
+                          <div style={{ width:`${prog}%`, height:'100%', background:col, borderRadius:2, transition:'width 0.8s ease' }} />
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+      );
+    }
+
+    // ═══════════════════════════════════════════════════════════════════
+    //  LESSONS VIEW
+    // ═══════════════════════════════════════════════════════════════════
+    function LessonsView({ setView, user, setShowAuth, isPro, setIsPro, lessonProgress, setLessonProgress }) {
+      const [activeLesson, setActiveLesson] = useState(null);
+      const [page, setPage] = useState(0);
+
+      const levelColors = { Foundation:C.cyan, Intermediate:'#CE93D8', Advanced:'#FFD54F', Mastery:'#80CBC4' };
+
+      if (activeLesson) {
+        const lesson = LESSONS.find(l=>l.id===activeLesson);
+        const content = LESSON_CONTENT[activeLesson];
+        const pageData = content.pages[page];
+        const isLast = page === content.pages.length-1;
+        const col = levelColors[lesson.level] || C.cyan;
+
+        const handleComplete = () => {
+          const updated = {...lessonProgress, [activeLesson]:100};
+          setLessonProgress(updated);
+          if (user) upsertLessonProgress(user.id, activeLesson, 100);
+          setActiveLesson(null);
+          setPage(0);
+        };
+
+        return (
+          <div style={{ paddingTop:80, paddingBottom:100, minHeight:'100vh' }}>
+            <div style={{ maxWidth:760, margin:'0 auto', padding:'40px 24px' }}>
+              <div style={{ display:'flex', alignItems:'center', gap:16, marginBottom:32 }}>
+                <button className="btn-ghost" onClick={()=>{ setActiveLesson(null); setPage(0); }}>← Back to Manuals</button>
+                <div style={{ flex:1, height:1, background:C.border }} />
+                <div style={{ ...mono, fontSize:9, letterSpacing:3, color:C.muted }}>{page+1} / {content.pages.length}</div>
+              </div>
+
+              <div style={{ height:2, background:C.panel, borderRadius:2, marginBottom:48, overflow:'hidden' }}>
+                <div style={{ width:`${((page+1)/content.pages.length)*100}%`, height:'100%', background:col, borderRadius:2, transition:'width 0.4s ease' }} />
+              </div>
+
+              <div key={`${activeLesson}-${page}`} style={{ animation:'fadeUp 0.4s ease both' }}>
+                <div style={{ ...mono, fontSize:9, letterSpacing:3, color:col, marginBottom:12 }}>LESSON {activeLesson} · {lesson.level.toUpperCase()}</div>
+                <h1 style={{ ...syne, fontSize:'clamp(24px, 5vw, 36px)', fontWeight:800, color:C.text, marginBottom:32, lineHeight:1.1 }}>
+                  {pageData.title}
+                </h1>
+
+                <div className="card" style={{ padding:'32px 36px', position:'relative', overflow:'hidden' }}>
+                  <div style={{ position:'absolute', top:0, left:0, width:2, height:'100%', background:col }} />
+                  {pageData.body.split('\n\n').map((para,i)=>(
+                    <p key={i} style={{ fontSize:15, color:para.startsWith('◰')||para.startsWith('◱')||para.startsWith('◲')||para.startsWith('◳')||para.startsWith('1.')||para.startsWith('·') ? C.text : C.muted,
+                      lineHeight:1.9, marginBottom:i<pageData.body.split('\n\n').length-1?20:0,
+                      fontFamily: para.startsWith('◰')||para.startsWith('◱')||para.startsWith('◲')||para.startsWith('◳') ? "'Space Mono'" : "'Inter'",
+                      fontSize: para.startsWith('◰')||para.startsWith('◱')||para.startsWith('◲')||para.startsWith('◳') ? 13 : 15,
+                    }}>{para}</p>
+                  ))}
+                </div>
+
+                <div style={{ display:'flex', justifyContent:'space-between', marginTop:32, alignItems:'center' }}>
+                  <button className="btn-ghost" disabled={page===0} onClick={()=>setPage(p=>p-1)} style={{ opacity:page===0?0.3:1 }}>← Previous</button>
+                  {isLast ? (
+                    <button className="btn-primary" style={{ background:col }} onClick={handleComplete}>Complete Lesson ✓</button>
+                  ) : (
+                    <button className="btn-primary" style={{ background:col }} onClick={()=>setPage(p=>p+1)}>Continue →</button>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+      }
+
+      return (
+        <div style={{ paddingTop:80, paddingBottom:100 }}>
+          <div style={{ maxWidth:1200, margin:'0 auto', padding:'40px 24px' }}>
+            <div style={{ ...mono, fontSize:9, letterSpacing:4, color:C.cyan, marginBottom:16 }}>LESSON MANUALS · COGNITIVE LIBRARY</div>
+            <h1 style={{ ...syne, fontSize:'clamp(32px, 6vw, 52px)', fontWeight:800, color:C.text, marginBottom:16, lineHeight:1.05 }}>
+              Elite Cognitive<br />Training Documents
+            </h1>
+            <p style={{ fontSize:15, color:C.muted, maxWidth:560, lineHeight:1.8, marginBottom:48 }}>
+              Five lesson manuals that constitute the complete NeuralFusion™ training system.
+              Each manual is a structured cognitive curriculum — not information, but transformation.
+            </p>
+
+            <div style={{ display:'flex', flexDirection:'column', gap:16 }}>
+              {LESSONS.map((lesson,i)=>{
+                const col = levelColors[lesson.level] || C.cyan;
+                const prog = lessonProgress[lesson.id] || 0;
+                const isLocked = !lesson.free && !isPro;
+                const brainKey = lesson.brain === 'all' ? null : lesson.brain;
+                return (
+                  <div key={lesson.id} className="card" style={{
+                    padding:'28px 32px', position:'relative', overflow:'hidden',
+                    opacity: isLocked ? 0.6 : 1, cursor: isLocked ? 'default' : 'pointer',
+                  }}
+                    onClick={()=>{ if(!isLocked){ setActiveLesson(lesson.id); setPage(0); } }}
+                    onMouseEnter={e=>{ if(!isLocked){ e.currentTarget.style.borderColor=col+'44'; } }}
+                    onMouseLeave={e=>{ e.currentTarget.style.borderColor=C.border; }}>
+
+                    <div style={{ position:'absolute', top:0, left:0, width:2, height:'100%', background:prog===100?'#80CBC4':prog>0?col:C.border }} />
+
+                    <div style={{ display:'grid', gridTemplateColumns:'auto 1fr auto', gap:24, alignItems:'center' }}>
+                      <div style={{ ...syne, fontSize:48, fontWeight:800, color:col+'33', lineHeight:1 }}>
+                        {String(i+1).padStart(2,'0')}
+                      </div>
+                      <div>
+                        <div style={{ display:'flex', gap:8, marginBottom:10, flexWrap:'wrap' }}>
+                          <div style={{ ...mono, fontSize:8, letterSpacing:2, color:col, padding:'3px 8px', border:`1px solid ${col}33`, borderRadius:2 }}>{lesson.level.toUpperCase()}</div>
+                          <div style={{ ...mono, fontSize:8, letterSpacing:2, color:C.muted, padding:'3px 8px', border:`1px solid ${C.border}`, borderRadius:2 }}>{lesson.duration.toUpperCase()}</div>
+                          {lesson.free && <div style={{ ...mono, fontSize:8, letterSpacing:2, color:'#80CBC4', padding:'3px 8px', border:`1px solid #80CBC433`, borderRadius:2 }}>FREE ACCESS</div>}
+                          {isLocked && <div style={{ ...mono, fontSize:8, letterSpacing:2, color:'#F87171', padding:'3px 8px', border:`1px solid #F8717133`, borderRadius:2 }}>PRO REQUIRED</div>}
+                          {prog===100 && <div style={{ ...mono, fontSize:8, letterSpacing:2, color:'#80CBC4', padding:'3px 8px', border:`1px solid #80CBC433`, borderRadius:2 }}>✓ COMPLETE</div>}
+                        </div>
+                        <div style={{ ...syne, fontSize:20, fontWeight:700, color:C.text, marginBottom:6 }}>{lesson.title}</div>
+                        <div style={{ fontSize:13, color:C.muted }}>{lesson.sub}</div>
+                      </div>
+                      <div style={{ ...mono, fontSize:24, color:col+'44' }}>
+                        {isLocked ? '⊘' : prog===100 ? '✓' : '→'}
+                      </div>
+                    </div>
+
+                    {prog>0 && prog<100 && (
+                      <div style={{ marginTop:16, height:2, background:C.panel, borderRadius:2, overflow:'hidden' }}>
+                        <div style={{ width:`${prog}%`, height:'100%', background:col, borderRadius:2 }} />
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+
+            {!isPro && (
+              <div className="card" style={{ marginTop:40, padding:'40px', textAlign:'center', borderColor:`${C.cyan}22` }}>
+                <div style={{ ...mono, fontSize:9, letterSpacing:3, color:C.cyan, marginBottom:16 }}>UNLOCK ALL LESSONS</div>
+                <div style={{ ...syne, fontSize:24, fontWeight:800, color:C.text, marginBottom:12 }}>Pro Access Required</div>
+                <div style={{ fontSize:14, color:C.muted, marginBottom:32, maxWidth:400, margin:'0 auto 32px' }}>
+                  Lessons 2–5 require Pro access. Upgrade to unlock the complete cognitive training system.
+                </div>
+                <button className="btn-primary" onClick={async ()=>{
+                  if (!user) { setShowAuth(true); return; }
+                  await upsertProfile(user.id, { is_pro: true });
+                  setIsPro(true);
+                }}>Upgrade to Pro →</button>
+              </div>
+            )}
+          </div>
+        </div>
+      );
+    }
+
+    // ═══════════════════════════════════════════════════════════════════
+    //  ABOUT VIEW
+    // ═══════════════════════════════════════════════════════════════════
+    function AboutView({ setView }) {
+      const faqs = [
+        { q:'What is NeuralFusion™?', a:'NeuralFusion™ is a cognitive performance operating system built around the Four Brains Framework — a structured system for training how you think. It is not a productivity tool, wellness app, or personality framework. It is a trainable cognitive skill system invented by Life Edet.' },
+        { q:'What is the Four Brains Framework?', a:'The Four Brains Framework identifies four fundamental cognitive modes — Analytical, Intuitive, Associative, and Reflective — and trains deliberate activation and integration of all four. Most people are dominated by one or two modes. NeuralFusion™ teaches you to coordinate all four.' },
+        { q:'What is the CFI Assessment?', a:'The Cognitive Fragmentation Index (CFI™) is a diagnostic instrument that measures the degree of fragmentation across five cognitive dimensions. It produces a fragmentation score, a band rating, and a personalized training recommendation.' },
+        { q:'How long before I see results?', a:'Most users report increased decision clarity within 1–3 training sessions. The Core Integration Loop can be completed in under 90 seconds once trained. Cognitive fluency — where all four brains integrate automatically — typically installs within 21–42 days of daily practice.' },
+        { q:'How is this different from therapy or mindfulness?', a:'Therapy addresses psychological history. Mindfulness addresses present-moment awareness. NeuralFusion™ addresses cognitive architecture — the structure of how you think. It is a skill system, not a wellness practice.' },
+      ];
+      const [openFaq, setOpenFaq] = useState(null);
+
+      return (
+        <div style={{ paddingTop:80, paddingBottom:100 }}>
+          <div style={{ maxWidth:1200, margin:'0 auto', padding:'60px 24px' }}>
+
+            {/* Creator */}
+            <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(300px, 1fr))', gap:64, alignItems:'center', marginBottom:80 }}>
+              <div>
+                <div style={{ ...mono, fontSize:9, letterSpacing:4, color:C.cyan, marginBottom:20 }}>ABOUT NEURALFUSION™</div>
+                <h1 style={{ ...syne, fontSize:'clamp(32px, 6vw, 52px)', fontWeight:800, color:C.text, marginBottom:24, lineHeight:1.05 }}>
+                  Teaching humanity<br /><span style={{color:C.cyan}}>how to think.</span>
+                </h1>
+                <p style={{ fontSize:15, color:C.muted, lineHeight:1.9, marginBottom:20 }}>
+                  NeuralFusion™ was invented by <strong style={{color:C.text}}>Life Edet</strong> — a researcher and cognitive systems designer who spent years studying why intelligent people consistently make fragmented decisions.
+                </p>
+                <p style={{ fontSize:15, color:C.muted, lineHeight:1.9, marginBottom:32 }}>
+                  The core finding: most people have never been taught the mechanics of thinking itself. They have enormous cognitive capacity that remains fragmented because no structured system existed to integrate it.
+                </p>
+                <p style={{ fontSize:15, color:C.muted, lineHeight:1.9 }}>
+                  NeuralFusion™ is that system.
+                </p>
+              </div>
+              <div className="card" style={{ padding:'40px', position:'relative', overflow:'hidden' }}>
+                <ScanLine />
+                <div style={{ ...mono, fontSize:9, letterSpacing:3, color:C.cyan, marginBottom:24 }}>PLATFORM MISSION</div>
+                <div style={{ ...syne, fontSize:28, fontWeight:800, color:C.text, lineHeight:1.2, marginBottom:24 }}>
+                  "Teach individuals how to think using structured cognitive systems."
+                </div>
+                <div style={{ ...mono, fontSize:10, letterSpacing:2, color:C.muted }}>— Life Edet, Creator of NeuralFusion™</div>
+
+                <div style={{ marginTop:40 }}>
+                  {[
+                    { label:'Core Cognitive Modes', value:'4' },
+                    { label:'CFI Dimensions', value:'5' },
+                    { label:'Training Protocols', value:'6+' },
+                    { label:'Lesson Manuals', value:'5' },
+                  ].map((s,i)=>(
+                    <div key={i} style={{ display:'flex', justifyContent:'space-between', padding:'12px 0', borderBottom:`1px solid ${C.border}` }}>
+                      <div style={{ fontSize:13, color:C.muted }}>{s.label}</div>
+                      <div style={{ ...syne, fontSize:18, fontWeight:800, color:C.cyan }}>{s.value}</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* FAQ */}
+            <div>
+              <div style={{ ...mono, fontSize:9, letterSpacing:3, color:C.cyan, marginBottom:32 }}>FREQUENTLY ASKED</div>
+              <div style={{ display:'flex', flexDirection:'column', gap:4 }}>
+                {faqs.map((faq,i)=>(
+                  <div key={i} className="card" style={{ overflow:'hidden' }}>
+                    <button onClick={()=>setOpenFaq(openFaq===i?null:i)} style={{
+                      width:'100%', padding:'20px 24px', background:'none', border:'none',
+                      display:'flex', justifyContent:'space-between', alignItems:'center',
+                      cursor:'pointer', textAlign:'left', gap:16,
+                    }}>
+                      <div style={{ ...syne, fontSize:16, fontWeight:600, color:C.text }}>{faq.q}</div>
+                      <div style={{ ...mono, fontSize:14, color:C.cyan, flexShrink:0, transition:'transform 0.2s', transform:openFaq===i?'rotate(45deg)':'none' }}>+</div>
+                    </button>
+                    {openFaq===i && (
+                      <div style={{ padding:'0 24px 24px', fontSize:14, color:C.muted, lineHeight:1.8, animation:'fadeIn 0.3s ease' }}>
+                        {faq.a}
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* CTA */}
+            <div style={{ marginTop:80, padding:'60px', textAlign:'center', background:C.deep, border:`1px solid ${C.border}`, borderRadius:4, position:'relative', overflow:'hidden' }}>
+              <div className="grid-bg" style={{ position:'absolute', inset:0 }} />
+              <div style={{ position:'relative', zIndex:1 }}>
+                <div style={{ ...mono, fontSize:9, letterSpacing:4, color:C.cyan, marginBottom:20 }}>BEGIN YOUR EVOLUTION</div>
+                <h2 style={{ ...syne, fontSize:'clamp(28px, 5vw, 44px)', fontWeight:800, color:C.text, marginBottom:16, lineHeight:1.1 }}>
+                  Your thinking is about to<br /><span style={{color:C.cyan}}>change permanently.</span>
+                </h2>
+                <p style={{ fontSize:14, color:C.muted, marginBottom:40, maxWidth:480, margin:'0 auto 40px' }}>
+                  Start with the CFI Assessment to measure where your cognition currently stands.
+                  Then begin the training system.
+                </p>
+                <div style={{ display:'flex', gap:16, justifyContent:'center', flexWrap:'wrap' }}>
+                  <button className="btn-primary" onClick={()=>setView('cfi')}>Begin CFI Assessment →</button>
+                  <button className="btn-outline" onClick={()=>setView('four-brains')}>Explore Four Brains</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    // ═══════════════════════════════════════════════════════════════════
+    //  FOOTER
+    // ═══════════════════════════════════════════════════════════════════
+    function Footer({ setView }) {
+      const links = [
+        { label:'Dashboard', v:'home' },{ label:'Four Brains', v:'four-brains' },
+        { label:'CFI Assessment', v:'cfi' },{ label:'Training', v:'training' },
+        { label:'Analytics', v:'analytics' },{ label:'Lesson Manuals', v:'lessons' },
+        { label:'About', v:'about' },
+      ];
+      return (
+        <footer style={{ borderTop:`1px solid ${C.border}`, padding:'48px 24px 32px', textAlign:'center' }}>
+          <div style={{ maxWidth:1200, margin:'0 auto' }}>
+            <div style={{ display:'flex', alignItems:'center', justifyContent:'center', gap:12, marginBottom:32 }}>
+              <div style={{ ...mono, fontSize:18, color:C.cyan }}>◈</div>
+              <div style={{ ...syne, fontSize:16, fontWeight:800, color:C.text, letterSpacing:2 }}>NEURALFUSION™</div>
+            </div>
+            <div style={{ display:'flex', justifyContent:'center', flexWrap:'wrap', gap:24, marginBottom:32 }}>
+              {links.map(l=>(
+                <button key={l.v} onClick={()=>setView(l.v)} style={{ background:'none', border:'none', color:C.muted, fontSize:12, cursor:'pointer' }}>{l.label}</button>
+              ))}
+            </div>
+            <div style={{ ...mono, fontSize:8, letterSpacing:3, color:C.dim }}>
+              © 2026 LIFE EDET · NEURALFUSION™ COGNITIVE PERFORMANCE OS · ALL RIGHTS RESERVED
+            </div>
+          </div>
+        </footer>
+      );
+    }
+
+    // ═══════════════════════════════════════════════════════════════════
+    //  MAIN APP
+    // ═══════════════════════════════════════════════════════════════════
+    function App() {
+      const [view, setView] = useState('home');
+      const [showAuth, setShowAuth] = useState(false);
+
+      const [user, setUser] = useState(null);
+      const [profile, setProfile] = useState(null);
+      const [authLoading, setAuthLoading] = useState(true);
+
+      const [isPro, setIsPro] = useState(false);
+      const [cfiResult, setCfiResult] = useState(null);
+      const [lessonProgress, setLessonProgress] = useState({});
+      const [sessions, setSessions] = useState([]);
+
+      // Auth
+      useEffect(()=>{
+        sb.auth.getSession().then(({ data })=>{
+          const u = data?.session?.user || null;
+          setUser(u);
+          if (u) loadUser(u);
+          else setAuthLoading(false);
+        });
+        const { data:{ subscription } } = sb.auth.onAuthStateChange((event, session)=>{
+          const u = session?.user || null;
+          setUser(u);
+          if (u) loadUser(u);
+          else { setIsPro(false); setLessonProgress({}); setSessions([]); setAuthLoading(false); }
+        });
+        return ()=>subscription.unsubscribe();
+      },[]);
+
+      const loadUser = async (u) => {
+        setAuthLoading(true);
+        try {
+          const [prof, lp] = await Promise.all([getProfile(u.id), loadLessonProgress(u.id)]);
+          if (prof) { setProfile(prof); setIsPro(!!prof.is_pro); }
+          setLessonProgress(lp);
+        } catch(e){}
+        setAuthLoading(false);
+      };
+
+      const handleSignOut = async () => {
+        await sb.auth.signOut();
+        setUser(null); setProfile(null); setIsPro(false); setLessonProgress({}); setSessions([]);
+      };
+
+      if (authLoading) return (
+        <div style={{ background:C.void, minHeight:'100vh', display:'flex', alignItems:'center', justifyContent:'center' }}>
+          <div style={{ textAlign:'center' }}>
+            <div style={{ ...mono, fontSize:36, color:C.cyan, animation:'neuralPulse 2s ease-in-out infinite' }}>◈</div>
+            <div style={{ ...mono, fontSize:9, letterSpacing:3, color:C.muted, marginTop:16 }}>INITIALIZING SYSTEM...</div>
+          </div>
+        </div>
+      );
+
+      const viewProps = { setView, user, setShowAuth, isPro, setIsPro, cfiResult, setCfiResult, lessonProgress, setLessonProgress, sessions, setSessions };
+
+      return (
+        <div style={{ background:C.void, minHeight:'100vh', color:C.text }}>
+          {showAuth && <AuthModal onClose={()=>setShowAuth(false)} onSuccess={()=>setShowAuth(false)} />}
+
+          <Navbar view={view} setView={setView} user={user} setShowAuth={setShowAuth} onSignOut={handleSignOut} />
+
+          <main>
+            {view==='home'        && <HomeView {...viewProps} />}
+            {view==='four-brains' && <FourBrainsView {...viewProps} />}
+            {view==='cfi'         && <CFIView {...viewProps} />}
+            {view==='training'    && <TrainingView {...viewProps} />}
+            {view==='analytics'   && <AnalyticsView {...viewProps} />}
+            {view==='lessons'     && <LessonsView {...viewProps} />}
+            {view==='about'       && <AboutView {...viewProps} />}
+          </main>
+
+          <Footer setView={setView} />
+          <BottomNav view={view} setView={setView} />
+        </div>
+      );
+    }
+
+    // Mount
+    const root = ReactDOM.createRoot(document.getElementById('root'));
+    root.render(React.createElement(App));
+
+    // Hide splash
+    window.addEventListener('load', ()=>{
+      setTimeout(()=>{
+        const s = document.getElementById('splash');
+        if (s) { s.classList.add('hidden'); setTimeout(()=>s.remove(), 700); }
+      }, 1800);
+    });
+  </script>
+</body>
+</html>
