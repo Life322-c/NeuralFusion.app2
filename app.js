@@ -1452,7 +1452,7 @@
                 <button className="btn-primary" onClick={()=>{
                   if (!user) { setShowAuth(true); return; }
                   const handler = PaystackPop.setup({
-                    key: 'pk_live_YOUR_PAYSTACK_PUBLIC_KEY',
+                    key: 'pk_live_dfa71eca29f942cadc337cb8e41834857e2b129b',
                     email: user.email,
                     amount: 600000,
                     currency: 'NGN',
