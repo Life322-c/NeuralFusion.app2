@@ -1,0 +1,20 @@
+{
+  "name": "NeuralFusion™ — Train How You Think",
+  "short_name": "NeuralFusion",
+  "description": "NeuralFusion™ teaches you how to think — not what to think. Master the Four Brains Framework for cognitive clarity and decision mastery.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#050C1A",
+  "theme_color": "#050C1A",
+  "categories": ["education", "productivity", "lifestyle"],
+  "icons": [
+    {
+      "src": "/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
