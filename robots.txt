@@ -1,0 +1,10 @@
+# NeuralFusion™ — robots.txt
+# https://tryneuralfusion.com/
+
+User-agent: *
+Allow: /
+Disallow: /api/
+Disallow: /.supabase/
+
+# Sitemap
+Sitemap: https://tryneuralfusion.com/sitemap.xml
