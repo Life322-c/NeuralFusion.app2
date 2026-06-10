@@ -3,7 +3,6 @@
 Cognitive Performance Operating System — v4.0  
 Built by Life Edet · [tryneuralFusion.com](https://www.tryneuralFusion.com)
 
---
 
 ## Stack
 
