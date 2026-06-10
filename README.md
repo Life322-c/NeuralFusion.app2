@@ -50,7 +50,7 @@ Results are saved to Supabase `enterprise_results` table in real time. Refreshin
 
 ---
 
-## Changelog (v4.0 fixes)
+## Changelog 
 
 - **Removed `app.js`** — stale duplicate file, was never loaded
 - **BottomNav hidden in Enterprise** — no navigation overlap inside the enterprise portal
