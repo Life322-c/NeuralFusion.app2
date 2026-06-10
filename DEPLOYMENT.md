@@ -92,4 +92,4 @@ and linked to your content.
 The SEO content layer buys significant time but is not a permanent solution.
 Consider migrating to Next.js for true SSR, which will make every page
 fully crawlable with zero workarounds. This is the highest-leverage
-long-term technical investment for organic growth.
+long-term technical investment for organic growth
