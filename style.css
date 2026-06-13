@@ -89,27 +89,27 @@
   --text-6xl: 52px;
 
   /* ── Headline Typography Tokens ───────────────────────────────── */
-  --hero-size:        clamp(26px, 4.5vw, 44px);
+  --hero-size:        clamp(22px, 2.2vw, 32px);
   --hero-weight:      900;
   --hero-leading:     1.05;
   --hero-tracking:    -0.025em;
 
-  --h1-size:          clamp(22px, 3.5vw, 38px);
+  --h1-size:          clamp(19px, 1.8vw, 26px);
   --h1-weight:        800;
   --h1-leading:       1.1;
   --h1-tracking:      -0.022em;
 
-  --h2-size:          clamp(18px, 2.8vw, 28px);
+  --h2-size:          clamp(16px, 1.5vw, 22px);
   --h2-weight:        800;
   --h2-leading:       1.15;
   --h2-tracking:      -0.018em;
 
-  --h3-size:          clamp(15px, 2vw, 20px);
+  --h3-size:          clamp(14px, 1.2vw, 18px);
   --h3-weight:        700;
   --h3-leading:       1.2;
   --h3-tracking:      -0.02em;
 
-  --h4-size:          clamp(13px, 1.4vw, 16px);
+  --h4-size:          clamp(13px, 1vw, 15px);
   --h4-weight:        700;
   --h4-leading:       1.15;
   --h4-tracking:      -0.01em;
@@ -278,7 +278,7 @@ p strong, .body-highlight {
 /* Section subtitle / lead copy */
 .type-lead {
   font-family: var(--font-body) !important;
-  font-size: clamp(16px, 2vw, 20px) !important;
+  font-size: clamp(13px, 1.2vw, 16px) !important;
   font-weight: 400 !important;
   line-height: 1.65 !important;
   letter-spacing: 0.005em !important;
@@ -298,7 +298,7 @@ p strong, .body-highlight {
 /* Editorial callout number */
 .type-stat {
   font-family: var(--font-display) !important;
-  font-size: clamp(22px, 3.5vw, 36px) !important;
+  font-size: clamp(18px, 1.8vw, 26px) !important;
   font-weight: 900 !important;
   line-height: 0.9 !important;
   letter-spacing: -0.04em !important;
@@ -308,9 +308,9 @@ p strong, .body-highlight {
 /* Section title — compact, weighted */
 .type-section-title {
   font-family: var(--font-display) !important;
-  font-size: clamp(16px, 2.5vw, 22px) !important;
+  font-size: clamp(14px, 1.4vw, 18px) !important;
   font-weight: 800 !important;
-  line-height: 1.02 !important;
+  line-height: 1.05 !important;
   letter-spacing: -0.025em !important;
   color: var(--text) !important;
 }
@@ -318,9 +318,9 @@ p strong, .body-highlight {
 /* Card title */
 .type-card-title {
   font-family: var(--font-display) !important;
-  font-size: clamp(17px, 2vw, 22px) !important;
+  font-size: clamp(14px, 1.3vw, 17px) !important;
   font-weight: 700 !important;
-  line-height: 1.12 !important;
+  line-height: 1.15 !important;
   letter-spacing: -0.015em !important;
   color: var(--text) !important;
 }
@@ -658,7 +658,7 @@ p strong, .body-highlight {
 /* ── Bento Metric Display ──────────────────────────────────── */
 .bento-metric {
   font-family: var(--font-display);
-  font-size: clamp(22px, 3vw, 32px);
+  font-size: clamp(18px, 1.8vw, 26px);
   font-weight: 900;
   letter-spacing: -0.04em;
   color: var(--text);
@@ -667,7 +667,7 @@ p strong, .body-highlight {
 
 .bento-metric-sm {
   font-family: var(--font-display);
-  font-size: clamp(16px, 2.2vw, 24px);
+  font-size: clamp(14px, 1.4vw, 19px);
   font-weight: 800;
   letter-spacing: -0.03em;
   color: var(--text);
@@ -1263,16 +1263,16 @@ blockquote {
 /* Section title */
 .t-title {
   font-family: var(--font-display) !important;
-  font-size: clamp(18px, 2.8vw, 28px) !important;
+  font-size: clamp(15px, 1.5vw, 20px) !important;
   font-weight: 800 !important;
-  line-height: 0.98 !important;
-  letter-spacing: -0.03em !important;
+  line-height: 1.05 !important;
+  letter-spacing: -0.025em !important;
 }
 
 /* Card heading */
 .t-heading {
   font-family: var(--font-display) !important;
-  font-size: clamp(18px, 2.2vw, 26px) !important;
+  font-size: clamp(14px, 1.3vw, 18px) !important;
   font-weight: 700 !important;
   line-height: 1.1 !important;
   letter-spacing: -0.018em !important;
@@ -1367,20 +1367,20 @@ h1, h2, h3, h4, h5, h6 {
 /* Prevent inline-styled enormous sizes from breaking layouts on phones */
 @media (max-width: 639px) {
   h1 {
-    font-size: clamp(20px, 5.5vw, 28px) !important;
-    line-height: 1.15 !important;
+    font-size: clamp(18px, 5vw, 22px) !important;
+    line-height: 1.12 !important;
     letter-spacing: -0.02em !important;
   }
   h2 {
-    font-size: clamp(17px, 4.5vw, 22px) !important;
-    line-height: 1.2 !important;
+    font-size: clamp(15px, 4vw, 19px) !important;
+    line-height: 1.18 !important;
     letter-spacing: -0.015em !important;
   }
   h3 {
-    font-size: clamp(15px, 3.5vw, 18px) !important;
-    line-height: 1.25 !important;
+    font-size: clamp(13px, 3.5vw, 16px) !important;
+    line-height: 1.22 !important;
   }
-  /* JS-injected large display sizes: scale down gracefully on phones */
+  /* JS-injected large display sizes: scale down tightly on phones */
   [style*="fontSize: 48"],
   [style*="fontSize: 52"],
   [style*="fontSize: 56"],
@@ -1388,20 +1388,48 @@ h1, h2, h3, h4, h5, h6 {
   [style*="fontSize: 64"],
   [style*="fontSize: 72"],
   [style*="fontSize: 80"] {
-    font-size: clamp(22px, 6vw, 30px) !important;
-    line-height: 1.1 !important;
+    font-size: clamp(18px, 5vw, 22px) !important;
+    line-height: 1.08 !important;
   }
   [style*="fontSize: 42"],
   [style*="fontSize: 40"],
   [style*="fontSize: 36"] {
-    font-size: clamp(20px, 5vw, 26px) !important;
-    line-height: 1.1 !important;
+    font-size: clamp(16px, 4.5vw, 20px) !important;
+    line-height: 1.08 !important;
   }
   [style*="fontSize: 32"],
   [style*="fontSize: 30"],
   [style*="fontSize: 28"] {
-    font-size: clamp(17px, 4vw, 22px) !important;
-    line-height: 1.15 !important;
+    font-size: clamp(14px, 4vw, 18px) !important;
+    line-height: 1.12 !important;
   }
 }
+
+/* ── Desktop heading caps — prevent inflation on large monitors ── */
+@media (min-width: 900px) {
+  h1 { font-size: clamp(19px, 1.8vw, 26px) !important; }
+  h2 { font-size: clamp(16px, 1.5vw, 22px) !important; }
+  h3 { font-size: clamp(14px, 1.2vw, 18px) !important; }
+
+  [style*="fontSize: 48"],
+  [style*="fontSize: 52"],
+  [style*="fontSize: 56"],
+  [style*="fontSize: 60"],
+  [style*="fontSize: 64"],
+  [style*="fontSize: 72"],
+  [style*="fontSize: 80"] {
+    font-size: clamp(24px, 2vw, 32px) !important;
+  }
+  [style*="fontSize: 42"],
+  [style*="fontSize: 40"],
+  [style*="fontSize: 36"] {
+    font-size: clamp(20px, 1.8vw, 26px) !important;
+  }
+  [style*="fontSize: 32"],
+  [style*="fontSize: 30"],
+  [style*="fontSize: 28"] {
+    font-size: clamp(17px, 1.5vw, 22px) !important;
+  }
+}
+
 
