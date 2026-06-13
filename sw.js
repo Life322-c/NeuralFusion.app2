@@ -1,4 +1,4 @@
-const CACHE_NAME = 'neuralfusion-v3';
+const CACHE_NAME = 'neuralfusion-v4';
 
 // Core assets to cache on install
 const PRECACHE_ASSETS = [
@@ -10,7 +10,7 @@ const PRECACHE_ASSETS = [
 ];
 
 // CDN assets — cache aggressively (they're versioned/immutable)
-const CDN_CACHE = 'neuralfusion-cdn-v3';
+const CDN_CACHE = 'neuralfusion-cdn-v4';
 const CDN_ORIGINS = [
   'cdn.jsdelivr.net',
   'unpkg.com',
@@ -46,8 +46,12 @@ self.addEventListener('fetch', event => {
 
   const url = new URL(event.request.url);
 
-  // Never intercept blog navigation
+  // Never intercept blog navigation or HTML navigation requests for blog
   if (url.pathname.startsWith('/blog')) return;
+
+  // Never intercept navigation requests (browser fetching an HTML page)
+  // Let the network decide for navigations, preventing SW from serving wrong HTML
+  if (event.request.mode === 'navigate') return;
 
   // CDN assets: cache-first (they're versioned, safe to cache long-term)
   if (CDN_ORIGINS.includes(url.hostname)) {
