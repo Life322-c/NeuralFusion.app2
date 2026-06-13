@@ -5071,6 +5071,10 @@ a premium mental performance environment for{' '}
           setSession(data?.session || null);
           if (u) loadUser(u);
           else setAuthLoading(false);
+        }).catch(()=>{
+          // Supabase unreachable (paused project, network error, etc.)
+          // Always unblock the app so users can still access the platform
+          setAuthLoading(false);
         });
         const { data:{ subscription } } = sb.auth.onAuthStateChange((event, session)=>{
           if (event === 'PASSWORD_RECOVERY') {
