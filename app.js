@@ -1323,7 +1323,6 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress, sessi
                     onCancel: () => { setPaystackLoading(false); },
                   });
                   handler.openIframe();
-                  setPaystackLoading(false);
                   } catch(e) { setPaystackLoading(false); alert('Could not open payment window. Please refresh and try again.'); }
                 }}, paystackLoading ? 'Opening...' : React.createElement(React.Fragment, null, 'Upgrade to Pro: ₦', (proPrice/100).toLocaleString(), ' →')))
             ), !isEnterprise && (
@@ -2540,7 +2539,6 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress, sessi
             onCancel: ()=>{ setPaystackLoading(false); },
           });
           handler.openIframe();
-          setPaystackLoading(false);
         } catch(e) {
           setPaystackLoading(false);
           alert('Could not open payment window. Please refresh and try again.');
