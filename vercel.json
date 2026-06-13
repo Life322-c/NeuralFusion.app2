@@ -43,7 +43,7 @@
       "headers": [
         {
           "key": "Cache-Control",
-          "value": "public, max-age=86400, stale-while-revalidate=3600"
+          "value": "public, max-age=3600, stale-while-revalidate=300"
         }
       ]
     },
@@ -107,7 +107,7 @@
   ],
   "rewrites": [
     {
-      "source": "/((?!blog|icons|style.css|sw.js|manifest.json|robots.txt|sitemap.xml).*)",
+      "source": "/((?!blog|icons|app\\.js|style\\.css|sw\\.js|manifest\\.json|robots\\.txt|sitemap\\.xml).*)",
       "destination": "/index.html"
     }
   ],
