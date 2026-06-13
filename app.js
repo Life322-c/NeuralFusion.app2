@@ -399,7 +399,7 @@ const { useState, useEffect, useCallback, useRef, useMemo } = React;
     }
 
     // ── NAVBAR ────────────────────────────────────────────────────────
-    function Navbar({ view, setView, user, profile, setShowAuth, onSignOut }) {
+    function Navbar({ view, setView, user, profile, setShowAuth, onSignOut, authLoading }) {
       const [menuOpen, setMenuOpen] = useState(false);
       const navItems = [
         { v:'four-brains', label:'Architecture' },
@@ -439,7 +439,9 @@ const { useState, useEffect, useCallback, useRef, useMemo } = React;
                   borderBottom: '1px solid transparent',
                   textDecoration:'none',
                   display:'inline-block',
-                }}, 'Blog')), React.createElement("div", {style: { display:'flex', alignItems:'center', gap:12 }}, React.createElement("div", {className: "nav-user-label", style: { ...mono, fontSize:9, letterSpacing:1, color:C.muted }}, user ? user.email?.split('@')[0].toUpperCase() : ''), user ? (
+                }}, 'Blog')), React.createElement("div", {style: { display:'flex', alignItems:'center', gap:12 }}, React.createElement("div", {className: "nav-user-label", style: { ...mono, fontSize:9, letterSpacing:1, color:C.muted }}, user ? user.email?.split('@')[0].toUpperCase() : ''), authLoading ? (
+                  React.createElement("div", {className: "desktop-only", style: { width:16, height:16, border:'2px solid rgba(196,160,80,0.3)', borderTopColor:'#C4A050', borderRadius:'50%', animation:'nf-spin 0.8s linear infinite' }})
+                ) : user ? (
                   React.createElement("button", {className: "btn-outline desktop-only", style: { fontSize:10, padding:'8px 16px' }, onClick: onSignOut}, 'Sign out')
                 ) : (
                   React.createElement("button", {className: "btn-primary desktop-only", style: { fontSize:10, padding:'10px 20px' }, onClick: ()=>setShowAuth(true)}, 'Sign in →')
@@ -2602,7 +2604,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress, sessi
 
       const [user, setUser] = useState(null);
       const [profile, setProfile] = useState(null);
-      const [authLoading, setAuthLoading] = useState(true);
+      const [authLoading, setAuthLoading] = useState(false);
       const [session, setSession] = useState(null);       // JWT session for Edge Function calls
 
       const [isPro, setIsPro] = useState(false);
@@ -2682,14 +2684,11 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress, sessi
         setUser(null); setProfile(null); setIsPro(false); setIsEnterprise(false); setLessonProgress({}); setSessions([]);
       };
 
-      if (authLoading) return (
-        React.createElement("div", {style: { background:C.void, minHeight:'100vh', display:'flex', alignItems:'center', justifyContent:'center' }}, React.createElement("div", {style: { textAlign:'center' }}, React.createElement("div", {style: { ...mono, fontSize:15, color:C.cyan, animation:'neuralPulse 2s ease-in-out infinite' }}, '◈'), React.createElement("div", {style: { ...mono, fontSize:11, letterSpacing:1, color:C.muted, marginTop:16 }}, 'Initializing...')))
-      );
 
       const viewProps = { setView, user, session, paystackKey, setShowAuth, isPro, setIsPro, isEnterprise, setIsEnterprise, cfiResult, setCfiResult, lessonProgress, setLessonProgress, sessions, setSessions, proPrice };
 
       return (
-        React.createElement("div", {style: { background:C.void, minHeight:'100vh', color:C.text }}, showAuth && React.createElement(AuthModal, {initialTab: authInitialTab, onClose: ()=>{ setShowAuth(false); setAuthInitialTab('login'); }, onSuccess: ()=>{ setShowAuth(false); setAuthInitialTab('login'); }}), React.createElement(Navbar, {view: view, setView: setView, user: user, profile: profile, setShowAuth: setShowAuth, onSignOut: handleSignOut}), React.createElement("main", null, view==='home'        && React.createElement(HomeView, viewProps), view==='four-brains' && React.createElement(FourBrainsView, viewProps), view==='cfi'         && React.createElement(CFIView, viewProps), view==='training'    && React.createElement(TrainingView, viewProps), view==='analytics'   && React.createElement(AnalyticsView, viewProps), view==='lessons'     && React.createElement(LessonsView, viewProps), view==='about'       && React.createElement(AboutView, viewProps), view==='legal'       && React.createElement(LegalView, {setView: setView}), view==='enterprise'  && React.createElement(EnterpriseView, {user: user, session: session, paystackKey: paystackKey, setShowAuth: setShowAuth, isEnterprise: isEnterprise, setIsEnterprise: setIsEnterprise, proPrice: proPrice, setView: setView}), view==='admin'       && profile?.is_admin === true && React.createElement(AdminView, {user: user, setView: setView, onPriceChange: setProPrice})), React.createElement(Footer, {setView: setView}), view !== 'enterprise' && React.createElement(BottomNav, {view: view, setView: setView}))
+        React.createElement("div", {style: { background:C.void, minHeight:'100vh', color:C.text }}, showAuth && React.createElement(AuthModal, {initialTab: authInitialTab, onClose: ()=>{ setShowAuth(false); setAuthInitialTab('login'); }, onSuccess: ()=>{ setShowAuth(false); setAuthInitialTab('login'); }}), React.createElement(Navbar, {view: view, setView: setView, user: user, profile: profile, setShowAuth: setShowAuth, onSignOut: handleSignOut, authLoading: authLoading}), React.createElement("main", null, view==='home'        && React.createElement(HomeView, viewProps), view==='four-brains' && React.createElement(FourBrainsView, viewProps), view==='cfi'         && React.createElement(CFIView, viewProps), view==='training'    && React.createElement(TrainingView, viewProps), view==='analytics'   && React.createElement(AnalyticsView, viewProps), view==='lessons'     && React.createElement(LessonsView, viewProps), view==='about'       && React.createElement(AboutView, viewProps), view==='legal'       && React.createElement(LegalView, {setView: setView}), view==='enterprise'  && React.createElement(EnterpriseView, {user: user, session: session, paystackKey: paystackKey, setShowAuth: setShowAuth, isEnterprise: isEnterprise, setIsEnterprise: setIsEnterprise, proPrice: proPrice, setView: setView}), view==='admin'       && profile?.is_admin === true && React.createElement(AdminView, {user: user, setView: setView, onPriceChange: setProPrice})), React.createElement(Footer, {setView: setView}), view !== 'enterprise' && React.createElement(BottomNav, {view: view, setView: setView}))
       );
     }
 
@@ -2701,8 +2700,8 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress, sessi
     window.addEventListener('load', ()=>{
       setTimeout(()=>{
         const s = document.getElementById('splash');
-        if (s) { s.classList.add('hidden'); setTimeout(()=>s.remove(), 700); }
-      }, 1800);
+        if (s) { s.classList.add('hidden'); setTimeout(()=>s.remove(), 500); }
+      }, 600);
     });
 
     // Register PWA Service Worker
