@@ -187,30 +187,23 @@ const { useState, useEffect, useCallback, useRef, useMemo } = React;
     // ── NEURAL VISUAL ─────────────────────────────────────────────────
     function NeuralOrb({ size=120, color='#C4A050', animated=true }) {
       return (
-        <div style={{ width:size, height:size, position:'relative', display:'flex', alignItems:'center', justifyContent:'center' }}>
-          <div style={{
+        React.createElement("div", {style: { width:size, height:size, position:'relative', display:'flex', alignItems:'center', justifyContent:'center' }}, React.createElement("div", {style: {
             position:'absolute', inset:0, borderRadius:'50%',
             border:`1px solid ${color}22`,
             animation: animated ? 'rotate 12s linear infinite' : 'none',
-          }} />
-          <div style={{
+          }}), React.createElement("div", {style: {
             position:'absolute', inset:8, borderRadius:'50%',
             border:`1px dashed ${color}33`,
             animation: animated ? 'counterRotate 8s linear infinite' : 'none',
-          }} />
-          <div style={{
+          }}), React.createElement("div", {style: {
             width:size*0.4, height:size*0.4, borderRadius:'50%',
             background:`radial-gradient(circle, ${color}20 0%, transparent 70%)`,
             border:`1px solid ${color}44`,
             display:'flex', alignItems:'center', justifyContent:'center',
             animation: animated ? 'neuralPulse 3s ease-in-out infinite' : 'none',
             boxShadow:`0 0 ${size/3}px ${color}20`,
-          }}>
-            <div style={{ fontFamily:"'Space Mono'", fontSize:size/8, color, opacity:0.9 }}>◈</div>
-          </div>
-          {/* Orbit dots */}
-          {[0,90,180,270].map((deg,i)=>(
-            <div key={i} style={{
+          }}, React.createElement("div", {style: { fontFamily:"'Space Mono'", fontSize:size/8, color, opacity:0.9 }}, '◈')), [0,90,180,270].map((deg,i)=>(
+            React.createElement("div", {key: i, style: {
               position:'absolute', width:6, height:6, borderRadius:'50%',
               background:color, opacity:0.6,
               top: '50%', left: '50%',
@@ -218,22 +211,19 @@ const { useState, useEffect, useCallback, useRef, useMemo } = React;
               transform:`rotate(${deg}deg) translateX(${size/2-3}px)`,
               animation: animated ? `rotate ${8+i}s linear infinite` : 'none',
               boxShadow:`0 0 8px ${color}`,
-            }} />
-          ))}
-        </div>
+            }})
+          )))
       );
     }
 
     // ── SCAN LINE EFFECT ──────────────────────────────────────────────
     function ScanLine() {
       return (
-        <div style={{ position:'absolute', inset:0, overflow:'hidden', pointerEvents:'none', borderRadius:'inherit' }}>
-          <div style={{
+        React.createElement("div", {style: { position:'absolute', inset:0, overflow:'hidden', pointerEvents:'none', borderRadius:'inherit' }}, React.createElement("div", {style: {
             position:'absolute', left:0, right:0, height:1,
             background:'linear-gradient(90deg, transparent, rgba(196,160,80,0.3), transparent)',
             animation:'scanH 4s ease-in-out infinite',
-          }} />
-        </div>
+          }}))
       );
     }
 
@@ -242,17 +232,14 @@ const { useState, useEffect, useCallback, useRef, useMemo } = React;
       const brain = FOUR_BRAINS[brainKey];
       const b = C.brains[brainKey];
       return (
-        <div onClick={onClick} style={{
+        React.createElement("div", {onClick: onClick, style: {
           background: active ? `${b.color}12` : C.surface,
           border: `1px solid ${active ? b.color+'44' : C.border}`,
           borderRadius:4, padding: compact ? '16px' : '24px',
           cursor: onClick ? 'pointer' : 'default',
           transition:'all 0.25s ease',
           position:'relative', overflow:'hidden',
-        }} onMouseEnter={e=>{if(onClick){e.currentTarget.style.borderColor=b.color+'66'; e.currentTarget.style.background=b.color+'10';}}}
-           onMouseLeave={e=>{if(onClick && !active){e.currentTarget.style.borderColor=C.border; e.currentTarget.style.background=C.surface;}}}>
-          <div style={{ display:'flex', alignItems:compact?'center':'flex-start', gap:16 }}>
-            <div style={{
+        }, onMouseEnter: e=>{if(onClick){e.currentTarget.style.borderColor=b.color+'66'; e.currentTarget.style.background=b.color+'10';}}, onMouseLeave: e=>{if(onClick && !active){e.currentTarget.style.borderColor=C.border; e.currentTarget.style.background=C.surface;}}}, React.createElement("div", {style: { display:'flex', alignItems:compact?'center':'flex-start', gap:16 }}, React.createElement("div", {style: {
               width:compact?36:48, height:compact?36:48, borderRadius:'50%',
               background:`radial-gradient(circle, ${b.color}20, transparent)`,
               border:`1px solid ${b.color}33`,
@@ -260,18 +247,9 @@ const { useState, useEffect, useCallback, useRef, useMemo } = React;
               flexShrink:0,
               fontSize:compact?16:20, color:b.color,
               fontFamily:"'Space Mono'",
-            }}>{b.symbol}</div>
-            <div style={{flex:1}}>
-              <div style={{ ...mono, fontSize:9, letterSpacing:3, color:b.color, marginBottom:4 }}>BRAIN: {b.code}</div>
-              <div style={{ ...syne, fontSize:compact?15:18, fontWeight:700, color:C.text, marginBottom:compact?0:8 }}>{brain.label}</div>
-              {!compact && <div style={{ fontSize:12, color:C.muted, lineHeight:1.5 }}>{brain.tagline}</div>}
-            </div>
-          </div>
-          {!compact && (
-            <div style={{ marginTop:16, fontSize:13, color:C.muted, lineHeight:1.7 }}>{brain.description.slice(0,140)}...</div>
-          )}
-          {active && <div style={{ position:'absolute', top:0, left:0, width:2, height:'100%', background:b.color }} />}
-        </div>
+            }}, b.symbol), React.createElement("div", {style: {flex:1}}, React.createElement("div", {style: { ...mono, fontSize:9, letterSpacing:3, color:b.color, marginBottom:4 }}, 'BRAIN:', b.code), React.createElement("div", {style: { ...syne, fontSize:compact?15:18, fontWeight:700, color:C.text, marginBottom:compact?0:8 }}, brain.label), !compact && React.createElement("div", {style: { fontSize:12, color:C.muted, lineHeight:1.5 }}, brain.tagline))), !compact && (
+            React.createElement("div", {style: { marginTop:16, fontSize:13, color:C.muted, lineHeight:1.7 }}, brain.description.slice(0,140), '...')
+          ), active && React.createElement("div", {style: { position:'absolute', top:0, left:0, width:2, height:'100%', background:b.color }}))
       );
     }
 
@@ -281,18 +259,7 @@ const { useState, useEffect, useCallback, useRef, useMemo } = React;
       const circ = 2*Math.PI*r;
       const dash = (value/100)*circ;
       return (
-        <div style={{ position:'relative', width:size, height:size, display:'flex', alignItems:'center', justifyContent:'center' }}>
-          <svg width={size} height={size} style={{position:'absolute', transform:'rotate(-90deg)'}}>
-            <circle cx={size/2} cy={size/2} r={r} fill="none" stroke={`${color}15`} strokeWidth={2} />
-            <circle cx={size/2} cy={size/2} r={r} fill="none" stroke={color} strokeWidth={2}
-              strokeDasharray={`${dash} ${circ}`} strokeLinecap="round"
-              style={{ transition:'stroke-dasharray 1s ease' }} />
-          </svg>
-          <div style={{ textAlign:'center' }}>
-            <div style={{ ...syne, fontSize:size/5, fontWeight:800, color }}>{value}%</div>
-            {label && <div style={{ ...mono, fontSize:7, letterSpacing:2, color:C.muted, marginTop:2 }}>{label}</div>}
-          </div>
-        </div>
+        React.createElement("div", {style: { position:'relative', width:size, height:size, display:'flex', alignItems:'center', justifyContent:'center' }}, React.createElement("svg", {width: size, height: size, style: {position:'absolute', transform:'rotate(-90deg)'}}, React.createElement("circle", {cx: size/2, cy: size/2, r: r, fill: "none", stroke: `${color}15`, strokeWidth: 2}), React.createElement("circle", {cx: size/2, cy: size/2, r: r, fill: "none", stroke: color, strokeWidth: 2, strokeDasharray: `${dash} ${circ}`, strokeLinecap: "round", style: { transition:'stroke-dasharray 1s ease' }})), React.createElement("div", {style: { textAlign:'center' }}, React.createElement("div", {style: { ...syne, fontSize:size/5, fontWeight:800, color }}, value, '%'), label && React.createElement("div", {style: { ...mono, fontSize:7, letterSpacing:2, color:C.muted, marginTop:2 }}, label)))
       );
     }
 
@@ -394,128 +361,41 @@ const { useState, useEffect, useCallback, useRef, useMemo } = React;
       const { title, sub } = tabMeta[tab] || tabMeta.login;
 
       return (
-        <div style={{
+        React.createElement("div", {style: {
           position:'fixed', inset:0, background:'rgba(5,12,26,0.95)', zIndex:1000,
           display:'flex', alignItems:'center', justifyContent:'center', padding:20,
           backdropFilter:'blur(8px)',
-        }}>
-          <div className="card fade-up" style={{ maxWidth:420, width:'100%', padding:'36px 32px', position:'relative' }}>
-            <button onClick={onClose} style={{ position:'absolute', top:16, right:16, background:'none', border:'none', color:C.muted, fontSize:20, cursor:'pointer', lineHeight:1 }}>×</button>
-
-            <div style={{ ...mono, fontSize:9, letterSpacing:3, color:C.cyan, marginBottom:20 }}>COGNITIVE OS · AUTHENTICATION</div>
-            <div style={{ ...syne, fontSize:24, fontWeight:800, color:C.text, marginBottom:6 }}>{title}</div>
-            <div style={{ fontSize:13, color:C.muted, marginBottom:28 }}>{sub}</div>
-
-            {/* Tab bar: only show for login/signup */}
-            {(tab==='login'||tab==='signup') && (
-              <div style={{ display:'flex', gap:2, marginBottom:24, background:C.deep, padding:4, borderRadius:2 }}>
-                {['login','signup'].map(t=>(
-                  <button key={t} onClick={()=>{ setTab(t); setMsg({text:'',type:''}); }} style={{
+        }}, React.createElement("div", {className: "card fade-up", style: { maxWidth:420, width:'100%', padding:'36px 32px', position:'relative' }}, React.createElement("button", {onClick: onClose, style: { position:'absolute', top:16, right:16, background:'none', border:'none', color:C.muted, fontSize:20, cursor:'pointer', lineHeight:1 }}, '×'), React.createElement("div", {style: { ...mono, fontSize:9, letterSpacing:3, color:C.cyan, marginBottom:20 }}, 'COGNITIVE OS · AUTHENTICATION'), React.createElement("div", {style: { ...syne, fontSize:24, fontWeight:800, color:C.text, marginBottom:6 }}, title), React.createElement("div", {style: { fontSize:13, color:C.muted, marginBottom:28 }}, sub), (tab==='login'||tab==='signup') && (
+              React.createElement("div", {style: { display:'flex', gap:2, marginBottom:24, background:C.deep, padding:4, borderRadius:2 }}, ['login','signup'].map(t=>(
+                  React.createElement("button", {key: t, onClick: ()=>{ setTab(t); setMsg({text:'',type:''}); }, style: {
                     flex:1, padding:'10px', background:tab===t?C.cyan:'transparent',
                     color:tab===t?C.void:C.muted, ...syne, fontSize:11, fontWeight:700,
                     letterSpacing:1, borderRadius:2, border:'none', textTransform:'uppercase', cursor:'pointer',
-                  }}>
-                    {t==='login'?'Sign In':'Register'}
-                  </button>
-                ))}
-              </div>
-            )}
-
-            {/* ── LOGIN FIELDS ── */}
-            {tab==='login' && (<>
-              <div style={{ marginBottom:14 }}>
-                <div style={{ ...mono, fontSize:9, letterSpacing:2, color:C.muted, marginBottom:8 }}>EMAIL ADDRESS</div>
-                <input type="email" value={email} onChange={e=>setEmail(e.target.value)} placeholder="you@example.com" />
-              </div>
-              <div style={{ marginBottom:8 }}>
-                <div style={{ ...mono, fontSize:9, letterSpacing:2, color:C.muted, marginBottom:8 }}>PASSWORD</div>
-                <input type="password" value={password} onChange={e=>setPassword(e.target.value)} placeholder="••••••••"
-                  onKeyDown={e=>e.key==='Enter'&&handleLogin()} />
-              </div>
-              {/* Forgot password link */}
-              <div style={{ textAlign:'right', marginBottom:20 }}>
-                <button onClick={()=>{ setTab('forgot-password'); setMsg({text:'',type:''}); }} style={{
+                  }}, t==='login'?'Sign In':'Register')
+                )))
+            ), tab==='login' && (React.createElement(React.Fragment, null, React.createElement("div", {style: { marginBottom:14 }}, React.createElement("div", {style: { ...mono, fontSize:9, letterSpacing:2, color:C.muted, marginBottom:8 }}, 'EMAIL ADDRESS'), React.createElement("input", {type: "email", value: email, onChange: e=>setEmail(e.target.value), placeholder: "you@example.com"})), React.createElement("div", {style: { marginBottom:8 }}, React.createElement("div", {style: { ...mono, fontSize:9, letterSpacing:2, color:C.muted, marginBottom:8 }}, 'PASSWORD'), React.createElement("input", {type: "password", value: password, onChange: e=>setPassword(e.target.value), placeholder: "••••••••", onKeyDown: e=>e.key==='Enter'&&handleLogin()})), React.createElement("div", {style: { textAlign:'right', marginBottom:20 }}, React.createElement("button", {onClick: ()=>{ setTab('forgot-password'); setMsg({text:'',type:''}); }, style: {
                   background:'none', border:'none', ...mono, fontSize:9, letterSpacing:1,
                   color:C.muted, cursor:'pointer', textDecoration:'underline',
-                }}>Forgot password?</button>
-              </div>
-            </>)}
-
-            {/* ── SIGNUP FIELDS ── */}
-            {tab==='signup' && (<>
-              <div style={{ marginBottom:14 }}>
-                <div style={{ ...mono, fontSize:9, letterSpacing:2, color:C.muted, marginBottom:8 }}>FULL NAME</div>
-                <input value={name} onChange={e=>setName(e.target.value)} placeholder="Your name" />
-              </div>
-              <div style={{ marginBottom:14 }}>
-                <div style={{ ...mono, fontSize:9, letterSpacing:2, color:C.muted, marginBottom:8 }}>EMAIL ADDRESS</div>
-                <input type="email" value={email} onChange={e=>setEmail(e.target.value)} placeholder="you@example.com" />
-              </div>
-              <div style={{ marginBottom:24 }}>
-                <div style={{ ...mono, fontSize:9, letterSpacing:2, color:C.muted, marginBottom:8 }}>PASSWORD</div>
-                <input type="password" value={password} onChange={e=>setPassword(e.target.value)} placeholder="••••••••"
-                  onKeyDown={e=>e.key==='Enter'&&handleSignup()} />
-              </div>
-            </>)}
-
-            {/* ── FORGOT PASSWORD FIELDS ── */}
-            {tab==='forgot-password' && (<>
-              <div style={{ marginBottom:24 }}>
-                <div style={{ ...mono, fontSize:9, letterSpacing:2, color:C.muted, marginBottom:8 }}>EMAIL ADDRESS</div>
-                <input type="email" value={email} onChange={e=>setEmail(e.target.value)} placeholder="you@example.com"
-                  onKeyDown={e=>e.key==='Enter'&&handleForgotPassword()} />
-              </div>
-            </>)}
-
-            {/* ── UPDATE PASSWORD FIELDS ── */}
-            {tab==='update-password' && (<>
-              <div style={{ marginBottom:14 }}>
-                <div style={{ ...mono, fontSize:9, letterSpacing:2, color:C.muted, marginBottom:8 }}>NEW PASSWORD</div>
-                <input type="password" value={password} onChange={e=>setPassword(e.target.value)} placeholder="••••••••" />
-              </div>
-              <div style={{ marginBottom:24 }}>
-                <div style={{ ...mono, fontSize:9, letterSpacing:2, color:C.muted, marginBottom:8 }}>CONFIRM PASSWORD</div>
-                <input type="password" value={confirmPassword} onChange={e=>setConfirmPassword(e.target.value)} placeholder="••••••••"
-                  onKeyDown={e=>e.key==='Enter'&&handleUpdatePassword()} />
-              </div>
-            </>)}
-
-            {/* Message */}
-            {msg.text && (
-              <div style={{ marginBottom:20, padding:'12px 16px', background:msg.type==='error'?'rgba(248,113,113,0.1)':'rgba(128,203,196,0.1)',
+                }}, 'Forgot password?')))), tab==='signup' && (React.createElement(React.Fragment, null, React.createElement("div", {style: { marginBottom:14 }}, React.createElement("div", {style: { ...mono, fontSize:9, letterSpacing:2, color:C.muted, marginBottom:8 }}, 'FULL NAME'), React.createElement("input", {value: name, onChange: e=>setName(e.target.value), placeholder: "Your name"})), React.createElement("div", {style: { marginBottom:14 }}, React.createElement("div", {style: { ...mono, fontSize:9, letterSpacing:2, color:C.muted, marginBottom:8 }}, 'EMAIL ADDRESS'), React.createElement("input", {type: "email", value: email, onChange: e=>setEmail(e.target.value), placeholder: "you@example.com"})), React.createElement("div", {style: { marginBottom:24 }}, React.createElement("div", {style: { ...mono, fontSize:9, letterSpacing:2, color:C.muted, marginBottom:8 }}, 'PASSWORD'), React.createElement("input", {type: "password", value: password, onChange: e=>setPassword(e.target.value), placeholder: "••••••••", onKeyDown: e=>e.key==='Enter'&&handleSignup()})))), tab==='forgot-password' && (React.createElement(React.Fragment, null, React.createElement("div", {style: { marginBottom:24 }}, React.createElement("div", {style: { ...mono, fontSize:9, letterSpacing:2, color:C.muted, marginBottom:8 }}, 'EMAIL ADDRESS'), React.createElement("input", {type: "email", value: email, onChange: e=>setEmail(e.target.value), placeholder: "you@example.com", onKeyDown: e=>e.key==='Enter'&&handleForgotPassword()})))), tab==='update-password' && (React.createElement(React.Fragment, null, React.createElement("div", {style: { marginBottom:14 }}, React.createElement("div", {style: { ...mono, fontSize:9, letterSpacing:2, color:C.muted, marginBottom:8 }}, 'NEW PASSWORD'), React.createElement("input", {type: "password", value: password, onChange: e=>setPassword(e.target.value), placeholder: "••••••••"})), React.createElement("div", {style: { marginBottom:24 }}, React.createElement("div", {style: { ...mono, fontSize:9, letterSpacing:2, color:C.muted, marginBottom:8 }}, 'CONFIRM PASSWORD'), React.createElement("input", {type: "password", value: confirmPassword, onChange: e=>setConfirmPassword(e.target.value), placeholder: "••••••••", onKeyDown: e=>e.key==='Enter'&&handleUpdatePassword()})))), msg.text && (
+              React.createElement("div", {style: { marginBottom:20, padding:'12px 16px', background:msg.type==='error'?'rgba(248,113,113,0.1)':'rgba(128,203,196,0.1)',
                 border:`1px solid ${msg.type==='error'?'#F8717144':'#7AAFCF44'}`, borderRadius:2,
-                color:msg.type==='error'?'#F87171':'#7AAFCF', fontSize:13 }}>
-                {msg.text}
-              </div>
-            )}
-
-            {/* Primary action button */}
-            <button className="btn-primary" style={{ width:'100%', fontSize:12, opacity:loading?0.6:1 }} disabled={loading}
-              onClick={
+                color:msg.type==='error'?'#F87171':'#7AAFCF', fontSize:13 }}, msg.text)
+            ), React.createElement("button", {className: "btn-primary", style: { width:'100%', fontSize:12, opacity:loading?0.6:1 }, disabled: loading, onClick: 
                 tab==='login'            ? handleLogin :
                 tab==='signup'           ? handleSignup :
                 tab==='forgot-password'  ? handleForgotPassword :
                                            handleUpdatePassword
-              }>
-              {loading ? 'Processing...' : (
+              }, loading ? 'Processing...' : (
                 tab==='login'            ? 'Access System →' :
                 tab==='signup'           ? 'Initialize Profile →' :
                 tab==='forgot-password'  ? 'Send Reset Link →' :
                                            'Update Password →'
-              )}
-            </button>
-
-            {/* Back to sign in link */}
-            {(tab==='forgot-password'||tab==='update-password') && (
-              <div style={{ textAlign:'center', marginTop:16 }}>
-                <button onClick={()=>{ setTab('login'); setMsg({text:'',type:''}); setPassword(''); setConfirmPassword(''); }} style={{
+              )), (tab==='forgot-password'||tab==='update-password') && (
+              React.createElement("div", {style: { textAlign:'center', marginTop:16 }}, React.createElement("button", {onClick: ()=>{ setTab('login'); setMsg({text:'',type:''}); setPassword(''); setConfirmPassword(''); }, style: {
                   background:'none', border:'none', ...mono, fontSize:9, letterSpacing:1,
                   color:C.muted, cursor:'pointer', textDecoration:'underline',
-                }}>← Back to Sign In</button>
-              </div>
-            )}
-          </div>
-        </div>
+                }}, '← Back to Sign In'))
+            )))
       );
     }
 
@@ -535,37 +415,24 @@ const { useState, useEffect, useCallback, useRef, useMemo } = React;
       const blogHref = 'blog/index.html';
 
       return (
-        <>
-          <nav style={{
+        React.createElement(React.Fragment, null, React.createElement("nav", {style: {
             position:'fixed', top:0, left:0, right:0, zIndex:100,
             background:'rgba(5,12,26,0.85)', backdropFilter:'blur(20px)',
             borderBottom:`1px solid ${C.border}`,
-          }}>
-            <div style={{ maxWidth:1280, margin:'0 auto', padding:'0 24px', height:60, display:'flex', alignItems:'center', justifyContent:'space-between' }}>
-              <button onClick={()=>setView('home')} style={{ background:'none', border:'none', display:'flex', alignItems:'center', gap:12, cursor:'pointer' }}>
-                <div style={{
+          }}, React.createElement("div", {style: { maxWidth:1280, margin:'0 auto', padding:'0 24px', height:60, display:'flex', alignItems:'center', justifyContent:'space-between' }}, React.createElement("button", {onClick: ()=>setView('home'), style: { background:'none', border:'none', display:'flex', alignItems:'center', gap:12, cursor:'pointer' }}, React.createElement("div", {style: {
                   width:32, height:32, borderRadius:'50%', border:`1px solid ${C.cyan}44`,
                   display:'flex', alignItems:'center', justifyContent:'center',
                   background:`radial-gradient(circle, ${C.cyan}15, transparent)`,
                   ...mono, fontSize:14, color:C.cyan,
-                }}>◈</div>
-                <div>
-                  <div style={{ ...syne, fontSize:14, fontWeight:800, color:C.text, letterSpacing:1 }}>NEURALFUSION™</div>
-                  <div style={{ ...mono, fontSize:8, letterSpacing:3, color:C.muted }}>COGNITIVE OS</div>
-                </div>
-              </button>
-
-              <div className="desktop-nav">
-                {navItems.map(item => (
-                  <button key={item.v} onClick={()=>setView(item.v)} style={{
+                }}, '◈'), React.createElement("div", null, React.createElement("div", {style: { ...syne, fontSize:14, fontWeight:800, color:C.text, letterSpacing:1 }}, 'NEURALFUSION™'), React.createElement("div", {style: { ...mono, fontSize:8, letterSpacing:3, color:C.muted }}, 'COGNITIVE OS'))), React.createElement("div", {className: "desktop-nav"}, navItems.map(item => (
+                  React.createElement("button", {key: item.v, onClick: ()=>setView(item.v), style: {
                     background:'none', border:'none', padding:'8px 12px',
                     color: view===item.v ? C.cyan : C.muted,
                     ...inter, fontSize:12, fontWeight:view===item.v?600:400,
                     cursor:'pointer', transition:'color 0.2s',
                     borderBottom: view===item.v ? `1px solid ${C.cyan}` : '1px solid transparent',
-                  }}>{item.label}</button>
-                ))}
-                <a href={blogHref} target="_blank" rel="noopener noreferrer" style={{
+                  }}, item.label)
+                )), React.createElement("a", {href: blogHref, target: "_blank", rel: "noopener noreferrer", style: {
                   background:'none', border:'none', padding:'8px 12px',
                   color: C.muted,
                   ...inter, fontSize:12, fontWeight:400,
@@ -573,103 +440,44 @@ const { useState, useEffect, useCallback, useRef, useMemo } = React;
                   borderBottom: '1px solid transparent',
                   textDecoration:'none',
                   display:'inline-block',
-                }}>Blog</a>
-              </div>
-
-              <div style={{ display:'flex', alignItems:'center', gap:12 }}>
-                {/* Desktop only: show user email + sign out */}
-                <div className="nav-user-label" style={{ ...mono, fontSize:9, letterSpacing:2, color:C.muted }}>
-                  {user ? user.email?.split('@')[0].toUpperCase() : ''}
-                </div>
-                {user ? (
-                  <button className="btn-outline desktop-only" style={{ fontSize:10, padding:'8px 16px' }} onClick={onSignOut}>Sign Out</button>
+                }}, 'Blog')), React.createElement("div", {style: { display:'flex', alignItems:'center', gap:12 }}, React.createElement("div", {className: "nav-user-label", style: { ...mono, fontSize:9, letterSpacing:2, color:C.muted }}, user ? user.email?.split('@')[0].toUpperCase() : ''), user ? (
+                  React.createElement("button", {className: "btn-outline desktop-only", style: { fontSize:10, padding:'8px 16px' }, onClick: onSignOut}, 'Sign Out')
                 ) : (
-                  <button className="btn-primary desktop-only" style={{ fontSize:10, padding:'10px 20px' }} onClick={()=>setShowAuth(true)}>Enter System →</button>
-                )}
-                {/* Hamburger: always visible */}
-                <button className="hamburger-btn" onClick={()=>setMenuOpen(!menuOpen)} style={{
+                  React.createElement("button", {className: "btn-primary desktop-only", style: { fontSize:10, padding:'10px 20px' }, onClick: ()=>setShowAuth(true)}, 'Enter System →')
+                ), React.createElement("button", {className: "hamburger-btn", onClick: ()=>setMenuOpen(!menuOpen), style: {
                   background:'none', border:`1px solid ${C.border}`, borderRadius:2,
                   color:C.muted, width:40, height:36, flexDirection:'column',
                   alignItems:'center', justifyContent:'center', gap:5, cursor:'pointer',
-                }}>
-                  <div style={{ width:18, height:1, background:C.muted }} />
-                  <div style={{ width:14, height:1, background:C.muted }} />
-                  <div style={{ width:10, height:1, background:C.muted }} />
-                </button>
-              </div>
-            </div>
-          </nav>
-
-          {/* Mobile / Hamburger Menu */}
-          {menuOpen && (
-            <div style={{
+                }}, React.createElement("div", {style: { width:18, height:1, background:C.muted }}), React.createElement("div", {style: { width:14, height:1, background:C.muted }}), React.createElement("div", {style: { width:10, height:1, background:C.muted }}))))), menuOpen && (
+            React.createElement("div", {style: {
               position:'fixed', inset:0, zIndex:99, background:'rgba(5,12,26,0.97)',
               backdropFilter:'blur(20px)', paddingTop:70, display:'flex', flexDirection:'column',
-            }}>
-              {/* Close */}
-              <button onClick={()=>setMenuOpen(false)} style={{
+            }}, React.createElement("button", {onClick: ()=>setMenuOpen(false), style: {
                 position:'absolute', top:20, right:24, background:'none', border:'none',
                 color:C.muted, fontSize:28, cursor:'pointer', lineHeight:1,
-              }}>×</button>
-
-              {/* Nav links */}
-              <div style={{ padding:'32px 24px', flex:1, overflowY:'auto' }}>
-                {navItems.map((item,i) => (
-                  <button key={item.v} onClick={()=>{ setView(item.v); setMenuOpen(false); }} style={{
+              }}, '×'), React.createElement("div", {style: { padding:'32px 24px', flex:1, overflowY:'auto' }}, navItems.map((item,i) => (
+                  React.createElement("button", {key: item.v, onClick: ()=>{ setView(item.v); setMenuOpen(false); }, style: {
                     display:'flex', alignItems:'center', width:'100%', textAlign:'left',
                     background:'none', border:'none', borderBottom:`1px solid ${C.border}`,
                     padding:'18px 0', cursor:'pointer',
                     animation:`fadeUp 0.3s ease ${i*0.05}s both`,
-                  }}>
-                    <div style={{ flex:1, ...syne, fontSize:20, fontWeight:700, color: view===item.v ? C.cyan : C.text }}>
-                      {item.label}
-                    </div>
-                    {view===item.v && (
-                      <div style={{ ...mono, fontSize:10, color:C.cyan }}>◈</div>
-                    )}
-                  </button>
-                ))}
-                <a href={blogHref} target="_blank" rel="noopener noreferrer" style={{
+                  }}, React.createElement("div", {style: { flex:1, ...syne, fontSize:20, fontWeight:700, color: view===item.v ? C.cyan : C.text }}, item.label), view===item.v && (
+                      React.createElement("div", {style: { ...mono, fontSize:10, color:C.cyan }}, '◈')
+                    ))
+                )), React.createElement("a", {href: blogHref, target: "_blank", rel: "noopener noreferrer", style: {
                   display:'flex', alignItems:'center', width:'100%', textAlign:'left',
                   borderBottom:`1px solid ${C.border}`,
                   padding:'18px 0', cursor:'pointer', textDecoration:'none',
                   animation:`fadeUp 0.3s ease ${navItems.length*0.05}s both`,
-                }}>
-                  <div style={{ flex:1, ...syne, fontSize:20, fontWeight:700, color:C.text }}>Blog</div>
-                  <div style={{ ...mono, fontSize:10, color:C.muted }}>↗</div>
-                </a>
-              </div>
-
-              {/* Auth section at bottom of menu */}
-              <div style={{
+                }}, React.createElement("div", {style: { flex:1, ...syne, fontSize:20, fontWeight:700, color:C.text }}, 'Blog'), React.createElement("div", {style: { ...mono, fontSize:10, color:C.muted }}, '↗'))), React.createElement("div", {style: {
                 padding:'24px', borderTop:`1px solid ${C.border}`,
                 animation:'fadeUp 0.35s ease 0.35s both',
-              }}>
-                {user ? (
-                  <div style={{ display:'flex', flexDirection:'column', gap:12 }}>
-                    <div style={{ ...mono, fontSize:9, letterSpacing:3, color:C.muted }}>
-                      SIGNED IN AS {user.email?.toUpperCase()}
-                    </div>
-                    <button className="btn-outline" style={{ width:'100%', fontSize:11, textAlign:'center' }}
-                      onClick={()=>{ onSignOut(); setMenuOpen(false); }}>
-                      Sign Out
-                    </button>
-                  </div>
+              }}, user ? (
+                  React.createElement("div", {style: { display:'flex', flexDirection:'column', gap:12 }}, React.createElement("div", {style: { ...mono, fontSize:9, letterSpacing:3, color:C.muted }}, 'SIGNED IN AS', user.email?.toUpperCase()), React.createElement("button", {className: "btn-outline", style: { width:'100%', fontSize:11, textAlign:'center' }, onClick: ()=>{ onSignOut(); setMenuOpen(false); }}, 'Sign Out'))
                 ) : (
-                  <div style={{ display:'flex', flexDirection:'column', gap:10 }}>
-                    <div style={{ ...mono, fontSize:9, letterSpacing:3, color:C.muted, marginBottom:4 }}>
-                      COGNITIVE PERFORMANCE OS
-                    </div>
-                    <button className="btn-primary" style={{ width:'100%', fontSize:12, textAlign:'center' }}
-                      onClick={()=>{ setShowAuth(true); setMenuOpen(false); }}>
-                      Access System →
-                    </button>
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
-        </>
+                  React.createElement("div", {style: { display:'flex', flexDirection:'column', gap:10 }}, React.createElement("div", {style: { ...mono, fontSize:9, letterSpacing:3, color:C.muted, marginBottom:4 }}, 'COGNITIVE PERFORMANCE OS'), React.createElement("button", {className: "btn-primary", style: { width:'100%', fontSize:12, textAlign:'center' }, onClick: ()=>{ setShowAuth(true); setMenuOpen(false); }}, 'Access System →'))
+                )))
+          ))
       );
     }
 
@@ -683,21 +491,16 @@ const { useState, useEffect, useCallback, useRef, useMemo } = React;
         { v:'enterprise', symbol:'⬡', label:'Enterprise' },
       ];
       return (
-        <div className="bottom-nav" style={{
+        React.createElement("div", {className: "bottom-nav", style: {
           position:'fixed', bottom:0, left:0, right:0, zIndex:90,
           background:'rgba(5,12,26,0.95)', backdropFilter:'blur(20px)',
           borderTop:`1px solid ${C.border}`,
-        }}>
-          {items.map(item => (
-            <button key={item.v} onClick={()=>setView(item.v)} style={{
+        }}, items.map(item => (
+            React.createElement("button", {key: item.v, onClick: ()=>setView(item.v), style: {
               flex:1, padding:'10px 4px 14px', background:'none', border:'none',
               display:'flex', flexDirection:'column', alignItems:'center', gap:4, cursor:'pointer',
-            }}>
-              <div style={{ ...mono, fontSize:16, color:view===item.v?C.cyan:C.dim, transition:'color 0.2s' }}>{item.symbol}</div>
-              <div style={{ ...inter, fontSize:9, letterSpacing:1, color:view===item.v?C.cyan:C.dim, fontWeight:view===item.v?600:400, transition:'color 0.2s', textTransform:'uppercase' }}>{item.label}</div>
-            </button>
-          ))}
-        </div>
+            }}, React.createElement("div", {style: { ...mono, fontSize:16, color:view===item.v?C.cyan:C.dim, transition:'color 0.2s' }}, item.symbol), React.createElement("div", {style: { ...inter, fontSize:9, letterSpacing:1, color:view===item.v?C.cyan:C.dim, fontWeight:view===item.v?600:400, transition:'color 0.2s', textTransform:'uppercase' }}, item.label))
+          )))
       );
     }
 
@@ -710,38 +513,29 @@ const { useState, useEffect, useCallback, useRef, useMemo } = React;
 function BentoNeuralOrb({ size = 120, color = '#C4A050', pulseColor }) {
   const pc = pulseColor || color;
   return (
-    <div style={{ position:'relative', width:size, height:size, flexShrink:0 }}>
-      {/* Pulse rings */}
-      {[1,2,3].map(i => (
-        <div key={i} style={{
+    React.createElement("div", {style: { position:'relative', width:size, height:size, flexShrink:0 }}, [1,2,3].map(i => (
+        React.createElement("div", {key: i, style: {
           position:'absolute', inset:0, borderRadius:'50%',
           border:`1px solid ${pc}`,
           opacity: 0,
           animation:`pulseRing ${1.6 + i*0.4}s ease-out ${i*0.4}s infinite`,
-        }} />
-      ))}
-      {/* Outer ring */}
-      <div style={{
+        }})
+      )), React.createElement("div", {style: {
         position:'absolute', inset:0, borderRadius:'50%',
         border:`1px solid ${color}33`,
         boxShadow:`0 0 40px ${color}14`,
-      }} />
-      {/* Inner ring */}
-      <div style={{
+      }}), React.createElement("div", {style: {
         position:'absolute', inset:12, borderRadius:'50%',
         border:`1px solid ${color}22`,
         background:`radial-gradient(circle, ${color}08, transparent 70%)`,
-      }} />
-      {/* Core */}
-      <div style={{
+      }}), React.createElement("div", {style: {
         position:'absolute', inset:0,
         display:'flex', alignItems:'center', justifyContent:'center',
         fontFamily:"'Space Mono', monospace", fontSize:size/3,
         color,
         animation:'neuralPulse 3s ease-in-out infinite',
         textShadow:`0 0 20px ${color}`,
-      }}>◈</div>
-    </div>
+      }}, '◈'))
   );
 }
 
@@ -749,26 +543,24 @@ function BentoNeuralOrb({ size = 120, color = '#C4A050', pulseColor }) {
 function BentoWaveform({ color = '#C4A050', bars = 16, height = 32 }) {
   const heights = [0.3,0.7,0.5,0.9,0.4,0.8,0.6,1.0,0.5,0.7,0.3,0.85,0.6,0.4,0.75,0.5];
   return (
-    <div style={{
+    React.createElement("div", {style: {
       display:'flex', alignItems:'flex-end', gap:3, height,
-    }}>
-      {heights.slice(0, bars).map((h, i) => (
-        <div key={i} style={{
+    }}, heights.slice(0, bars).map((h, i) => (
+        React.createElement("div", {key: i, style: {
           flex:1, height:`${h*100}%`,
           background:`linear-gradient(180deg, ${color}, ${color}44)`,
           borderRadius:2,
           opacity: 0.6 + h * 0.4,
           animation:`neuralPulse ${1.2 + (i%4)*0.3}s ease-in-out ${(i%5)*0.1}s infinite`,
-        }} />
-      ))}
-    </div>
+        }})
+      )))
   );
 }
 
 /** A single stat chip for the metrics row */
 function BentoStat({ label, value, color, icon }) {
   return (
-    <div style={{
+    React.createElement("div", {style: {
       display:'flex', flexDirection:'column', gap:6,
       padding:'16px 20px',
       background:'rgba(10,22,40,0.5)',
@@ -776,60 +568,43 @@ function BentoStat({ label, value, color, icon }) {
       border:`1px solid rgba(255,255,255,0.05)`,
       backdropFilter:'blur(8px)',
       transition:'border-color 0.2s',
-    }}
-    onMouseEnter={e => e.currentTarget.style.borderColor=`${color}33`}
-    onMouseLeave={e => e.currentTarget.style.borderColor='rgba(255,255,255,0.05)'}
-    >
-      {icon && (
-        <div style={{
+    }, onMouseEnter: e => e.currentTarget.style.borderColor=`${color}33`, onMouseLeave: e => e.currentTarget.style.borderColor='rgba(255,255,255,0.05)'}, icon && (
+        React.createElement("div", {style: {
           fontFamily:"'Space Mono', monospace",
           fontSize:18, color, marginBottom:2,
           textShadow:`0 0 12px ${color}88`,
-        }}>{icon}</div>
-      )}
-      <div style={{
+        }}, icon)
+      ), React.createElement("div", {style: {
         fontFamily:"'Space Mono', monospace",
         fontSize:8, letterSpacing:2.5,
         textTransform:'uppercase', color:'#8A7A5A',
-      }}>{label}</div>
-      <div style={{
+      }}, label), React.createElement("div", {style: {
         fontFamily:"'Syne', sans-serif",
         fontSize:24, fontWeight:800, color,
         lineHeight:1, letterSpacing:'-0.02em',
-      }}>{value}</div>
-    </div>
+      }}, value))
   );
 }
 
 /** CFI Progress bars card content */
 function BentoCFIBars({ data }) {
   return (
-    <div style={{ display:'flex', flexDirection:'column', gap:14 }}>
-      {data.map(({ label, pct, color }, i) => (
-        <div key={i}>
-          <div style={{
+    React.createElement("div", {style: { display:'flex', flexDirection:'column', gap:14 }}, data.map(({ label, pct, color }, i) => (
+        React.createElement("div", {key: i}, React.createElement("div", {style: {
             display:'flex', justifyContent:'space-between', marginBottom:6,
-          }}>
-            <div style={{
+          }}, React.createElement("div", {style: {
               fontFamily:"'DM Sans', sans-serif",
               fontSize:11, color:'#8A7A5A', letterSpacing:'0.01em',
-            }}>{label}</div>
-            <div style={{
+            }}, label), React.createElement("div", {style: {
               fontFamily:"'Space Mono', monospace",
               fontSize:10, color,
-            }}>{pct}</div>
-          </div>
-          <div className="bento-progress-track">
-            <div className="bento-progress-fill" style={{
+            }}, pct)), React.createElement("div", {className: "bento-progress-track"}, React.createElement("div", {className: "bento-progress-fill", style: {
               width:`${pct}%`,
               background:`linear-gradient(90deg, ${color}88, ${color})`,
               boxShadow:`0 0 8px ${color}44`,
               transitionDelay:`${i*0.08}s`,
-            }} />
-          </div>
-        </div>
-      ))}
-    </div>
+            }})))
+      )))
   );
 }
 
@@ -842,11 +617,8 @@ function BentoBrainQuad({ setView }) {
     { key:'reflective', symbol:'◳', label:'Reflective', color:'#D4AF6A', tagline:'Awareness · Meaning' },
   ];
   return (
-    <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:10, height:'100%' }}>
-      {brains.map(b => (
-        <div key={b.key}
-          onClick={() => setView('four-brains')}
-          style={{
+    React.createElement("div", {style: { display:'grid', gridTemplateColumns:'1fr 1fr', gap:10, height:'100%' }}, brains.map(b => (
+        React.createElement("div", {key: b.key, onClick: () => setView('four-brains'), style: {
             padding:'16px 14px',
             borderRadius:12,
             background:`linear-gradient(135deg, ${b.color}10, rgba(10,22,40,0.6))`,
@@ -854,55 +626,39 @@ function BentoBrainQuad({ setView }) {
             cursor:'pointer',
             transition:'all 0.25s cubic-bezier(0.34,1.56,0.64,1)',
             display:'flex', flexDirection:'column', gap:6,
-          }}
-          onMouseEnter={e => {
+          }, onMouseEnter: e => {
             e.currentTarget.style.borderColor = `${b.color}50`;
             e.currentTarget.style.transform = 'translateY(-2px)';
             e.currentTarget.style.boxShadow = `0 8px 24px ${b.color}18`;
-          }}
-          onMouseLeave={e => {
+          }, onMouseLeave: e => {
             e.currentTarget.style.borderColor = `${b.color}22`;
             e.currentTarget.style.transform = 'translateY(0)';
             e.currentTarget.style.boxShadow = 'none';
-          }}
-        >
-          <div style={{
+          }}, React.createElement("div", {style: {
             fontFamily:"'Space Mono', monospace", fontSize:22, color:b.color,
             textShadow:`0 0 10px ${b.color}88`, lineHeight:1,
-          }}>{b.symbol}</div>
-          <div style={{
+          }}, b.symbol), React.createElement("div", {style: {
             fontFamily:"'Syne', sans-serif",
             fontSize:12, fontWeight:700, color:'#F0E8D0',
-          }}>{b.label}</div>
-          <div style={{
+          }}, b.label), React.createElement("div", {style: {
             fontFamily:"'DM Sans', sans-serif",
             fontSize:10, color:'#8A7A5A', lineHeight:1.4,
-          }}>{b.tagline}</div>
-        </div>
-      ))}
-    </div>
+          }}, b.tagline))
+      )))
   );
 }
 
 /** Step timeline for "How it works" card */
 function BentoStepList({ steps, setView }) {
   return (
-    <div style={{ display:'flex', flexDirection:'column', gap:0 }}>
-      {steps.map((step, i) => (
-        <div key={i}
-          onClick={() => setView(step.view)}
-          style={{
+    React.createElement("div", {style: { display:'flex', flexDirection:'column', gap:0 }}, steps.map((step, i) => (
+        React.createElement("div", {key: i, onClick: () => setView(step.view), style: {
             display:'flex', gap:16, alignItems:'flex-start',
             padding:'14px 0',
             borderBottom: i < steps.length - 1 ? '1px solid rgba(196,160,80,0.06)' : 'none',
             cursor:'pointer',
             transition:'opacity 0.2s',
-          }}
-          onMouseEnter={e => e.currentTarget.style.opacity='0.75'}
-          onMouseLeave={e => e.currentTarget.style.opacity='1'}
-        >
-          {/* Step number */}
-          <div style={{
+          }, onMouseEnter: e => e.currentTarget.style.opacity='0.75', onMouseLeave: e => e.currentTarget.style.opacity='1'}, React.createElement("div", {style: {
             flexShrink:0, width:28, height:28,
             borderRadius:8,
             background:'rgba(196,160,80,0.06)',
@@ -910,26 +666,17 @@ function BentoStepList({ steps, setView }) {
             display:'flex', alignItems:'center', justifyContent:'center',
             fontFamily:"'Space Mono', monospace",
             fontSize:9, color:'#C4A050', letterSpacing:1,
-          }}>{step.step}</div>
-          {/* Content */}
-          <div style={{ flex:1, minWidth:0 }}>
-            <div style={{
+          }}, step.step), React.createElement("div", {style: { flex:1, minWidth:0 }}, React.createElement("div", {style: {
               fontFamily:"'Syne', sans-serif",
               fontSize:13, fontWeight:700, color:'#F0E8D0', marginBottom:3,
-            }}>{step.title}</div>
-            <div style={{
+            }}, step.title), React.createElement("div", {style: {
               fontFamily:"'DM Sans', sans-serif",
               fontSize:11, color:'#8A7A5A', lineHeight:1.5,
-            }}>{step.desc}</div>
-          </div>
-          {/* Arrow */}
-          <div style={{
+            }}, step.desc)), React.createElement("div", {style: {
             flexShrink:0, fontSize:12, color:'rgba(196,160,80,0.3)',
             marginTop:6,
-          }}>→</div>
-        </div>
-      ))}
-    </div>
+          }}, '→'))
+      )))
   );
 }
 
@@ -984,38 +731,12 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress, sessi
   ];
 
   return (
-    <div style={{ paddingTop:80, paddingBottom:120, background:'var(--void)' }}>
-
-      {/* ── Global ambient glow ─────────────────────────── */}
-      <div style={{
+    React.createElement("div", {style: { paddingTop:80, paddingBottom:120, background:'var(--void)' }}, React.createElement("div", {style: {
         position:'fixed', top:0, left:'50%', transform:'translateX(-50%)',
         width:800, height:400,
         background:'radial-gradient(ellipse, rgba(196,160,80,0.05) 0%, transparent 70%)',
         pointerEvents:'none', zIndex:0,
-      }} />
-
-      <div className="bento-section" style={{ position:'relative', zIndex:1 }}>
-
-        {/* ══════════════════════════════════════════════════
-            HERO: Turn Mental Fragmentation Into Clarity
-        ══════════════════════════════════════════════════ */}
-        <div className="bento-grid" style={{ marginBottom:'var(--bento-gap-lg)' }}>
-
-          {/* ── HERO CARD ──────────────────────────────── */}
-          <div className="bento-card bento-card-bright bento-p-xl bento-card-hero bento-col-7 bento-tab-2 bento-shimmer"
-            style={{ display:'flex', flexDirection:'column', justifyContent:'space-between' }}>
-            <div className="bento-grid-lines" />
-            <div className="bento-noise" />
-
-            <div>
-              <div style={{ display:'flex', alignItems:'center', gap:10, marginBottom:24 }}>
-                <span className="bento-tag">
-                  <span className="bento-tag-dot" />
-                  COGNITIVE ARCHITECTURE PLATFORM
-                </span>
-              </div>
-
-              <h1 style={{
+      }}), React.createElement("div", {className: "bento-section", style: { position:'relative', zIndex:1 }}, React.createElement("div", {className: "bento-grid", style: { marginBottom:'var(--bento-gap-lg)' }}, React.createElement("div", {className: "bento-card bento-card-bright bento-p-xl bento-card-hero bento-col-7 bento-tab-2 bento-shimmer", style: { display:'flex', flexDirection:'column', justifyContent:'space-between' }}, React.createElement("div", {className: "bento-grid-lines"}), React.createElement("div", {className: "bento-noise"}), React.createElement("div", null, React.createElement("div", {style: { display:'flex', alignItems:'center', gap:10, marginBottom:24 }}, React.createElement("span", {className: "bento-tag"}, React.createElement("span", {className: "bento-tag-dot"}), 'COGNITIVE ARCHITECTURE PLATFORM')), React.createElement("h1", {style: {
                 fontFamily:"'Syne', sans-serif",
                 fontSize:'clamp(28px, 4vw, 54px)',
                 fontWeight:800, lineHeight:1.0,
@@ -1023,65 +744,28 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress, sessi
                 letterSpacing:'-0.03em',
                 marginBottom:20,
                 maxWidth:'16ch',
-              }}>
-                Turn Mental Fragmentation Into{' '}
-                <span style={{
+              }}, 'Turn Mental Fragmentation Into', ' ', React.createElement("span", {style: {
                   color:'transparent',
                   backgroundClip:'text',
                   WebkitBackgroundClip:'text',
                   backgroundImage:'linear-gradient(135deg, #C4A050, #E2BE78)',
-                }}>Structured Clarity.</span>
-              </h1>
-
-              <p style={{
+                }}, 'Structured Clarity.')), React.createElement("p", {style: {
                 fontFamily:"'DM Sans', sans-serif",
                 fontSize:15, color:'#8A7A5A', lineHeight:1.85,
                 maxWidth:'52ch', marginBottom:32,
-              }}>
-                NeuralFusion™ is the operating system for structured human cognition:
-a premium mental performance environment for{' '}
-                <strong style={{ color:'#F0E8D0', fontWeight:600 }}>integrated thinking,
-                decision mastery, synthesis training,</strong>{' '}
-                and cognitive stabilization.
-              </p>
-
-              <div style={{ display:'flex', gap:12, flexWrap:'wrap' }}>
-                <button className="btn-primary" onClick={() => user ? setView('training') : setShowAuth(true)}>
-                  Initialize Cognitive OS →
-                </button>
-                <button className="btn-outline" onClick={() => setView('four-brains')}>
-                  View Architecture
-                </button>
-              </div>
-            </div>
-
-            <div style={{ marginTop:32, opacity:0.5 }}>
-              <BentoWaveform color="#C4A050" bars={20} height={28} />
-            </div>
-          </div>
-
-          {/* ── NEURAL ORB + CORE LOOP ─────────────────── */}
-          <div className="bento-card bento-card-deep bento-p-md bento-card-hero bento-col-5 bento-tab-2"
-            style={{
+              }}, 'NeuralFusion™ is the operating system for structured human cognition: a premium mental performance environment for', ' ', React.createElement("strong", {style: { color:'#F0E8D0', fontWeight:600 }}, 'integrated thinking, decision mastery, synthesis training,'), ' ', 'and cognitive stabilization.'), React.createElement("div", {style: { display:'flex', gap:12, flexWrap:'wrap' }}, React.createElement("button", {className: "btn-primary", onClick: () => user ? setView('training') : setShowAuth(true)}, 'Initialize Cognitive OS →'), React.createElement("button", {className: "btn-outline", onClick: () => setView('four-brains')}, 'View Architecture'))), React.createElement("div", {style: { marginTop:32, opacity:0.5 }}, React.createElement(BentoWaveform, {color: "#C4A050", bars: 20, height: 28}))), React.createElement("div", {className: "bento-card bento-card-deep bento-p-md bento-card-hero bento-col-5 bento-tab-2", style: {
               display:'flex', flexDirection:'column',
               alignItems:'center', justifyContent:'center',
               gap:24, textAlign:'center',
-            }}>
-            <div className="bento-dots" />
-
-            {/* Core loop graphic */}
-            <div style={{ position:'relative', width:180, height:180 }}>
-              <div style={{
+            }}, React.createElement("div", {className: "bento-dots"}), React.createElement("div", {style: { position:'relative', width:180, height:180 }}, React.createElement("div", {style: {
                 position:'absolute', inset:0, borderRadius:'50%',
                 border:'1px dashed rgba(196,160,80,0.15)',
                 animation:'rotate 14s linear infinite',
-              }} />
-              <div style={{
+              }}), React.createElement("div", {style: {
                 position:'absolute', inset:20, borderRadius:'50%',
                 border:'1px solid rgba(196,160,80,0.08)',
                 animation:'counterRotate 9s linear infinite',
-              }} />
-              {[
+              }}), [
                 { symbol:'◰', color:'#C4A050', angle:0,   label:'Logic' },
                 { symbol:'◱', color:'#E2BE78', angle:90,  label:'Signal' },
                 { symbol:'◲', color:'#7AAFCF', angle:180, label:'Synthesis' },
@@ -1092,68 +776,41 @@ a premium mental performance environment for{' '}
                 const x = 90 + r * Math.cos(rad) - 14;
                 const y = 90 + r * Math.sin(rad) - 14;
                 return (
-                  <div key={angle} style={{
+                  React.createElement("div", {key: angle, style: {
                     position:'absolute', left:x, top:y,
                     width:28, height:28, borderRadius:'50%',
                     background:`${color}18`, border:`1px solid ${color}44`,
                     display:'flex', alignItems:'center', justifyContent:'center',
                     fontFamily:"'Space Mono', monospace", fontSize:12, color,
                     textShadow:`0 0 8px ${color}`,
-                  }}>{symbol}</div>
+                  }}, symbol)
                 );
-              })}
-              <div style={{
+              }), React.createElement("div", {style: {
                 position:'absolute', inset:0,
                 display:'flex', flexDirection:'column',
                 alignItems:'center', justifyContent:'center', gap:2,
-              }}>
-                <div style={{
+              }}, React.createElement("div", {style: {
                   fontFamily:"'Syne', sans-serif",
                   fontSize:22, fontWeight:800, color:'#C4A050',
                   textShadow:'0 0 24px rgba(196,160,80,0.6)',
                   animation:'neuralPulse 2.5s ease-in-out infinite',
-                }}>◈</div>
-                <div style={{
+                }}, '◈'), React.createElement("div", {style: {
                   fontFamily:"'Space Mono', monospace",
                   fontSize:8, letterSpacing:2, color:'rgba(196,160,80,0.6)',
-                }}>FUSE</div>
-              </div>
-            </div>
-
-            <div>
-              <div style={{
+                }}, 'FUSE'))), React.createElement("div", null, React.createElement("div", {style: {
                 fontFamily:"'Space Mono', monospace",
                 fontSize:9, letterSpacing:3, color:'#8A7A5A',
                 textTransform:'uppercase', marginBottom:6,
-              }}>Neural Core</div>
-              <div style={{
+              }}, 'Neural Core'), React.createElement("div", {style: {
                 fontFamily:"'Syne', sans-serif",
                 fontSize:16, fontWeight:800, color:'#F0E8D0',
                 marginBottom:6, letterSpacing:'-0.01em',
-              }}>The Core Loop</div>
-              <div style={{
+              }}, 'The Core Loop'), React.createElement("div", {style: {
                 fontFamily:"'DM Sans', sans-serif",
                 fontSize:11, color:'#8A7A5A', lineHeight:1.6,
                 maxWidth:'26ch', margin:'0 auto 16px',
-              }}>
-                Decompose → Sense → Expand → Reflect → Fuse.
-                Completes in under 90 seconds with training.
-              </div>
-              <button className="btn-outline" style={{ fontSize:10 }}
-                onClick={() => user ? setView('training') : setShowAuth(true)}>
-                {user ? 'Enter Training →' : 'Initialize Profile →'}
-              </button>
-            </div>
-          </div>
-
-        </div>
-
-        {/* ══════════════════════════════════════════════════
-            STATS ROW
-        ══════════════════════════════════════════════════ */}
-        {user && cfiResult ? (
-          <div className="bento-grid" style={{ marginBottom:'var(--bento-gap-lg)' }}>
-            {[
+              }}, 'Decompose → Sense → Expand → Reflect → Fuse. Completes in under 90 seconds with training.'), React.createElement("button", {className: "btn-outline", style: { fontSize:10 }, onClick: () => user ? setView('training') : setShowAuth(true)}, user ? 'Enter Training →' : 'Initialize Profile →')))), user && cfiResult ? (
+          React.createElement("div", {className: "bento-grid", style: { marginBottom:'var(--bento-gap-lg)' }}, [
               { label:'CFI BAND', value:cfiResult.band, color:cfiResult.band==='Integrated'?'#7AAFCF':'#C4A050', icon:'◎' },
               { label:'LESSONS DONE', value:`${completedLessons}/${5}`, color:'#C4A050', icon:'▦' },
               { label:'SESSIONS', value:sessions.length.toString()||'0', color:'#E2BE78', icon:'◱' },
@@ -1162,524 +819,147 @@ a premium mental performance environment for{' '}
                 icon:({analytical:'◰',intuitive:'◱',associative:'◲',reflective:'◳'})[cfiResult.dominantBrain]||'◰',
               },
             ].map((stat, i) => (
-              <div key={i}
-                className="bento-card bento-p-md bento-col-3 bento-tab-1 bento-card-small bento-shimmer"
-                style={{ display:'flex', flexDirection:'column', justifyContent:'space-between' }}>
-                <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start' }}>
-                  <div style={{
+              React.createElement("div", {key: i, className: "bento-card bento-p-md bento-col-3 bento-tab-1 bento-card-small bento-shimmer", style: { display:'flex', flexDirection:'column', justifyContent:'space-between' }}, React.createElement("div", {style: { display:'flex', justifyContent:'space-between', alignItems:'flex-start' }}, React.createElement("div", {style: {
                     fontFamily:"'Space Mono', monospace",
                     fontSize:8, letterSpacing:2.5, color:'#8A7A5A', textTransform:'uppercase',
-                  }}>{stat.label}</div>
-                  <div style={{
+                  }}, stat.label), React.createElement("div", {style: {
                     fontFamily:"'Space Mono', monospace",
                     fontSize:16, color:stat.color, textShadow:`0 0 12px ${stat.color}66`,
-                  }}>{stat.icon}</div>
-                </div>
-                <div style={{
+                  }}, stat.icon)), React.createElement("div", {style: {
                   fontFamily:"'Syne', sans-serif",
                   fontSize:32, fontWeight:800, color:stat.color, lineHeight:1,
                   letterSpacing:'-0.02em', textShadow:`0 0 20px ${stat.color}44`,
-                }}>{stat.value}</div>
-              </div>
-            ))}
-          </div>
+                }}, stat.value))
+            )))
         ) : (
-          <div className="bento-grid" style={{ marginBottom:'var(--bento-gap-lg)' }}>
-            {[
+          React.createElement("div", {className: "bento-grid", style: { marginBottom:'var(--bento-gap-lg)' }}, [
               { num:'94%', label:'of people have never been taught how to think deliberately', color:'#C4A050' },
               { num:'4',   label:'distinct brain modes every human uses; most activate only 1–2', color:'#E2BE78' },
               { num:'<90s',label:'to run the complete Core Loop with NeuralFusion™ training', color:'#7AAFCF' },
               { num:'5×',  label:'increase in decision quality after full four-brain integration', color:'#D4AF6A' },
             ].map((s, i) => (
-              <div key={i}
-                className="bento-card bento-p-md bento-col-3 bento-tab-1 bento-card-small bento-shimmer"
-                style={{ display:'flex', flexDirection:'column', justifyContent:'space-between' }}>
-                <div style={{
+              React.createElement("div", {key: i, className: "bento-card bento-p-md bento-col-3 bento-tab-1 bento-card-small bento-shimmer", style: { display:'flex', flexDirection:'column', justifyContent:'space-between' }}, React.createElement("div", {style: {
                   fontFamily:"'Syne', sans-serif", fontSize:40, fontWeight:800,
                   color:s.color, lineHeight:1, letterSpacing:'-0.03em',
                   textShadow:`0 0 30px ${s.color}44`, marginBottom:12,
-                }}>{s.num}</div>
-                <div style={{
+                }}, s.num), React.createElement("div", {style: {
                   fontFamily:"'DM Sans', sans-serif", fontSize:12, color:'#8A7A5A', lineHeight:1.5,
-                }}>{s.label}</div>
-              </div>
-            ))}
-          </div>
-        )}
-
-        {/* ══════════════════════════════════════════════════
-            COGNITION DASHBOARD SECTION
-        ══════════════════════════════════════════════════ */}
-        <div style={{ marginBottom:'var(--bento-gap-lg)' }}>
-          <div className="bento-section-header">
-            <div style={{ fontFamily:"'Space Mono', monospace", fontSize:9, letterSpacing:3, color:'#C4A050', marginBottom:12, textTransform:'uppercase' }}>Cognitive Command Center</div>
-            <div style={{ fontFamily:"'Syne', sans-serif", fontSize:'clamp(22px,3vw,38px)', fontWeight:800, color:'#F0E8D0', letterSpacing:'-0.02em', lineHeight:1.1, marginBottom:12 }}>
-              The Living Cognition Dashboard
-            </div>
-            <p style={{ fontFamily:"'DM Sans', sans-serif", fontSize:14, color:'#8A7A5A', lineHeight:1.8, maxWidth:'60ch' }}>
-              A real-time cognitive operating environment built to track fragmentation, synthesis,
-              pressure stability, clarity progression, and integrated thinking performance.
-            </p>
-          </div>
-
-          <div className="bento-grid">
-
-            {/* ── COGNITIVE BALANCE GRAPH ──────────────── */}
-            <div className="bento-card bento-card-bright bento-p-lg bento-card-large bento-col-8 bento-tab-2"
-              style={{ display:'flex', flexDirection:'column' }}>
-              <div className="bento-grid-lines" />
-              <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', marginBottom:24 }}>
-                <div>
-                  <span className="bento-label">Cognitive Balance</span>
-                  <div style={{ fontFamily:"'Syne', sans-serif", fontSize:36, fontWeight:800, color:'#C4A050', lineHeight:1, letterSpacing:'-0.03em' }}>
-                    {cogScore ? `${cogScore}%` : '84%'}
-                  </div>
-                </div>
-                <div style={{
+                }}, s.label))
+            )))
+        ), React.createElement("div", {style: { marginBottom:'var(--bento-gap-lg)' }}, React.createElement("div", {className: "bento-section-header"}, React.createElement("div", {style: { fontFamily:"'Space Mono', monospace", fontSize:9, letterSpacing:3, color:'#C4A050', marginBottom:12, textTransform:'uppercase' }}, 'Cognitive Command Center'), React.createElement("div", {style: { fontFamily:"'Syne', sans-serif", fontSize:'clamp(22px,3vw,38px)', fontWeight:800, color:'#F0E8D0', letterSpacing:'-0.02em', lineHeight:1.1, marginBottom:12 }}, 'The Living Cognition Dashboard'), React.createElement("p", {style: { fontFamily:"'DM Sans', sans-serif", fontSize:14, color:'#8A7A5A', lineHeight:1.8, maxWidth:'60ch' }}, 'A real-time cognitive operating environment built to track fragmentation, synthesis, pressure stability, clarity progression, and integrated thinking performance.')), React.createElement("div", {className: "bento-grid"}, React.createElement("div", {className: "bento-card bento-card-bright bento-p-lg bento-card-large bento-col-8 bento-tab-2", style: { display:'flex', flexDirection:'column' }}, React.createElement("div", {className: "bento-grid-lines"}), React.createElement("div", {style: { display:'flex', justifyContent:'space-between', alignItems:'flex-start', marginBottom:24 }}, React.createElement("div", null, React.createElement("span", {className: "bento-label"}, 'Cognitive Balance'), React.createElement("div", {style: { fontFamily:"'Syne', sans-serif", fontSize:36, fontWeight:800, color:'#C4A050', lineHeight:1, letterSpacing:'-0.03em' }}, cogScore ? `${cogScore}%` : '84%')), React.createElement("div", {style: {
                   width:48, height:48, borderRadius:'50%',
                   background:'rgba(196,160,80,0.1)', border:'1px solid rgba(196,160,80,0.2)',
                   display:'flex', alignItems:'center', justifyContent:'center',
                   fontFamily:"'Space Mono', monospace", fontSize:18, color:'#C4A050',
                   animation:'neuralPulse 3s ease-in-out infinite',
-                }}>◈</div>
-              </div>
-
-              {/* SVG graph line */}
-              <div style={{ flex:1, minHeight:140, position:'relative' }}>
-                <svg viewBox="0 0 800 140" fill="none" style={{ width:'100%', height:'100%' }}>
-                  <defs>
-                    <linearGradient id="graphGrad" x1="0" y1="0" x2="1" y2="0">
-                      <stop offset="0%" stopColor="#C4A050" />
-                      <stop offset="100%" stopColor="#E2BE78" />
-                    </linearGradient>
-                    <linearGradient id="areaGrad" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor="#C4A050" stopOpacity="0.12" />
-                      <stop offset="100%" stopColor="#C4A050" stopOpacity="0" />
-                    </linearGradient>
-                  </defs>
-                  <path d="M0 110 C80 95 130 28 200 55 C270 80 320 125 400 75 C475 28 550 65 640 20 C710 0 760 28 800 18"
-                    fill="none" stroke="url(#graphGrad)" strokeWidth="3" strokeLinecap="round" />
-                  <path d="M0 110 C80 95 130 28 200 55 C270 80 320 125 400 75 C475 28 550 65 640 20 C710 0 760 28 800 18 L800 140 L0 140 Z"
-                    fill="url(#areaGrad)" />
-                </svg>
-              </div>
-
-              {/* Bottom waveform */}
-              <div style={{ marginTop:16, opacity:0.4 }}>
-                <BentoWaveform color="#C4A050" bars={24} height={24} />
-              </div>
-            </div>
-
-            {/* ── METRICS SIDE PANEL ───────────────────── */}
-            <div className="bento-card bento-p-md bento-card-large bento-col-4 bento-tab-2"
-              style={{ display:'flex', flexDirection:'column', gap:16 }}>
-              {dashMetrics.map((m, i) => (
-                <div key={i}>
-                  <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:8 }}>
-                    <div style={{ fontFamily:"'DM Sans', sans-serif", fontSize:12, color:'#8A7A5A' }}>{m.label}</div>
-                    <div style={{ fontFamily:"'Syne', sans-serif", fontSize:14, fontWeight:700, color:'#F0E8D0' }}>{m.value}</div>
-                  </div>
-                  <div className="bento-progress-track">
-                    <div className="bento-progress-fill" style={{ width:m.value, transitionDelay:`${i*0.1}s` }} />
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            {/* ── FRAGMENTATION STATUS ─────────────────── */}
-            <div className="bento-card bento-card-deep bento-p-md bento-card-small bento-col-3 bento-tab-1"
-              style={{ display:'flex', flexDirection:'column', justifyContent:'space-between' }}>
-              <div className="bento-dots" />
-              <span className="bento-label">Fragmentation</span>
-              <div style={{
+                }}, '◈')), React.createElement("div", {style: { flex:1, minHeight:140, position:'relative' }}, React.createElement("svg", {viewBox: "0 0 800 140", fill: "none", style: { width:'100%', height:'100%' }}, React.createElement("defs", null, React.createElement("linearGradient", {id: "graphGrad", x1: "0", y1: "0", x2: "1", y2: "0"}, React.createElement("stop", {offset: "0%", stopColor: "#C4A050"}), React.createElement("stop", {offset: "100%", stopColor: "#E2BE78"})), React.createElement("linearGradient", {id: "areaGrad", x1: "0", y1: "0", x2: "0", y2: "1"}, React.createElement("stop", {offset: "0%", stopColor: "#C4A050", stopOpacity: "0.12"}), React.createElement("stop", {offset: "100%", stopColor: "#C4A050", stopOpacity: "0"}))), React.createElement("path", {d: "M0 110 C80 95 130 28 200 55 C270 80 320 125 400 75 C475 28 550 65 640 20 C710 0 760 28 800 18", fill: "none", stroke: "url(#graphGrad)", strokeWidth: "3", strokeLinecap: "round"}), React.createElement("path", {d: "M0 110 C80 95 130 28 200 55 C270 80 320 125 400 75 C475 28 550 65 640 20 C710 0 760 28 800 18 L800 140 L0 140 Z", fill: "url(#areaGrad)"}))), React.createElement("div", {style: { marginTop:16, opacity:0.4 }}, React.createElement(BentoWaveform, {color: "#C4A050", bars: 24, height: 24}))), React.createElement("div", {className: "bento-card bento-p-md bento-card-large bento-col-4 bento-tab-2", style: { display:'flex', flexDirection:'column', gap:16 }}, dashMetrics.map((m, i) => (
+                React.createElement("div", {key: i}, React.createElement("div", {style: { display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:8 }}, React.createElement("div", {style: { fontFamily:"'DM Sans', sans-serif", fontSize:12, color:'#8A7A5A' }}, m.label), React.createElement("div", {style: { fontFamily:"'Syne', sans-serif", fontSize:14, fontWeight:700, color:'#F0E8D0' }}, m.value)), React.createElement("div", {className: "bento-progress-track"}, React.createElement("div", {className: "bento-progress-fill", style: { width:m.value, transitionDelay:`${i*0.1}s` }})))
+              ))), React.createElement("div", {className: "bento-card bento-card-deep bento-p-md bento-card-small bento-col-3 bento-tab-1", style: { display:'flex', flexDirection:'column', justifyContent:'space-between' }}, React.createElement("div", {className: "bento-dots"}), React.createElement("span", {className: "bento-label"}, 'Fragmentation'), React.createElement("div", {style: {
                 flex:1, display:'flex', alignItems:'center', justifyContent:'center',
                 minHeight:80,
-              }}>
-                <div style={{
+              }}, React.createElement("div", {style: {
                   width:48, height:48, borderRadius:'50%',
                   background:'radial-gradient(circle, rgba(122,175,207,0.2), transparent)',
                   border:'1px solid rgba(122,175,207,0.3)',
                   display:'flex', alignItems:'center', justifyContent:'center',
                   boxShadow:'0 0 30px rgba(122,175,207,0.3)',
                   animation:'neuralPulse 3s ease-in-out infinite',
-                }}>
-                  <div style={{ width:10, height:10, borderRadius:'50%', background:'#7AAFCF', boxShadow:'0 0 12px #7AAFCF' }} />
-                </div>
-              </div>
-              <div style={{ fontFamily:"'Syne', sans-serif", fontSize:18, fontWeight:800, color:'#7AAFCF' }}>Low</div>
-            </div>
-
-            {/* ── SYNTHESIS RING ───────────────────────── */}
-            <div className="bento-card bento-p-md bento-card-small bento-col-3 bento-tab-1"
-              style={{ display:'flex', flexDirection:'column', justifyContent:'space-between' }}>
-              <span className="bento-label">Synthesis</span>
-              <div style={{ display:'flex', alignItems:'center', justifyContent:'center', flex:1, minHeight:80 }}>
-                <div style={{ position:'relative', width:72, height:72 }}>
-                  <svg width="72" height="72" style={{ position:'absolute', transform:'rotate(-90deg)' }}>
-                    <circle cx="36" cy="36" r="30" fill="none" stroke="rgba(196,160,80,0.1)" strokeWidth="5" />
-                    <circle cx="36" cy="36" r="30" fill="none" stroke="#E2BE78" strokeWidth="5"
-                      strokeLinecap="round" strokeDasharray="178" strokeDashoffset="11"
-                      style={{ filter:'drop-shadow(0 0 6px #E2BE7866)' }} />
-                  </svg>
-                  <div style={{
+                }}, React.createElement("div", {style: { width:10, height:10, borderRadius:'50%', background:'#7AAFCF', boxShadow:'0 0 12px #7AAFCF' }}))), React.createElement("div", {style: { fontFamily:"'Syne', sans-serif", fontSize:18, fontWeight:800, color:'#7AAFCF' }}, 'Low')), React.createElement("div", {className: "bento-card bento-p-md bento-card-small bento-col-3 bento-tab-1", style: { display:'flex', flexDirection:'column', justifyContent:'space-between' }}, React.createElement("span", {className: "bento-label"}, 'Synthesis'), React.createElement("div", {style: { display:'flex', alignItems:'center', justifyContent:'center', flex:1, minHeight:80 }}, React.createElement("div", {style: { position:'relative', width:72, height:72 }}, React.createElement("svg", {width: "72", height: "72", style: { position:'absolute', transform:'rotate(-90deg)' }}, React.createElement("circle", {cx: "36", cy: "36", r: "30", fill: "none", stroke: "rgba(196,160,80,0.1)", strokeWidth: "5"}), React.createElement("circle", {cx: "36", cy: "36", r: "30", fill: "none", stroke: "#E2BE78", strokeWidth: "5", strokeLinecap: "round", strokeDasharray: "178", strokeDashoffset: "11", style: { filter:'drop-shadow(0 0 6px #E2BE7866)' }})), React.createElement("div", {style: {
                     position:'absolute', inset:0, display:'flex', alignItems:'center', justifyContent:'center',
                     fontFamily:"'Syne', sans-serif", fontSize:14, fontWeight:800, color:'#E2BE78',
-                  }}>94%</div>
-                </div>
-              </div>
-              <div style={{ fontFamily:"'DM Sans', sans-serif", fontSize:11, color:'#8A7A5A' }}>Completion rate</div>
-            </div>
-
-            {/* ── ACTIVE MODE ──────────────────────────── */}
-            <div className="bento-card bento-p-md bento-card-small bento-col-3 bento-tab-1"
-              style={{ display:'flex', flexDirection:'column', justifyContent:'space-between' }}>
-              <span className="bento-label">Active Mode</span>
-              <div style={{
+                  }}, '94%'))), React.createElement("div", {style: { fontFamily:"'DM Sans', sans-serif", fontSize:11, color:'#8A7A5A' }}, 'Completion rate')), React.createElement("div", {className: "bento-card bento-p-md bento-card-small bento-col-3 bento-tab-1", style: { display:'flex', flexDirection:'column', justifyContent:'space-between' }}, React.createElement("span", {className: "bento-label"}, 'Active Mode'), React.createElement("div", {style: {
                 flex:1, display:'flex', alignItems:'center', justifyContent:'center', minHeight:80,
                 fontFamily:"'Space Mono', monospace", fontSize:40, color:'#D4AF6A',
                 textShadow:'0 0 20px rgba(212,175,106,0.5)',
                 animation:'neuralPulse 3s ease-in-out infinite',
-              }}>◳</div>
-              <div style={{ fontFamily:"'Syne', sans-serif", fontSize:14, fontWeight:700, color:'#F0E8D0' }}>Reflective</div>
-            </div>
-
-            {/* ── COGNITIVE LOAD ───────────────────────── */}
-            <div className="bento-card bento-p-md bento-card-small bento-col-3 bento-tab-1"
-              style={{ display:'flex', flexDirection:'column', justifyContent:'space-between' }}>
-              <span className="bento-label">Cognitive Load</span>
-              <div style={{
+              }}, '◳'), React.createElement("div", {style: { fontFamily:"'Syne', sans-serif", fontSize:14, fontWeight:700, color:'#F0E8D0' }}, 'Reflective')), React.createElement("div", {className: "bento-card bento-p-md bento-card-small bento-col-3 bento-tab-1", style: { display:'flex', flexDirection:'column', justifyContent:'space-between' }}, React.createElement("span", {className: "bento-label"}, 'Cognitive Load'), React.createElement("div", {style: {
                 flex:1, display:'flex', alignItems:'flex-end', justifyContent:'center', gap:4, minHeight:80, paddingTop:12,
-              }}>
-                {[0.4,0.7,0.5,0.9,0.6,0.8,0.45,0.75].map((h,i) => (
-                  <div key={i} style={{
+              }}, [0.4,0.7,0.5,0.9,0.6,0.8,0.45,0.75].map((h,i) => (
+                  React.createElement("div", {key: i, style: {
                     width:8, height:`${h*64}px`,
                     background:`linear-gradient(180deg, #C4A050, rgba(196,160,80,0.3))`,
                     borderRadius:3,
                     animation:`neuralPulse ${1.2+i*0.15}s ease-in-out ${i*0.08}s infinite`,
-                  }} />
-                ))}
-              </div>
-              <div style={{ fontFamily:"'Syne', sans-serif", fontSize:14, fontWeight:700, color:'#F0E8D0' }}>Moderate</div>
-            </div>
-
-          </div>
-        </div>
-
-        {/* ══════════════════════════════════════════════════
-            FOUR BRAIN MODES + CFI PREVIEW
-        ══════════════════════════════════════════════════ */}
-        <div className="bento-grid" style={{ marginBottom:'var(--bento-gap-lg)' }}>
-
-          <div className="bento-card bento-p-md bento-card-medium bento-col-4 bento-tab-2">
-            <div className="bento-noise" />
-            <span className="bento-label">Four Brains Framework</span>
-            <div style={{
+                  }})
+                ))), React.createElement("div", {style: { fontFamily:"'Syne', sans-serif", fontSize:14, fontWeight:700, color:'#F0E8D0' }}, 'Moderate')))), React.createElement("div", {className: "bento-grid", style: { marginBottom:'var(--bento-gap-lg)' }}, React.createElement("div", {className: "bento-card bento-p-md bento-card-medium bento-col-4 bento-tab-2"}, React.createElement("div", {className: "bento-noise"}), React.createElement("span", {className: "bento-label"}, 'Four Brains Framework'), React.createElement("div", {style: {
               fontFamily:"'Syne', sans-serif", fontSize:16, fontWeight:700, color:'#F0E8D0',
               marginBottom:16, lineHeight:1.2,
-            }}>Every mind has four<br/>cognitive instruments.</div>
-            <BentoBrainQuad setView={setView} />
-          </div>
-
-          <div className="bento-card bento-card-gold bento-p-md bento-card-medium bento-col-5 bento-tab-2"
-            style={{ display:'flex', flexDirection:'column', justifyContent:'space-between' }}>
-            <div style={{
+            }}, 'Every mind has four', React.createElement("br", null), 'cognitive instruments.'), React.createElement(BentoBrainQuad, {setView: setView})), React.createElement("div", {className: "bento-card bento-card-gold bento-p-md bento-card-medium bento-col-5 bento-tab-2", style: { display:'flex', flexDirection:'column', justifyContent:'space-between' }}, React.createElement("div", {style: {
               position:'absolute', top:0, left:0, right:0, height:1,
               background:'linear-gradient(90deg, transparent, rgba(196,160,80,0.4), transparent)',
               animation:'scanH 4s ease-in-out 1s infinite',
-            }} />
-            <div>
-              <span className="bento-label">CFI Assessment System</span>
-              <div style={{
+            }}), React.createElement("div", null, React.createElement("span", {className: "bento-label"}, 'CFI Assessment System'), React.createElement("div", {style: {
                 fontFamily:"'Syne', sans-serif", fontSize:18, fontWeight:800, color:'#F0E8D0',
                 marginBottom:6, lineHeight:1.2,
-              }}>Cognitive Fragmentation Index™</div>
-              <div style={{
+              }}, 'Cognitive Fragmentation Index™'), React.createElement("div", {style: {
                 fontFamily:"'DM Sans', sans-serif", fontSize:12, color:'#8A7A5A',
                 marginBottom:18, lineHeight:1.5,
-              }}>Precision diagnostic across five cognitive dimensions.</div>
-              <BentoCFIBars data={cfiSampleData} />
-            </div>
-            <div style={{ marginTop:16, display:'flex', justifyContent:'space-between', alignItems:'center' }}>
-              <div>
-                <div style={{ fontFamily:"'Space Mono', monospace", fontSize:8, letterSpacing:2, color:'#8A7A5A', marginBottom:4 }}>SAMPLE · CFI BAND</div>
-                <div style={{ fontFamily:"'Syne', sans-serif", fontSize:14, fontWeight:800, color:'#C4A050' }}>Moderate Fragmentation</div>
-              </div>
-              <button className="btn-primary" style={{ fontSize:10, padding:'10px 18px' }} onClick={() => setView('cfi')}>
-                Begin CFI →
-              </button>
-            </div>
-          </div>
-
-          <div className="bento-card bento-card-deep bento-p-md bento-col-3 bento-tab-2 bento-card-medium"
-            style={{ display:'flex', flexDirection:'column', justifyContent:'space-between' }}>
-            <div className="bento-dots" />
-            <div>
-              <span className="bento-label" style={{ color:'#F87171' }}>THE CORE PROBLEM</span>
-              <div style={{
+              }}, 'Precision diagnostic across five cognitive dimensions.'), React.createElement(BentoCFIBars, {data: cfiSampleData})), React.createElement("div", {style: { marginTop:16, display:'flex', justifyContent:'space-between', alignItems:'center' }}, React.createElement("div", null, React.createElement("div", {style: { fontFamily:"'Space Mono', monospace", fontSize:8, letterSpacing:2, color:'#8A7A5A', marginBottom:4 }}, 'SAMPLE · CFI BAND'), React.createElement("div", {style: { fontFamily:"'Syne', sans-serif", fontSize:14, fontWeight:800, color:'#C4A050' }}, 'Moderate Fragmentation')), React.createElement("button", {className: "btn-primary", style: { fontSize:10, padding:'10px 18px' }, onClick: () => setView('cfi')}, 'Begin CFI →'))), React.createElement("div", {className: "bento-card bento-card-deep bento-p-md bento-col-3 bento-tab-2 bento-card-medium", style: { display:'flex', flexDirection:'column', justifyContent:'space-between' }}, React.createElement("div", {className: "bento-dots"}), React.createElement("div", null, React.createElement("span", {className: "bento-label", style: { color:'#F87171' }}, 'THE CORE PROBLEM'), React.createElement("div", {style: {
                 fontFamily:"'Syne', sans-serif", fontSize:22, fontWeight:800,
                 lineHeight:1.1, color:'#F0E8D0', letterSpacing:'-0.015em', marginBottom:12,
-              }}>Fragmented<br/>thinking is{' '}
-                <span style={{ color:'#F87171' }}>invisible.</span>
-              </div>
-              <p style={{
+              }}, 'Fragmented', React.createElement("br", null), 'thinking is', ' ', React.createElement("span", {style: { color:'#F87171' }}, 'invisible.')), React.createElement("p", {style: {
                 fontFamily:"'DM Sans', sans-serif", fontSize:12, color:'#8A7A5A',
                 lineHeight:1.6, maxWidth:'none', marginBottom:0,
-              }}>
-                Most people are dominated by one or two brain modes and have never been
-                trained to activate the others deliberately.
-              </p>
-            </div>
-            <button className="btn-outline" style={{ fontSize:10, marginTop:16, width:'100%', textAlign:'center' }}
-              onClick={() => setView('four-brains')}>
-              Discover Your Profile
-            </button>
-          </div>
-
-        </div>
-
-        {/* ══════════════════════════════════════════════════
-            PROTOCOLS SECTION
-        ══════════════════════════════════════════════════ */}
-        <div style={{ marginBottom:'var(--bento-gap-lg)' }}>
-          <div className="bento-section-header">
-            <div style={{ fontFamily:"'Space Mono', monospace", fontSize:9, letterSpacing:3, color:'#C4A050', marginBottom:12, textTransform:'uppercase' }}>Cognitive Protocols</div>
-            <div style={{ fontFamily:"'Syne', sans-serif", fontSize:'clamp(22px,3vw,38px)', fontWeight:800, color:'#F0E8D0', letterSpacing:'-0.02em', lineHeight:1.1, marginBottom:12 }}>
-              Six Training Protocols. One Integrated System.
-            </div>
-            <p style={{ fontFamily:"'DM Sans', sans-serif", fontSize:14, color:'#8A7A5A', lineHeight:1.8, maxWidth:'60ch' }}>
-              Each protocol trains a distinct dimension of cognitive performance.
-              Together they install integrated thinking at the architectural level.
-            </p>
-          </div>
-
-          <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(min(280px,100%), 1fr))', gap:16 }}>
-            {protocols.map((p, i) => (
-              <div key={i} className="bento-card bento-p-md"
-                style={{ position:'relative', overflow:'hidden', cursor:'pointer' }}
-                onClick={() => setView(i < 4 ? 'four-brains' : i === 4 ? 'training' : 'cfi')}
-                onMouseEnter={e => { e.currentTarget.style.borderColor=`${p.color}40`; e.currentTarget.style.transform='translateY(-3px)'; }}
-                onMouseLeave={e => { e.currentTarget.style.borderColor='var(--glass-border)'; e.currentTarget.style.transform='translateY(0)'; }}>
-                <div style={{
+              }}, 'Most people are dominated by one or two brain modes and have never been trained to activate the others deliberately.')), React.createElement("button", {className: "btn-outline", style: { fontSize:10, marginTop:16, width:'100%', textAlign:'center' }, onClick: () => setView('four-brains')}, 'Discover Your Profile'))), React.createElement("div", {style: { marginBottom:'var(--bento-gap-lg)' }}, React.createElement("div", {className: "bento-section-header"}, React.createElement("div", {style: { fontFamily:"'Space Mono', monospace", fontSize:9, letterSpacing:3, color:'#C4A050', marginBottom:12, textTransform:'uppercase' }}, 'Cognitive Protocols'), React.createElement("div", {style: { fontFamily:"'Syne', sans-serif", fontSize:'clamp(22px,3vw,38px)', fontWeight:800, color:'#F0E8D0', letterSpacing:'-0.02em', lineHeight:1.1, marginBottom:12 }}, 'Six Training Protocols. One Integrated System.'), React.createElement("p", {style: { fontFamily:"'DM Sans', sans-serif", fontSize:14, color:'#8A7A5A', lineHeight:1.8, maxWidth:'60ch' }}, 'Each protocol trains a distinct dimension of cognitive performance. Together they install integrated thinking at the architectural level.')), React.createElement("div", {style: { display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(min(280px,100%), 1fr))', gap:16 }}, protocols.map((p, i) => (
+              React.createElement("div", {key: i, className: "bento-card bento-p-md", style: { position:'relative', overflow:'hidden', cursor:'pointer' }, onClick: () => setView(i < 4 ? 'four-brains' : i === 4 ? 'training' : 'cfi'), onMouseEnter: e => { e.currentTarget.style.borderColor=`${p.color}40`; e.currentTarget.style.transform='translateY(-3px)'; }, onMouseLeave: e => { e.currentTarget.style.borderColor='var(--glass-border)'; e.currentTarget.style.transform='translateY(0)'; }}, React.createElement("div", {style: {
                   position:'absolute', bottom:'-20%', right:'-10%',
                   width:120, height:120, borderRadius:'50%',
                   background:`radial-gradient(circle, ${p.color}12, transparent 70%)`,
                   pointerEvents:'none',
-                }} />
-                <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:16 }}>
-                  <div style={{
+                }}), React.createElement("div", {style: { display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:16 }}, React.createElement("div", {style: {
                     fontFamily:"'Space Mono', monospace", fontSize:24, color:p.color,
                     textShadow:`0 0 16px ${p.color}66`,
-                  }}>{p.icon}</div>
-                  <div style={{
+                  }}, p.icon), React.createElement("div", {style: {
                     fontFamily:"'Space Mono', monospace", fontSize:8, letterSpacing:2,
                     color:p.color, padding:'4px 10px',
                     border:`1px solid ${p.color}22`,
                     borderRadius:100, background:`${p.color}08`,
-                  }}>{p.label}</div>
-                </div>
-                <div style={{ fontFamily:"'Syne', sans-serif", fontSize:17, fontWeight:700, color:'#F0E8D0', marginBottom:10 }}>{p.title}</div>
-                <div style={{ fontFamily:"'DM Sans', sans-serif", fontSize:12, color:'#8A7A5A', lineHeight:1.7, marginBottom:16 }}>{p.desc}</div>
-                <div style={{ display:'flex', flexDirection:'column', gap:6 }}>
-                  {p.points.map((pt, j) => (
-                    <div key={j} style={{ display:'flex', alignItems:'center', gap:10 }}>
-                      <div style={{ width:5, height:5, borderRadius:'50%', background:p.color, flexShrink:0, boxShadow:`0 0 6px ${p.color}` }} />
-                      <div style={{ fontFamily:"'DM Sans', sans-serif", fontSize:12, color:'#8A7A5A' }}>{pt}</div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* ══════════════════════════════════════════════════
-            EVOLUTION TIMELINE
-        ══════════════════════════════════════════════════ */}
-        <div style={{ marginBottom:'var(--bento-gap-lg)' }}>
-          <div className="bento-section-header">
-            <div style={{ fontFamily:"'Space Mono', monospace", fontSize:9, letterSpacing:3, color:'#C4A050', marginBottom:12, textTransform:'uppercase' }}>Cognitive Evolution</div>
-            <div style={{ fontFamily:"'Syne', sans-serif", fontSize:'clamp(22px,3vw,38px)', fontWeight:800, color:'#F0E8D0', letterSpacing:'-0.02em', lineHeight:1.1 }}>
-              Your Path to Integrated Thinking
-            </div>
-          </div>
-
-          <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(min(200px,100%), 1fr))', gap:14 }}>
-            {timeline.map((t, i) => (
-              <div key={i} className="bento-card bento-p-md bento-card-large"
-                style={{ cursor:'pointer', position:'relative' }}
-                onClick={() => setView(t.view)}
-                onMouseEnter={e => { e.currentTarget.style.borderColor='rgba(196,160,80,0.3)'; e.currentTarget.style.transform='translateY(-4px)'; }}
-                onMouseLeave={e => { e.currentTarget.style.borderColor='var(--glass-border)'; e.currentTarget.style.transform='translateY(0)'; }}>
-                <div style={{ marginBottom:16 }}>
-                  <div style={{ width:14, height:14, borderRadius:'50%', background:'#C4A050', boxShadow:'0 0 20px rgba(196,160,80,0.6)', marginBottom:12 }} />
-                  <div style={{ fontFamily:"'Space Mono', monospace", fontSize:8, letterSpacing:3, color:'rgba(196,160,80,0.5)', marginBottom:8 }}>PHASE {t.step}</div>
-                </div>
-                <div style={{ fontFamily:"'Syne', sans-serif", fontSize:20, fontWeight:800, color:'#F0E8D0', marginBottom:12, letterSpacing:'-0.01em' }}>{t.title}</div>
-                <div style={{ fontFamily:"'DM Sans', sans-serif", fontSize:12, color:'#8A7A5A', lineHeight:1.7 }}>{t.desc}</div>
-                <div style={{
+                  }}, p.label)), React.createElement("div", {style: { fontFamily:"'Syne', sans-serif", fontSize:17, fontWeight:700, color:'#F0E8D0', marginBottom:10 }}, p.title), React.createElement("div", {style: { fontFamily:"'DM Sans', sans-serif", fontSize:12, color:'#8A7A5A', lineHeight:1.7, marginBottom:16 }}, p.desc), React.createElement("div", {style: { display:'flex', flexDirection:'column', gap:6 }}, p.points.map((pt, j) => (
+                    React.createElement("div", {key: j, style: { display:'flex', alignItems:'center', gap:10 }}, React.createElement("div", {style: { width:5, height:5, borderRadius:'50%', background:p.color, flexShrink:0, boxShadow:`0 0 6px ${p.color}` }}), React.createElement("div", {style: { fontFamily:"'DM Sans', sans-serif", fontSize:12, color:'#8A7A5A' }}, pt))
+                  ))))
+            )))), React.createElement("div", {style: { marginBottom:'var(--bento-gap-lg)' }}, React.createElement("div", {className: "bento-section-header"}, React.createElement("div", {style: { fontFamily:"'Space Mono', monospace", fontSize:9, letterSpacing:3, color:'#C4A050', marginBottom:12, textTransform:'uppercase' }}, 'Cognitive Evolution'), React.createElement("div", {style: { fontFamily:"'Syne', sans-serif", fontSize:'clamp(22px,3vw,38px)', fontWeight:800, color:'#F0E8D0', letterSpacing:'-0.02em', lineHeight:1.1 }}, 'Your Path to Integrated Thinking')), React.createElement("div", {style: { display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(min(200px,100%), 1fr))', gap:14 }}, timeline.map((t, i) => (
+              React.createElement("div", {key: i, className: "bento-card bento-p-md bento-card-large", style: { cursor:'pointer', position:'relative' }, onClick: () => setView(t.view), onMouseEnter: e => { e.currentTarget.style.borderColor='rgba(196,160,80,0.3)'; e.currentTarget.style.transform='translateY(-4px)'; }, onMouseLeave: e => { e.currentTarget.style.borderColor='var(--glass-border)'; e.currentTarget.style.transform='translateY(0)'; }}, React.createElement("div", {style: { marginBottom:16 }}, React.createElement("div", {style: { width:14, height:14, borderRadius:'50%', background:'#C4A050', boxShadow:'0 0 20px rgba(196,160,80,0.6)', marginBottom:12 }}), React.createElement("div", {style: { fontFamily:"'Space Mono', monospace", fontSize:8, letterSpacing:3, color:'rgba(196,160,80,0.5)', marginBottom:8 }}, 'PHASE', t.step)), React.createElement("div", {style: { fontFamily:"'Syne', sans-serif", fontSize:20, fontWeight:800, color:'#F0E8D0', marginBottom:12, letterSpacing:'-0.01em' }}, t.title), React.createElement("div", {style: { fontFamily:"'DM Sans', sans-serif", fontSize:12, color:'#8A7A5A', lineHeight:1.7 }}, t.desc), React.createElement("div", {style: {
                   marginTop:20,
                   fontFamily:"'Space Mono', monospace", fontSize:9, color:'rgba(196,160,80,0.4)',
-                }}>→</div>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* ══════════════════════════════════════════════════
-            ROW: PROTOCOL STEPS + PHILOSOPHY QUOTE
-        ══════════════════════════════════════════════════ */}
-        <div className="bento-grid" style={{ marginBottom:'var(--bento-gap-lg)' }}>
-
-          <div className="bento-card bento-p-md bento-card-large bento-col-5 bento-tab-2">
-            <span className="bento-label">The Core Protocol</span>
-            <div style={{ fontFamily:"'Syne', sans-serif", fontSize:18, fontWeight:800, color:'#F0E8D0', marginBottom:4, lineHeight:1.2 }}>How the system trains you</div>
-            <div style={{ height:1, background:'rgba(196,160,80,0.08)', margin:'16px 0' }} />
-            <BentoStepList steps={steps} setView={setView} />
-          </div>
-
-          <div className="bento-card bento-card-deep bento-p-lg bento-card-large bento-col-4 bento-tab-2"
-            style={{ display:'flex', flexDirection:'column', justifyContent:'center' }}>
-            <div style={{
+                }}, '→'))
+            )))), React.createElement("div", {className: "bento-grid", style: { marginBottom:'var(--bento-gap-lg)' }}, React.createElement("div", {className: "bento-card bento-p-md bento-card-large bento-col-5 bento-tab-2"}, React.createElement("span", {className: "bento-label"}, 'The Core Protocol'), React.createElement("div", {style: { fontFamily:"'Syne', sans-serif", fontSize:18, fontWeight:800, color:'#F0E8D0', marginBottom:4, lineHeight:1.2 }}, 'How the system trains you'), React.createElement("div", {style: { height:1, background:'rgba(196,160,80,0.08)', margin:'16px 0' }}), React.createElement(BentoStepList, {steps: steps, setView: setView})), React.createElement("div", {className: "bento-card bento-card-deep bento-p-lg bento-card-large bento-col-4 bento-tab-2", style: { display:'flex', flexDirection:'column', justifyContent:'center' }}, React.createElement("div", {style: {
               fontFamily:"'Space Mono', monospace", fontSize:36, color:'rgba(196,160,80,0.15)',
               lineHeight:1, marginBottom:16, letterSpacing:'-0.02em',
-            }}>"</div>
-            <blockquote style={{
+            }}, '"'), React.createElement("blockquote", {style: {
               fontFamily:"'Syne', sans-serif", fontSize:18, fontWeight:700, color:'#F0E8D0',
               lineHeight:1.45, letterSpacing:'-0.01em', marginBottom:20, fontStyle:'normal',
               maxWidth:'38ch',
-            }}>
-              You cannot think your way to performance. You must{' '}
-              <span style={{ color:'#C4A050' }}>train your way there.</span>
-            </blockquote>
-            <div style={{ display:'flex', alignItems:'center', gap:12 }}>
-              <div style={{
+            }}, 'You cannot think your way to performance. You must', ' ', React.createElement("span", {style: { color:'#C4A050' }}, 'train your way there.')), React.createElement("div", {style: { display:'flex', alignItems:'center', gap:12 }}, React.createElement("div", {style: {
                 width:32, height:32, borderRadius:'50%',
                 background:'linear-gradient(135deg, rgba(196,160,80,0.3), rgba(196,160,80,0.1))',
                 border:'1px solid rgba(196,160,80,0.3)',
                 display:'flex', alignItems:'center', justifyContent:'center',
                 fontFamily:"'Space Mono', monospace", fontSize:14, color:'#C4A050',
-              }}>◈</div>
-              <div>
-                <div style={{ fontFamily:"'Syne', sans-serif", fontSize:12, fontWeight:700, color:'#F0E8D0' }}>Life Edet</div>
-                <div style={{ fontFamily:"'Space Mono', monospace", fontSize:9, letterSpacing:2, color:'#8A7A5A' }}>CREATOR · NEURALFUSION™</div>
-              </div>
-            </div>
-          </div>
-
-          <div className="bento-card bento-card-gold bento-p-md bento-card-large bento-col-3 bento-tab-2"
-            style={{ display:'flex', flexDirection:'column', justifyContent:'space-between' }}>
-            <div className="bento-grid-lines" />
-            <div>
-              <span className="bento-label">The Objective</span>
-              <div style={{
+              }}, '◈'), React.createElement("div", null, React.createElement("div", {style: { fontFamily:"'Syne', sans-serif", fontSize:12, fontWeight:700, color:'#F0E8D0' }}, 'Life Edet'), React.createElement("div", {style: { fontFamily:"'Space Mono', monospace", fontSize:9, letterSpacing:2, color:'#8A7A5A' }}, 'CREATOR · NEURALFUSION™')))), React.createElement("div", {className: "bento-card bento-card-gold bento-p-md bento-card-large bento-col-3 bento-tab-2", style: { display:'flex', flexDirection:'column', justifyContent:'space-between' }}, React.createElement("div", {className: "bento-grid-lines"}), React.createElement("div", null, React.createElement("span", {className: "bento-label"}, 'The Objective'), React.createElement("div", {style: {
                 fontFamily:"'Syne', sans-serif", fontSize:20, fontWeight:800, color:'#F0E8D0',
                 lineHeight:1.15, marginBottom:14, letterSpacing:'-0.015em',
-              }}>This platform upgrades{' '}
-                <span style={{ color:'#C4A050' }}>human thinking.</span>
-              </div>
-              <p style={{
+              }}, 'This platform upgrades', ' ', React.createElement("span", {style: { color:'#C4A050' }}, 'human thinking.')), React.createElement("p", {style: {
                 fontFamily:"'DM Sans', sans-serif",
                 fontSize:12, color:'#8A7A5A', lineHeight:1.7, maxWidth:'none',
-              }}>
-                Not your attitude. Not your motivation. Not your mindset.<br/>
-                The actual <strong style={{ color:'#F0E8D0' }}>cognitive architecture</strong>{' '}
-                through which you process reality.
-              </p>
-            </div>
-            <div style={{ display:'flex', flexDirection:'column', gap:10, marginTop:20 }}>
-              {user ? (
-                <button className="btn-primary" style={{ width:'100%', textAlign:'center' }}
-                  onClick={() => setView('training')}>
-                  Enter Training System →
-                </button>
+              }}, 'Not your attitude. Not your motivation. Not your mindset.', React.createElement("br", null), 'The actual', React.createElement("strong", {style: { color:'#F0E8D0' }}, 'cognitive architecture'), ' ', 'through which you process reality.')), React.createElement("div", {style: { display:'flex', flexDirection:'column', gap:10, marginTop:20 }}, user ? (
+                React.createElement("button", {className: "btn-primary", style: { width:'100%', textAlign:'center' }, onClick: () => setView('training')}, 'Enter Training System →')
               ) : (
-                <>
-                  <button className="btn-primary" style={{ width:'100%', textAlign:'center' }}
-                    onClick={() => setShowAuth(true)}>
-                    Initialize Profile →
-                  </button>
-                  <button className="btn-outline" style={{ width:'100%', textAlign:'center' }}
-                    onClick={() => setView('cfi')}>
-                    Start CFI Assessment
-                  </button>
-                </>
-              )}
-            </div>
-          </div>
-
-        </div>
-
-        {/* ══════════════════════════════════════════════════
-            LESSONS + FOOTER CTA
-        ══════════════════════════════════════════════════ */}
-        <div className="bento-grid">
-
-          <div className="bento-card bento-card-gold bento-p-md bento-card-medium bento-col-6 bento-tab-2">
-            <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', marginBottom:20 }}>
-              <div>
-                <span className="bento-label">Lesson Manuals</span>
-                <div style={{ fontFamily:"'Syne', sans-serif", fontSize:16, fontWeight:800, color:'#F0E8D0', lineHeight:1.2 }}>
-                  5 Elite Cognitive<br/>Training Documents
-                </div>
-              </div>
-              <button className="btn-outline" style={{ fontSize:9, padding:'8px 14px', flexShrink:0 }} onClick={() => setView('lessons')}>
-                View All →
-              </button>
-            </div>
-            <div style={{ display:'flex', flexDirection:'column', gap:8 }}>
-              {[
+                React.createElement(React.Fragment, null, React.createElement("button", {className: "btn-primary", style: { width:'100%', textAlign:'center' }, onClick: () => setShowAuth(true)}, 'Initialize Profile →'), React.createElement("button", {className: "btn-outline", style: { width:'100%', textAlign:'center' }, onClick: () => setView('cfi')}, 'Start CFI Assessment'))
+              )))), React.createElement("div", {className: "bento-grid"}, React.createElement("div", {className: "bento-card bento-card-gold bento-p-md bento-card-medium bento-col-6 bento-tab-2"}, React.createElement("div", {style: { display:'flex', justifyContent:'space-between', alignItems:'flex-start', marginBottom:20 }}, React.createElement("div", null, React.createElement("span", {className: "bento-label"}, 'Lesson Manuals'), React.createElement("div", {style: { fontFamily:"'Syne', sans-serif", fontSize:16, fontWeight:800, color:'#F0E8D0', lineHeight:1.2 }}, '5 Elite Cognitive', React.createElement("br", null), 'Training Documents')), React.createElement("button", {className: "btn-outline", style: { fontSize:9, padding:'8px 14px', flexShrink:0 }, onClick: () => setView('lessons')}, 'View All →')), React.createElement("div", {style: { display:'flex', flexDirection:'column', gap:8 }}, [
                 { num:'01', title:'Foundation of Integrated Cognition', level:'Foundation', free:true },
                 { num:'02', title:'Brain Mode Activation & Switching',  level:'Intermediate', free:false },
                 { num:'03', title:'Synthesis & Decision Architecture',   level:'Intermediate', free:false },
               ].map((l, i) => (
-                <div key={i} onClick={() => setView('lessons')} style={{
+                React.createElement("div", {key: i, onClick: () => setView('lessons'), style: {
                   display:'flex', alignItems:'center', gap:12, padding:'10px 14px',
                   borderRadius:10, background:'rgba(10,22,40,0.4)', border:'1px solid rgba(196,160,80,0.08)',
                   cursor:'pointer', transition:'all 0.2s',
-                }}
-                  onMouseEnter={e => { e.currentTarget.style.borderColor='rgba(196,160,80,0.22)'; e.currentTarget.style.background='rgba(196,160,80,0.05)'; }}
-                  onMouseLeave={e => { e.currentTarget.style.borderColor='rgba(196,160,80,0.08)'; e.currentTarget.style.background='rgba(10,22,40,0.4)'; }}
-                >
-                  <div style={{ fontFamily:"'Space Mono', monospace", fontSize:9, color:'rgba(196,160,80,0.5)', flexShrink:0, width:20 }}>{l.num}</div>
-                  <div style={{ flex:1, minWidth:0 }}>
-                    <div style={{ fontFamily:"'DM Sans', sans-serif", fontSize:12, fontWeight:500, color:'#F0E8D0', whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis' }}>{l.title}</div>
-                    <div style={{ fontFamily:"'Space Mono', monospace", fontSize:8, letterSpacing:1.5, color:'#8A7A5A' }}>{l.level}</div>
-                  </div>
-                  {l.free ? (
-                    <div style={{ fontFamily:"'Space Mono', monospace", fontSize:8, letterSpacing:1.5, color:'#7AAFCF', background:'rgba(122,175,207,0.1)', border:'1px solid rgba(122,175,207,0.2)', padding:'3px 8px', borderRadius:100 }}>FREE</div>
+                }, onMouseEnter: e => { e.currentTarget.style.borderColor='rgba(196,160,80,0.22)'; e.currentTarget.style.background='rgba(196,160,80,0.05)'; }, onMouseLeave: e => { e.currentTarget.style.borderColor='rgba(196,160,80,0.08)'; e.currentTarget.style.background='rgba(10,22,40,0.4)'; }}, React.createElement("div", {style: { fontFamily:"'Space Mono', monospace", fontSize:9, color:'rgba(196,160,80,0.5)', flexShrink:0, width:20 }}, l.num), React.createElement("div", {style: { flex:1, minWidth:0 }}, React.createElement("div", {style: { fontFamily:"'DM Sans', sans-serif", fontSize:12, fontWeight:500, color:'#F0E8D0', whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis' }}, l.title), React.createElement("div", {style: { fontFamily:"'Space Mono', monospace", fontSize:8, letterSpacing:1.5, color:'#8A7A5A' }}, l.level)), l.free ? (
+                    React.createElement("div", {style: { fontFamily:"'Space Mono', monospace", fontSize:8, letterSpacing:1.5, color:'#7AAFCF', background:'rgba(122,175,207,0.1)', border:'1px solid rgba(122,175,207,0.2)', padding:'3px 8px', borderRadius:100 }}, 'FREE')
                   ) : (
-                    <div style={{ fontFamily:"'Space Mono', monospace", fontSize:8, letterSpacing:1.5, color:'rgba(196,160,80,0.5)', background:'rgba(196,160,80,0.06)', border:'1px solid rgba(196,160,80,0.12)', padding:'3px 8px', borderRadius:100 }}>PRO</div>
-                  )}
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* ── BEGIN CTA ────────────────────────────────── */}
-          <div className="bento-card bento-card-bright bento-p-xl bento-card-medium bento-col-6 bento-tab-2"
-            style={{ display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', textAlign:'center', position:'relative' }}>
-            <div className="bento-grid-lines" />
-            <div className="bento-noise" />
-            <div style={{ position:'relative', zIndex:1 }}>
-              <div style={{ fontFamily:"'Space Mono', monospace", fontSize:9, letterSpacing:3, color:'rgba(196,160,80,0.7)', marginBottom:16, textTransform:'uppercase' }}>Begin Your Evolution</div>
-              <div style={{ fontFamily:"'Syne', sans-serif", fontSize:'clamp(22px,3vw,36px)', fontWeight:800, color:'#F0E8D0', letterSpacing:'-0.025em', lineHeight:1.05, marginBottom:16 }}>
-                Your thinking is about to{' '}
-                <span style={{ color:'#C4A050' }}>change permanently.</span>
-              </div>
-              <p style={{ fontFamily:"'DM Sans', sans-serif", fontSize:13, color:'#8A7A5A', lineHeight:1.8, maxWidth:'44ch', margin:'0 auto 28px' }}>
-                Start with the CFI Assessment to measure where your cognition currently stands. Then begin the training system.
-              </p>
-              <div style={{ display:'flex', gap:12, justifyContent:'center', flexWrap:'wrap' }}>
-                <button className="btn-primary" onClick={() => setView('cfi')}>Begin CFI Assessment →</button>
-                <button className="btn-outline" onClick={() => setView('four-brains')}>Explore Architecture</button>
-              </div>
-            </div>
-          </div>
-
-        </div>
-
-      </div>{/* /bento-section */}
-    </div>
+                    React.createElement("div", {style: { fontFamily:"'Space Mono', monospace", fontSize:8, letterSpacing:1.5, color:'rgba(196,160,80,0.5)', background:'rgba(196,160,80,0.06)', border:'1px solid rgba(196,160,80,0.12)', padding:'3px 8px', borderRadius:100 }}, 'PRO')
+                  ))
+              )))), React.createElement("div", {className: "bento-card bento-card-bright bento-p-xl bento-card-medium bento-col-6 bento-tab-2", style: { display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', textAlign:'center', position:'relative' }}, React.createElement("div", {className: "bento-grid-lines"}), React.createElement("div", {className: "bento-noise"}), React.createElement("div", {style: { position:'relative', zIndex:1 }}, React.createElement("div", {style: { fontFamily:"'Space Mono', monospace", fontSize:9, letterSpacing:3, color:'rgba(196,160,80,0.7)', marginBottom:16, textTransform:'uppercase' }}, 'Begin Your Evolution'), React.createElement("div", {style: { fontFamily:"'Syne', sans-serif", fontSize:'clamp(22px,3vw,36px)', fontWeight:800, color:'#F0E8D0', letterSpacing:'-0.025em', lineHeight:1.05, marginBottom:16 }}, 'Your thinking is about to', ' ', React.createElement("span", {style: { color:'#C4A050' }}, 'change permanently.')), React.createElement("p", {style: { fontFamily:"'DM Sans', sans-serif", fontSize:13, color:'#8A7A5A', lineHeight:1.8, maxWidth:'44ch', margin:'0 auto 28px' }}, 'Start with the CFI Assessment to measure where your cognition currently stands. Then begin the training system.'), React.createElement("div", {style: { display:'flex', gap:12, justifyContent:'center', flexWrap:'wrap' }}, React.createElement("button", {className: "btn-primary", onClick: () => setView('cfi')}, 'Begin CFI Assessment →'), React.createElement("button", {className: "btn-outline", onClick: () => setView('four-brains')}, 'Explore Architecture')))))))
   );
 }
 
@@ -1693,120 +973,31 @@ a premium mental performance environment for{' '}
       const b = C.brains[active];
 
       return (
-        <div style={{ paddingTop:80, paddingBottom:100 }}>
-          <div style={{ maxWidth:1200, margin:'0 auto', padding:'40px 24px' }}>
-            <div style={{ ...mono, fontSize:9, letterSpacing:4, color:C.cyan, marginBottom:16 }}>FOUR BRAINS FRAMEWORK</div>
-            <h1 style={{ ...syne, fontSize:28, fontWeight:800, color:C.text, marginBottom:16, lineHeight:1.05 }}>
-              The Architecture<br />of Human Thinking
-            </h1>
-            <p style={{ fontSize:15, color:C.muted, maxWidth:600, lineHeight:1.8, marginBottom:48 }}>
-              Every mind operates through four distinct cognitive modes. Most people have never
-              been taught to identify them, let alone coordinate them. This section is the
-              beginning of cognitive self-awareness.
-            </p>
-
-            {/* Brain selector */}
-            <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(min(200px, 100%), 1fr))', gap:12, marginBottom:48 }}>
-              {Object.keys(FOUR_BRAINS).map(key=>(
-                <BrainCard key={key} brainKey={key} compact active={active===key} onClick={()=>setActive(key)} />
-              ))}
-            </div>
-
-            {/* Active brain detail */}
-            <div key={active} style={{ animation:'fadeUp 0.4s ease both' }}>
-              <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(min(300px, 100%), 1fr))', gap:32, marginBottom:32 }}>
-                {/* Main info */}
-                <div className="card" style={{ padding:'32px', position:'relative', overflow:'hidden', borderColor:`${b.color}22` }}>
-                  <div style={{ position:'absolute', top:0, left:0, width:2, height:'100%', background:b.color }} />
-                  <div style={{ display:'flex', alignItems:'center', gap:20, marginBottom:28 }}>
-                    <div style={{
+        React.createElement("div", {style: { paddingTop:80, paddingBottom:100 }}, React.createElement("div", {style: { maxWidth:1200, margin:'0 auto', padding:'40px 24px' }}, React.createElement("div", {style: { ...mono, fontSize:9, letterSpacing:4, color:C.cyan, marginBottom:16 }}, 'FOUR BRAINS FRAMEWORK'), React.createElement("h1", {style: { ...syne, fontSize:28, fontWeight:800, color:C.text, marginBottom:16, lineHeight:1.05 }}, 'The Architecture', React.createElement("br", null), 'of Human Thinking'), React.createElement("p", {style: { fontSize:15, color:C.muted, maxWidth:600, lineHeight:1.8, marginBottom:48 }}, 'Every mind operates through four distinct cognitive modes. Most people have never been taught to identify them, let alone coordinate them. This section is the beginning of cognitive self-awareness.'), React.createElement("div", {style: { display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(min(200px, 100%), 1fr))', gap:12, marginBottom:48 }}, Object.keys(FOUR_BRAINS).map(key=>(
+                React.createElement(BrainCard, {key: key, brainKey: key, compact: true, active: active===key, onClick: ()=>setActive(key)})
+              ))), React.createElement("div", {key: active, style: { animation:'fadeUp 0.4s ease both' }}, React.createElement("div", {style: { display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(min(300px, 100%), 1fr))', gap:32, marginBottom:32 }}, React.createElement("div", {className: "card", style: { padding:'32px', position:'relative', overflow:'hidden', borderColor:`${b.color}22` }}, React.createElement("div", {style: { position:'absolute', top:0, left:0, width:2, height:'100%', background:b.color }}), React.createElement("div", {style: { display:'flex', alignItems:'center', gap:20, marginBottom:28 }}, React.createElement("div", {style: {
                       width:72, height:72, borderRadius:'50%',
                       background:`radial-gradient(circle, ${b.color}20, transparent)`,
                       border:`1px solid ${b.color}33`,
                       display:'flex', alignItems:'center', justifyContent:'center',
                       ...mono, fontSize:32, color:b.color,
-                    }}>{b.symbol}</div>
-                    <div>
-                      <div style={{ ...mono, fontSize:9, letterSpacing:3, color:b.color, marginBottom:6 }}>BRAIN MODE: {b.code}</div>
-                      <div style={{ ...syne, fontSize:26, fontWeight:800, color:C.text }}>{brain.label}</div>
-                      <div style={{ fontSize:12, color:C.muted, marginTop:4 }}>{brain.tagline}</div>
-                    </div>
-                  </div>
-                  <p style={{ fontSize:14, color:C.muted, lineHeight:1.8, marginBottom:24 }}>{brain.description}</p>
-                  <div style={{ padding:'16px', background:C.deep, borderRadius:2, border:`1px solid ${C.border}`, fontStyle:'italic' }}>
-                    <div style={{ ...mono, fontSize:8, letterSpacing:3, color:C.muted, marginBottom:8 }}>PROFILE INSIGHT</div>
-                    <div style={{ fontSize:13, color:C.text, lineHeight:1.7 }}>{brain.profile}</div>
-                  </div>
-                </div>
-
-                {/* Strengths & Weaknesses */}
-                <div style={{ display:'flex', flexDirection:'column', gap:16 }}>
-                  <div className="card" style={{ padding:'24px' }}>
-                    <div style={{ ...mono, fontSize:9, letterSpacing:3, color:'#7AAFCF', marginBottom:16 }}>COGNITIVE STRENGTHS</div>
-                    {brain.strengths.map((s,i)=>(
-                      <div key={i} style={{ display:'flex', alignItems:'center', gap:12, marginBottom:10 }}>
-                        <div style={{ width:6, height:6, borderRadius:'50%', background:'#7AAFCF', flexShrink:0 }} />
-                        <div style={{ fontSize:13, color:C.muted }}>{s}</div>
-                      </div>
-                    ))}
-                  </div>
-                  <div className="card" style={{ padding:'24px' }}>
-                    <div style={{ ...mono, fontSize:9, letterSpacing:3, color:'#F87171', marginBottom:16 }}>COGNITIVE BLIND SPOTS</div>
-                    {brain.weaknesses.map((w,i)=>(
-                      <div key={i} style={{ display:'flex', alignItems:'center', gap:12, marginBottom:10 }}>
-                        <div style={{ width:6, height:6, borderRadius:'50%', background:'#F87171', flexShrink:0 }} />
-                        <div style={{ fontSize:13, color:C.muted }}>{w}</div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-
-              {/* Decision pattern + training */}
-              <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(min(280px, 100%), 1fr))', gap:16 }}>
-                {[
+                    }}, b.symbol), React.createElement("div", null, React.createElement("div", {style: { ...mono, fontSize:9, letterSpacing:3, color:b.color, marginBottom:6 }}, 'BRAIN MODE:', b.code), React.createElement("div", {style: { ...syne, fontSize:26, fontWeight:800, color:C.text }}, brain.label), React.createElement("div", {style: { fontSize:12, color:C.muted, marginTop:4 }}, brain.tagline))), React.createElement("p", {style: { fontSize:14, color:C.muted, lineHeight:1.8, marginBottom:24 }}, brain.description), React.createElement("div", {style: { padding:'16px', background:C.deep, borderRadius:2, border:`1px solid ${C.border}`, fontStyle:'italic' }}, React.createElement("div", {style: { ...mono, fontSize:8, letterSpacing:3, color:C.muted, marginBottom:8 }}, 'PROFILE INSIGHT'), React.createElement("div", {style: { fontSize:13, color:C.text, lineHeight:1.7 }}, brain.profile))), React.createElement("div", {style: { display:'flex', flexDirection:'column', gap:16 }}, React.createElement("div", {className: "card", style: { padding:'24px' }}, React.createElement("div", {style: { ...mono, fontSize:9, letterSpacing:3, color:'#7AAFCF', marginBottom:16 }}, 'COGNITIVE STRENGTHS'), brain.strengths.map((s,i)=>(
+                      React.createElement("div", {key: i, style: { display:'flex', alignItems:'center', gap:12, marginBottom:10 }}, React.createElement("div", {style: { width:6, height:6, borderRadius:'50%', background:'#7AAFCF', flexShrink:0 }}), React.createElement("div", {style: { fontSize:13, color:C.muted }}, s))
+                    ))), React.createElement("div", {className: "card", style: { padding:'24px' }}, React.createElement("div", {style: { ...mono, fontSize:9, letterSpacing:3, color:'#F87171', marginBottom:16 }}, 'COGNITIVE BLIND SPOTS'), brain.weaknesses.map((w,i)=>(
+                      React.createElement("div", {key: i, style: { display:'flex', alignItems:'center', gap:12, marginBottom:10 }}, React.createElement("div", {style: { width:6, height:6, borderRadius:'50%', background:'#F87171', flexShrink:0 }}), React.createElement("div", {style: { fontSize:13, color:C.muted }}, w))
+                    ))))), React.createElement("div", {style: { display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(min(280px, 100%), 1fr))', gap:16 }}, [
                   { label:'THINKING STYLE', value:brain.thinkingStyle, icon:'◰' },
                   { label:'DECISION PATTERN', value:brain.decisionPattern, icon:'◱' },
                   { label:'TRAINING FOCUS', value:brain.trainingFocus, icon:'◲' },
                 ].map((item,i)=>(
-                  <div key={i} className="card" style={{ padding:'24px' }}>
-                    <div style={{ ...mono, fontSize:8, letterSpacing:3, color:C.muted, marginBottom:12 }}>{item.label}</div>
-                    <div style={{ ...mono, fontSize:14, color:b.color, marginBottom:10 }}>{item.icon}</div>
-                    <div style={{ fontSize:13, color:C.text, lineHeight:1.7 }}>{item.value}</div>
-                  </div>
-                ))}
-                <div className="card" style={{ padding:'24px', display:'flex', flexDirection:'column', justifyContent:'space-between' }}>
-                  <div style={{ ...mono, fontSize:8, letterSpacing:3, color:C.muted, marginBottom:12 }}>BEGIN TRAINING</div>
-                  <div style={{ ...syne, fontSize:18, fontWeight:700, color:C.text, marginBottom:16, lineHeight:1.3 }}>
-                    Train your {brain.label.split(' ')[0]} mode today
-                  </div>
-                  <button className="btn-primary" onClick={()=>setView('training')}>Enter Training →</button>
-                </div>
-              </div>
-            </div>
-
-            {/* Framework overview */}
-            <div style={{ marginTop:64, padding:'48px 0', borderTop:`1px solid ${C.border}` }}>
-              <div style={{ textAlign:'center', marginBottom:48 }}>
-                <div style={{ ...mono, fontSize:9, letterSpacing:3, color:C.cyan, marginBottom:16 }}>THE INTEGRATION PRINCIPLE</div>
-                <h2 style={{ ...syne, fontSize:32, fontWeight:800, color:C.text }}>No brain is superior. All four must integrate.</h2>
-              </div>
-              <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(min(250px, 100%), 1fr))', gap:24 }}>
-                {[
+                  React.createElement("div", {key: i, className: "card", style: { padding:'24px' }}, React.createElement("div", {style: { ...mono, fontSize:8, letterSpacing:3, color:C.muted, marginBottom:12 }}, item.label), React.createElement("div", {style: { ...mono, fontSize:14, color:b.color, marginBottom:10 }}, item.icon), React.createElement("div", {style: { fontSize:13, color:C.text, lineHeight:1.7 }}, item.value))
+                )), React.createElement("div", {className: "card", style: { padding:'24px', display:'flex', flexDirection:'column', justifyContent:'space-between' }}, React.createElement("div", {style: { ...mono, fontSize:8, letterSpacing:3, color:C.muted, marginBottom:12 }}, 'BEGIN TRAINING'), React.createElement("div", {style: { ...syne, fontSize:18, fontWeight:700, color:C.text, marginBottom:16, lineHeight:1.3 }}, 'Train your', brain.label.split(' ')[0], 'mode today'), React.createElement("button", {className: "btn-primary", onClick: ()=>setView('training')}, 'Enter Training →')))), React.createElement("div", {style: { marginTop:64, padding:'48px 0', borderTop:`1px solid ${C.border}` }}, React.createElement("div", {style: { textAlign:'center', marginBottom:48 }}, React.createElement("div", {style: { ...mono, fontSize:9, letterSpacing:3, color:C.cyan, marginBottom:16 }}, 'THE INTEGRATION PRINCIPLE'), React.createElement("h2", {style: { ...syne, fontSize:32, fontWeight:800, color:C.text }}, 'No brain is superior. All four must integrate.')), React.createElement("div", {style: { display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(min(250px, 100%), 1fr))', gap:24 }}, [
                   { title:'Single-Brain Dominance', desc:'When one mode controls all processing, you get precision without creativity, or intuition without structure, or reflection without action.', color:'#F87171', label:'FRAGMENTED' },
                   { title:'Two-Brain Balance', desc:'Partial integration. Most trained professionals operate here. Functional but limited. Blind spots remain. Under pressure, one mode takes over.', color:'#C4A050', label:'PARTIAL' },
                   { title:'Four-Brain Integration', desc:'The NeuralFusion™ objective. All four modes active and coordinated. Each informs the others. The result is cognitive precision at every level.', color:'#7AAFCF', label:'INTEGRATED' },
                 ].map((item,i)=>(
-                  <div key={i} className="card" style={{ padding:'24px', borderColor:`${item.color}22` }}>
-                    <div style={{ ...mono, fontSize:8, letterSpacing:3, color:item.color, marginBottom:12 }}>{item.label}</div>
-                    <div style={{ ...syne, fontSize:16, fontWeight:700, color:C.text, marginBottom:12 }}>{item.title}</div>
-                    <div style={{ fontSize:13, color:C.muted, lineHeight:1.7 }}>{item.desc}</div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        </div>
+                  React.createElement("div", {key: i, className: "card", style: { padding:'24px', borderColor:`${item.color}22` }}, React.createElement("div", {style: { ...mono, fontSize:8, letterSpacing:3, color:item.color, marginBottom:12 }}, item.label), React.createElement("div", {style: { ...syne, fontSize:16, fontWeight:700, color:C.text, marginBottom:12 }}, item.title), React.createElement("div", {style: { fontSize:13, color:C.muted, lineHeight:1.7 }}, item.desc))
+                ))))))
       );
     }
 
@@ -1893,91 +1084,20 @@ a premium mental performance environment for{' '}
         const dimLabels = {A:'Analytical Coherence',I:'Intuitive Alignment',S:'Associative Flexibility',R:'Reflective Depth',E:'Integration Stability'};
 
         return (
-          <div style={{ paddingTop:80, paddingBottom:40 }}>
-            <div style={{ maxWidth:900, margin:'0 auto', padding:'24px 24px' }}>
-              <div style={{ ...mono, fontSize:9, letterSpacing:4, color:C.cyan, marginBottom:16 }}>CFI ASSESSMENT · RESULTS</div>
-
-              {/* Score hero */}
-              <div className="card" style={{ padding:'40px', marginBottom:32, position:'relative', overflow:'hidden', borderColor:`${bandColor}22` }}>
-                <ScanLine />
-                <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(min(200px, 100%), 1fr))', gap:32, alignItems:'center' }}>
-                  <div>
-                    <div style={{ ...mono, fontSize:9, letterSpacing:3, color:C.muted, marginBottom:12 }}>COGNITIVE FRAGMENTATION INDEX</div>
-                    <div style={{ ...syne, fontSize:56, fontWeight:800, color:bandColor, lineHeight:1 }}>{cfiResult.total}</div>
-                    <div style={{ ...mono, fontSize:9, letterSpacing:3, color:C.muted, marginTop:8, marginBottom:16 }}>TOTAL FRAGMENTATION SCORE</div>
-                    <div style={{ display:'inline-block', padding:'8px 16px', background:`${bandColor}15`, border:`1px solid ${bandColor}33`, borderRadius:2 }}>
-                      <div style={{ ...syne, fontSize:16, fontWeight:800, color:bandColor }}>{cfiResult.band}</div>
-                    </div>
-                  </div>
-                  <div>
-                    <div style={{ ...mono, fontSize:9, letterSpacing:3, color:C.muted, marginBottom:16 }}>DOMINANT COGNITIVE PATTERN</div>
-                    <BrainCard brainKey={cfiResult.dominantBrain} compact />
-                  </div>
-                </div>
-                <div style={{ marginTop:32, padding:'20px', background:C.deep, borderRadius:2, border:`1px solid ${C.border}` }}>
-                  <div style={{ ...mono, fontSize:8, letterSpacing:3, color:C.muted, marginBottom:8 }}>DIAGNOSTIC SUMMARY</div>
-                  <div style={{ fontSize:14, color:C.text, lineHeight:1.7, marginBottom:12 }}>{cfiResult.desc}</div>
-                  <div style={{ ...mono, fontSize:8, letterSpacing:3, color:C.cyan, marginBottom:8 }}>TRAINING RECOMMENDATION</div>
-                  <div style={{ fontSize:13, color:C.muted, lineHeight:1.7 }}>{cfiResult.recommendation}</div>
-                </div>
-              </div>
-
-              {/* Dimensional analysis */}
-              <div style={{ ...mono, fontSize:9, letterSpacing:3, color:C.cyan, marginBottom:20 }}>DIMENSIONAL ANALYSIS</div>
-              <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(min(250px, 100%), 1fr))', gap:16, marginBottom:32 }}>
-                {Object.entries(cfiResult.dimScores).map(([dim,score])=>{
+          React.createElement("div", {style: { paddingTop:80, paddingBottom:40 }}, React.createElement("div", {style: { maxWidth:900, margin:'0 auto', padding:'24px 24px' }}, React.createElement("div", {style: { ...mono, fontSize:9, letterSpacing:4, color:C.cyan, marginBottom:16 }}, 'CFI ASSESSMENT · RESULTS'), React.createElement("div", {className: "card", style: { padding:'40px', marginBottom:32, position:'relative', overflow:'hidden', borderColor:`${bandColor}22` }}, React.createElement(ScanLine, null), React.createElement("div", {style: { display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(min(200px, 100%), 1fr))', gap:32, alignItems:'center' }}, React.createElement("div", null, React.createElement("div", {style: { ...mono, fontSize:9, letterSpacing:3, color:C.muted, marginBottom:12 }}, 'COGNITIVE FRAGMENTATION INDEX'), React.createElement("div", {style: { ...syne, fontSize:56, fontWeight:800, color:bandColor, lineHeight:1 }}, cfiResult.total), React.createElement("div", {style: { ...mono, fontSize:9, letterSpacing:3, color:C.muted, marginTop:8, marginBottom:16 }}, 'TOTAL FRAGMENTATION SCORE'), React.createElement("div", {style: { display:'inline-block', padding:'8px 16px', background:`${bandColor}15`, border:`1px solid ${bandColor}33`, borderRadius:2 }}, React.createElement("div", {style: { ...syne, fontSize:16, fontWeight:800, color:bandColor }}, cfiResult.band))), React.createElement("div", null, React.createElement("div", {style: { ...mono, fontSize:9, letterSpacing:3, color:C.muted, marginBottom:16 }}, 'DOMINANT COGNITIVE PATTERN'), React.createElement(BrainCard, {brainKey: cfiResult.dominantBrain, compact: true}))), React.createElement("div", {style: { marginTop:32, padding:'20px', background:C.deep, borderRadius:2, border:`1px solid ${C.border}` }}, React.createElement("div", {style: { ...mono, fontSize:8, letterSpacing:3, color:C.muted, marginBottom:8 }}, 'DIAGNOSTIC SUMMARY'), React.createElement("div", {style: { fontSize:14, color:C.text, lineHeight:1.7, marginBottom:12 }}, cfiResult.desc), React.createElement("div", {style: { ...mono, fontSize:8, letterSpacing:3, color:C.cyan, marginBottom:8 }}, 'TRAINING RECOMMENDATION'), React.createElement("div", {style: { fontSize:13, color:C.muted, lineHeight:1.7 }}, cfiResult.recommendation))), React.createElement("div", {style: { ...mono, fontSize:9, letterSpacing:3, color:C.cyan, marginBottom:20 }}, 'DIMENSIONAL ANALYSIS'), React.createElement("div", {style: { display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(min(250px, 100%), 1fr))', gap:16, marginBottom:32 }}, Object.entries(cfiResult.dimScores).map(([dim,score])=>{
                   const col = score>=70?'#F87171':score>=50?'#C4A050':'#7AAFCF';
                   return (
-                    <div key={dim} className="card" style={{ padding:'24px' }}>
-                      <div style={{ ...mono, fontSize:8, letterSpacing:3, color:C.muted, marginBottom:12 }}>{dimLabels[dim]}</div>
-                      <div style={{ display:'flex', alignItems:'center', gap:16, marginBottom:12 }}>
-                        <div style={{ ...syne, fontSize:28, fontWeight:800, color:col }}>{score}</div>
-                        <div style={{ fontSize:11, color:C.muted }}>fragmentation<br />score</div>
-                      </div>
-                      <div style={{ height:3, background:C.panel, borderRadius:2 }}>
-                        <div style={{ width:`${score}%`, height:'100%', background:col, borderRadius:2 }} />
-                      </div>
-                    </div>
+                    React.createElement("div", {key: dim, className: "card", style: { padding:'24px' }}, React.createElement("div", {style: { ...mono, fontSize:8, letterSpacing:3, color:C.muted, marginBottom:12 }}, dimLabels[dim]), React.createElement("div", {style: { display:'flex', alignItems:'center', gap:16, marginBottom:12 }}, React.createElement("div", {style: { ...syne, fontSize:28, fontWeight:800, color:col }}, score), React.createElement("div", {style: { fontSize:11, color:C.muted }}, 'fragmentation', React.createElement("br", null), 'score')), React.createElement("div", {style: { height:3, background:C.panel, borderRadius:2 }}, React.createElement("div", {style: { width:`${score}%`, height:'100%', background:col, borderRadius:2 }})))
                   );
-                })}
-              </div>
-
-              <div style={{ display:'flex', gap:16, flexWrap:'wrap' }}>
-                <button className="btn-primary" onClick={()=>setView('training')}>Begin Training Protocol →</button>
-                <button className="btn-outline" onClick={()=>setView('lessons')}>Open Lesson Manuals</button>
-                <button className="btn-ghost" onClick={()=>{ setStarted(false); setStep(0); setAnswers({}); setShowResult(false); }}>Retake Assessment</button>
-              </div>
-            </div>
-          </div>
+                })), React.createElement("div", {style: { display:'flex', gap:16, flexWrap:'wrap' }}, React.createElement("button", {className: "btn-primary", onClick: ()=>setView('training')}, 'Begin Training Protocol →'), React.createElement("button", {className: "btn-outline", onClick: ()=>setView('lessons')}, 'Open Lesson Manuals'), React.createElement("button", {className: "btn-ghost", onClick: ()=>{ setStarted(false); setStep(0); setAnswers({}); setShowResult(false); }}, 'Retake Assessment'))))
         );
       }
 
       if (!started) {
         return (
-          <div style={{ paddingTop:80, paddingBottom:40 }}>
-            <div style={{ maxWidth:800, margin:'0 auto', padding:'32px 24px', textAlign:'center' }}>
-              <div style={{ ...mono, fontSize:9, letterSpacing:4, color:C.cyan, marginBottom:20 }}>COGNITIVE FRAGMENTATION INDEX™</div>
-              <h1 style={{ ...syne, fontSize:32, fontWeight:800, color:C.text, marginBottom:20, lineHeight:1.05 }}>
-                Measure your cognitive<br /><span style={{color:C.cyan}}>fragmentation level</span>
-              </h1>
-              <p style={{ fontSize:15, color:C.muted, lineHeight:1.8, marginBottom:40, maxWidth:520, margin:'0 auto 40px' }}>
-                The CFI™ is a precision diagnostic instrument that measures fragmentation across
-                five cognitive dimensions. The assessment consists of {CFI_ITEMS.length} statements.
-                Respond honestly; the accuracy of your profile depends on it.
-              </p>
-              <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(min(200px, 100%), 1fr))', gap:16, marginBottom:48, textAlign:'left' }}>
-                {['Five cognitive dimensions measured','Dominant brain mode identified','Fragmentation band assigned','Personalized training recommendation generated'].map((item,i)=>(
-                  <div key={i} className="card" style={{ padding:'16px 20px', display:'flex', alignItems:'center', gap:12 }}>
-                    <div style={{ ...mono, fontSize:14, color:C.cyan }}>◈</div>
-                    <div style={{ fontSize:13, color:C.muted }}>{item}</div>
-                  </div>
-                ))}
-              </div>
-              <button className="btn-primary" style={{ fontSize:14 }} onClick={()=>setStarted(true)}>
-                Begin CFI Assessment →
-              </button>
-            </div>
-          </div>
+          React.createElement("div", {style: { paddingTop:80, paddingBottom:40 }}, React.createElement("div", {style: { maxWidth:800, margin:'0 auto', padding:'32px 24px', textAlign:'center' }}, React.createElement("div", {style: { ...mono, fontSize:9, letterSpacing:4, color:C.cyan, marginBottom:20 }}, 'COGNITIVE FRAGMENTATION INDEX™'), React.createElement("h1", {style: { ...syne, fontSize:32, fontWeight:800, color:C.text, marginBottom:20, lineHeight:1.05 }}, 'Measure your cognitive', React.createElement("br", null), React.createElement("span", {style: {color:C.cyan}}, 'fragmentation level')), React.createElement("p", {style: { fontSize:15, color:C.muted, lineHeight:1.8, marginBottom:40, maxWidth:520, margin:'0 auto 40px' }}, 'The CFI™ is a precision diagnostic instrument that measures fragmentation across five cognitive dimensions. The assessment consists of', CFI_ITEMS.length, 'statements. Respond honestly; the accuracy of your profile depends on it.'), React.createElement("div", {style: { display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(min(200px, 100%), 1fr))', gap:16, marginBottom:48, textAlign:'left' }}, ['Five cognitive dimensions measured','Dominant brain mode identified','Fragmentation band assigned','Personalized training recommendation generated'].map((item,i)=>(
+                  React.createElement("div", {key: i, className: "card", style: { padding:'16px 20px', display:'flex', alignItems:'center', gap:12 }}, React.createElement("div", {style: { ...mono, fontSize:14, color:C.cyan }}, '◈'), React.createElement("div", {style: { fontSize:13, color:C.muted }}, item))
+                ))), React.createElement("button", {className: "btn-primary", style: { fontSize:14 }, onClick: ()=>setStarted(true)}, 'Begin CFI Assessment →')))
         );
       }
 
@@ -1985,58 +1105,20 @@ a premium mental performance environment for{' '}
       const brainInfo = C.brains[item.brain] || C.brains.analytical;
 
       return (
-        <div style={{ paddingTop:80, paddingBottom:40 }}>
-          <div style={{ maxWidth:700, margin:'0 auto', padding:'40px 24px', width:'100%' }}>
-            {/* Progress */}
-            <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:32 }}>
-              <div style={{ ...mono, fontSize:9, letterSpacing:3, color:C.muted }}>CFI ASSESSMENT · {step+1} / {CFI_ITEMS.length}</div>
-              <div style={{ ...mono, fontSize:9, letterSpacing:3, color:C.cyan }}>{Math.round(progress)}%</div>
-            </div>
-            <div style={{ height:2, background:C.panel, borderRadius:2, marginBottom:48, overflow:'hidden' }}>
-              <div style={{ width:`${progress}%`, height:'100%', background:C.cyan, borderRadius:2, transition:'width 0.4s ease' }} />
-            </div>
-
-            {/* Question */}
-            <div key={step} style={{ animation:'fadeUp 0.4s ease both' }}>
-              <div style={{ display:'flex', alignItems:'center', gap:12, marginBottom:24 }}>
-                <div style={{ ...mono, fontSize:18, color:brainInfo.color }}>{brainInfo.symbol}</div>
-                <div style={{ ...mono, fontSize:9, letterSpacing:3, color:brainInfo.color }}>
-                  {FOUR_BRAINS[item.brain]?.label || 'COGNITIVE'}
-                </div>
-              </div>
-              <div style={{ ...syne, fontSize:20, fontWeight:700, color:C.text, lineHeight:1.3, marginBottom:48 }}>
-                "{item.text}"
-              </div>
-
-              {/* Answer scale */}
-              <div style={{ display:'grid', gridTemplateColumns:'repeat(5, 1fr)', gap:8 }}>
-                {labels.map((label,i)=>{
+        React.createElement("div", {style: { paddingTop:80, paddingBottom:40 }}, React.createElement("div", {style: { maxWidth:700, margin:'0 auto', padding:'40px 24px', width:'100%' }}, React.createElement("div", {style: { display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:32 }}, React.createElement("div", {style: { ...mono, fontSize:9, letterSpacing:3, color:C.muted }}, 'CFI ASSESSMENT ·', step+1, '/', CFI_ITEMS.length), React.createElement("div", {style: { ...mono, fontSize:9, letterSpacing:3, color:C.cyan }}, Math.round(progress), '%')), React.createElement("div", {style: { height:2, background:C.panel, borderRadius:2, marginBottom:48, overflow:'hidden' }}, React.createElement("div", {style: { width:`${progress}%`, height:'100%', background:C.cyan, borderRadius:2, transition:'width 0.4s ease' }})), React.createElement("div", {key: step, style: { animation:'fadeUp 0.4s ease both' }}, React.createElement("div", {style: { display:'flex', alignItems:'center', gap:12, marginBottom:24 }}, React.createElement("div", {style: { ...mono, fontSize:18, color:brainInfo.color }}, brainInfo.symbol), React.createElement("div", {style: { ...mono, fontSize:9, letterSpacing:3, color:brainInfo.color }}, FOUR_BRAINS[item.brain]?.label || 'COGNITIVE')), React.createElement("div", {style: { ...syne, fontSize:20, fontWeight:700, color:C.text, lineHeight:1.3, marginBottom:48 }}, '"', item.text, '"'), React.createElement("div", {style: { display:'grid', gridTemplateColumns:'repeat(5, 1fr)', gap:8 }}, labels.map((label,i)=>{
                   const val = i+1;
                   const isSelected = answers[item.id]===val;
                   return (
-                    <button key={i} onClick={()=>handleAnswer(val)} style={{
+                    React.createElement("button", {key: i, onClick: ()=>handleAnswer(val), style: {
                       padding:'16px 8px', borderRadius:2, border:`1px solid ${isSelected?C.cyan:C.border}`,
                       background: isSelected ? `${C.cyan}20` : C.surface,
                       display:'flex', flexDirection:'column', alignItems:'center', gap:8,
                       transition:'all 0.2s', cursor:'pointer',
-                    }}>
-                      <div style={{ ...syne, fontSize:20, fontWeight:800, color:isSelected?C.cyan:C.dim }}>{val}</div>
-                      <div style={{ ...mono, fontSize:8, letterSpacing:1, color:isSelected?C.cyan:C.dim, textAlign:'center' }}>{label}</div>
-                    </button>
+                    }}, React.createElement("div", {style: { ...syne, fontSize:20, fontWeight:800, color:isSelected?C.cyan:C.dim }}, val), React.createElement("div", {style: { ...mono, fontSize:8, letterSpacing:1, color:isSelected?C.cyan:C.dim, textAlign:'center' }}, label))
                   );
-                })}
-              </div>
-              <div style={{ display:'flex', justifyContent:'space-between', marginTop:12 }}>
-                <div style={{ ...mono, fontSize:8, letterSpacing:2, color:C.dim }}>NEVER</div>
-                <div style={{ ...mono, fontSize:8, letterSpacing:2, color:C.dim }}>ALWAYS</div>
-              </div>
-            </div>
-
-            {step > 0 && (
-              <button className="btn-ghost" style={{ marginTop:32 }} onClick={()=>setStep(s=>s-1)}>← Previous</button>
-            )}
-          </div>
-        </div>
+                })), React.createElement("div", {style: { display:'flex', justifyContent:'space-between', marginTop:12 }}, React.createElement("div", {style: { ...mono, fontSize:8, letterSpacing:2, color:C.dim }}, 'NEVER'), React.createElement("div", {style: { ...mono, fontSize:8, letterSpacing:2, color:C.dim }}, 'ALWAYS'))), step > 0 && (
+              React.createElement("button", {className: "btn-ghost", style: { marginTop:32 }, onClick: ()=>setStep(s=>s-1)}, '← Previous')
+            )))
       );
     }
 
@@ -2109,111 +1191,22 @@ a premium mental performance environment for{' '}
         };
 
         return (
-          <div style={{ paddingTop:80, paddingBottom:100, minHeight:'100vh' }}>
-            <div style={{ maxWidth:760, margin:'0 auto', padding:'40px 24px' }}>
-              {/* Header */}
-              <div style={{ display:'flex', alignItems:'center', gap:16, marginBottom:32 }}>
-                <button className="btn-ghost" onClick={()=>{ setActiveModule(null); setTrainingStep(0); setInputs({}); }}>← Exit</button>
-                <div style={{ flex:1, height:1, background:C.border }} />
-                <div style={{ ...mono, fontSize:9, letterSpacing:3, color:C.muted }}>{trainingStep+1} / {mod.steps.length}</div>
-              </div>
-
-              {/* Progress */}
-              <div style={{ height:2, background:C.panel, borderRadius:2, marginBottom:48, overflow:'hidden' }}>
-                <div style={{ width:`${((trainingStep+1)/mod.steps.length)*100}%`, height:'100%', background:mod.color, borderRadius:2, transition:'width 0.4s ease' }} />
-              </div>
-
-              {/* Step */}
-              <div key={trainingStep} style={{ animation:'fadeUp 0.4s ease both' }}>
-                <div style={{ display:'flex', alignItems:'center', gap:12, marginBottom:20 }}>
-                  <div style={{ ...mono, fontSize:20, color:brainInfo.color }}>{brainInfo.symbol || '◈'}</div>
-                  <div style={{ ...mono, fontSize:9, letterSpacing:3, color:brainInfo.color }}>{stepData.label}</div>
-                </div>
-                <h2 style={{ ...syne, fontSize:28, fontWeight:800, color:C.text, marginBottom:12, lineHeight:1.2 }}>
-                  {stepData.prompt}
-                </h2>
-                <p style={{ fontSize:13, color:C.muted, lineHeight:1.7, marginBottom:32 }}>{stepData.detail}</p>
-
-                <textarea
-                  rows={8}
-                  value={inputs[`${activeModule}-${trainingStep}`]||''}
-                  onChange={e=>setInputs(p=>({...p, [`${activeModule}-${trainingStep}`]:e.target.value}))}
-                  placeholder={stepData.placeholder}
-                  style={{ width:'100%', minHeight:160, padding:'20px', fontSize:14, lineHeight:1.7, borderColor:`${brainInfo.color}33` }}
-                />
-
-                <div style={{ display:'flex', justifyContent:'space-between', marginTop:24, alignItems:'center' }}>
-                  <button className="btn-ghost" disabled={trainingStep===0} onClick={()=>setTrainingStep(s=>s-1)} style={{ opacity:trainingStep===0?0.3:1 }}>← Back</button>
-                  {isLast ? (
-                    <button className="btn-primary" onClick={handleComplete} disabled={!canAdvance} style={{ opacity:canAdvance?1:0.5 }}>
-                      Complete Session ✓
-                    </button>
+          React.createElement("div", {style: { paddingTop:80, paddingBottom:100, minHeight:'100vh' }}, React.createElement("div", {style: { maxWidth:760, margin:'0 auto', padding:'40px 24px' }}, React.createElement("div", {style: { display:'flex', alignItems:'center', gap:16, marginBottom:32 }}, React.createElement("button", {className: "btn-ghost", onClick: ()=>{ setActiveModule(null); setTrainingStep(0); setInputs({}); }}, '← Exit'), React.createElement("div", {style: { flex:1, height:1, background:C.border }}), React.createElement("div", {style: { ...mono, fontSize:9, letterSpacing:3, color:C.muted }}, trainingStep+1, '/', mod.steps.length)), React.createElement("div", {style: { height:2, background:C.panel, borderRadius:2, marginBottom:48, overflow:'hidden' }}, React.createElement("div", {style: { width:`${((trainingStep+1)/mod.steps.length)*100}%`, height:'100%', background:mod.color, borderRadius:2, transition:'width 0.4s ease' }})), React.createElement("div", {key: trainingStep, style: { animation:'fadeUp 0.4s ease both' }}, React.createElement("div", {style: { display:'flex', alignItems:'center', gap:12, marginBottom:20 }}, React.createElement("div", {style: { ...mono, fontSize:20, color:brainInfo.color }}, brainInfo.symbol || '◈'), React.createElement("div", {style: { ...mono, fontSize:9, letterSpacing:3, color:brainInfo.color }}, stepData.label)), React.createElement("h2", {style: { ...syne, fontSize:28, fontWeight:800, color:C.text, marginBottom:12, lineHeight:1.2 }}, stepData.prompt), React.createElement("p", {style: { fontSize:13, color:C.muted, lineHeight:1.7, marginBottom:32 }}, stepData.detail), React.createElement("textarea", {rows: 8, value: inputs[`${activeModule}-${trainingStep}`]||'', onChange: e=>setInputs(p=>({...p, [`${activeModule}-${trainingStep}`]:e.target.value})), placeholder: stepData.placeholder, style: { width:'100%', minHeight:160, padding:'20px', fontSize:14, lineHeight:1.7, borderColor:`${brainInfo.color}33` }}), React.createElement("div", {style: { display:'flex', justifyContent:'space-between', marginTop:24, alignItems:'center' }}, React.createElement("button", {className: "btn-ghost", disabled: trainingStep===0, onClick: ()=>setTrainingStep(s=>s-1), style: { opacity:trainingStep===0?0.3:1 }}, '← Back'), isLast ? (
+                    React.createElement("button", {className: "btn-primary", onClick: handleComplete, disabled: !canAdvance, style: { opacity:canAdvance?1:0.5 }}, 'Complete Session ✓')
                   ) : (
-                    <button className="btn-primary" onClick={()=>setTrainingStep(s=>s+1)} disabled={!canAdvance} style={{ opacity:canAdvance?1:0.5 }}>
-                      Next Brain Mode →
-                    </button>
-                  )}
-                </div>
-              </div>
-            </div>
-          </div>
+                    React.createElement("button", {className: "btn-primary", onClick: ()=>setTrainingStep(s=>s+1), disabled: !canAdvance, style: { opacity:canAdvance?1:0.5 }}, 'Next Brain Mode →')
+                  )))))
         );
       }
 
       return (
-        <div style={{ paddingTop:80, paddingBottom:100 }}>
-          <div style={{ maxWidth:1200, margin:'0 auto', padding:'40px 24px' }}>
-            <div style={{ ...mono, fontSize:9, letterSpacing:4, color:C.cyan, marginBottom:16 }}>COGNITIVE TRAINING SYSTEM</div>
-            <h1 style={{ ...syne, fontSize:32, fontWeight:800, color:C.text, marginBottom:16, lineHeight:1.05 }}>
-              Precision Training<br />Protocols
-            </h1>
-            <p style={{ fontSize:15, color:C.muted, maxWidth:560, lineHeight:1.8, marginBottom:48 }}>
-              Each training module is a structured cognitive exercise designed to activate, challenge,
-              and integrate your four brain modes. Sessions range from 8 to 15 minutes.
-            </p>
-
-            <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(min(300px, 100%), 1fr))', gap:24, marginBottom:64 }}>
-              {modules.map((mod,i)=>(
-                <div key={mod.id} className="card" style={{ padding:'32px', cursor:'pointer', position:'relative', overflow:'hidden' }}
-                  onClick={()=>setActiveModule(mod.id)}
-                  onMouseEnter={e=>{ e.currentTarget.style.borderColor=mod.color+'44'; }}
-                  onMouseLeave={e=>{ e.currentTarget.style.borderColor=C.border; }}>
-                  <div style={{ position:'absolute', top:0, left:0, width:2, height:'100%', background:mod.color }} />
-                  <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', marginBottom:20 }}>
-                    <div style={{ ...mono, fontSize:28, color:mod.color }}>{mod.icon}</div>
-                    <div style={{ display:'flex', gap:8 }}>
-                      <div style={{ ...mono, fontSize:8, letterSpacing:2, color:C.muted, padding:'4px 8px', border:`1px solid ${C.border}`, borderRadius:2 }}>{mod.duration}</div>
-                      <div style={{ ...mono, fontSize:8, letterSpacing:2, color:mod.color, padding:'4px 8px', border:`1px solid ${mod.color}33`, borderRadius:2 }}>{mod.difficulty}</div>
-                    </div>
-                  </div>
-                  <div style={{ ...syne, fontSize:20, fontWeight:700, color:C.text, marginBottom:12 }}>{mod.title}</div>
-                  <div style={{ fontSize:13, color:C.muted, lineHeight:1.7, marginBottom:24 }}>{mod.desc}</div>
-                  <button className="btn-primary" style={{ fontSize:11, padding:'10px 20px', background:mod.color }}>
-                    Begin Protocol →
-                  </button>
-                </div>
-              ))}
-            </div>
-
-            {/* Session history */}
-            {sessions.length > 0 && (
-              <div>
-                <div style={{ ...mono, fontSize:9, letterSpacing:3, color:C.cyan, marginBottom:20 }}>RECENT SESSIONS</div>
-                <div style={{ display:'flex', flexDirection:'column', gap:8 }}>
-                  {sessions.slice(0,5).map((s,i)=>(
-                    <div key={s.id} className="card" style={{ padding:'16px 24px', display:'flex', justifyContent:'space-between', alignItems:'center' }}>
-                      <div>
-                        <div style={{ ...syne, fontSize:14, fontWeight:700, color:C.text }}>{s.title}</div>
-                        <div style={{ ...mono, fontSize:9, letterSpacing:2, color:C.muted, marginTop:4 }}>{s.date}</div>
-                      </div>
-                      <div style={{ ...mono, fontSize:9, letterSpacing:2, color:C.dim }}>COMPLETED ✓</div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
+        React.createElement("div", {style: { paddingTop:80, paddingBottom:100 }}, React.createElement("div", {style: { maxWidth:1200, margin:'0 auto', padding:'40px 24px' }}, React.createElement("div", {style: { ...mono, fontSize:9, letterSpacing:4, color:C.cyan, marginBottom:16 }}, 'COGNITIVE TRAINING SYSTEM'), React.createElement("h1", {style: { ...syne, fontSize:32, fontWeight:800, color:C.text, marginBottom:16, lineHeight:1.05 }}, 'Precision Training', React.createElement("br", null), 'Protocols'), React.createElement("p", {style: { fontSize:15, color:C.muted, maxWidth:560, lineHeight:1.8, marginBottom:48 }}, 'Each training module is a structured cognitive exercise designed to activate, challenge, and integrate your four brain modes. Sessions range from 8 to 15 minutes.'), React.createElement("div", {style: { display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(min(300px, 100%), 1fr))', gap:24, marginBottom:64 }}, modules.map((mod,i)=>(
+                React.createElement("div", {key: mod.id, className: "card", style: { padding:'32px', cursor:'pointer', position:'relative', overflow:'hidden' }, onClick: ()=>setActiveModule(mod.id), onMouseEnter: e=>{ e.currentTarget.style.borderColor=mod.color+'44'; }, onMouseLeave: e=>{ e.currentTarget.style.borderColor=C.border; }}, React.createElement("div", {style: { position:'absolute', top:0, left:0, width:2, height:'100%', background:mod.color }}), React.createElement("div", {style: { display:'flex', justifyContent:'space-between', alignItems:'flex-start', marginBottom:20 }}, React.createElement("div", {style: { ...mono, fontSize:28, color:mod.color }}, mod.icon), React.createElement("div", {style: { display:'flex', gap:8 }}, React.createElement("div", {style: { ...mono, fontSize:8, letterSpacing:2, color:C.muted, padding:'4px 8px', border:`1px solid ${C.border}`, borderRadius:2 }}, mod.duration), React.createElement("div", {style: { ...mono, fontSize:8, letterSpacing:2, color:mod.color, padding:'4px 8px', border:`1px solid ${mod.color}33`, borderRadius:2 }}, mod.difficulty))), React.createElement("div", {style: { ...syne, fontSize:20, fontWeight:700, color:C.text, marginBottom:12 }}, mod.title), React.createElement("div", {style: { fontSize:13, color:C.muted, lineHeight:1.7, marginBottom:24 }}, mod.desc), React.createElement("button", {className: "btn-primary", style: { fontSize:11, padding:'10px 20px', background:mod.color }}, 'Begin Protocol →'))
+              ))), sessions.length > 0 && (
+              React.createElement("div", null, React.createElement("div", {style: { ...mono, fontSize:9, letterSpacing:3, color:C.cyan, marginBottom:20 }}, 'RECENT SESSIONS'), React.createElement("div", {style: { display:'flex', flexDirection:'column', gap:8 }}, sessions.slice(0,5).map((s,i)=>(
+                    React.createElement("div", {key: s.id, className: "card", style: { padding:'16px 24px', display:'flex', justifyContent:'space-between', alignItems:'center' }}, React.createElement("div", null, React.createElement("div", {style: { ...syne, fontSize:14, fontWeight:700, color:C.text }}, s.title), React.createElement("div", {style: { ...mono, fontSize:9, letterSpacing:2, color:C.muted, marginTop:4 }}, s.date)), React.createElement("div", {style: { ...mono, fontSize:9, letterSpacing:2, color:C.dim }}, 'COMPLETED ✓'))
+                  ))))
+            )))
       );
     }
 
@@ -2224,121 +1217,39 @@ a premium mental performance environment for{' '}
       const completedLessons = Object.values(lessonProgress).filter(v=>v===100).length;
 
       return (
-        <div style={{ paddingTop:80, paddingBottom:100 }}>
-          <div style={{ maxWidth:1200, margin:'0 auto', padding:'40px 24px' }}>
-            <div style={{ ...mono, fontSize:9, letterSpacing:4, color:C.cyan, marginBottom:16 }}>COGNITIVE ANALYTICS</div>
-            <h1 style={{ ...syne, fontSize:32, fontWeight:800, color:C.text, marginBottom:16 }}>
-              Your Cognitive<br />Performance Map
-            </h1>
-            <p style={{ fontSize:15, color:C.muted, maxWidth:560, lineHeight:1.8, marginBottom:48 }}>
-              Track your thinking evolution, brain mode balance, and training effectiveness over time.
-            </p>
-
-            {!cfiResult ? (
-              <div className="card" style={{ padding:'60px', textAlign:'center' }}>
-                <div style={{ ...mono, fontSize:48, color:C.dim, marginBottom:24 }}>◎</div>
-                <div style={{ ...syne, fontSize:22, fontWeight:700, color:C.text, marginBottom:12 }}>No Cognitive Data Yet</div>
-                <div style={{ fontSize:14, color:C.muted, marginBottom:32, maxWidth:400, margin:'0 auto 32px' }}>
-                  Complete the CFI Assessment to generate your cognitive profile and unlock analytics.
-                </div>
-                <button className="btn-primary" onClick={()=>{}}>Take CFI Assessment →</button>
-              </div>
+        React.createElement("div", {style: { paddingTop:80, paddingBottom:100 }}, React.createElement("div", {style: { maxWidth:1200, margin:'0 auto', padding:'40px 24px' }}, React.createElement("div", {style: { ...mono, fontSize:9, letterSpacing:4, color:C.cyan, marginBottom:16 }}, 'COGNITIVE ANALYTICS'), React.createElement("h1", {style: { ...syne, fontSize:32, fontWeight:800, color:C.text, marginBottom:16 }}, 'Your Cognitive', React.createElement("br", null), 'Performance Map'), React.createElement("p", {style: { fontSize:15, color:C.muted, maxWidth:560, lineHeight:1.8, marginBottom:48 }}, 'Track your thinking evolution, brain mode balance, and training effectiveness over time.'), !cfiResult ? (
+              React.createElement("div", {className: "card", style: { padding:'60px', textAlign:'center' }}, React.createElement("div", {style: { ...mono, fontSize:48, color:C.dim, marginBottom:24 }}, '◎'), React.createElement("div", {style: { ...syne, fontSize:22, fontWeight:700, color:C.text, marginBottom:12 }}, 'No Cognitive Data Yet'), React.createElement("div", {style: { fontSize:14, color:C.muted, marginBottom:32, maxWidth:400, margin:'0 auto 32px' }}, 'Complete the CFI Assessment to generate your cognitive profile and unlock analytics.'), React.createElement("button", {className: "btn-primary", onClick: ()=>{}}, 'Take CFI Assessment →'))
             ) : (
-              <>
-                {/* Overview */}
-                <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(min(180px, 100%), 1fr))', gap:16, marginBottom:40 }}>
-                  {[
+              React.createElement(React.Fragment, null, React.createElement("div", {style: { display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(min(180px, 100%), 1fr))', gap:16, marginBottom:40 }}, [
                     { label:'CFI SCORE', value:cfiResult.total, unit:'/75', color:cfiResult.total<=20?'#7AAFCF':cfiResult.total<=33?'#C4A050':'#F87171' },
                     { label:'SESSIONS LOGGED', value:sessions.length, unit:'', color:C.cyan },
                     { label:'LESSONS DONE', value:completedLessons, unit:`/${LESSONS.length}`, color:'#E2BE78' },
                     { label:'INTEGRATION BAND', value:cfiResult.band.split(' ')[0], unit:'', color:'#C4A050', small:true },
                   ].map((s,i)=>(
-                    <div key={i} className="card" style={{ padding:'24px' }}>
-                      <div style={{ ...mono, fontSize:8, letterSpacing:3, color:C.muted, marginBottom:12 }}>{s.label}</div>
-                      <div style={{ display:'flex', alignItems:'baseline', gap:4 }}>
-                        <div style={{ ...syne, fontSize:s.small?18:32, fontWeight:800, color:s.color }}>{s.value}</div>
-                        {s.unit && <div style={{ ...mono, fontSize:10, color:C.muted }}>{s.unit}</div>}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-
-                {/* Brain mode balance */}
-                <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(min(300px, 100%), 1fr))', gap:24, marginBottom:40 }}>
-                  <div className="card" style={{ padding:'32px' }}>
-                    <div style={{ ...mono, fontSize:9, letterSpacing:3, color:C.cyan, marginBottom:24 }}>BRAIN MODE FRAGMENTATION</div>
-                    {Object.entries(cfiResult.dimScores).map(([dim,score])=>{
+                    React.createElement("div", {key: i, className: "card", style: { padding:'24px' }}, React.createElement("div", {style: { ...mono, fontSize:8, letterSpacing:3, color:C.muted, marginBottom:12 }}, s.label), React.createElement("div", {style: { display:'flex', alignItems:'baseline', gap:4 }}, React.createElement("div", {style: { ...syne, fontSize:s.small?18:32, fontWeight:800, color:s.color }}, s.value), s.unit && React.createElement("div", {style: { ...mono, fontSize:10, color:C.muted }}, s.unit)))
+                  ))), React.createElement("div", {style: { display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(min(300px, 100%), 1fr))', gap:24, marginBottom:40 }}, React.createElement("div", {className: "card", style: { padding:'32px' }}, React.createElement("div", {style: { ...mono, fontSize:9, letterSpacing:3, color:C.cyan, marginBottom:24 }}, 'BRAIN MODE FRAGMENTATION'), Object.entries(cfiResult.dimScores).map(([dim,score])=>{
                       const dimNames = {A:'Analytical',I:'Intuitive',S:'Associative',R:'Reflective',E:'Integration'};
                       const brainKey = {A:'analytical',I:'intuitive',S:'associative',R:'reflective',E:'analytical'}[dim];
                       const col = C.brains[brainKey]?.color || C.cyan;
                       const fragPct = score;
                       return (
-                        <div key={dim} style={{ marginBottom:20 }}>
-                          <div style={{ display:'flex', justifyContent:'space-between', marginBottom:8 }}>
-                            <div style={{ display:'flex', alignItems:'center', gap:8 }}>
-                              <div style={{ ...mono, fontSize:10, color:col }}>{C.brains[brainKey]?.symbol || '◈'}</div>
-                              <div style={{ fontSize:13, color:C.muted }}>{dimNames[dim]}</div>
-                            </div>
-                            <div style={{ ...mono, fontSize:9, color:col }}>{fragPct}%</div>
-                          </div>
-                          <div style={{ height:4, background:C.panel, borderRadius:2, overflow:'hidden' }}>
-                            <div style={{ width:`${fragPct}%`, height:'100%', background:col, borderRadius:2 }} />
-                          </div>
-                        </div>
+                        React.createElement("div", {key: dim, style: { marginBottom:20 }}, React.createElement("div", {style: { display:'flex', justifyContent:'space-between', marginBottom:8 }}, React.createElement("div", {style: { display:'flex', alignItems:'center', gap:8 }}, React.createElement("div", {style: { ...mono, fontSize:10, color:col }}, C.brains[brainKey]?.symbol || '◈'), React.createElement("div", {style: { fontSize:13, color:C.muted }}, dimNames[dim])), React.createElement("div", {style: { ...mono, fontSize:9, color:col }}, fragPct, '%')), React.createElement("div", {style: { height:4, background:C.panel, borderRadius:2, overflow:'hidden' }}, React.createElement("div", {style: { width:`${fragPct}%`, height:'100%', background:col, borderRadius:2 }})))
                       );
-                    })}
-                  </div>
-
-                  <div className="card" style={{ padding:'32px' }}>
-                    <div style={{ ...mono, fontSize:9, letterSpacing:3, color:C.cyan, marginBottom:24 }}>COGNITIVE PROFILE</div>
-                    <div style={{ display:'flex', justifyContent:'center', flexWrap:'wrap', gap:24 }}>
-                      {Object.entries(C.brains).map(([key,b])=>{
+                    })), React.createElement("div", {className: "card", style: { padding:'32px' }}, React.createElement("div", {style: { ...mono, fontSize:9, letterSpacing:3, color:C.cyan, marginBottom:24 }}, 'COGNITIVE PROFILE'), React.createElement("div", {style: { display:'flex', justifyContent:'center', flexWrap:'wrap', gap:24 }}, Object.entries(C.brains).map(([key,b])=>{
                         const dimKey = {analytical:'A',intuitive:'I',associative:'S',reflective:'R'}[key];
                         const score = cfiResult.dimScores[dimKey] || 0;
                         const strength = Math.max(0, 100-score);
                         return (
-                          <div key={key} style={{ textAlign:'center' }}>
-                            <ProgressRing value={strength} size={72} color={b.color} />
-                            <div style={{ ...mono, fontSize:8, letterSpacing:2, color:C.muted, marginTop:8 }}>{b.label.split(' ')[0].toUpperCase()}</div>
-                          </div>
+                          React.createElement("div", {key: key, style: { textAlign:'center' }}, React.createElement(ProgressRing, {value: strength, size: 72, color: b.color}), React.createElement("div", {style: { ...mono, fontSize:8, letterSpacing:2, color:C.muted, marginTop:8 }}, b.label.split(' ')[0].toUpperCase()))
                         );
-                      })}
-                    </div>
-                    <div style={{ marginTop:24, padding:'16px', background:C.deep, borderRadius:2, border:`1px solid ${C.border}` }}>
-                      <div style={{ ...mono, fontSize:8, letterSpacing:3, color:C.muted, marginBottom:8 }}>DOMINANT COGNITIVE MODE</div>
-                      <div style={{ ...syne, fontSize:16, fontWeight:800, color:C.brains[cfiResult.dominantBrain]?.color||C.cyan }}>
-                        {FOUR_BRAINS[cfiResult.dominantBrain]?.label || 'N/A'}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Lesson progress */}
-                <div className="card" style={{ padding:'32px' }}>
-                  <div style={{ ...mono, fontSize:9, letterSpacing:3, color:C.cyan, marginBottom:24 }}>LESSON MANUAL PROGRESS</div>
-                  {LESSONS.map((lesson,i)=>{
+                      })), React.createElement("div", {style: { marginTop:24, padding:'16px', background:C.deep, borderRadius:2, border:`1px solid ${C.border}` }}, React.createElement("div", {style: { ...mono, fontSize:8, letterSpacing:3, color:C.muted, marginBottom:8 }}, 'DOMINANT COGNITIVE MODE'), React.createElement("div", {style: { ...syne, fontSize:16, fontWeight:800, color:C.brains[cfiResult.dominantBrain]?.color||C.cyan }}, FOUR_BRAINS[cfiResult.dominantBrain]?.label || 'N/A')))), React.createElement("div", {className: "card", style: { padding:'32px' }}, React.createElement("div", {style: { ...mono, fontSize:9, letterSpacing:3, color:C.cyan, marginBottom:24 }}, 'LESSON MANUAL PROGRESS'), LESSONS.map((lesson,i)=>{
                     const prog = lessonProgress[lesson.id] || 0;
                     const col = lesson.level==='Foundation'?C.cyan:lesson.level==='Intermediate'?'#E2BE78':lesson.level==='Advanced'?'#C4A050':'#7AAFCF';
                     return (
-                      <div key={lesson.id} style={{ marginBottom:20 }}>
-                        <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:8 }}>
-                          <div>
-                            <div style={{ fontSize:13, color:C.text, fontWeight:500 }}>Lesson {lesson.id}: {lesson.title}</div>
-                            <div style={{ ...mono, fontSize:8, letterSpacing:2, color:C.muted, marginTop:4 }}>{lesson.level}</div>
-                          </div>
-                          <div style={{ ...mono, fontSize:9, color:prog===100?'#7AAFCF':C.muted }}>{prog===100?'COMPLETE':prog>0?`${prog}%`:'--'}</div>
-                        </div>
-                        <div style={{ height:3, background:C.panel, borderRadius:2, overflow:'hidden' }}>
-                          <div style={{ width:`${prog}%`, height:'100%', background:col, borderRadius:2, transition:'width 0.8s ease' }} />
-                        </div>
-                      </div>
+                      React.createElement("div", {key: lesson.id, style: { marginBottom:20 }}, React.createElement("div", {style: { display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:8 }}, React.createElement("div", null, React.createElement("div", {style: { fontSize:13, color:C.text, fontWeight:500 }}, 'Lesson', lesson.id, ':', lesson.title), React.createElement("div", {style: { ...mono, fontSize:8, letterSpacing:2, color:C.muted, marginTop:4 }}, lesson.level)), React.createElement("div", {style: { ...mono, fontSize:9, color:prog===100?'#7AAFCF':C.muted }}, prog===100?'COMPLETE':prog>0?`${prog}%`:'--')), React.createElement("div", {style: { height:3, background:C.panel, borderRadius:2, overflow:'hidden' }}, React.createElement("div", {style: { width:`${prog}%`, height:'100%', background:col, borderRadius:2, transition:'width 0.8s ease' }})))
                     );
-                  })}
-                </div>
-              </>
-            )}
-          </div>
-        </div>
+                  })))
+            )))
       );
     }
 
@@ -2367,117 +1278,36 @@ a premium mental performance environment for{' '}
         };
 
         return (
-          <div style={{ paddingTop:80, paddingBottom:100, minHeight:'100vh' }}>
-            <div style={{ maxWidth:760, margin:'0 auto', padding:'40px 24px' }}>
-              <div style={{ display:'flex', alignItems:'center', gap:16, marginBottom:32 }}>
-                <button className="btn-ghost" onClick={()=>{ setActiveLesson(null); setPage(0); }}>← Back to Manuals</button>
-                <div style={{ flex:1, height:1, background:C.border }} />
-                <div style={{ ...mono, fontSize:9, letterSpacing:3, color:C.muted }}>{page+1} / {content.pages.length}</div>
-              </div>
-
-              <div style={{ height:2, background:C.panel, borderRadius:2, marginBottom:48, overflow:'hidden' }}>
-                <div style={{ width:`${((page+1)/content.pages.length)*100}%`, height:'100%', background:col, borderRadius:2, transition:'width 0.4s ease' }} />
-              </div>
-
-              <div key={`${activeLesson}-${page}`} style={{ animation:'fadeUp 0.4s ease both' }}>
-                <div style={{ ...mono, fontSize:9, letterSpacing:3, color:col, marginBottom:12 }}>LESSON {activeLesson} · {lesson.level.toUpperCase()}</div>
-                <h1 style={{ ...syne, fontSize:24, fontWeight:800, color:C.text, marginBottom:32, lineHeight:1.1 }}>
-                  {pageData.title}
-                </h1>
-
-                <div className="card" style={{ padding:'32px 36px', position:'relative', overflow:'hidden' }}>
-                  <div style={{ position:'absolute', top:0, left:0, width:2, height:'100%', background:col }} />
-                  {pageData.body.split('\n\n').map((para,i)=>(
-                    <p key={i} style={{ fontSize:15, color:para.startsWith('◰')||para.startsWith('◱')||para.startsWith('◲')||para.startsWith('◳')||para.startsWith('1.')||para.startsWith('·') ? C.text : C.muted,
+          React.createElement("div", {style: { paddingTop:80, paddingBottom:100, minHeight:'100vh' }}, React.createElement("div", {style: { maxWidth:760, margin:'0 auto', padding:'40px 24px' }}, React.createElement("div", {style: { display:'flex', alignItems:'center', gap:16, marginBottom:32 }}, React.createElement("button", {className: "btn-ghost", onClick: ()=>{ setActiveLesson(null); setPage(0); }}, '← Back to Manuals'), React.createElement("div", {style: { flex:1, height:1, background:C.border }}), React.createElement("div", {style: { ...mono, fontSize:9, letterSpacing:3, color:C.muted }}, page+1, '/', content.pages.length)), React.createElement("div", {style: { height:2, background:C.panel, borderRadius:2, marginBottom:48, overflow:'hidden' }}, React.createElement("div", {style: { width:`${((page+1)/content.pages.length)*100}%`, height:'100%', background:col, borderRadius:2, transition:'width 0.4s ease' }})), React.createElement("div", {key: `${activeLesson}-${page}`, style: { animation:'fadeUp 0.4s ease both' }}, React.createElement("div", {style: { ...mono, fontSize:9, letterSpacing:3, color:col, marginBottom:12 }}, 'LESSON', activeLesson, '·', lesson.level.toUpperCase()), React.createElement("h1", {style: { ...syne, fontSize:24, fontWeight:800, color:C.text, marginBottom:32, lineHeight:1.1 }}, pageData.title), React.createElement("div", {className: "card", style: { padding:'32px 36px', position:'relative', overflow:'hidden' }}, React.createElement("div", {style: { position:'absolute', top:0, left:0, width:2, height:'100%', background:col }}), pageData.body.split('\n\n').map((para,i)=>(
+                    React.createElement("p", {key: i, style: { fontSize:15, color:para.startsWith('◰')||para.startsWith('◱')||para.startsWith('◲')||para.startsWith('◳')||para.startsWith('1.')||para.startsWith('·') ? C.text : C.muted,
                       lineHeight:1.9, marginBottom:i<pageData.body.split('\n\n').length-1?20:0,
                       fontFamily: para.startsWith('◰')||para.startsWith('◱')||para.startsWith('◲')||para.startsWith('◳') ? "'Space Mono'" : "'DM Sans'",
                       fontSize: para.startsWith('◰')||para.startsWith('◱')||para.startsWith('◲')||para.startsWith('◳') ? 13 : 15,
-                    }}>{para}</p>
-                  ))}
-                </div>
-
-                <div style={{ display:'flex', justifyContent:'space-between', marginTop:32, alignItems:'center' }}>
-                  <button className="btn-ghost" disabled={page===0} onClick={()=>setPage(p=>p-1)} style={{ opacity:page===0?0.3:1 }}>← Previous</button>
-                  {isLast ? (
-                    <button className="btn-primary" style={{ background:col }} onClick={handleComplete}>Complete Lesson ✓</button>
+                    }}, para)
+                  ))), React.createElement("div", {style: { display:'flex', justifyContent:'space-between', marginTop:32, alignItems:'center' }}, React.createElement("button", {className: "btn-ghost", disabled: page===0, onClick: ()=>setPage(p=>p-1), style: { opacity:page===0?0.3:1 }}, '← Previous'), isLast ? (
+                    React.createElement("button", {className: "btn-primary", style: { background:col }, onClick: handleComplete}, 'Complete Lesson ✓')
                   ) : (
-                    <button className="btn-primary" style={{ background:col }} onClick={()=>setPage(p=>p+1)}>Continue →</button>
-                  )}
-                </div>
-              </div>
-            </div>
-          </div>
+                    React.createElement("button", {className: "btn-primary", style: { background:col }, onClick: ()=>setPage(p=>p+1)}, 'Continue →')
+                  )))))
         );
       }
 
       return (
-        <div style={{ paddingTop:80, paddingBottom:100 }}>
-          <div style={{ maxWidth:1200, margin:'0 auto', padding:'40px 24px' }}>
-            <div style={{ ...mono, fontSize:9, letterSpacing:4, color:C.cyan, marginBottom:16 }}>LESSON MANUALS · COGNITIVE LIBRARY</div>
-            <h1 style={{ ...syne, fontSize:32, fontWeight:800, color:C.text, marginBottom:16, lineHeight:1.05 }}>
-              Elite Cognitive<br />Training Documents
-            </h1>
-            <p style={{ fontSize:15, color:C.muted, maxWidth:560, lineHeight:1.8, marginBottom:48 }}>
-              Five lesson manuals that constitute the complete NeuralFusion™ training system.
-              Each manual is a structured cognitive curriculum: not information, but transformation.
-            </p>
-
-            <div style={{ display:'flex', flexDirection:'column', gap:16 }}>
-              {LESSONS.map((lesson,i)=>{
+        React.createElement("div", {style: { paddingTop:80, paddingBottom:100 }}, React.createElement("div", {style: { maxWidth:1200, margin:'0 auto', padding:'40px 24px' }}, React.createElement("div", {style: { ...mono, fontSize:9, letterSpacing:4, color:C.cyan, marginBottom:16 }}, 'LESSON MANUALS · COGNITIVE LIBRARY'), React.createElement("h1", {style: { ...syne, fontSize:32, fontWeight:800, color:C.text, marginBottom:16, lineHeight:1.05 }}, 'Elite Cognitive', React.createElement("br", null), 'Training Documents'), React.createElement("p", {style: { fontSize:15, color:C.muted, maxWidth:560, lineHeight:1.8, marginBottom:48 }}, 'Five lesson manuals that constitute the complete NeuralFusion™ training system. Each manual is a structured cognitive curriculum: not information, but transformation.'), React.createElement("div", {style: { display:'flex', flexDirection:'column', gap:16 }}, LESSONS.map((lesson,i)=>{
                 const col = levelColors[lesson.level] || C.cyan;
                 const prog = lessonProgress[lesson.id] || 0;
                 const isLocked = !lesson.free && !isPro;
                 const brainKey = lesson.brain === 'all' ? null : lesson.brain;
                 return (
-                  <div key={lesson.id} className="card" style={{
+                  React.createElement("div", {key: lesson.id, className: "card", style: {
                     padding:'28px 32px', position:'relative', overflow:'hidden',
                     opacity: isLocked ? 0.6 : 1, cursor: isLocked ? 'default' : 'pointer',
-                  }}
-                    onClick={()=>{ if(!isLocked){ setActiveLesson(lesson.id); setPage(0); } }}
-                    onMouseEnter={e=>{ if(!isLocked){ e.currentTarget.style.borderColor=col+'44'; } }}
-                    onMouseLeave={e=>{ e.currentTarget.style.borderColor=C.border; }}>
-
-                    <div style={{ position:'absolute', top:0, left:0, width:2, height:'100%', background:prog===100?'#7AAFCF':prog>0?col:C.border }} />
-
-                    <div style={{ display:'grid', gridTemplateColumns:'auto 1fr auto', gap:24, alignItems:'center' }}>
-                      <div style={{ ...syne, fontSize:48, fontWeight:800, color:col+'33', lineHeight:1 }}>
-                        {String(i+1).padStart(2,'0')}
-                      </div>
-                      <div>
-                        <div style={{ display:'flex', gap:8, marginBottom:10, flexWrap:'wrap' }}>
-                          <div style={{ ...mono, fontSize:8, letterSpacing:2, color:col, padding:'3px 8px', border:`1px solid ${col}33`, borderRadius:2 }}>{lesson.level.toUpperCase()}</div>
-                          <div style={{ ...mono, fontSize:8, letterSpacing:2, color:C.muted, padding:'3px 8px', border:`1px solid ${C.border}`, borderRadius:2 }}>{lesson.duration.toUpperCase()}</div>
-                          {lesson.free && <div style={{ ...mono, fontSize:8, letterSpacing:2, color:'#7AAFCF', padding:'3px 8px', border:`1px solid #7AAFCF33`, borderRadius:2 }}>FREE ACCESS</div>}
-                          {isLocked && <div style={{ ...mono, fontSize:8, letterSpacing:2, color:'#F87171', padding:'3px 8px', border:`1px solid #F8717133`, borderRadius:2 }}>PRO REQUIRED</div>}
-                          {prog===100 && <div style={{ ...mono, fontSize:8, letterSpacing:2, color:'#7AAFCF', padding:'3px 8px', border:`1px solid #7AAFCF33`, borderRadius:2 }}>✓ COMPLETE</div>}
-                        </div>
-                        <div style={{ ...syne, fontSize:20, fontWeight:700, color:C.text, marginBottom:6 }}>{lesson.title}</div>
-                        <div style={{ fontSize:13, color:C.muted }}>{lesson.sub}</div>
-                      </div>
-                      <div style={{ ...mono, fontSize:24, color:col+'44' }}>
-                        {isLocked ? '⊘' : prog===100 ? '✓' : '→'}
-                      </div>
-                    </div>
-
-                    {prog>0 && prog<100 && (
-                      <div style={{ marginTop:16, height:2, background:C.panel, borderRadius:2, overflow:'hidden' }}>
-                        <div style={{ width:`${prog}%`, height:'100%', background:col, borderRadius:2 }} />
-                      </div>
-                    )}
-                  </div>
+                  }, onClick: ()=>{ if(!isLocked){ setActiveLesson(lesson.id); setPage(0); } }, onMouseEnter: e=>{ if(!isLocked){ e.currentTarget.style.borderColor=col+'44'; } }, onMouseLeave: e=>{ e.currentTarget.style.borderColor=C.border; }}, React.createElement("div", {style: { position:'absolute', top:0, left:0, width:2, height:'100%', background:prog===100?'#7AAFCF':prog>0?col:C.border }}), React.createElement("div", {style: { display:'grid', gridTemplateColumns:'auto 1fr auto', gap:24, alignItems:'center' }}, React.createElement("div", {style: { ...syne, fontSize:48, fontWeight:800, color:col+'33', lineHeight:1 }}, String(i+1).padStart(2,'0')), React.createElement("div", null, React.createElement("div", {style: { display:'flex', gap:8, marginBottom:10, flexWrap:'wrap' }}, React.createElement("div", {style: { ...mono, fontSize:8, letterSpacing:2, color:col, padding:'3px 8px', border:`1px solid ${col}33`, borderRadius:2 }}, lesson.level.toUpperCase()), React.createElement("div", {style: { ...mono, fontSize:8, letterSpacing:2, color:C.muted, padding:'3px 8px', border:`1px solid ${C.border}`, borderRadius:2 }}, lesson.duration.toUpperCase()), lesson.free && React.createElement("div", {style: { ...mono, fontSize:8, letterSpacing:2, color:'#7AAFCF', padding:'3px 8px', border:`1px solid #7AAFCF33`, borderRadius:2 }}, 'FREE ACCESS'), isLocked && React.createElement("div", {style: { ...mono, fontSize:8, letterSpacing:2, color:'#F87171', padding:'3px 8px', border:`1px solid #F8717133`, borderRadius:2 }}, 'PRO REQUIRED'), prog===100 && React.createElement("div", {style: { ...mono, fontSize:8, letterSpacing:2, color:'#7AAFCF', padding:'3px 8px', border:`1px solid #7AAFCF33`, borderRadius:2 }}, '✓ COMPLETE')), React.createElement("div", {style: { ...syne, fontSize:20, fontWeight:700, color:C.text, marginBottom:6 }}, lesson.title), React.createElement("div", {style: { fontSize:13, color:C.muted }}, lesson.sub)), React.createElement("div", {style: { ...mono, fontSize:24, color:col+'44' }}, isLocked ? '⊘' : prog===100 ? '✓' : '→')), prog>0 && prog<100 && (
+                      React.createElement("div", {style: { marginTop:16, height:2, background:C.panel, borderRadius:2, overflow:'hidden' }}, React.createElement("div", {style: { width:`${prog}%`, height:'100%', background:col, borderRadius:2 }}))
+                    ))
                 );
-              })}
-            </div>
-
-            {!isPro && (
-              <div className="card" style={{ marginTop:40, padding:'40px', textAlign:'center', borderColor:`${C.cyan}22` }}>
-                <div style={{ ...mono, fontSize:9, letterSpacing:3, color:C.cyan, marginBottom:16 }}>UNLOCK ALL LESSONS</div>
-                <div style={{ ...syne, fontSize:24, fontWeight:800, color:C.text, marginBottom:8 }}>Pro Access</div>
-                <div style={{ ...mono, fontSize:28, fontWeight:800, color:C.cyan, marginBottom:16 }}>₦{(proPrice/100).toLocaleString()}</div>
-                <div style={{ fontSize:14, color:C.muted, marginBottom:32, maxWidth:400, margin:'0 auto 32px' }}>
-                  One-time payment. Unlocks Lessons 2–5 and the complete NeuralFusion™ training system permanently.
-                </div>
-                <button className="btn-primary" onClick={()=>{
+              })), !isPro && (
+              React.createElement("div", {className: "card", style: { marginTop:40, padding:'40px', textAlign:'center', borderColor:`${C.cyan}22` }}, React.createElement("div", {style: { ...mono, fontSize:9, letterSpacing:3, color:C.cyan, marginBottom:16 }}, 'UNLOCK ALL LESSONS'), React.createElement("div", {style: { ...syne, fontSize:24, fontWeight:800, color:C.text, marginBottom:8 }}, 'Pro Access'), React.createElement("div", {style: { ...mono, fontSize:28, fontWeight:800, color:C.cyan, marginBottom:16 }}, '₦', (proPrice/100).toLocaleString()), React.createElement("div", {style: { fontSize:14, color:C.muted, marginBottom:32, maxWidth:400, margin:'0 auto 32px' }}, 'One-time payment. Unlocks Lessons 2–5 and the complete NeuralFusion™ training system permanently.'), React.createElement("button", {className: "btn-primary", onClick: ()=>{
                   if (!user) { setShowAuth(true); return; }
                   if (!paystackKey) { alert('Payment system is not ready yet. Please refresh and try again.'); return; }
                   if (typeof PaystackPop === 'undefined') { alert('Payment system failed to load. Please refresh and try again.'); return; }
@@ -2505,27 +1335,10 @@ a premium mental performance environment for{' '}
                   });
                   handler.openIframe();
                   } catch(e) { alert('Could not open payment window. Please refresh and try again.'); }
-                }}>Upgrade to Pro: ₦{(proPrice/100).toLocaleString()} →</button>
-              </div>
-            )}
-
-            {/* Enterprise upsell card */}
-            {!isEnterprise && (
-              <div className="card" style={{ marginTop:20, padding:'40px', textAlign:'center', borderColor:'rgba(76,247,192,0.25)', background:'rgba(5,20,38,0.8)' }}>
-                <div style={{ ...mono, fontSize:9, letterSpacing:3, color:'#4CF7C0', marginBottom:16 }}>NEURALFUSION™ ENTERPRISE</div>
-                <div style={{ ...syne, fontSize:24, fontWeight:800, color:C.text, marginBottom:8 }}>Run It With Your Organisation</div>
-                <div style={{ ...mono, fontSize:28, fontWeight:800, color:'#4CF7C0', marginBottom:16 }}>₦{ENTERPRISE_PRICE_DISPLAY}</div>
-                <div style={{ fontSize:14, color:C.muted, marginBottom:32, maxWidth:480, margin:'0 auto 32px', lineHeight:1.8 }}>
-                  Cohort management · CFI data entry · Facilitator dashboard · 5-lesson programme · Clarity Delta reporting
-                </div>
-                <button style={{ ...syne, fontSize:13, fontWeight:700, padding:'14px 36px', background:'#4CF7C0', color:'#050C1A', border:'none', cursor:'pointer', borderRadius:2 }}
-                  onClick={()=>setView('enterprise')}>
-                  Explore Enterprise →
-                </button>
-              </div>
-            )}
-          </div>
-        </div>
+                }}, 'Upgrade to Pro: ₦', (proPrice/100).toLocaleString(), '→'))
+            ), !isEnterprise && (
+              React.createElement("div", {className: "card", style: { marginTop:20, padding:'40px', textAlign:'center', borderColor:'rgba(76,247,192,0.25)', background:'rgba(5,20,38,0.8)' }}, React.createElement("div", {style: { ...mono, fontSize:9, letterSpacing:3, color:'#4CF7C0', marginBottom:16 }}, 'NEURALFUSION™ ENTERPRISE'), React.createElement("div", {style: { ...syne, fontSize:24, fontWeight:800, color:C.text, marginBottom:8 }}, 'Run It With Your Organisation'), React.createElement("div", {style: { ...mono, fontSize:28, fontWeight:800, color:'#4CF7C0', marginBottom:16 }}, '₦', ENTERPRISE_PRICE_DISPLAY), React.createElement("div", {style: { fontSize:14, color:C.muted, marginBottom:32, maxWidth:480, margin:'0 auto 32px', lineHeight:1.8 }}, 'Cohort management · CFI data entry · Facilitator dashboard · 5-lesson programme · Clarity Delta reporting'), React.createElement("button", {style: { ...syne, fontSize:13, fontWeight:700, padding:'14px 36px', background:'#4CF7C0', color:'#050C1A', border:'none', cursor:'pointer', borderRadius:2 }, onClick: ()=>setView('enterprise')}, 'Explore Enterprise →'))
+            )))
       );
     }
     // ═══════════════════════════════════════════════════════════════════
@@ -2540,94 +1353,22 @@ a premium mental performance environment for{' '}
       const [openFaq, setOpenFaq] = useState(null);
 
       return (
-        <div style={{ paddingTop:80, paddingBottom:100 }}>
-          <div style={{ maxWidth:1200, margin:'0 auto', padding:'60px 24px' }}>
-
-            {/* Creator */}
-            <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(min(300px, 100%), 1fr))', gap:64, alignItems:'center', marginBottom:80 }}>
-              <div>
-                <div style={{ ...mono, fontSize:9, letterSpacing:4, color:C.cyan, marginBottom:20 }}>ABOUT NEURALFUSION™</div>
-                <h1 style={{ ...syne, fontSize:32, fontWeight:800, color:C.text, marginBottom:24, lineHeight:1.05 }}>
-                  Teaching humanity<br /><span style={{color:C.cyan}}>how to think.</span>
-                </h1>
-                <p style={{ fontSize:15, color:C.muted, lineHeight:1.9, marginBottom:20 }}>
-                  NeuralFusion™ was invented by <strong style={{color:C.text}}>Life Edet</strong>, a researcher and cognitive systems designer who spent years studying why intelligent people consistently make fragmented decisions.
-                </p>
-                <p style={{ fontSize:15, color:C.muted, lineHeight:1.9, marginBottom:32 }}>
-                  The core finding: most people have never been taught the mechanics of thinking itself. They have enormous cognitive capacity that remains fragmented because no structured system existed to integrate it.
-                </p>
-                <p style={{ fontSize:15, color:C.muted, lineHeight:1.9 }}>
-                  NeuralFusion™ is that system.
-                </p>
-              </div>
-              <div className="card" style={{ padding:'40px', position:'relative', overflow:'hidden' }}>
-                <ScanLine />
-                <div style={{ ...mono, fontSize:9, letterSpacing:3, color:C.cyan, marginBottom:24 }}>PLATFORM MISSION</div>
-                <div style={{ ...syne, fontSize:28, fontWeight:800, color:C.text, lineHeight:1.2, marginBottom:24 }}>
-                  "Teach individuals how to think using structured cognitive systems."
-                </div>
-                <div style={{ ...mono, fontSize:10, letterSpacing:2, color:C.muted }}>Life Edet, Creator of NeuralFusion™</div>
-
-                <div style={{ marginTop:40 }}>
-                  {[
+        React.createElement("div", {style: { paddingTop:80, paddingBottom:100 }}, React.createElement("div", {style: { maxWidth:1200, margin:'0 auto', padding:'60px 24px' }}, React.createElement("div", {style: { display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(min(300px, 100%), 1fr))', gap:64, alignItems:'center', marginBottom:80 }}, React.createElement("div", null, React.createElement("div", {style: { ...mono, fontSize:9, letterSpacing:4, color:C.cyan, marginBottom:20 }}, 'ABOUT NEURALFUSION™'), React.createElement("h1", {style: { ...syne, fontSize:32, fontWeight:800, color:C.text, marginBottom:24, lineHeight:1.05 }}, 'Teaching humanity', React.createElement("br", null), React.createElement("span", {style: {color:C.cyan}}, 'how to think.')), React.createElement("p", {style: { fontSize:15, color:C.muted, lineHeight:1.9, marginBottom:20 }}, 'NeuralFusion™ was invented by', React.createElement("strong", {style: {color:C.text}}, 'Life Edet'), ', a researcher and cognitive systems designer who spent years studying why intelligent people consistently make fragmented decisions.'), React.createElement("p", {style: { fontSize:15, color:C.muted, lineHeight:1.9, marginBottom:32 }}, 'The core finding: most people have never been taught the mechanics of thinking itself. They have enormous cognitive capacity that remains fragmented because no structured system existed to integrate it.'), React.createElement("p", {style: { fontSize:15, color:C.muted, lineHeight:1.9 }}, 'NeuralFusion™ is that system.')), React.createElement("div", {className: "card", style: { padding:'40px', position:'relative', overflow:'hidden' }}, React.createElement(ScanLine, null), React.createElement("div", {style: { ...mono, fontSize:9, letterSpacing:3, color:C.cyan, marginBottom:24 }}, 'PLATFORM MISSION'), React.createElement("div", {style: { ...syne, fontSize:28, fontWeight:800, color:C.text, lineHeight:1.2, marginBottom:24 }}, '"Teach individuals how to think using structured cognitive systems."'), React.createElement("div", {style: { ...mono, fontSize:10, letterSpacing:2, color:C.muted }}, 'Life Edet, Creator of NeuralFusion™'), React.createElement("div", {style: { marginTop:40 }}, [
                     { label:'Core Cognitive Modes', value:'4' },
                     { label:'CFI Dimensions', value:'5' },
                     { label:'Training Protocols', value:'6+' },
                     { label:'Lesson Manuals', value:'5' },
                   ].map((s,i)=>(
-                    <div key={i} style={{ display:'flex', justifyContent:'space-between', padding:'12px 0', borderBottom:`1px solid ${C.border}` }}>
-                      <div style={{ fontSize:13, color:C.muted }}>{s.label}</div>
-                      <div style={{ ...syne, fontSize:18, fontWeight:800, color:C.cyan }}>{s.value}</div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-
-            {/* FAQ */}
-            <div>
-              <div style={{ ...mono, fontSize:9, letterSpacing:3, color:C.cyan, marginBottom:32 }}>FREQUENTLY ASKED</div>
-              <div style={{ display:'flex', flexDirection:'column', gap:4 }}>
-                {faqs.map((faq,i)=>(
-                  <div key={i} className="card" style={{ overflow:'hidden' }}>
-                    <button onClick={()=>setOpenFaq(openFaq===i?null:i)} style={{
+                    React.createElement("div", {key: i, style: { display:'flex', justifyContent:'space-between', padding:'12px 0', borderBottom:`1px solid ${C.border}` }}, React.createElement("div", {style: { fontSize:13, color:C.muted }}, s.label), React.createElement("div", {style: { ...syne, fontSize:18, fontWeight:800, color:C.cyan }}, s.value))
+                  ))))), React.createElement("div", null, React.createElement("div", {style: { ...mono, fontSize:9, letterSpacing:3, color:C.cyan, marginBottom:32 }}, 'FREQUENTLY ASKED'), React.createElement("div", {style: { display:'flex', flexDirection:'column', gap:4 }}, faqs.map((faq,i)=>(
+                  React.createElement("div", {key: i, className: "card", style: { overflow:'hidden' }}, React.createElement("button", {onClick: ()=>setOpenFaq(openFaq===i?null:i), style: {
                       width:'100%', padding:'20px 24px', background:'none', border:'none',
                       display:'flex', justifyContent:'space-between', alignItems:'center',
                       cursor:'pointer', textAlign:'left', gap:16,
-                    }}>
-                      <div style={{ ...syne, fontSize:16, fontWeight:600, color:C.text }}>{faq.q}</div>
-                      <div style={{ ...mono, fontSize:14, color:C.cyan, flexShrink:0, transition:'transform 0.2s', transform:openFaq===i?'rotate(45deg)':'none' }}>+</div>
-                    </button>
-                    {openFaq===i && (
-                      <div style={{ padding:'0 24px 24px', fontSize:14, color:C.muted, lineHeight:1.8, animation:'fadeIn 0.3s ease' }}>
-                        {faq.a}
-                      </div>
-                    )}
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* CTA */}
-            <div style={{ marginTop:80, padding:'60px', textAlign:'center', background:C.deep, border:`1px solid ${C.border}`, borderRadius:4, position:'relative', overflow:'hidden' }}>
-              <div className="grid-bg" style={{ position:'absolute', inset:0 }} />
-              <div style={{ position:'relative', zIndex:1 }}>
-                <div style={{ ...mono, fontSize:9, letterSpacing:4, color:C.cyan, marginBottom:20 }}>BEGIN YOUR EVOLUTION</div>
-                <h2 style={{ ...syne, fontSize:28, fontWeight:800, color:C.text, marginBottom:16, lineHeight:1.1 }}>
-                  Your thinking is about to<br /><span style={{color:C.cyan}}>change permanently.</span>
-                </h2>
-                <p style={{ fontSize:14, color:C.muted, marginBottom:40, maxWidth:480, margin:'0 auto 40px' }}>
-                  Start with the CFI Assessment to measure where your cognition currently stands.
-                  Then begin the training system.
-                </p>
-                <div style={{ display:'flex', gap:16, justifyContent:'center', flexWrap:'wrap' }}>
-                  <button className="btn-primary" onClick={()=>setView('cfi')}>Begin CFI Assessment →</button>
-                  <button className="btn-outline" onClick={()=>setView('four-brains')}>Explore Four Brains</button>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
+                    }}, React.createElement("div", {style: { ...syne, fontSize:16, fontWeight:600, color:C.text }}, faq.q), React.createElement("div", {style: { ...mono, fontSize:14, color:C.cyan, flexShrink:0, transition:'transform 0.2s', transform:openFaq===i?'rotate(45deg)':'none' }}, '+')), openFaq===i && (
+                      React.createElement("div", {style: { padding:'0 24px 24px', fontSize:14, color:C.muted, lineHeight:1.8, animation:'fadeIn 0.3s ease' }}, faq.a)
+                    ))
+                )))), React.createElement("div", {style: { marginTop:80, padding:'60px', textAlign:'center', background:C.deep, border:`1px solid ${C.border}`, borderRadius:4, position:'relative', overflow:'hidden' }}, React.createElement("div", {className: "grid-bg", style: { position:'absolute', inset:0 }}), React.createElement("div", {style: { position:'relative', zIndex:1 }}, React.createElement("div", {style: { ...mono, fontSize:9, letterSpacing:4, color:C.cyan, marginBottom:20 }}, 'BEGIN YOUR EVOLUTION'), React.createElement("h2", {style: { ...syne, fontSize:28, fontWeight:800, color:C.text, marginBottom:16, lineHeight:1.1 }}, 'Your thinking is about to', React.createElement("br", null), React.createElement("span", {style: {color:C.cyan}}, 'change permanently.')), React.createElement("p", {style: { fontSize:14, color:C.muted, marginBottom:40, maxWidth:480, margin:'0 auto 40px' }}, 'Start with the CFI Assessment to measure where your cognition currently stands. Then begin the training system.'), React.createElement("div", {style: { display:'flex', gap:16, justifyContent:'center', flexWrap:'wrap' }}, React.createElement("button", {className: "btn-primary", onClick: ()=>setView('cfi')}, 'Begin CFI Assessment →'), React.createElement("button", {className: "btn-outline", onClick: ()=>setView('four-brains')}, 'Explore Four Brains'))))))
       );
     }
 
@@ -2648,69 +1389,35 @@ a premium mental performance environment for{' '}
       });
 
       const Section = ({ num, title, children }) => (
-        <div style={{ marginBottom: 48, paddingBottom: 48, borderBottom: `1px solid ${C.border}` }}>
-          <div style={{ display: 'flex', alignItems: 'flex-start', gap: 18, marginBottom: 20 }}>
-            <div style={{ ...mono, fontSize: 9, letterSpacing: 2, color: C.cyan, opacity: 0.6, paddingTop: 5, minWidth: 26 }}>{num}</div>
-            <div style={{ ...syne, fontSize: 20, fontWeight: 700, color: C.text, letterSpacing: '-0.02em', lineHeight: 1.2 }}>{title}</div>
-          </div>
-          <div style={{ paddingLeft: 44 }}>{children}</div>
-        </div>
+        React.createElement("div", {style: { marginBottom: 48, paddingBottom: 48, borderBottom: `1px solid ${C.border}` }}, React.createElement("div", {style: { display: 'flex', alignItems: 'flex-start', gap: 18, marginBottom: 20 }}, React.createElement("div", {style: { ...mono, fontSize: 9, letterSpacing: 2, color: C.cyan, opacity: 0.6, paddingTop: 5, minWidth: 26 }}, num), React.createElement("div", {style: { ...syne, fontSize: 20, fontWeight: 700, color: C.text, letterSpacing: '-0.02em', lineHeight: 1.2 }}, title)), React.createElement("div", {style: { paddingLeft: 44 }}, children))
       );
 
       const P = ({ children }) => (
-        <p style={{ fontSize: 14, color: C.muted, lineHeight: 1.85, marginBottom: 14 }}>{children}</p>
+        React.createElement("p", {style: { fontSize: 14, color: C.muted, lineHeight: 1.85, marginBottom: 14 }}, children)
       );
 
       const UL = ({ items }) => (
-        <ul style={{ listStyle: 'none', padding: 0, margin: '0 0 14px' }}>
-          {items.map((item, i) => (
-            <li key={i} style={{ position: 'relative', paddingLeft: 18, fontSize: 14, color: C.muted, marginBottom: 8, lineHeight: 1.7 }}>
-              <span style={{ position: 'absolute', left: 0, top: 6, width: 6, height: 1, background: C.cyan, opacity: 0.5 }}></span>
-              {item}
-            </li>
-          ))}
-        </ul>
+        React.createElement("ul", {style: { listStyle: 'none', padding: 0, margin: '0 0 14px' }}, items.map((item, i) => (
+            React.createElement("li", {key: i, style: { position: 'relative', paddingLeft: 18, fontSize: 14, color: C.muted, marginBottom: 8, lineHeight: 1.7 }}, React.createElement("span", {style: { position: 'absolute', left: 0, top: 6, width: 6, height: 1, background: C.cyan, opacity: 0.5 }}), item)
+          )))
       );
 
       const HB = ({ title: t, children }) => (
-        <div style={{ background: 'rgba(196,160,80,0.06)', border: `1px solid rgba(196,160,80,0.18)`, borderLeft: `3px solid ${C.cyan}`, padding: '18px 22px', margin: '20px 0', fontSize: 14, color: C.muted, lineHeight: 1.8 }}>
-          {t && <div style={{ ...syne, fontSize: 12, fontWeight: 700, color: C.cyan, marginBottom: 6, textTransform: 'uppercase', letterSpacing: 1 }}>{t}</div>}
-          {children}
-        </div>
+        React.createElement("div", {style: { background: 'rgba(196,160,80,0.06)', border: `1px solid rgba(196,160,80,0.18)`, borderLeft: `3px solid ${C.cyan}`, padding: '18px 22px', margin: '20px 0', fontSize: 14, color: C.muted, lineHeight: 1.8 }}, t && React.createElement("div", {style: { ...syne, fontSize: 12, fontWeight: 700, color: C.cyan, marginBottom: 6, textTransform: 'uppercase', letterSpacing: 1 }}, t), children)
       );
 
       const DataTable = ({ rows }) => (
-        <div style={{ overflowX: 'auto', margin: '20px 0' }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
-            <thead>
-              <tr>
-                {['Data Category','Purpose','Legal Basis'].map(h => (
-                  <th key={h} style={{ ...mono, fontSize: 9, letterSpacing: 2, textTransform: 'uppercase', color: C.muted, padding: '10px 14px', textAlign: 'left', borderBottom: `1px solid ${C.border}`, background: C.deep }}>{h}</th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {rows.map((r,i) => (
-                <tr key={i} style={{ borderBottom: `1px solid rgba(196,160,80,0.06)` }}>
-                  <td style={{ padding: '12px 14px', color: C.cyan, fontWeight: 600, fontSize: 13, verticalAlign: 'top' }}>{r[0]}</td>
-                  <td style={{ padding: '12px 14px', color: C.muted, fontSize: 13, verticalAlign: 'top', lineHeight: 1.6 }}>{r[1]}</td>
-                  <td style={{ padding: '12px 14px', color: C.muted, fontSize: 13, verticalAlign: 'top', lineHeight: 1.6 }}>{r[2]}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+        React.createElement("div", {style: { overflowX: 'auto', margin: '20px 0' }}, React.createElement("table", {style: { width: '100%', borderCollapse: 'collapse', fontSize: 13 }}, React.createElement("thead", null, React.createElement("tr", null, ['Data Category','Purpose','Legal Basis'].map(h => (
+                  React.createElement("th", {key: h, style: { ...mono, fontSize: 9, letterSpacing: 2, textTransform: 'uppercase', color: C.muted, padding: '10px 14px', textAlign: 'left', borderBottom: `1px solid ${C.border}`, background: C.deep }}, h)
+                )))), React.createElement("tbody", null, rows.map((r,i) => (
+                React.createElement("tr", {key: i, style: { borderBottom: `1px solid rgba(196,160,80,0.06)` }}, React.createElement("td", {style: { padding: '12px 14px', color: C.cyan, fontWeight: 600, fontSize: 13, verticalAlign: 'top' }}, r[0]), React.createElement("td", {style: { padding: '12px 14px', color: C.muted, fontSize: 13, verticalAlign: 'top', lineHeight: 1.6 }}, r[1]), React.createElement("td", {style: { padding: '12px 14px', color: C.muted, fontSize: 13, verticalAlign: 'top', lineHeight: 1.6 }}, r[2]))
+              )))))
       );
 
       const ContactCard = ({ items }) => (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px,1fr))', gap: 20, background: C.deep, border: `1px solid ${C.border}`, padding: 28, margin: '20px 0' }}>
-          {items.map((item,i) => (
-            <div key={i}>
-              <div style={{ ...mono, fontSize: 9, letterSpacing: 2, color: C.muted, textTransform: 'uppercase', marginBottom: 4 }}>{item.label}</div>
-              <div style={{ fontSize: 13, color: C.cyan, fontWeight: 500 }}>{item.value}</div>
-            </div>
-          ))}
-        </div>
+        React.createElement("div", {style: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px,1fr))', gap: 20, background: C.deep, border: `1px solid ${C.border}`, padding: 28, margin: '20px 0' }}, items.map((item,i) => (
+            React.createElement("div", {key: i}, React.createElement("div", {style: { ...mono, fontSize: 9, letterSpacing: 2, color: C.muted, textTransform: 'uppercase', marginBottom: 4 }}, item.label), React.createElement("div", {style: { fontSize: 13, color: C.cyan, fontWeight: 500 }}, item.value))
+          )))
       );
 
       const tabs = [
@@ -2720,24 +1427,14 @@ a premium mental performance environment for{' '}
       ];
 
       const PrivacyContent = () => (
-        <div>
-          <Section num="01" title="Who We Are">
-            <P>NeuralFusion™ is a cognitive performance platform developed and operated by <strong style={{color:C.text}}>Life Edet</strong>, accessible at tryneuralFusion.com. The platform delivers a structured cognitive training programme teaching participants to work across four thinking modes through a curriculum delivered to individual users and organisational cohorts.</P>
-            <P>"We," "us," and "our" refer to NeuralFusion™ and its operator. "You" refers to any individual who accesses or uses the platform, including individual subscribers, enterprise participants, and facilitators.</P>
-          </Section>
-          <Section num="02" title="Information We Collect">
-            <P>We collect the following categories of personal information:</P>
-            <UL items={[
+        React.createElement("div", null, React.createElement(Section, {num: "01", title: "Who We Are"}, React.createElement(P, null, 'NeuralFusion™ is a cognitive performance platform developed and operated by', React.createElement("strong", {style: {color:C.text}}, 'Life Edet'), ', accessible at tryneuralFusion.com. The platform delivers a structured cognitive training programme teaching participants to work across four thinking modes through a curriculum delivered to individual users and organisational cohorts.'), React.createElement(P, null, '"We," "us," and "our" refer to NeuralFusion™ and its operator. "You" refers to any individual who accesses or uses the platform, including individual subscribers, enterprise participants, and facilitators.')), React.createElement(Section, {num: "02", title: "Information We Collect"}, React.createElement(P, null, 'We collect the following categories of personal information:'), React.createElement(UL, {items: [
               'Account Information: Name, email address, and password when you register.',
               'Assessment Data: CFI responses, scoring results across five cognitive dimensions (Decision Latency, Mode Rigidity, Emotional Reactivity, Thought Interruption, Cognitive Overload), and composite scores.',
               'Learning Progress: Lesson completion records, module progress, and programme milestone data.',
               'Enterprise Data: Cohort codes, participant IDs, facilitator activity, pre- and post-assessment records.',
               'Payment Information: Transaction records processed through Paystack. Full card details are not stored on our systems.',
               'Usage Data: IP address, browser type, device type, pages visited, and session data collected automatically.',
-            ]} />
-          </Section>
-          <Section num="03" title="How We Use Your Information">
-            <UL items={[
+            ]})), React.createElement(Section, {num: "03", title: "How We Use Your Information"}, React.createElement(UL, {items: [
               'To create and manage your account and provide access to the platform.',
               'To deliver the NeuralFusion™ cognitive training programme and track your progress.',
               'To generate your cognitive profile and provide personalised insights from CFI assessments.',
@@ -2746,226 +1443,88 @@ a premium mental performance environment for{' '}
               'To send transactional and, where consented, promotional communications.',
               'To improve the platform through analysis of aggregated, anonymised usage data.',
               'To comply with legal obligations.',
-            ]} />
-          </Section>
-          <Section num="04" title="Legal Bases for Processing">
-            <UL items={[
+            ]})), React.createElement(Section, {num: "04", title: "Legal Bases for Processing"}, React.createElement(UL, {items: [
               'Contract performance: Processing necessary to deliver the platform services you have engaged.',
               'Legitimate interests: Platform security, fraud prevention, and service improvement where these do not override your rights.',
               'Consent: For marketing communications and any processing where we have sought your explicit consent.',
               'Legal obligation: Compliance with applicable Nigerian law and regulatory requirements.',
-            ]} />
-          </Section>
-          <Section num="05" title="Sharing Your Information">
-            <P>We do not sell your personal information. We may share data only in these circumstances:</P>
-            <UL items={[
+            ]})), React.createElement(Section, {num: "05", title: "Sharing Your Information"}, React.createElement(P, null, 'We do not sell your personal information. We may share data only in these circumstances:'), React.createElement(UL, {items: [
               'Service Providers: Supabase (database/authentication) and Paystack (payment processing), each bound to use your data only to deliver their services.',
               'Enterprise Facilitators: If you participate in an organisational cohort, your assessment results may be accessible to designated facilitator(s) of that cohort.',
               'Legal Requirements: Where required by law, court order, or government authority.',
               'Business Transfers: In the event of a merger or acquisition, subject to equivalent privacy protections.',
-            ]} />
-            <HB title="Enterprise Participants">Your cohort facilitator has access to your assessment results and progress data for the duration of the programme. If you have concerns, please contact your organisation before completing assessments.</HB>
-          </Section>
-          <Section num="06" title="Data Storage & Security">
-            <P>Your data is stored on Supabase infrastructure. We implement appropriate technical and organisational measures including TLS/HTTPS encryption in transit, row-level security and access control policies, and secure session management via Supabase Auth.</P>
-            <P>We retain your personal data for as long as your account is active or as necessary to fulfil the purposes described here, and thereafter as required by applicable law.</P>
-          </Section>
-          <Section num="07" title="Your Rights">
-            <P>Under the Nigeria Data Protection Act 2023, you have the right of access, rectification, erasure, restriction, data portability, and the right to object to certain processing. To exercise any right, contact us at the details below. We will respond within 30 days.</P>
-          </Section>
-          <Section num="08" title="Children's Privacy">
-            <P>NeuralFusion™ is designed for professional and organisational use and is not directed at children under 13. We do not knowingly collect personal information from children.</P>
-          </Section>
-          <Section num="09" title="Changes & Contact">
-            <P>We may update this policy from time to time. Continued use after changes constitutes acceptance. For privacy queries, contact us:</P>
-            <ContactCard items={[
+            ]}), React.createElement(HB, {title: "Enterprise Participants"}, 'Your cohort facilitator has access to your assessment results and progress data for the duration of the programme. If you have concerns, please contact your organisation before completing assessments.')), React.createElement(Section, {num: "06", title: "Data Storage & Security"}, React.createElement(P, null, 'Your data is stored on Supabase infrastructure. We implement appropriate technical and organisational measures including TLS/HTTPS encryption in transit, row-level security and access control policies, and secure session management via Supabase Auth.'), React.createElement(P, null, 'We retain your personal data for as long as your account is active or as necessary to fulfil the purposes described here, and thereafter as required by applicable law.')), React.createElement(Section, {num: "07", title: "Your Rights"}, React.createElement(P, null, 'Under the Nigeria Data Protection Act 2023, you have the right of access, rectification, erasure, restriction, data portability, and the right to object to certain processing. To exercise any right, contact us at the details below. We will respond within 30 days.')), React.createElement(Section, {num: "08", title: "Children's Privacy"}, React.createElement(P, null, 'NeuralFusion™ is designed for professional and organisational use and is not directed at children under 13. We do not knowingly collect personal information from children.')), React.createElement(Section, {num: "09", title: "Changes & Contact"}, React.createElement(P, null, 'We may update this policy from time to time. Continued use after changes constitutes acceptance. For privacy queries, contact us:'), React.createElement(ContactCard, {items: [
               { label: 'Platform', value: 'NeuralFusion™' },
               { label: 'Operator', value: 'Life Edet' },
               { label: 'Website', value: 'tryneuralFusion.com' },
               { label: 'Subject Line', value: 'Privacy Request: NeuralFusion' },
-            ]} />
-          </Section>
-        </div>
+            ]})))
       );
 
       const TermsContent = () => (
-        <div>
-          <Section num="01" title="Acceptance of Terms">
-            <P>By accessing or using the NeuralFusion™ platform at tryneuralFusion.com, you agree to be bound by these Terms and Conditions. If you do not agree, you must not access or use the platform.</P>
-            <P>These Terms constitute a legally binding agreement between you and <strong style={{color:C.text}}>Life Edet</strong>, the developer and operator of NeuralFusion™. If using the platform on behalf of an organisation, you represent that you have authority to bind that organisation.</P>
-          </Section>
-          <Section num="02" title="Description of Service">
-            <P>NeuralFusion™ is a cognitive performance platform delivering:</P>
-            <UL items={[
+        React.createElement("div", null, React.createElement(Section, {num: "01", title: "Acceptance of Terms"}, React.createElement(P, null, 'By accessing or using the NeuralFusion™ platform at tryneuralFusion.com, you agree to be bound by these Terms and Conditions. If you do not agree, you must not access or use the platform.'), React.createElement(P, null, 'These Terms constitute a legally binding agreement between you and', React.createElement("strong", {style: {color:C.text}}, 'Life Edet'), ', the developer and operator of NeuralFusion™. If using the platform on behalf of an organisation, you represent that you have authority to bind that organisation.')), React.createElement(Section, {num: "02", title: "Description of Service"}, React.createElement(P, null, 'NeuralFusion™ is a cognitive performance platform delivering:'), React.createElement(UL, {items: [
               'A structured 5-lesson, 7-week cognitive curriculum.',
               'The Cognitive Fragmentation Index (CFI) Edition 2.0 assessment.',
               'Individual cognitive profiling across five dimensions.',
               'An Enterprise Portal for organisational cohort management, facilitator dashboards, and pre/post assessment tracking.',
-            ]} />
-          </Section>
-          <Section num="03" title="Account Registration">
-            <P>You agree to provide accurate information, maintain the security of your credentials, notify us promptly of any unauthorised access, and accept responsibility for all activity under your account.</P>
-          </Section>
-          <Section num="04" title="Subscription & Payments">
-            <P><strong style={{color:C.text}}>Pro Access:</strong> Full access requires payment of the current Pro fee, as displayed on the platform. Payments are processed via Paystack. Pricing may be updated by the platform administrator with reasonable notice.</P>
-            <P><strong style={{color:C.text}}>Refunds:</strong> Due to the digital nature of platform content, all sales are generally final. Refund requests are considered on a case-by-case basis within 7 days of purchase where the platform has not been substantially accessed.</P>
-          </Section>
-          <Section num="05" title="Enterprise Access">
-            <P>Enterprise facilitators agree to use the platform for legitimate organisational training purposes, manage cohort codes responsibly, protect the facilitator PIN, and comply with all applicable employment, data protection, and privacy laws when administering assessments.</P>
-            <HB title="Participant Consent">Facilitators are responsible for obtaining appropriate consent from participants before administering CFI assessments and for complying with any applicable workplace data collection obligations in their jurisdiction.</HB>
-          </Section>
-          <Section num="06" title="Permitted Use & Restrictions">
-            <P>You must not:</P>
-            <UL items={[
+            ]})), React.createElement(Section, {num: "03", title: "Account Registration"}, React.createElement(P, null, 'You agree to provide accurate information, maintain the security of your credentials, notify us promptly of any unauthorised access, and accept responsibility for all activity under your account.')), React.createElement(Section, {num: "04", title: "Subscription & Payments"}, React.createElement(P, null, React.createElement("strong", {style: {color:C.text}}, 'Pro Access:'), 'Full access requires payment of the current Pro fee, as displayed on the platform. Payments are processed via Paystack. Pricing may be updated by the platform administrator with reasonable notice.'), React.createElement(P, null, React.createElement("strong", {style: {color:C.text}}, 'Refunds:'), 'Due to the digital nature of platform content, all sales are generally final. Refund requests are considered on a case-by-case basis within 7 days of purchase where the platform has not been substantially accessed.')), React.createElement(Section, {num: "05", title: "Enterprise Access"}, React.createElement(P, null, 'Enterprise facilitators agree to use the platform for legitimate organisational training purposes, manage cohort codes responsibly, protect the facilitator PIN, and comply with all applicable employment, data protection, and privacy laws when administering assessments.'), React.createElement(HB, {title: "Participant Consent"}, 'Facilitators are responsible for obtaining appropriate consent from participants before administering CFI assessments and for complying with any applicable workplace data collection obligations in their jurisdiction.')), React.createElement(Section, {num: "06", title: "Permitted Use & Restrictions"}, React.createElement(P, null, 'You must not:'), React.createElement(UL, {items: [
               'Reproduce, distribute, or create derivative works of the platform content without written permission.',
               'Reverse engineer, decompile, or extract the source code of the platform.',
               'Use the platform to train competing AI or machine learning systems.',
               'Share, resell, or sublicense your account access to third parties.',
               'Use automated tools, bots, or scripts to access or interact with the platform.',
               'Use the platform for any unlawful purpose.',
-            ]} />
-          </Section>
-          <Section num="07" title="Intellectual Property">
-            <P>All content on the NeuralFusion™ platform, including the curriculum, CFI assessment, cognitive framework, scoring methodologies, interface design, and software, is the intellectual property of <strong style={{color:C.text}}>Life Edet</strong> and is protected by Nigerian and international copyright law.</P>
-            <P>The NeuralFusion™ name and logo are trademarks of Life Edet. You may not use these marks without prior written consent.</P>
-          </Section>
-          <Section num="08" title="Assessment Content & Accuracy">
-            <div style={{ background: 'rgba(200,60,60,0.06)', border: '1px solid rgba(200,60,60,0.2)', borderLeft: '3px solid rgba(200,80,80,0.6)', padding: '18px 22px', margin: '0 0 16px', fontSize: 14, color: C.muted, lineHeight: 1.8 }}>
-              <div style={{ ...syne, fontSize: 12, fontWeight: 700, color: 'rgba(240,160,160,0.85)', marginBottom: 6, textTransform: 'uppercase', letterSpacing: 1 }}>Not Clinical or Diagnostic</div>
-              NeuralFusion™ assessments are not clinical, psychological, or diagnostic tools. Results should not be used as a basis for medical or clinical evaluation. If you have concerns about your cognitive health, consult a qualified healthcare professional.
-            </div>
-            <P>We make no warranty that assessment results are accurate, complete, or suitable for any specific purpose beyond the developmental and training context for which they are designed.</P>
-          </Section>
-          <Section num="09" title="Disclaimers & Limitation of Liability">
-            <P>The platform is provided on an "as is" and "as available" basis. We disclaim all warranties, express or implied. To the maximum extent permitted by Nigerian law, our total aggregate liability shall not exceed the amount paid by you in the 12 months preceding any claim.</P>
-          </Section>
-          <Section num="10" title="Governing Law, Changes & Contact">
-            <P>These Terms are governed by the laws of the <strong style={{color:C.text}}>Federal Republic of Nigeria</strong>. We may modify these Terms from time to time; continued use after changes constitutes acceptance.</P>
-            <ContactCard items={[
+            ]})), React.createElement(Section, {num: "07", title: "Intellectual Property"}, React.createElement(P, null, 'All content on the NeuralFusion™ platform, including the curriculum, CFI assessment, cognitive framework, scoring methodologies, interface design, and software, is the intellectual property of', React.createElement("strong", {style: {color:C.text}}, 'Life Edet'), 'and is protected by Nigerian and international copyright law.'), React.createElement(P, null, 'The NeuralFusion™ name and logo are trademarks of Life Edet. You may not use these marks without prior written consent.')), React.createElement(Section, {num: "08", title: "Assessment Content & Accuracy"}, React.createElement("div", {style: { background: 'rgba(200,60,60,0.06)', border: '1px solid rgba(200,60,60,0.2)', borderLeft: '3px solid rgba(200,80,80,0.6)', padding: '18px 22px', margin: '0 0 16px', fontSize: 14, color: C.muted, lineHeight: 1.8 }}, React.createElement("div", {style: { ...syne, fontSize: 12, fontWeight: 700, color: 'rgba(240,160,160,0.85)', marginBottom: 6, textTransform: 'uppercase', letterSpacing: 1 }}, 'Not Clinical or Diagnostic'), 'NeuralFusion™ assessments are not clinical, psychological, or diagnostic tools. Results should not be used as a basis for medical or clinical evaluation. If you have concerns about your cognitive health, consult a qualified healthcare professional.'), React.createElement(P, null, 'We make no warranty that assessment results are accurate, complete, or suitable for any specific purpose beyond the developmental and training context for which they are designed.')), React.createElement(Section, {num: "09", title: "Disclaimers & Limitation of Liability"}, React.createElement(P, null, 'The platform is provided on an "as is" and "as available" basis. We disclaim all warranties, express or implied. To the maximum extent permitted by Nigerian law, our total aggregate liability shall not exceed the amount paid by you in the 12 months preceding any claim.')), React.createElement(Section, {num: "10", title: "Governing Law, Changes & Contact"}, React.createElement(P, null, 'These Terms are governed by the laws of the', React.createElement("strong", {style: {color:C.text}}, 'Federal Republic of Nigeria'), '. We may modify these Terms from time to time; continued use after changes constitutes acceptance.'), React.createElement(ContactCard, {items: [
               { label: 'Platform', value: 'NeuralFusion™' },
               { label: 'Operator', value: 'Life Edet' },
               { label: 'Website', value: 'tryneuralFusion.com' },
               { label: 'Subject Line', value: 'Terms Query: NeuralFusion' },
-            ]} />
-          </Section>
-        </div>
+            ]})))
       );
 
       const DataContent = () => (
-        <div>
-          <Section num="01" title="Our Commitment">
-            <P>NeuralFusion™ is committed to protecting the personal data of every individual who interacts with the platform. We process personal data lawfully, fairly, and transparently in accordance with the <strong style={{color:C.text}}>Nigeria Data Protection Act 2023 (NDPA)</strong> and regulations issued by the Nigeria Data Protection Commission (NDPC).</P>
-            <HB title="Regulatory Framework">This policy is written in compliance with the NDPA 2023. Where enterprise clients operate across jurisdictions subject to additional frameworks (such as GDPR), this policy is designed to be compatible with those requirements.</HB>
-          </Section>
-          <Section num="02" title="Data Controller">
-            <ContactCard items={[
+        React.createElement("div", null, React.createElement(Section, {num: "01", title: "Our Commitment"}, React.createElement(P, null, 'NeuralFusion™ is committed to protecting the personal data of every individual who interacts with the platform. We process personal data lawfully, fairly, and transparently in accordance with the', React.createElement("strong", {style: {color:C.text}}, 'Nigeria Data Protection Act 2023 (NDPA)'), 'and regulations issued by the Nigeria Data Protection Commission (NDPC).'), React.createElement(HB, {title: "Regulatory Framework"}, 'This policy is written in compliance with the NDPA 2023. Where enterprise clients operate across jurisdictions subject to additional frameworks (such as GDPR), this policy is designed to be compatible with those requirements.')), React.createElement(Section, {num: "02", title: "Data Controller"}, React.createElement(ContactCard, {items: [
               { label: 'Controller', value: 'Life Edet' },
               { label: 'Trading As', value: 'NeuralFusion™' },
               { label: 'Platform', value: 'tryneuralFusion.com' },
               { label: 'Jurisdiction', value: 'Federal Republic of Nigeria' },
-            ]} />
-          </Section>
-          <Section num="03" title="Data We Process">
-            <DataTable rows={[
+            ]})), React.createElement(Section, {num: "03", title: "Data We Process"}, React.createElement(DataTable, {rows: [
               ['Name & Email', 'Account creation, authentication, communications', 'Contract performance'],
               ['CFI Assessment Responses', 'Cognitive profiling and personalised insights', 'Contract performance / Consent'],
               ['Lesson Progress', 'Curriculum delivery and completion tracking', 'Contract performance'],
               ['Enterprise Cohort Data', 'Cohort management and reporting', 'Contract performance / Legitimate interests'],
               ['Payment Records', 'Transaction processing and fraud prevention', 'Contract performance / Legal obligation'],
               ['Usage & Device Data', 'Platform security, analytics, improvements', 'Legitimate interests'],
-            ]} />
-          </Section>
-          <Section num="04" title="Data Retention">
-            <UL items={[
+            ]})), React.createElement(Section, {num: "04", title: "Data Retention"}, React.createElement(UL, {items: [
               'Active account data: Retained for the lifetime of your account until you request deletion.',
               'CFI assessment results: Retained for the duration of your account. Enterprise cohort results retained for 12 months after cohort end unless otherwise agreed.',
               'Payment records: Retained for 7 years in accordance with Nigerian financial record-keeping obligations.',
               'Usage/log data: Retained for up to 12 months for security and analytics purposes.',
-            ]} />
-          </Section>
-          <Section num="05" title="Third-Party Processors">
-            <P>We engage the following third-party processors, each contracted to process data only on our instruction:</P>
-            {[
+            ]})), React.createElement(Section, {num: "05", title: "Third-Party Processors"}, React.createElement(P, null, 'We engage the following third-party processors, each contracted to process data only on our instruction:'), [
               { name: 'Supabase', role: 'Database & Authentication', desc: 'Provides database infrastructure, authentication, and row-level security. SOC 2 Type II compliant.' },
               { name: 'Paystack', role: 'Payment Processing', desc: 'Processes subscription payments. PCI-DSS compliant and regulated by the Central Bank of Nigeria.' },
               { name: 'Vercel', role: 'Platform Hosting', desc: 'Hosts the web application. May process request metadata (IP addresses, headers) as part of CDN operations.' },
             ].map((p,i) => (
-              <div key={i} style={{ background: C.deep, border: `1px solid ${C.border}`, padding: '18px 22px', marginBottom: 10, display: 'grid', gridTemplateColumns: '140px 1fr', gap: 16, alignItems: 'start' }}>
-                <div>
-                  <div style={{ ...syne, fontSize: 14, fontWeight: 700, color: C.cyan }}>{p.name}</div>
-                  <div style={{ ...mono, fontSize: 9, letterSpacing: 1, color: C.muted, marginTop: 3, textTransform: 'uppercase' }}>{p.role}</div>
-                </div>
-                <div style={{ fontSize: 13, color: C.muted, lineHeight: 1.7 }}>{p.desc}</div>
-              </div>
-            ))}
-          </Section>
-          <Section num="06" title="Security Measures">
-            <UL items={[
+              React.createElement("div", {key: i, style: { background: C.deep, border: `1px solid ${C.border}`, padding: '18px 22px', marginBottom: 10, display: 'grid', gridTemplateColumns: '140px 1fr', gap: 16, alignItems: 'start' }}, React.createElement("div", null, React.createElement("div", {style: { ...syne, fontSize: 14, fontWeight: 700, color: C.cyan }}, p.name), React.createElement("div", {style: { ...mono, fontSize: 9, letterSpacing: 1, color: C.muted, marginTop: 3, textTransform: 'uppercase' }}, p.role)), React.createElement("div", {style: { fontSize: 13, color: C.muted, lineHeight: 1.7 }}, p.desc))
+            ))), React.createElement(Section, {num: "06", title: "Security Measures"}, React.createElement(UL, {items: [
               'Encryption in transit: All data is encrypted using TLS 1.2 or higher (HTTPS).',
               'Access control: Row-level security policies in Supabase ensure users can only access their own data. Enterprise data is segmented by cohort code.',
               'Authentication: Secure session-based authentication via Supabase Auth with password hashing and token management.',
               'Administrative access: Restricted and subject to strong credential requirements.',
-            ]} />
-          </Section>
-          <Section num="07" title="Your Data Rights">
-            <P>Under the NDPA 2023, you have the right to be informed, the right of access, rectification, erasure, restriction of processing, data portability, and the right to object to certain processing. To exercise any right, contact us at the details below. We will respond within <strong style={{color:C.text}}>30 days</strong>.</P>
-          </Section>
-          <Section num="08" title="Data Breach Response">
-            <P>In the event of a personal data breach, we will assess the breach without undue delay, notify the NDPC within 72 hours where required, notify affected individuals where there is high risk to their rights, and take appropriate remedial action.</P>
-          </Section>
-          <Section num="09" title="Contact & Complaints">
-            <P>For all data protection enquiries or to report a security concern:</P>
-            <ContactCard items={[
+            ]})), React.createElement(Section, {num: "07", title: "Your Data Rights"}, React.createElement(P, null, 'Under the NDPA 2023, you have the right to be informed, the right of access, rectification, erasure, restriction of processing, data portability, and the right to object to certain processing. To exercise any right, contact us at the details below. We will respond within', React.createElement("strong", {style: {color:C.text}}, '30 days'), '.')), React.createElement(Section, {num: "08", title: "Data Breach Response"}, React.createElement(P, null, 'In the event of a personal data breach, we will assess the breach without undue delay, notify the NDPC within 72 hours where required, notify affected individuals where there is high risk to their rights, and take appropriate remedial action.')), React.createElement(Section, {num: "09", title: "Contact & Complaints"}, React.createElement(P, null, 'For all data protection enquiries or to report a security concern:'), React.createElement(ContactCard, {items: [
               { label: 'Data Controller', value: 'Life Edet / NeuralFusion™' },
               { label: 'Website', value: 'tryneuralFusion.com' },
               { label: 'Subject Line', value: 'Data Protection: NeuralFusion' },
               { label: 'Response Time', value: 'Within 30 days' },
-            ]} />
-            <P>If unsatisfied with our response, you may lodge a complaint with the <strong style={{color:C.text}}>Nigeria Data Protection Commission (NDPC)</strong> at ndpc.gov.ng.</P>
-          </Section>
-        </div>
+            ]}), React.createElement(P, null, 'If unsatisfied with our response, you may lodge a complaint with the', React.createElement("strong", {style: {color:C.text}}, 'Nigeria Data Protection Commission (NDPC)'), 'at ndpc.gov.ng.')))
       );
 
       return (
-        <div style={{ paddingTop: 80, paddingBottom: 120, minHeight: '100vh' }}>
-          <div style={{ maxWidth: 900, margin: '0 auto', padding: '60px 24px 0' }}>
-
-            {/* Hero */}
-            <div style={{ marginBottom: 48 }}>
-              <div style={{ ...mono, fontSize: 9, letterSpacing: 4, color: C.cyan, marginBottom: 16, textTransform: 'uppercase', display: 'flex', alignItems: 'center', gap: 12 }}>
-                <span style={{ width: 28, height: 1, background: C.cyan, opacity: 0.5, display: 'inline-block' }}></span>
-                Legal Documentation
-              </div>
-              <h1 style={{ ...syne, fontSize: 'clamp(32px,5vw,56px)', fontWeight: 800, color: C.text, letterSpacing: '-0.04em', lineHeight: 0.96, marginBottom: 16 }}>
-                Legal &amp; <span style={{ color: C.cyan }}>Compliance</span>
-              </h1>
-              <p style={{ fontSize: 14, color: C.muted, maxWidth: 520, lineHeight: 1.8 }}>
-                Our commitments to your privacy, the terms governing your use of NeuralFusion™, and our data protection practices under the Nigeria Data Protection Act 2023.
-              </p>
-              <div style={{ display: 'flex', gap: 32, marginTop: 24, paddingTop: 24, borderTop: `1px solid ${C.border}`, flexWrap: 'wrap' }}>
-                {[{ label: 'Effective', value: '4 June 2026' }, { label: 'Governing Law', value: 'Nigeria (NDPA 2023)' }, { label: 'Controller', value: 'Life Edet' }].map((m,i) => (
-                  <div key={i}>
-                    <div style={{ ...mono, fontSize: 9, letterSpacing: 2, color: C.muted, textTransform: 'uppercase', marginBottom: 3 }}>{m.label}</div>
-                    <div style={{ fontSize: 13, color: C.cyan, fontWeight: 500 }}>{m.value}</div>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Tab Bar */}
-            <div style={{ borderBottom: `1px solid ${C.border}`, marginBottom: 48, display: 'flex', gap: 4, overflowX: 'auto' }}>
-              {tabs.map(t => (
-                <button key={t.id} style={tabStyle(t.id)} onClick={() => setTab(t.id)}>{t.label}</button>
-              ))}
-            </div>
-
-            {/* Tab Content */}
-            {tab === 'privacy' && <PrivacyContent />}
-            {tab === 'terms'   && <TermsContent />}
-            {tab === 'data'    && <DataContent />}
-
-          </div>
-        </div>
+        React.createElement("div", {style: { paddingTop: 80, paddingBottom: 120, minHeight: '100vh' }}, React.createElement("div", {style: { maxWidth: 900, margin: '0 auto', padding: '60px 24px 0' }}, React.createElement("div", {style: { marginBottom: 48 }}, React.createElement("div", {style: { ...mono, fontSize: 9, letterSpacing: 4, color: C.cyan, marginBottom: 16, textTransform: 'uppercase', display: 'flex', alignItems: 'center', gap: 12 }}, React.createElement("span", {style: { width: 28, height: 1, background: C.cyan, opacity: 0.5, display: 'inline-block' }}), 'Legal Documentation'), React.createElement("h1", {style: { ...syne, fontSize: 'clamp(32px,5vw,56px)', fontWeight: 800, color: C.text, letterSpacing: '-0.04em', lineHeight: 0.96, marginBottom: 16 }}, 'Legal &amp;', React.createElement("span", {style: { color: C.cyan }}, 'Compliance')), React.createElement("p", {style: { fontSize: 14, color: C.muted, maxWidth: 520, lineHeight: 1.8 }}, 'Our commitments to your privacy, the terms governing your use of NeuralFusion™, and our data protection practices under the Nigeria Data Protection Act 2023.'), React.createElement("div", {style: { display: 'flex', gap: 32, marginTop: 24, paddingTop: 24, borderTop: `1px solid ${C.border}`, flexWrap: 'wrap' }}, [{ label: 'Effective', value: '4 June 2026' }, { label: 'Governing Law', value: 'Nigeria (NDPA 2023)' }, { label: 'Controller', value: 'Life Edet' }].map((m,i) => (
+                  React.createElement("div", {key: i}, React.createElement("div", {style: { ...mono, fontSize: 9, letterSpacing: 2, color: C.muted, textTransform: 'uppercase', marginBottom: 3 }}, m.label), React.createElement("div", {style: { fontSize: 13, color: C.cyan, fontWeight: 500 }}, m.value))
+                )))), React.createElement("div", {style: { borderBottom: `1px solid ${C.border}`, marginBottom: 48, display: 'flex', gap: 4, overflowX: 'auto' }}, tabs.map(t => (
+                React.createElement("button", {key: t.id, style: tabStyle(t.id), onClick: () => setTab(t.id)}, t.label)
+              ))), tab === 'privacy' && React.createElement(PrivacyContent, null), tab === 'terms'   && React.createElement(TermsContent, null), tab === 'data'    && React.createElement(DataContent, null)))
       );
     }
 
@@ -2985,27 +1544,11 @@ a premium mental performance environment for{' '}
         { label:'Data Protection', v:'legal', tab:'data' },
       ];
       return (
-        <footer style={{ borderTop:`1px solid ${C.border}`, padding:'48px 24px 32px', textAlign:'center' }}>
-          <div style={{ maxWidth:1200, margin:'0 auto' }}>
-            <div style={{ display:'flex', alignItems:'center', justifyContent:'center', gap:12, marginBottom:32 }}>
-              <div style={{ ...mono, fontSize:18, color:C.cyan }}>◈</div>
-              <div style={{ ...syne, fontSize:16, fontWeight:800, color:C.text, letterSpacing:2 }}>NEURALFUSION™</div>
-            </div>
-            <div style={{ display:'flex', justifyContent:'center', flexWrap:'wrap', gap:24, marginBottom:20 }}>
-              {links.map(l=>(
-                <button key={l.v} onClick={()=>setView(l.v)} style={{ background:'none', border:'none', color:C.muted, fontSize:12, cursor:'pointer' }}>{l.label}</button>
-              ))}
-            </div>
-            <div style={{ display:'flex', justifyContent:'center', flexWrap:'wrap', gap:20, marginBottom:32, paddingTop:16, borderTop:`1px solid ${C.border}` }}>
-              {legalLinks.map(l=>(
-                <button key={l.label} onClick={()=>setView(l.v)} style={{ background:'none', border:'none', color:C.dim, fontSize:10, cursor:'pointer', fontFamily:"'Space Mono', monospace", letterSpacing:1 }}>{l.label}</button>
-              ))}
-            </div>
-            <div style={{ ...mono, fontSize:8, letterSpacing:3, color:C.dim }}>
-              © 2026 LIFE EDET · NEURALFUSION™ COGNITIVE PERFORMANCE OS · ALL RIGHTS RESERVED
-            </div>
-          </div>
-        </footer>
+        React.createElement("footer", {style: { borderTop:`1px solid ${C.border}`, padding:'48px 24px 32px', textAlign:'center' }}, React.createElement("div", {style: { maxWidth:1200, margin:'0 auto' }}, React.createElement("div", {style: { display:'flex', alignItems:'center', justifyContent:'center', gap:12, marginBottom:32 }}, React.createElement("div", {style: { ...mono, fontSize:18, color:C.cyan }}, '◈'), React.createElement("div", {style: { ...syne, fontSize:16, fontWeight:800, color:C.text, letterSpacing:2 }}, 'NEURALFUSION™')), React.createElement("div", {style: { display:'flex', justifyContent:'center', flexWrap:'wrap', gap:24, marginBottom:20 }}, links.map(l=>(
+                React.createElement("button", {key: l.v, onClick: ()=>setView(l.v), style: { background:'none', border:'none', color:C.muted, fontSize:12, cursor:'pointer' }}, l.label)
+              ))), React.createElement("div", {style: { display:'flex', justifyContent:'center', flexWrap:'wrap', gap:20, marginBottom:32, paddingTop:16, borderTop:`1px solid ${C.border}` }}, legalLinks.map(l=>(
+                React.createElement("button", {key: l.label, onClick: ()=>setView(l.v), style: { background:'none', border:'none', color:C.dim, fontSize:10, cursor:'pointer', fontFamily:"'Space Mono', monospace", letterSpacing:1 }}, l.label)
+              ))), React.createElement("div", {style: { ...mono, fontSize:8, letterSpacing:3, color:C.dim }}, '© 2026 LIFE EDET · NEURALFUSION™ COGNITIVE PERFORMANCE OS · ALL RIGHTS RESERVED')))
       );
     }
 
@@ -3231,12 +1774,7 @@ a premium mental performance environment for{' '}
 
       /* ── LOADING ── */
       if (loading && users.length === 0) return (
-        <div style={{ paddingTop:80, minHeight:'100vh', display:'flex', alignItems:'center', justifyContent:'center' }}>
-          <div style={{ textAlign:'center' }}>
-            <div style={{ ...mono, fontSize:36, color:C.cyan, animation:'neuralPulse 2s ease-in-out infinite' }}>◈</div>
-            <div style={{ ...mono, fontSize:9, letterSpacing:3, color:C.muted, marginTop:16 }}>LOADING ADMIN DATA...</div>
-          </div>
-        </div>
+        React.createElement("div", {style: { paddingTop:80, minHeight:'100vh', display:'flex', alignItems:'center', justifyContent:'center' }}, React.createElement("div", {style: { textAlign:'center' }}, React.createElement("div", {style: { ...mono, fontSize:36, color:C.cyan, animation:'neuralPulse 2s ease-in-out infinite' }}, '◈'), React.createElement("div", {style: { ...mono, fontSize:9, letterSpacing:3, color:C.muted, marginTop:16 }}, 'LOADING ADMIN DATA...')))
       );
 
       /* ── TABS ── */
@@ -3268,31 +1806,10 @@ a premium mental performance environment for{' '}
       const msgColor = actionType === 'success' ? '#7AAFCF' : actionType === 'error' ? '#F87171' : '#C4A050';
 
       return (
-        <div style={{ paddingTop:80, paddingBottom:100, minHeight:'100vh' }}>
-          <div style={{ maxWidth:1280, margin:'0 auto', padding:'32px 24px' }}>
-
-            {/* Header */}
-            <div style={{ display:'flex', alignItems:'flex-start', justifyContent:'space-between', flexWrap:'wrap', gap:16, marginBottom:32 }}>
-              <div>
-                <div style={{ ...mono, fontSize:9, letterSpacing:3, color:C.cyan, marginBottom:8 }}>ADMIN PORTAL · NEURALFUSION™</div>
-                <div style={{ ...syne, fontSize:28, fontWeight:800, color:C.text, marginBottom:4 }}>Control Dashboard</div>
-                <div style={{ fontSize:13, color:C.muted }}>Signed in as <span style={{ color:C.cyan }}>{user?.email}</span></div>
-              </div>
-              <div style={{ display:'flex', gap:10, alignItems:'center' }}>
-                {actionMsg && (
-                  <div style={{ padding:'8px 16px', background:`rgba(${actionType==='error'?'248,113,113':actionType==='success'?'122,175,207':'196,160,80'},0.1)`, border:`1px solid rgba(${actionType==='error'?'248,113,113':actionType==='success'?'122,175,207':'196,160,80'},0.3)`, borderRadius:2, ...mono, fontSize:10, color:msgColor }}>
-                    {actionMsg}
-                  </div>
-                )}
-                <button className="btn-outline" style={{ fontSize:10 }} onClick={loadAdminData}>↺ Refresh</button>
-                <button className="btn-ghost" style={{ fontSize:10 }} onClick={() => setView('home')}>← Exit Admin</button>
-              </div>
-            </div>
-
-            {/* Tab bar */}
-            <div style={{ display:'flex', gap:4, marginBottom:32, background:C.deep, padding:4, borderRadius:4, flexWrap:'wrap' }}>
-              {tabs.map(t => (
-                <button key={t.id} onClick={() => setTab(t.id)} style={{
+        React.createElement("div", {style: { paddingTop:80, paddingBottom:100, minHeight:'100vh' }}, React.createElement("div", {style: { maxWidth:1280, margin:'0 auto', padding:'32px 24px' }}, React.createElement("div", {style: { display:'flex', alignItems:'flex-start', justifyContent:'space-between', flexWrap:'wrap', gap:16, marginBottom:32 }}, React.createElement("div", null, React.createElement("div", {style: { ...mono, fontSize:9, letterSpacing:3, color:C.cyan, marginBottom:8 }}, 'ADMIN PORTAL · NEURALFUSION™'), React.createElement("div", {style: { ...syne, fontSize:28, fontWeight:800, color:C.text, marginBottom:4 }}, 'Control Dashboard'), React.createElement("div", {style: { fontSize:13, color:C.muted }}, 'Signed in as', React.createElement("span", {style: { color:C.cyan }}, user?.email))), React.createElement("div", {style: { display:'flex', gap:10, alignItems:'center' }}, actionMsg && (
+                  React.createElement("div", {style: { padding:'8px 16px', background:`rgba(${actionType==='error'?'248,113,113':actionType==='success'?'122,175,207':'196,160,80'},0.1)`, border:`1px solid rgba(${actionType==='error'?'248,113,113':actionType==='success'?'122,175,207':'196,160,80'},0.3)`, borderRadius:2, ...mono, fontSize:10, color:msgColor }}, actionMsg)
+                ), React.createElement("button", {className: "btn-outline", style: { fontSize:10 }, onClick: loadAdminData}, '↺ Refresh'), React.createElement("button", {className: "btn-ghost", style: { fontSize:10 }, onClick: () => setView('home')}, '← Exit Admin'))), React.createElement("div", {style: { display:'flex', gap:4, marginBottom:32, background:C.deep, padding:4, borderRadius:4, flexWrap:'wrap' }}, tabs.map(t => (
+                React.createElement("button", {key: t.id, onClick: () => setTab(t.id), style: {
                   flex:'1 1 auto', padding:'10px 16px',
                   background: tab===t.id ? C.surface : 'transparent',
                   border: tab===t.id ? `1px solid ${C.borderBright}` : '1px solid transparent',
@@ -3300,26 +1817,12 @@ a premium mental performance environment for{' '}
                   ...mono, fontSize:9, letterSpacing:2, cursor:'pointer', borderRadius:3,
                   display:'flex', alignItems:'center', justifyContent:'center', gap:6,
                   transition:'all 0.2s',
-                }}>
-                  <span>{t.icon}</span><span>{t.label.toUpperCase()}</span>
-                </button>
-              ))}
-            </div>
-
-            {loading && (
-              <div style={{ textAlign:'center', padding:'60px', color:C.muted }}>
-                <div style={{ ...mono, fontSize:32, color:C.cyan, animation:'neuralPulse 2s ease-in-out infinite' }}>◈</div>
-                <div style={{ ...mono, fontSize:9, letterSpacing:3, marginTop:16 }}>LOADING DATA...</div>
-              </div>
-            )}
-
-            {!loading && (
-              <>
-                {/* ─── OVERVIEW ─── */}
-                {tab === 'overview' && (
-                  <div>
-                    <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(min(180px,100%),1fr))', gap:16, marginBottom:32 }}>
-                      {[
+                }}, React.createElement("span", null, t.icon), React.createElement("span", null, t.label.toUpperCase()))
+              ))), loading && (
+              React.createElement("div", {style: { textAlign:'center', padding:'60px', color:C.muted }}, React.createElement("div", {style: { ...mono, fontSize:32, color:C.cyan, animation:'neuralPulse 2s ease-in-out infinite' }}, '◈'), React.createElement("div", {style: { ...mono, fontSize:9, letterSpacing:3, marginTop:16 }}, 'LOADING DATA...'))
+            ), !loading && (
+              React.createElement(React.Fragment, null, tab === 'overview' && (
+                  React.createElement("div", null, React.createElement("div", {style: { display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(min(180px,100%),1fr))', gap:16, marginBottom:32 }}, [
                         { label:'TOTAL USERS',       value:users.length,         color:'#C4A050', icon:'◱' },
                         { label:'PRO SUBSCRIBERS',   value:proUsers.length,       color:'#E2BE78', icon:'★' },
                         { label:'ENTERPRISE USERS',  value:entUsers.length,       color:'#7AAFCF', icon:'⊞' },
@@ -3327,68 +1830,22 @@ a premium mental performance environment for{' '}
                         { label:'ACTIVE COHORTS',    value:localCohorts.filter(c=>c.status==='active').length, color:'#4CF7C0', icon:'◇' },
                         { label:'FREE USERS',        value:users.filter(u=>!u.is_pro).length, color:'#9A8A6A', icon:'◰' },
                       ].map((s,i) => (
-                        <div key={i} className="card bento-shimmer" style={{ padding:'24px 20px' }}>
-                          <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', marginBottom:12 }}>
-                            <div style={{ ...mono, fontSize:8, letterSpacing:2.5, color:'#8A7A5A' }}>{s.label}</div>
-                            <div style={{ ...mono, fontSize:16, color:s.color, textShadow:`0 0 12px ${s.color}66` }}>{s.icon}</div>
-                          </div>
-                          <div style={{ ...syne, fontSize:36, fontWeight:800, color:s.color, lineHeight:1, letterSpacing:'-0.02em' }}>{s.value}</div>
-                        </div>
-                      ))}
-                    </div>
-
-                    <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(min(320px,100%),1fr))', gap:24, marginBottom:24 }}>
-                      {/* CFI Band Distribution */}
-                      <div className="card" style={{ padding:'28px' }}>
-                        <div style={{ ...mono, fontSize:9, letterSpacing:3, color:C.cyan, marginBottom:20 }}>CFI BAND DISTRIBUTION</div>
-                        {Object.keys(bandColors).map(band => {
+                        React.createElement("div", {key: i, className: "card bento-shimmer", style: { padding:'24px 20px' }}, React.createElement("div", {style: { display:'flex', justifyContent:'space-between', alignItems:'flex-start', marginBottom:12 }}, React.createElement("div", {style: { ...mono, fontSize:8, letterSpacing:2.5, color:'#8A7A5A' }}, s.label), React.createElement("div", {style: { ...mono, fontSize:16, color:s.color, textShadow:`0 0 12px ${s.color}66` }}, s.icon)), React.createElement("div", {style: { ...syne, fontSize:36, fontWeight:800, color:s.color, lineHeight:1, letterSpacing:'-0.02em' }}, s.value))
+                      ))), React.createElement("div", {style: { display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(min(320px,100%),1fr))', gap:24, marginBottom:24 }}, React.createElement("div", {className: "card", style: { padding:'28px' }}, React.createElement("div", {style: { ...mono, fontSize:9, letterSpacing:3, color:C.cyan, marginBottom:20 }}, 'CFI BAND DISTRIBUTION'), Object.keys(bandColors).map(band => {
                           const count = bandCounts[band] || 0;
                           const pct   = cfiData.length ? Math.round(count/cfiData.length*100) : 0;
                           return (
-                            <div key={band} style={{ marginBottom:16 }}>
-                              <div style={{ display:'flex', justifyContent:'space-between', marginBottom:6 }}>
-                                <div style={{ fontSize:12, color:C.muted }}>{band}</div>
-                                <div style={{ ...mono, fontSize:10, color:bandColors[band] }}>{count} ({pct}%)</div>
-                              </div>
-                              <div style={{ height:4, background:C.panel, borderRadius:2 }}>
-                                <div style={{ width:`${pct}%`, height:'100%', background:bandColors[band], borderRadius:2, transition:'width 0.8s ease' }} />
-                              </div>
-                            </div>
+                            React.createElement("div", {key: band, style: { marginBottom:16 }}, React.createElement("div", {style: { display:'flex', justifyContent:'space-between', marginBottom:6 }}, React.createElement("div", {style: { fontSize:12, color:C.muted }}, band), React.createElement("div", {style: { ...mono, fontSize:10, color:bandColors[band] }}, count, '(', pct, '%)')), React.createElement("div", {style: { height:4, background:C.panel, borderRadius:2 }}, React.createElement("div", {style: { width:`${pct}%`, height:'100%', background:bandColors[band], borderRadius:2, transition:'width 0.8s ease' }})))
                           );
-                        })}
-                        {cfiData.length === 0 && <div style={{ color:C.dim, fontSize:13 }}>No CFI data yet.</div>}
-                      </div>
-
-                      {/* Recent signups */}
-                      <div className="card" style={{ padding:'28px' }}>
-                        <div style={{ ...mono, fontSize:9, letterSpacing:3, color:C.cyan, marginBottom:20 }}>RECENT SIGNUPS</div>
-                        {users.slice(0,8).map((u,i) => (
-                          <div key={u.id} style={{ display:'flex', alignItems:'center', gap:12, padding:'10px 0', borderBottom:`1px solid ${C.border}` }}>
-                            <div style={{
+                        }), cfiData.length === 0 && React.createElement("div", {style: { color:C.dim, fontSize:13 }}, 'No CFI data yet.')), React.createElement("div", {className: "card", style: { padding:'28px' }}, React.createElement("div", {style: { ...mono, fontSize:9, letterSpacing:3, color:C.cyan, marginBottom:20 }}, 'RECENT SIGNUPS'), users.slice(0,8).map((u,i) => (
+                          React.createElement("div", {key: u.id, style: { display:'flex', alignItems:'center', gap:12, padding:'10px 0', borderBottom:`1px solid ${C.border}` }}, React.createElement("div", {style: {
                               width:32, height:32, borderRadius:'50%',
                               background:`radial-gradient(circle, ${C.cyan}20, transparent)`,
                               border:`1px solid ${C.border}`,
                               display:'flex', alignItems:'center', justifyContent:'center',
                               ...mono, fontSize:11, color:C.cyan, flexShrink:0,
-                            }}>{(u.full_name||u.email||'?')[0].toUpperCase()}</div>
-                            <div style={{ flex:1, minWidth:0 }}>
-                              <div style={{ fontSize:13, color:C.text, fontWeight:500, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>
-                                {u.full_name || 'Unnamed'}
-                              </div>
-                              <div style={{ ...mono, fontSize:9, color:C.muted, letterSpacing:1 }}>{u.email || u.id?.slice(0,12)}</div>
-                            </div>
-                            {u.is_pro && <div style={{ ...mono, fontSize:8, color:'#E2BE78', background:'rgba(226,190,120,0.1)', border:'1px solid rgba(226,190,120,0.25)', padding:'3px 8px', borderRadius:100 }}>PRO</div>}
-                            {u.is_enterprise && <div style={{ ...mono, fontSize:8, color:'#7AAFCF', background:'rgba(122,175,207,0.1)', border:'1px solid rgba(122,175,207,0.25)', padding:'3px 8px', borderRadius:100 }}>ENT</div>}
-                          </div>
-                        ))}
-                        {users.length === 0 && <div style={{ color:C.dim, fontSize:13 }}>No users yet.</div>}
-                      </div>
-
-                      {/* Quick actions */}
-                      <div className="card" style={{ padding:'28px' }}>
-                        <div style={{ ...mono, fontSize:9, letterSpacing:3, color:C.cyan, marginBottom:20 }}>QUICK ACTIONS</div>
-                        <div style={{ display:'flex', flexDirection:'column', gap:10 }}>
-                          {[
+                            }}, (u.full_name||u.email||'?')[0].toUpperCase()), React.createElement("div", {style: { flex:1, minWidth:0 }}, React.createElement("div", {style: { fontSize:13, color:C.text, fontWeight:500, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}, u.full_name || 'Unnamed'), React.createElement("div", {style: { ...mono, fontSize:9, color:C.muted, letterSpacing:1 }}, u.email || u.id?.slice(0,12))), u.is_pro && React.createElement("div", {style: { ...mono, fontSize:8, color:'#E2BE78', background:'rgba(226,190,120,0.1)', border:'1px solid rgba(226,190,120,0.25)', padding:'3px 8px', borderRadius:100 }}, 'PRO'), u.is_enterprise && React.createElement("div", {style: { ...mono, fontSize:8, color:'#7AAFCF', background:'rgba(122,175,207,0.1)', border:'1px solid rgba(122,175,207,0.25)', padding:'3px 8px', borderRadius:100 }}, 'ENT'))
+                        )), users.length === 0 && React.createElement("div", {style: { color:C.dim, fontSize:13 }}, 'No users yet.')), React.createElement("div", {className: "card", style: { padding:'28px' }}, React.createElement("div", {style: { ...mono, fontSize:9, letterSpacing:3, color:C.cyan, marginBottom:20 }}, 'QUICK ACTIONS'), React.createElement("div", {style: { display:'flex', flexDirection:'column', gap:10 }}, [
                             { label:'Manage Users', desc:'Grant/revoke pro & enterprise', tab:'users', icon:'◱' },
                             { label:'View CFI Results', desc:'Filter and delete assessments', tab:'cfi', icon:'◎' },
                             { label:'Create Cohort', desc:'Launch enterprise cohort', tab:'cohorts', icon:'⊞' },
@@ -3396,754 +1853,231 @@ a premium mental performance environment for{' '}
                             { label:'Edit Pricing', desc:'Pro & enterprise prices', tab:'pricing', icon:'₦' },
                             { label:'Edit Branding', desc:'CTA text, hero content', tab:'branding', icon:'◐' },
                           ].map((a,i) => (
-                            <button key={i} onClick={() => setTab(a.tab)} style={{
+                            React.createElement("button", {key: i, onClick: () => setTab(a.tab), style: {
                               display:'flex', alignItems:'center', gap:12,
                               padding:'12px 14px', background:C.deep,
                               border:`1px solid ${C.border}`, borderRadius:4,
                               cursor:'pointer', textAlign:'left', transition:'border-color 0.2s',
-                            }}
-                              onMouseEnter={e => e.currentTarget.style.borderColor=C.borderBright}
-                              onMouseLeave={e => e.currentTarget.style.borderColor=C.border}
-                            >
-                              <span style={{ ...mono, fontSize:16, color:C.cyan }}>{a.icon}</span>
-                              <div>
-                                <div style={{ fontSize:13, color:C.text, fontWeight:500 }}>{a.label}</div>
-                                <div style={{ ...mono, fontSize:9, color:C.muted, letterSpacing:1 }}>{a.desc}</div>
-                              </div>
-                            </button>
-                          ))}
-                        </div>
-                      </div>
-
-                      {/* Revenue snapshot */}
-                      <div className="card" style={{ padding:'28px', borderColor:'rgba(196,160,80,0.25)' }}>
-                        <div style={{ ...mono, fontSize:9, letterSpacing:3, color:C.cyan, marginBottom:20 }}>REVENUE SNAPSHOT</div>
-                        {[
+                            }, onMouseEnter: e => e.currentTarget.style.borderColor=C.borderBright, onMouseLeave: e => e.currentTarget.style.borderColor=C.border}, React.createElement("span", {style: { ...mono, fontSize:16, color:C.cyan }}, a.icon), React.createElement("div", null, React.createElement("div", {style: { fontSize:13, color:C.text, fontWeight:500 }}, a.label), React.createElement("div", {style: { ...mono, fontSize:9, color:C.muted, letterSpacing:1 }}, a.desc)))
+                          )))), React.createElement("div", {className: "card", style: { padding:'28px', borderColor:'rgba(196,160,80,0.25)' }}, React.createElement("div", {style: { ...mono, fontSize:9, letterSpacing:3, color:C.cyan, marginBottom:20 }}, 'REVENUE SNAPSHOT'), [
                           { label:'Pro Price', value:`₦${(proPrice/100).toLocaleString()}`, color:C.cyan },
                           { label:'Est. Pro Revenue', value:`₦${((proUsers.length * proPrice)/100).toLocaleString()}`, color:'#E2BE78' },
                           { label:'Enterprise Price', value:`₦${(entPrice/100).toLocaleString()}`, color:'#7AAFCF' },
                           { label:'Est. Ent Revenue', value:`₦${((entUsers.length * entPrice)/100).toLocaleString()}`, color:'#4CF7C0' },
                           { label:'Pro Conversion', value:`${users.length ? Math.round(proUsers.length/users.length*100) : 0}%`, color:'#D4AF6A' },
                         ].map((r,i) => (
-                          <div key={i} style={{ display:'flex', justifyContent:'space-between', padding:'10px 0', borderBottom:`1px solid ${C.border}` }}>
-                            <div style={{ ...mono, fontSize:9, color:C.muted, letterSpacing:1.5 }}>{r.label.toUpperCase()}</div>
-                            <div style={{ ...syne, fontSize:15, fontWeight:700, color:r.color }}>{r.value}</div>
-                          </div>
-                        ))}
-                        <button className="btn-outline" style={{ fontSize:10, marginTop:16 }} onClick={() => setTab('pricing')}>Edit Pricing →</button>
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {/* ─── USERS ─── */}
-                {tab === 'users' && (
-                  <div>
-                    <div style={{ display:'flex', gap:12, marginBottom:20, flexWrap:'wrap', alignItems:'center' }}>
-                      <input
-                        value={userSearch}
-                        onChange={e => setUserSearch(e.target.value)}
-                        placeholder="Search by name or email..."
-                        style={{ flex:1, minWidth:200, fontSize:13 }}
-                      />
-                      <div style={{ display:'flex', gap:4, background:C.deep, padding:4, borderRadius:3 }}>
-                        {['all','pro','enterprise','free'].map(f => (
-                          <button key={f} onClick={() => setProFilter(f)} style={{
+                          React.createElement("div", {key: i, style: { display:'flex', justifyContent:'space-between', padding:'10px 0', borderBottom:`1px solid ${C.border}` }}, React.createElement("div", {style: { ...mono, fontSize:9, color:C.muted, letterSpacing:1.5 }}, r.label.toUpperCase()), React.createElement("div", {style: { ...syne, fontSize:15, fontWeight:700, color:r.color }}, r.value))
+                        )), React.createElement("button", {className: "btn-outline", style: { fontSize:10, marginTop:16 }, onClick: () => setTab('pricing')}, 'Edit Pricing →'))))
+                ), tab === 'users' && (
+                  React.createElement("div", null, React.createElement("div", {style: { display:'flex', gap:12, marginBottom:20, flexWrap:'wrap', alignItems:'center' }}, React.createElement("input", {value: userSearch, onChange: e => setUserSearch(e.target.value), placeholder: "Search by name or email...", style: { flex:1, minWidth:200, fontSize:13 }}), React.createElement("div", {style: { display:'flex', gap:4, background:C.deep, padding:4, borderRadius:3 }}, ['all','pro','enterprise','free'].map(f => (
+                          React.createElement("button", {key: f, onClick: () => setProFilter(f), style: {
                             padding:'8px 14px', background:proFilter===f?C.surface:'transparent',
                             border:proFilter===f?`1px solid ${C.borderBright}`:'1px solid transparent',
                             color:proFilter===f?C.cyan:C.muted,
                             ...mono, fontSize:9, letterSpacing:2, cursor:'pointer', borderRadius:2, textTransform:'uppercase',
-                          }}>{f}</button>
-                        ))}
-                      </div>
-                      <div style={{ ...mono, fontSize:9, color:C.muted, letterSpacing:2 }}>{filteredUsers.length} USERS</div>
-                    </div>
-
-                    <div className="card" style={{ overflow:'hidden' }}>
-                      <div style={{ display:'grid', gridTemplateColumns:'1fr 1.5fr 70px 70px 80px 150px', gap:12, padding:'14px 20px', borderBottom:`1px solid ${C.border}`, background:C.deep }}>
-                        {['NAME','EMAIL','PRO','ENT','JOINED','ACTIONS'].map(h => (
-                          <div key={h} style={{ ...mono, fontSize:8, letterSpacing:2.5, color:C.muted }}>{h}</div>
-                        ))}
-                      </div>
-                      <div style={{ maxHeight:560, overflowY:'auto' }}>
-                        {filteredUsers.length === 0 && (
-                          <div style={{ padding:'40px', textAlign:'center', color:C.dim, fontSize:13 }}>No users match filter.</div>
-                        )}
-                        {filteredUsers.map((u,i) => (
-                          <div key={u.id} style={{
+                          }}, f)
+                        ))), React.createElement("div", {style: { ...mono, fontSize:9, color:C.muted, letterSpacing:2 }}, filteredUsers.length, 'USERS')), React.createElement("div", {className: "card", style: { overflow:'hidden' }}, React.createElement("div", {style: { display:'grid', gridTemplateColumns:'1fr 1.5fr 70px 70px 80px 150px', gap:12, padding:'14px 20px', borderBottom:`1px solid ${C.border}`, background:C.deep }}, ['NAME','EMAIL','PRO','ENT','JOINED','ACTIONS'].map(h => (
+                          React.createElement("div", {key: h, style: { ...mono, fontSize:8, letterSpacing:2.5, color:C.muted }}, h)
+                        ))), React.createElement("div", {style: { maxHeight:560, overflowY:'auto' }}, filteredUsers.length === 0 && (
+                          React.createElement("div", {style: { padding:'40px', textAlign:'center', color:C.dim, fontSize:13 }}, 'No users match filter.')
+                        ), filteredUsers.map((u,i) => (
+                          React.createElement("div", {key: u.id, style: {
                             display:'grid', gridTemplateColumns:'1fr 1.5fr 70px 70px 80px 150px', gap:12,
                             padding:'12px 20px', borderBottom:`1px solid ${C.border}`,
                             transition:'background 0.15s',
-                          }}
-                            onMouseEnter={e => e.currentTarget.style.background=C.deep}
-                            onMouseLeave={e => e.currentTarget.style.background='transparent'}
-                          >
-                            <div style={{ fontSize:12, color:C.text, fontWeight:500, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{u.full_name || 'N/A'}</div>
-                            <div style={{ ...mono, fontSize:9, color:C.muted, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{u.email || u.id?.slice(0,16)+'...'}</div>
-                            <div>
-                              {u.is_pro
-                                ? <span style={{ ...mono, fontSize:8, color:'#E2BE78', background:'rgba(226,190,120,0.1)', border:'1px solid rgba(226,190,120,0.25)', padding:'3px 8px', borderRadius:100 }}>PRO</span>
-                                : <span style={{ ...mono, fontSize:8, color:C.dim, background:C.deep, border:`1px solid ${C.border}`, padding:'3px 8px', borderRadius:100 }}>--</span>
-                              }
-                            </div>
-                            <div>
-                              {u.is_enterprise
-                                ? <span style={{ ...mono, fontSize:8, color:'#7AAFCF', background:'rgba(122,175,207,0.1)', border:'1px solid rgba(122,175,207,0.25)', padding:'3px 8px', borderRadius:100 }}>ENT</span>
-                                : <span style={{ ...mono, fontSize:8, color:C.dim, background:C.deep, border:`1px solid ${C.border}`, padding:'3px 8px', borderRadius:100 }}>--</span>
-                              }
-                            </div>
-                            <div style={{ ...mono, fontSize:9, color:C.dim }}>
-                              {u.created_at ? new Date(u.created_at).toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'2-digit'}) : '--'}
-                            </div>
-                            <div style={{ display:'flex', gap:6, flexWrap:'wrap' }}>
-                              <button onClick={() => togglePro(u.id, u.is_pro)} style={{
+                          }, onMouseEnter: e => e.currentTarget.style.background=C.deep, onMouseLeave: e => e.currentTarget.style.background='transparent'}, React.createElement("div", {style: { fontSize:12, color:C.text, fontWeight:500, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}, u.full_name || 'N/A'), React.createElement("div", {style: { ...mono, fontSize:9, color:C.muted, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}, u.email || u.id?.slice(0,16)+'...'), React.createElement("div", null, u.is_pro
+                                ? React.createElement("span", {style: { ...mono, fontSize:8, color:'#E2BE78', background:'rgba(226,190,120,0.1)', border:'1px solid rgba(226,190,120,0.25)', padding:'3px 8px', borderRadius:100 }}, 'PRO')
+                                : React.createElement("span", {style: { ...mono, fontSize:8, color:C.dim, background:C.deep, border:`1px solid ${C.border}`, padding:'3px 8px', borderRadius:100 }}, '--')
+                              ), React.createElement("div", null, u.is_enterprise
+                                ? React.createElement("span", {style: { ...mono, fontSize:8, color:'#7AAFCF', background:'rgba(122,175,207,0.1)', border:'1px solid rgba(122,175,207,0.25)', padding:'3px 8px', borderRadius:100 }}, 'ENT')
+                                : React.createElement("span", {style: { ...mono, fontSize:8, color:C.dim, background:C.deep, border:`1px solid ${C.border}`, padding:'3px 8px', borderRadius:100 }}, '--')
+                              ), React.createElement("div", {style: { ...mono, fontSize:9, color:C.dim }}, u.created_at ? new Date(u.created_at).toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'2-digit'}) : '--'), React.createElement("div", {style: { display:'flex', gap:6, flexWrap:'wrap' }}, React.createElement("button", {onClick: () => togglePro(u.id, u.is_pro), style: {
                                 ...mono, fontSize:8, padding:'4px 10px', borderRadius:2, cursor:'pointer',
                                 background: u.is_pro ? 'rgba(248,113,113,0.1)' : 'rgba(226,190,120,0.1)',
                                 border: u.is_pro ? '1px solid rgba(248,113,113,0.3)' : '1px solid rgba(226,190,120,0.3)',
                                 color: u.is_pro ? '#F87171' : '#E2BE78',
-                              }}>{u.is_pro ? 'Revoke Pro' : 'Pro +'}</button>
-                              <button onClick={() => toggleEnterprise(u.id, u.is_enterprise)} style={{
+                              }}, u.is_pro ? 'Revoke Pro' : 'Pro +'), React.createElement("button", {onClick: () => toggleEnterprise(u.id, u.is_enterprise), style: {
                                 ...mono, fontSize:8, padding:'4px 10px', borderRadius:2, cursor:'pointer',
                                 background: u.is_enterprise ? 'rgba(248,113,113,0.1)' : 'rgba(122,175,207,0.1)',
                                 border: u.is_enterprise ? '1px solid rgba(248,113,113,0.3)' : '1px solid rgba(122,175,207,0.3)',
                                 color: u.is_enterprise ? '#F87171' : '#7AAFCF',
-                              }}>{u.is_enterprise ? 'Revoke Ent' : 'Ent +'}</button>
-                              <button onClick={() => deleteUser(u.id)} style={{
+                              }}, u.is_enterprise ? 'Revoke Ent' : 'Ent +'), React.createElement("button", {onClick: () => deleteUser(u.id), style: {
                                 ...mono, fontSize:8, padding:'4px 10px', borderRadius:2, cursor:'pointer',
                                 background:'rgba(248,113,113,0.06)', border:'1px solid rgba(248,113,113,0.2)', color:'#F87171',
-                              }}>✕</button>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {/* ─── CFI RESULTS ─── */}
-                {tab === 'cfi' && (
-                  <div>
-                    <div style={{ display:'flex', gap:12, marginBottom:20, flexWrap:'wrap', alignItems:'center' }}>
-                      <div style={{ display:'flex', gap:4, background:C.deep, padding:4, borderRadius:3, flexWrap:'wrap' }}>
-                        {['all','Integrated','Moderate Fragmentation','High Fragmentation','Critical Fragmentation'].map(f => (
-                          <button key={f} onClick={() => setCfiFilter(f)} style={{
+                              }}, '✕')))
+                        )))))
+                ), tab === 'cfi' && (
+                  React.createElement("div", null, React.createElement("div", {style: { display:'flex', gap:12, marginBottom:20, flexWrap:'wrap', alignItems:'center' }}, React.createElement("div", {style: { display:'flex', gap:4, background:C.deep, padding:4, borderRadius:3, flexWrap:'wrap' }}, ['all','Integrated','Moderate Fragmentation','High Fragmentation','Critical Fragmentation'].map(f => (
+                          React.createElement("button", {key: f, onClick: () => setCfiFilter(f), style: {
                             padding:'7px 12px', background:cfiFilter===f?C.surface:'transparent',
                             border:cfiFilter===f?`1px solid ${C.borderBright}`:'1px solid transparent',
                             color:cfiFilter===f?C.cyan:C.muted,
                             ...mono, fontSize:8, letterSpacing:1.5, cursor:'pointer', borderRadius:2,
-                          }}>{f === 'all' ? 'ALL' : f.toUpperCase().split(' ')[0]}</button>
-                        ))}
-                      </div>
-                      <div style={{ ...mono, fontSize:9, color:C.muted, letterSpacing:2 }}>{filteredCFI.length} RESULTS</div>
-                    </div>
-
-                    <div className="card" style={{ overflow:'hidden' }}>
-                      <div style={{ display:'grid', gridTemplateColumns:'1.5fr 80px 160px 120px 100px 80px', gap:12, padding:'14px 20px', borderBottom:`1px solid ${C.border}`, background:C.deep }}>
-                        {['USER ID','SCORE','BAND','DOMINANT','DATE','ACTION'].map(h => (
-                          <div key={h} style={{ ...mono, fontSize:8, letterSpacing:2.5, color:C.muted }}>{h}</div>
-                        ))}
-                      </div>
-                      <div style={{ maxHeight:520, overflowY:'auto' }}>
-                        {filteredCFI.length === 0 && (
-                          <div style={{ padding:'40px', textAlign:'center', color:C.dim, fontSize:13 }}>No CFI results{cfiFilter !== 'all' ? ' for this band' : ''}.</div>
-                        )}
-                        {filteredCFI.map((r,i) => {
+                          }}, f === 'all' ? 'ALL' : f.toUpperCase().split(' ')[0])
+                        ))), React.createElement("div", {style: { ...mono, fontSize:9, color:C.muted, letterSpacing:2 }}, filteredCFI.length, 'RESULTS')), React.createElement("div", {className: "card", style: { overflow:'hidden' }}, React.createElement("div", {style: { display:'grid', gridTemplateColumns:'1.5fr 80px 160px 120px 100px 80px', gap:12, padding:'14px 20px', borderBottom:`1px solid ${C.border}`, background:C.deep }}, ['USER ID','SCORE','BAND','DOMINANT','DATE','ACTION'].map(h => (
+                          React.createElement("div", {key: h, style: { ...mono, fontSize:8, letterSpacing:2.5, color:C.muted }}, h)
+                        ))), React.createElement("div", {style: { maxHeight:520, overflowY:'auto' }}, filteredCFI.length === 0 && (
+                          React.createElement("div", {style: { padding:'40px', textAlign:'center', color:C.dim, fontSize:13 }}, 'No CFI results', cfiFilter !== 'all' ? ' for this band' : '', '.')
+                        ), filteredCFI.map((r,i) => {
                           const bColor = bandColors[r.band] || C.cyan;
                           return (
-                            <div key={r.id} style={{
+                            React.createElement("div", {key: r.id, style: {
                               display:'grid', gridTemplateColumns:'1.5fr 80px 160px 120px 100px 80px', gap:12,
                               padding:'14px 20px', borderBottom:`1px solid ${C.border}`,
                               transition:'background 0.15s',
-                            }}
-                              onMouseEnter={e => e.currentTarget.style.background=C.deep}
-                              onMouseLeave={e => e.currentTarget.style.background='transparent'}
-                            >
-                              <div style={{ ...mono, fontSize:9, color:C.muted, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>
-                                {r.user_id?.slice(0,18)}...
-                              </div>
-                              <div style={{ ...syne, fontSize:18, fontWeight:800, color:bColor }}>{r.total_score}</div>
-                              <div>
-                                <span style={{ ...mono, fontSize:8, color:bColor, background:`${bColor}12`, border:`1px solid ${bColor}30`, padding:'3px 8px', borderRadius:100 }}>
-                                  {r.band?.split(' ')[0]}
-                                </span>
-                              </div>
-                              <div style={{ fontSize:12, color:C.muted, textTransform:'capitalize' }}>{r.dominant_brain || r.dominantBrain || 'N/A'}</div>
-                              <div style={{ ...mono, fontSize:9, color:C.dim }}>
-                                {r.created_at ? new Date(r.created_at).toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'2-digit'}) : '--'}
-                              </div>
-                              <div>
-                                <button onClick={() => deleteCFIResult(r.id)} style={{
+                            }, onMouseEnter: e => e.currentTarget.style.background=C.deep, onMouseLeave: e => e.currentTarget.style.background='transparent'}, React.createElement("div", {style: { ...mono, fontSize:9, color:C.muted, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}, r.user_id?.slice(0,18), '...'), React.createElement("div", {style: { ...syne, fontSize:18, fontWeight:800, color:bColor }}, r.total_score), React.createElement("div", null, React.createElement("span", {style: { ...mono, fontSize:8, color:bColor, background:`${bColor}12`, border:`1px solid ${bColor}30`, padding:'3px 8px', borderRadius:100 }}, r.band?.split(' ')[0])), React.createElement("div", {style: { fontSize:12, color:C.muted, textTransform:'capitalize' }}, r.dominant_brain || r.dominantBrain || 'N/A'), React.createElement("div", {style: { ...mono, fontSize:9, color:C.dim }}, r.created_at ? new Date(r.created_at).toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'2-digit'}) : '--'), React.createElement("div", null, React.createElement("button", {onClick: () => deleteCFIResult(r.id), style: {
                                   ...mono, fontSize:8, padding:'4px 10px', cursor:'pointer',
                                   background:'rgba(248,113,113,0.08)', border:'1px solid rgba(248,113,113,0.2)',
                                   color:'#F87171', borderRadius:2,
-                                }}>Delete</button>
-                              </div>
-                            </div>
+                                }}, 'Delete')))
                           );
-                        })}
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {/* ─── PRO SUBSCRIBERS ─── */}
-                {tab === 'pro' && (
-                  <div>
-                    <div style={{ display:'flex', gap:16, marginBottom:24, flexWrap:'wrap' }}>
-                      <div className="card" style={{ padding:'24px 28px', flex:'none' }}>
-                        <div style={{ ...mono, fontSize:8, letterSpacing:2.5, color:'#8A7A5A', marginBottom:10 }}>PRO SUBSCRIBERS</div>
-                        <div style={{ ...syne, fontSize:40, fontWeight:800, color:'#E2BE78' }}>{proUsers.length}</div>
-                      </div>
-                      <div className="card" style={{ padding:'24px 28px', flex:'none' }}>
-                        <div style={{ ...mono, fontSize:8, letterSpacing:2.5, color:'#8A7A5A', marginBottom:10 }}>CONVERSION RATE</div>
-                        <div style={{ ...syne, fontSize:40, fontWeight:800, color:C.cyan }}>
-                          {users.length ? Math.round(proUsers.length/users.length*100) : 0}%
-                        </div>
-                      </div>
-                      <div className="card" style={{ padding:'24px 28px', flex:'none' }}>
-                        <div style={{ ...mono, fontSize:8, letterSpacing:2.5, color:'#8A7A5A', marginBottom:10 }}>EST. REVENUE</div>
-                        <div style={{ ...syne, fontSize:40, fontWeight:800, color:'#7AAFCF' }}>
-                          ₦{((proUsers.length * proPrice / 100)).toLocaleString()}
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="card" style={{ overflow:'hidden' }}>
-                      <div style={{ display:'grid', gridTemplateColumns:'1fr 1.5fr 100px 120px', gap:16, padding:'14px 20px', borderBottom:`1px solid ${C.border}`, background:C.deep }}>
-                        {['NAME','EMAIL','STATUS','ACTION'].map(h => (
-                          <div key={h} style={{ ...mono, fontSize:8, letterSpacing:2.5, color:C.muted }}>{h}</div>
-                        ))}
-                      </div>
-                      <div style={{ maxHeight:480, overflowY:'auto' }}>
-                        {proUsers.length === 0 && (
-                          <div style={{ padding:'40px', textAlign:'center', color:C.dim, fontSize:13 }}>No Pro subscribers yet.</div>
-                        )}
-                        {proUsers.map((u,i) => (
-                          <div key={u.id} style={{
+                        }))))
+                ), tab === 'pro' && (
+                  React.createElement("div", null, React.createElement("div", {style: { display:'flex', gap:16, marginBottom:24, flexWrap:'wrap' }}, React.createElement("div", {className: "card", style: { padding:'24px 28px', flex:'none' }}, React.createElement("div", {style: { ...mono, fontSize:8, letterSpacing:2.5, color:'#8A7A5A', marginBottom:10 }}, 'PRO SUBSCRIBERS'), React.createElement("div", {style: { ...syne, fontSize:40, fontWeight:800, color:'#E2BE78' }}, proUsers.length)), React.createElement("div", {className: "card", style: { padding:'24px 28px', flex:'none' }}, React.createElement("div", {style: { ...mono, fontSize:8, letterSpacing:2.5, color:'#8A7A5A', marginBottom:10 }}, 'CONVERSION RATE'), React.createElement("div", {style: { ...syne, fontSize:40, fontWeight:800, color:C.cyan }}, users.length ? Math.round(proUsers.length/users.length*100) : 0, '%')), React.createElement("div", {className: "card", style: { padding:'24px 28px', flex:'none' }}, React.createElement("div", {style: { ...mono, fontSize:8, letterSpacing:2.5, color:'#8A7A5A', marginBottom:10 }}, 'EST. REVENUE'), React.createElement("div", {style: { ...syne, fontSize:40, fontWeight:800, color:'#7AAFCF' }}, '₦', ((proUsers.length * proPrice / 100)).toLocaleString()))), React.createElement("div", {className: "card", style: { overflow:'hidden' }}, React.createElement("div", {style: { display:'grid', gridTemplateColumns:'1fr 1.5fr 100px 120px', gap:16, padding:'14px 20px', borderBottom:`1px solid ${C.border}`, background:C.deep }}, ['NAME','EMAIL','STATUS','ACTION'].map(h => (
+                          React.createElement("div", {key: h, style: { ...mono, fontSize:8, letterSpacing:2.5, color:C.muted }}, h)
+                        ))), React.createElement("div", {style: { maxHeight:480, overflowY:'auto' }}, proUsers.length === 0 && (
+                          React.createElement("div", {style: { padding:'40px', textAlign:'center', color:C.dim, fontSize:13 }}, 'No Pro subscribers yet.')
+                        ), proUsers.map((u,i) => (
+                          React.createElement("div", {key: u.id, style: {
                             display:'grid', gridTemplateColumns:'1fr 1.5fr 100px 120px', gap:16,
                             padding:'14px 20px', borderBottom:`1px solid ${C.border}`,
                             transition:'background 0.15s',
-                          }}
-                            onMouseEnter={e => e.currentTarget.style.background=C.deep}
-                            onMouseLeave={e => e.currentTarget.style.background='transparent'}
-                          >
-                            <div style={{ fontSize:13, color:C.text, fontWeight:500 }}>{u.full_name || 'N/A'}</div>
-                            <div style={{ ...mono, fontSize:10, color:C.muted, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{u.email || u.id?.slice(0,16)}</div>
-                            <div>
-                              <span style={{ ...mono, fontSize:8, color:'#E2BE78', background:'rgba(226,190,120,0.1)', border:'1px solid rgba(226,190,120,0.25)', padding:'3px 8px', borderRadius:100 }}>ACTIVE PRO</span>
-                            </div>
-                            <div>
-                              <button onClick={() => togglePro(u.id, true)} style={{
+                          }, onMouseEnter: e => e.currentTarget.style.background=C.deep, onMouseLeave: e => e.currentTarget.style.background='transparent'}, React.createElement("div", {style: { fontSize:13, color:C.text, fontWeight:500 }}, u.full_name || 'N/A'), React.createElement("div", {style: { ...mono, fontSize:10, color:C.muted, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}, u.email || u.id?.slice(0,16)), React.createElement("div", null, React.createElement("span", {style: { ...mono, fontSize:8, color:'#E2BE78', background:'rgba(226,190,120,0.1)', border:'1px solid rgba(226,190,120,0.25)', padding:'3px 8px', borderRadius:100 }}, 'ACTIVE PRO')), React.createElement("div", null, React.createElement("button", {onClick: () => togglePro(u.id, true), style: {
                                 ...mono, fontSize:8, padding:'5px 12px', cursor:'pointer',
                                 background:'rgba(248,113,113,0.1)', border:'1px solid rgba(248,113,113,0.3)',
                                 color:'#F87171', borderRadius:2,
-                              }}>Revoke</button>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {/* ─── COHORTS ─── */}
-                {tab === 'cohorts' && (
-                  <div>
-                    <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit,minmax(300px,1fr))', gap:24, marginBottom:32 }}>
-                      {/* Create cohort */}
-                      <div className="card" style={{ padding:'28px', borderColor:'rgba(76,247,192,0.2)' }}>
-                        <div style={{ ...mono, fontSize:9, letterSpacing:3, color:'#4CF7C0', marginBottom:16 }}>CREATE NEW COHORT</div>
-                        <div style={{ display:'flex', flexDirection:'column', gap:12 }}>
-                          {[
+                              }}, 'Revoke')))
+                        )))))
+                ), tab === 'cohorts' && (
+                  React.createElement("div", null, React.createElement("div", {style: { display:'grid', gridTemplateColumns:'repeat(auto-fit,minmax(300px,1fr))', gap:24, marginBottom:32 }}, React.createElement("div", {className: "card", style: { padding:'28px', borderColor:'rgba(76,247,192,0.2)' }}, React.createElement("div", {style: { ...mono, fontSize:9, letterSpacing:3, color:'#4CF7C0', marginBottom:16 }}, 'CREATE NEW COHORT'), React.createElement("div", {style: { display:'flex', flexDirection:'column', gap:12 }}, [
                             { key:'name', label:'Cohort Name', placeholder:'e.g. Leadership Cohort A' },
                             { key:'org', label:'Organisation', placeholder:'e.g. Acme Corp' },
                             { key:'facilitator', label:'Facilitator Name', placeholder:'e.g. Jane Smith' },
                             { key:'startDate', label:'Start Date', placeholder:'', type:'date' },
                             { key:'maxParticipants', label:'Max Participants', placeholder:'e.g. 20', type:'number' },
                           ].map(f => (
-                            <div key={f.key}>
-                              <div style={{ ...mono, fontSize:8, letterSpacing:2, color:C.muted, marginBottom:5 }}>{f.label.toUpperCase()}</div>
-                              <input
-                                type={f.type || 'text'}
-                                value={newCohort[f.key]}
-                                onChange={e => setNewCohort(p => ({...p, [f.key]: e.target.value}))}
-                                placeholder={f.placeholder}
-                                style={{ fontSize:13, width:'100%' }}
-                              />
-                            </div>
-                          ))}
-                          <button className="btn-primary" onClick={createCohort} style={{ marginTop:8 }}>Create Cohort →</button>
-                        </div>
-                      </div>
-
-                      {/* Cohort stats */}
-                      <div style={{ display:'flex', flexDirection:'column', gap:16 }}>
-                        {[
+                            React.createElement("div", {key: f.key}, React.createElement("div", {style: { ...mono, fontSize:8, letterSpacing:2, color:C.muted, marginBottom:5 }}, f.label.toUpperCase()), React.createElement("input", {type: f.type || 'text', value: newCohort[f.key], onChange: e => setNewCohort(p => ({...p, [f.key]: e.target.value})), placeholder: f.placeholder, style: { fontSize:13, width:'100%' }}))
+                          )), React.createElement("button", {className: "btn-primary", onClick: createCohort, style: { marginTop:8 }}, 'Create Cohort →'))), React.createElement("div", {style: { display:'flex', flexDirection:'column', gap:16 }}, [
                           { label:'TOTAL COHORTS', value:localCohorts.length, color:'#C4A050' },
                           { label:'ACTIVE', value:localCohorts.filter(c=>c.status==='active').length, color:'#4CF7C0' },
                           { label:'ARCHIVED', value:localCohorts.filter(c=>c.status==='archived').length, color:C.muted },
                         ].map((s,i) => (
-                          <div key={i} className="card" style={{ padding:'20px 24px', display:'flex', justifyContent:'space-between', alignItems:'center' }}>
-                            <div style={{ ...mono, fontSize:9, letterSpacing:2, color:C.muted }}>{s.label}</div>
-                            <div style={{ ...syne, fontSize:32, fontWeight:800, color:s.color }}>{s.value}</div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-
-                    {/* Cohort list */}
-                    <div className="card" style={{ overflow:'hidden' }}>
-                      <div style={{ display:'grid', gridTemplateColumns:'1.5fr 1fr 1fr 100px 80px 150px', gap:12, padding:'14px 20px', borderBottom:`1px solid ${C.border}`, background:C.deep }}>
-                        {['NAME','ORG','CODE','STARTED','STATUS','ACTIONS'].map(h => (
-                          <div key={h} style={{ ...mono, fontSize:8, letterSpacing:2.5, color:C.muted }}>{h}</div>
-                        ))}
-                      </div>
-                      <div style={{ maxHeight:480, overflowY:'auto' }}>
-                        {localCohorts.length === 0 && (
-                          <div style={{ padding:'40px', textAlign:'center', color:C.dim, fontSize:13 }}>No cohorts yet. Create one above.</div>
-                        )}
-                        {localCohorts.map((c,i) => (
-                          <div key={c.id} style={{
+                          React.createElement("div", {key: i, className: "card", style: { padding:'20px 24px', display:'flex', justifyContent:'space-between', alignItems:'center' }}, React.createElement("div", {style: { ...mono, fontSize:9, letterSpacing:2, color:C.muted }}, s.label), React.createElement("div", {style: { ...syne, fontSize:32, fontWeight:800, color:s.color }}, s.value))
+                        )))), React.createElement("div", {className: "card", style: { overflow:'hidden' }}, React.createElement("div", {style: { display:'grid', gridTemplateColumns:'1.5fr 1fr 1fr 100px 80px 150px', gap:12, padding:'14px 20px', borderBottom:`1px solid ${C.border}`, background:C.deep }}, ['NAME','ORG','CODE','STARTED','STATUS','ACTIONS'].map(h => (
+                          React.createElement("div", {key: h, style: { ...mono, fontSize:8, letterSpacing:2.5, color:C.muted }}, h)
+                        ))), React.createElement("div", {style: { maxHeight:480, overflowY:'auto' }}, localCohorts.length === 0 && (
+                          React.createElement("div", {style: { padding:'40px', textAlign:'center', color:C.dim, fontSize:13 }}, 'No cohorts yet. Create one above.')
+                        ), localCohorts.map((c,i) => (
+                          React.createElement("div", {key: c.id, style: {
                             display:'grid', gridTemplateColumns:'1.5fr 1fr 1fr 100px 80px 150px', gap:12,
                             padding:'14px 20px', borderBottom:`1px solid ${C.border}`, transition:'background 0.15s',
-                          }}
-                            onMouseEnter={e => e.currentTarget.style.background=C.deep}
-                            onMouseLeave={e => e.currentTarget.style.background='transparent'}
-                          >
-                            <div style={{ fontSize:13, color:C.text, fontWeight:500 }}>{c.name}</div>
-                            <div style={{ fontSize:12, color:C.muted }}>{c.org}</div>
-                            <div style={{ ...mono, fontSize:10, color:'#4CF7C0' }}>{c.code}</div>
-                            <div style={{ ...mono, fontSize:9, color:C.dim }}>{c.startDate || '--'}</div>
-                            <div>
-                              <span style={{ ...mono, fontSize:8, padding:'3px 8px', borderRadius:100,
+                          }, onMouseEnter: e => e.currentTarget.style.background=C.deep, onMouseLeave: e => e.currentTarget.style.background='transparent'}, React.createElement("div", {style: { fontSize:13, color:C.text, fontWeight:500 }}, c.name), React.createElement("div", {style: { fontSize:12, color:C.muted }}, c.org), React.createElement("div", {style: { ...mono, fontSize:10, color:'#4CF7C0' }}, c.code), React.createElement("div", {style: { ...mono, fontSize:9, color:C.dim }}, c.startDate || '--'), React.createElement("div", null, React.createElement("span", {style: { ...mono, fontSize:8, padding:'3px 8px', borderRadius:100,
                                 color: c.status==='active' ? '#4CF7C0' : C.dim,
                                 background: c.status==='active' ? 'rgba(76,247,192,0.1)' : C.cyanDim,
                                 border: `1px solid ${c.status==='active' ? 'rgba(76,247,192,0.3)' : C.border}`,
-                              }}>{c.status?.toUpperCase()}</span>
-                            </div>
-                            <div style={{ display:'flex', gap:6 }}>
-                              <button onClick={() => archiveCohort(c.id)} style={{ ...mono, fontSize:8, padding:'4px 10px', borderRadius:2, cursor:'pointer', background:'rgba(196,160,80,0.08)', border:`1px solid rgba(196,160,80,0.2)`, color:C.cyan }}>
-                                {c.status==='active' ? 'Archive' : 'Restore'}
-                              </button>
-                              <button onClick={() => deleteCohort(c.id)} style={{ ...mono, fontSize:8, padding:'4px 10px', borderRadius:2, cursor:'pointer', background:'rgba(248,113,113,0.06)', border:'1px solid rgba(248,113,113,0.2)', color:'#F87171' }}>✕</button>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {/* ─── ENTERPRISE RESULTS ─── */}
-                {tab === 'ent-results' && (
-                  <div>
-                    <div style={{ display:'flex', gap:16, marginBottom:24, flexWrap:'wrap', alignItems:'center' }}>
-                      <div style={{ display:'flex', gap:4, background:C.deep, padding:4, borderRadius:3, flexWrap:'wrap' }}>
-                        {['all', ...localCohorts.map(c=>c.code)].map(f => (
-                          <button key={f} onClick={() => setEntCohortFilter(f)} style={{
+                              }}, c.status?.toUpperCase())), React.createElement("div", {style: { display:'flex', gap:6 }}, React.createElement("button", {onClick: () => archiveCohort(c.id), style: { ...mono, fontSize:8, padding:'4px 10px', borderRadius:2, cursor:'pointer', background:'rgba(196,160,80,0.08)', border:`1px solid rgba(196,160,80,0.2)`, color:C.cyan }}, c.status==='active' ? 'Archive' : 'Restore'), React.createElement("button", {onClick: () => deleteCohort(c.id), style: { ...mono, fontSize:8, padding:'4px 10px', borderRadius:2, cursor:'pointer', background:'rgba(248,113,113,0.06)', border:'1px solid rgba(248,113,113,0.2)', color:'#F87171' }}, '✕')))
+                        )))))
+                ), tab === 'ent-results' && (
+                  React.createElement("div", null, React.createElement("div", {style: { display:'flex', gap:16, marginBottom:24, flexWrap:'wrap', alignItems:'center' }}, React.createElement("div", {style: { display:'flex', gap:4, background:C.deep, padding:4, borderRadius:3, flexWrap:'wrap' }}, ['all', ...localCohorts.map(c=>c.code)].map(f => (
+                          React.createElement("button", {key: f, onClick: () => setEntCohortFilter(f), style: {
                             padding:'7px 12px', background:entCohortFilter===f?C.surface:'transparent',
                             border:entCohortFilter===f?`1px solid ${C.borderBright}`:'1px solid transparent',
                             color:entCohortFilter===f?C.cyan:C.muted,
                             ...mono, fontSize:8, letterSpacing:1.5, cursor:'pointer', borderRadius:2,
-                          }}>{f === 'all' ? 'ALL COHORTS' : f}</button>
-                        ))}
-                      </div>
-                    </div>
-
-                    {/* Aggregate stats */}
-                    <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit,minmax(160px,1fr))', gap:16, marginBottom:24 }}>
-                      {[
+                          }}, f === 'all' ? 'ALL COHORTS' : f)
+                        )))), React.createElement("div", {style: { display:'grid', gridTemplateColumns:'repeat(auto-fit,minmax(160px,1fr))', gap:16, marginBottom:24 }}, [
                         { label:'ENTERPRISE USERS', value:entUsers.length, color:'#7AAFCF' },
                         { label:'ACTIVE COHORTS', value:localCohorts.filter(c=>c.status==='active').length, color:'#4CF7C0' },
                         { label:'AVG CFI SCORE', value: cfiData.length ? Math.round(cfiData.reduce((a,r)=>a+(r.total_score||0),0)/cfiData.length) : 'N/A', color:'#C4A050' },
                       ].map((s,i) => (
-                        <div key={i} className="card" style={{ padding:'20px 24px' }}>
-                          <div style={{ ...mono, fontSize:8, letterSpacing:2, color:C.muted, marginBottom:8 }}>{s.label}</div>
-                          <div style={{ ...syne, fontSize:32, fontWeight:800, color:s.color }}>{s.value}</div>
-                        </div>
-                      ))}
-                    </div>
-
-                    <div className="card" style={{ padding:'28px' }}>
-                      <div style={{ ...mono, fontSize:9, letterSpacing:3, color:C.cyan, marginBottom:20 }}>ENTERPRISE USERS BY COHORT</div>
-                      {entUsers.length === 0 && (
-                        <div style={{ color:C.dim, fontSize:13, textAlign:'center', padding:'40px 0' }}>No enterprise users found. Grant enterprise access in the Users tab.</div>
-                      )}
-                      {entUsers.map((u,i) => {
+                        React.createElement("div", {key: i, className: "card", style: { padding:'20px 24px' }}, React.createElement("div", {style: { ...mono, fontSize:8, letterSpacing:2, color:C.muted, marginBottom:8 }}, s.label), React.createElement("div", {style: { ...syne, fontSize:32, fontWeight:800, color:s.color }}, s.value))
+                      ))), React.createElement("div", {className: "card", style: { padding:'28px' }}, React.createElement("div", {style: { ...mono, fontSize:9, letterSpacing:3, color:C.cyan, marginBottom:20 }}, 'ENTERPRISE USERS BY COHORT'), entUsers.length === 0 && (
+                        React.createElement("div", {style: { color:C.dim, fontSize:13, textAlign:'center', padding:'40px 0' }}, 'No enterprise users found. Grant enterprise access in the Users tab.')
+                      ), entUsers.map((u,i) => {
                         const userCFI = cfiData.find(r => r.user_id === u.id);
                         const bColor = userCFI ? (bandColors[userCFI.band] || C.cyan) : C.dim;
                         return (
-                          <div key={u.id} style={{ display:'flex', alignItems:'center', gap:16, padding:'14px 0', borderBottom:`1px solid ${C.border}` }}>
-                            <div style={{ width:36, height:36, borderRadius:'50%', background:'rgba(76,247,192,0.08)', border:'1px solid rgba(76,247,192,0.2)', display:'flex', alignItems:'center', justifyContent:'center', ...mono, fontSize:12, color:'#4CF7C0', flexShrink:0 }}>
-                              {(u.full_name||u.email||'?')[0].toUpperCase()}
-                            </div>
-                            <div style={{ flex:1, minWidth:0 }}>
-                              <div style={{ fontSize:13, color:C.text, fontWeight:500 }}>{u.full_name || 'Unnamed'}</div>
-                              <div style={{ ...mono, fontSize:9, color:C.muted }}>{u.email || u.id?.slice(0,16)}</div>
-                            </div>
-                            {userCFI ? (
-                              <div style={{ textAlign:'right', flexShrink:0 }}>
-                                <div style={{ ...syne, fontSize:20, fontWeight:800, color:bColor }}>{userCFI.total_score}</div>
-                                <div style={{ ...mono, fontSize:8, color:bColor }}>{userCFI.band?.split(' ')[0]}</div>
-                              </div>
+                          React.createElement("div", {key: u.id, style: { display:'flex', alignItems:'center', gap:16, padding:'14px 0', borderBottom:`1px solid ${C.border}` }}, React.createElement("div", {style: { width:36, height:36, borderRadius:'50%', background:'rgba(76,247,192,0.08)', border:'1px solid rgba(76,247,192,0.2)', display:'flex', alignItems:'center', justifyContent:'center', ...mono, fontSize:12, color:'#4CF7C0', flexShrink:0 }}, (u.full_name||u.email||'?')[0].toUpperCase()), React.createElement("div", {style: { flex:1, minWidth:0 }}, React.createElement("div", {style: { fontSize:13, color:C.text, fontWeight:500 }}, u.full_name || 'Unnamed'), React.createElement("div", {style: { ...mono, fontSize:9, color:C.muted }}, u.email || u.id?.slice(0,16))), userCFI ? (
+                              React.createElement("div", {style: { textAlign:'right', flexShrink:0 }}, React.createElement("div", {style: { ...syne, fontSize:20, fontWeight:800, color:bColor }}, userCFI.total_score), React.createElement("div", {style: { ...mono, fontSize:8, color:bColor }}, userCFI.band?.split(' ')[0]))
                             ) : (
-                              <div style={{ ...mono, fontSize:8, color:C.dim }}>No CFI data</div>
-                            )}
-                            <button onClick={() => toggleEnterprise(u.id, true)} style={{ ...mono, fontSize:8, padding:'4px 10px', borderRadius:2, cursor:'pointer', background:'rgba(248,113,113,0.08)', border:'1px solid rgba(248,113,113,0.2)', color:'#F87171', flexShrink:0 }}>Revoke</button>
-                          </div>
+                              React.createElement("div", {style: { ...mono, fontSize:8, color:C.dim }}, 'No CFI data')
+                            ), React.createElement("button", {onClick: () => toggleEnterprise(u.id, true), style: { ...mono, fontSize:8, padding:'4px 10px', borderRadius:2, cursor:'pointer', background:'rgba(248,113,113,0.08)', border:'1px solid rgba(248,113,113,0.2)', color:'#F87171', flexShrink:0 }}, 'Revoke'))
                         );
-                      })}
-                    </div>
-                  </div>
-                )}
-
-                {/* ─── LESSONS EDITOR ─── */}
-                {tab === 'lessons' && (
-                  <div>
-                    <div style={{ ...mono, fontSize:9, letterSpacing:3, color:C.muted, marginBottom:20 }}>
-                      Edits are saved to localStorage. Changes take effect on next app reload. The core lesson data in code is not modified.
-                    </div>
-                    {editingLesson !== null ? (
-                      <div className="card" style={{ padding:'32px' }}>
-                        <div style={{ ...mono, fontSize:9, letterSpacing:3, color:C.cyan, marginBottom:16 }}>EDITING: LESSON {lessonDraft.id}</div>
-                        <div style={{ display:'flex', flexDirection:'column', gap:16 }}>
-                          {[
+                      })))
+                ), tab === 'lessons' && (
+                  React.createElement("div", null, React.createElement("div", {style: { ...mono, fontSize:9, letterSpacing:3, color:C.muted, marginBottom:20 }}, 'Edits are saved to localStorage. Changes take effect on next app reload. The core lesson data in code is not modified.'), editingLesson !== null ? (
+                      React.createElement("div", {className: "card", style: { padding:'32px' }}, React.createElement("div", {style: { ...mono, fontSize:9, letterSpacing:3, color:C.cyan, marginBottom:16 }}, 'EDITING: LESSON', lessonDraft.id), React.createElement("div", {style: { display:'flex', flexDirection:'column', gap:16 }}, [
                             { key:'title', label:'Title' },
                             { key:'sub', label:'Subtitle' },
                             { key:'level', label:'Level' },
                             { key:'duration', label:'Duration' },
                           ].map(f => (
-                            <div key={f.key}>
-                              <div style={{ ...mono, fontSize:8, letterSpacing:2, color:C.muted, marginBottom:5 }}>{f.label.toUpperCase()}</div>
-                              <input value={lessonDraft[f.key] || ''} onChange={e => setLessonDraft(p => ({...p, [f.key]: e.target.value}))} style={{ fontSize:13, width:'100%' }} />
-                            </div>
-                          ))}
-                          <div>
-                            <div style={{ ...mono, fontSize:8, letterSpacing:2, color:C.muted, marginBottom:5 }}>FREE ACCESS</div>
-                            <div style={{ display:'flex', gap:10 }}>
-                              {[true, false].map(v => (
-                                <button key={String(v)} onClick={() => setLessonDraft(p => ({...p, free: v}))} style={{
+                            React.createElement("div", {key: f.key}, React.createElement("div", {style: { ...mono, fontSize:8, letterSpacing:2, color:C.muted, marginBottom:5 }}, f.label.toUpperCase()), React.createElement("input", {value: lessonDraft[f.key] || '', onChange: e => setLessonDraft(p => ({...p, [f.key]: e.target.value})), style: { fontSize:13, width:'100%' }}))
+                          )), React.createElement("div", null, React.createElement("div", {style: { ...mono, fontSize:8, letterSpacing:2, color:C.muted, marginBottom:5 }}, 'FREE ACCESS'), React.createElement("div", {style: { display:'flex', gap:10 }}, [true, false].map(v => (
+                                React.createElement("button", {key: String(v), onClick: () => setLessonDraft(p => ({...p, free: v})), style: {
                                   ...mono, fontSize:9, padding:'6px 16px', borderRadius:2, cursor:'pointer',
                                   background: lessonDraft.free === v ? (v ? 'rgba(76,247,192,0.15)' : 'rgba(248,113,113,0.1)') : 'transparent',
                                   border: lessonDraft.free === v ? `1px solid ${v ? '#4CF7C0' : '#F87171'}` : `1px solid ${C.border}`,
                                   color: lessonDraft.free === v ? (v ? '#4CF7C0' : '#F87171') : C.muted,
-                                }}>{v ? 'Free' : 'Pro Only'}</button>
-                              ))}
-                            </div>
-                          </div>
-                          <div style={{ display:'flex', gap:12, marginTop:8 }}>
-                            <button className="btn-primary" onClick={saveLesson}>Save Lesson</button>
-                            <button className="btn-ghost" onClick={() => setEditingLesson(null)}>Cancel</button>
-                          </div>
-                        </div>
-                      </div>
+                                }}, v ? 'Free' : 'Pro Only')
+                              )))), React.createElement("div", {style: { display:'flex', gap:12, marginTop:8 }}, React.createElement("button", {className: "btn-primary", onClick: saveLesson}, 'Save Lesson'), React.createElement("button", {className: "btn-ghost", onClick: () => setEditingLesson(null)}, 'Cancel'))))
                     ) : (
-                      <div style={{ display:'flex', flexDirection:'column', gap:12 }}>
-                        {LESSONS.map(lesson => (
-                          <div key={lesson.id} className="card" style={{ padding:'20px 24px', display:'flex', alignItems:'center', gap:16 }}>
-                            <div style={{ ...mono, fontSize:11, color:C.cyan, flexShrink:0 }}>#{lesson.id}</div>
-                            <div style={{ flex:1, minWidth:0 }}>
-                              <div style={{ fontSize:14, color:C.text, fontWeight:600 }}>{lesson.title}</div>
-                              <div style={{ fontSize:12, color:C.muted, marginTop:2 }}>{lesson.sub}</div>
-                              <div style={{ display:'flex', gap:10, marginTop:6 }}>
-                                <span style={{ ...mono, fontSize:8, color:C.muted }}>{lesson.level}</span>
-                                <span style={{ ...mono, fontSize:8, color:C.muted }}>·</span>
-                                <span style={{ ...mono, fontSize:8, color:C.muted }}>{lesson.duration}</span>
-                                <span style={{ ...mono, fontSize:8, color:lesson.free ? '#4CF7C0' : '#E2BE78', background: lesson.free ? 'rgba(76,247,192,0.1)' : 'rgba(226,190,120,0.1)', border: `1px solid ${lesson.free ? 'rgba(76,247,192,0.3)' : 'rgba(226,190,120,0.3)'}`, padding:'1px 6px', borderRadius:100 }}>
-                                  {lesson.free ? 'FREE' : 'PRO'}
-                                </span>
-                              </div>
-                            </div>
-                            <button onClick={() => startEditLesson(lesson)} style={{ ...mono, fontSize:9, padding:'6px 16px', borderRadius:2, cursor:'pointer', background:C.cyanDim, border:`1px solid ${C.borderBright}`, color:C.cyan, flexShrink:0 }}>Edit</button>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                )}
-
-                {/* ─── CFI ITEMS EDITOR ─── */}
-                {tab === 'cfi-items' && (
-                  <div>
-                    <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:20, flexWrap:'wrap', gap:12 }}>
-                      <div style={{ ...mono, fontSize:9, letterSpacing:3, color:C.muted }}>{localCFIItems.length} ITEMS · Changes saved to localStorage</div>
-                      <button className="btn-outline" style={{ fontSize:10 }} onClick={addCFIItem}>+ Add Item</button>
-                    </div>
-                    {editingCFI !== null ? (
-                      <div className="card" style={{ padding:'32px', marginBottom:16 }}>
-                        <div style={{ ...mono, fontSize:9, letterSpacing:3, color:C.cyan, marginBottom:16 }}>EDITING ITEM #{cfiDraft.id}</div>
-                        <div style={{ display:'flex', flexDirection:'column', gap:14 }}>
-                          <div>
-                            <div style={{ ...mono, fontSize:8, letterSpacing:2, color:C.muted, marginBottom:5 }}>QUESTION TEXT</div>
-                            <textarea value={cfiDraft.text || ''} onChange={e => setCfiDraft(p => ({...p, text: e.target.value}))} rows={3} style={{ fontSize:13, width:'100%', resize:'vertical', background:C.deep, border:`1px solid ${C.border}`, color:C.text, padding:'10px', borderRadius:4, fontFamily:'inherit' }} />
-                          </div>
-                          <div style={{ display:'flex', gap:16, flexWrap:'wrap' }}>
-                            <div style={{ flex:1 }}>
-                              <div style={{ ...mono, fontSize:8, letterSpacing:2, color:C.muted, marginBottom:5 }}>DIMENSION (A/I/S/R/E)</div>
-                              <input value={cfiDraft.dim || ''} onChange={e => setCfiDraft(p => ({...p, dim: e.target.value.toUpperCase().slice(0,1)}))} maxLength={1} style={{ fontSize:16, width:'100%', textAlign:'center', ...mono }} />
-                            </div>
-                            <div style={{ flex:2 }}>
-                              <div style={{ ...mono, fontSize:8, letterSpacing:2, color:C.muted, marginBottom:5 }}>BRAIN TYPE</div>
-                              <select value={cfiDraft.brain || 'analytical'} onChange={e => setCfiDraft(p => ({...p, brain: e.target.value}))} style={{ fontSize:13, width:'100%', background:C.deep, border:`1px solid ${C.border}`, color:C.text, padding:'10px', borderRadius:4 }}>
-                                {['analytical','intuitive','associative','reflective'].map(b => <option key={b} value={b}>{b}</option>)}
-                              </select>
-                            </div>
-                          </div>
-                          <div style={{ display:'flex', gap:12 }}>
-                            <button className="btn-primary" onClick={saveCFIItem}>Save Item</button>
-                            <button className="btn-ghost" onClick={() => setEditingCFI(null)}>Cancel</button>
-                          </div>
-                        </div>
-                      </div>
-                    ) : null}
-                    <div className="card" style={{ overflow:'hidden' }}>
-                      <div style={{ display:'grid', gridTemplateColumns:'40px 40px 1fr 120px 100px', gap:12, padding:'12px 20px', borderBottom:`1px solid ${C.border}`, background:C.deep }}>
-                        {['#','DIM','TEXT','BRAIN','ACTIONS'].map(h => (
-                          <div key={h} style={{ ...mono, fontSize:8, letterSpacing:2.5, color:C.muted }}>{h}</div>
-                        ))}
-                      </div>
-                      <div style={{ maxHeight:560, overflowY:'auto' }}>
-                        {localCFIItems.map(item => {
+                      React.createElement("div", {style: { display:'flex', flexDirection:'column', gap:12 }}, LESSONS.map(lesson => (
+                          React.createElement("div", {key: lesson.id, className: "card", style: { padding:'20px 24px', display:'flex', alignItems:'center', gap:16 }}, React.createElement("div", {style: { ...mono, fontSize:11, color:C.cyan, flexShrink:0 }}, '#', lesson.id), React.createElement("div", {style: { flex:1, minWidth:0 }}, React.createElement("div", {style: { fontSize:14, color:C.text, fontWeight:600 }}, lesson.title), React.createElement("div", {style: { fontSize:12, color:C.muted, marginTop:2 }}, lesson.sub), React.createElement("div", {style: { display:'flex', gap:10, marginTop:6 }}, React.createElement("span", {style: { ...mono, fontSize:8, color:C.muted }}, lesson.level), React.createElement("span", {style: { ...mono, fontSize:8, color:C.muted }}, '·'), React.createElement("span", {style: { ...mono, fontSize:8, color:C.muted }}, lesson.duration), React.createElement("span", {style: { ...mono, fontSize:8, color:lesson.free ? '#4CF7C0' : '#E2BE78', background: lesson.free ? 'rgba(76,247,192,0.1)' : 'rgba(226,190,120,0.1)', border: `1px solid ${lesson.free ? 'rgba(76,247,192,0.3)' : 'rgba(226,190,120,0.3)'}`, padding:'1px 6px', borderRadius:100 }}, lesson.free ? 'FREE' : 'PRO'))), React.createElement("button", {onClick: () => startEditLesson(lesson), style: { ...mono, fontSize:9, padding:'6px 16px', borderRadius:2, cursor:'pointer', background:C.cyanDim, border:`1px solid ${C.borderBright}`, color:C.cyan, flexShrink:0 }}, 'Edit'))
+                        )))
+                    ))
+                ), tab === 'cfi-items' && (
+                  React.createElement("div", null, React.createElement("div", {style: { display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:20, flexWrap:'wrap', gap:12 }}, React.createElement("div", {style: { ...mono, fontSize:9, letterSpacing:3, color:C.muted }}, localCFIItems.length, 'ITEMS · Changes saved to localStorage'), React.createElement("button", {className: "btn-outline", style: { fontSize:10 }, onClick: addCFIItem}, '+ Add Item')), editingCFI !== null ? (
+                      React.createElement("div", {className: "card", style: { padding:'32px', marginBottom:16 }}, React.createElement("div", {style: { ...mono, fontSize:9, letterSpacing:3, color:C.cyan, marginBottom:16 }}, 'EDITING ITEM #', cfiDraft.id), React.createElement("div", {style: { display:'flex', flexDirection:'column', gap:14 }}, React.createElement("div", null, React.createElement("div", {style: { ...mono, fontSize:8, letterSpacing:2, color:C.muted, marginBottom:5 }}, 'QUESTION TEXT'), React.createElement("textarea", {value: cfiDraft.text || '', onChange: e => setCfiDraft(p => ({...p, text: e.target.value})), rows: 3, style: { fontSize:13, width:'100%', resize:'vertical', background:C.deep, border:`1px solid ${C.border}`, color:C.text, padding:'10px', borderRadius:4, fontFamily:'inherit' }})), React.createElement("div", {style: { display:'flex', gap:16, flexWrap:'wrap' }}, React.createElement("div", {style: { flex:1 }}, React.createElement("div", {style: { ...mono, fontSize:8, letterSpacing:2, color:C.muted, marginBottom:5 }}, 'DIMENSION (A/I/S/R/E)'), React.createElement("input", {value: cfiDraft.dim || '', onChange: e => setCfiDraft(p => ({...p, dim: e.target.value.toUpperCase().slice(0,1)})), maxLength: 1, style: { fontSize:16, width:'100%', textAlign:'center', ...mono }})), React.createElement("div", {style: { flex:2 }}, React.createElement("div", {style: { ...mono, fontSize:8, letterSpacing:2, color:C.muted, marginBottom:5 }}, 'BRAIN TYPE'), React.createElement("select", {value: cfiDraft.brain || 'analytical', onChange: e => setCfiDraft(p => ({...p, brain: e.target.value})), style: { fontSize:13, width:'100%', background:C.deep, border:`1px solid ${C.border}`, color:C.text, padding:'10px', borderRadius:4 }}, ['analytical','intuitive','associative','reflective'].map(b => React.createElement("option", {key: b, value: b}, b))))), React.createElement("div", {style: { display:'flex', gap:12 }}, React.createElement("button", {className: "btn-primary", onClick: saveCFIItem}, 'Save Item'), React.createElement("button", {className: "btn-ghost", onClick: () => setEditingCFI(null)}, 'Cancel'))))
+                    ) : null, React.createElement("div", {className: "card", style: { overflow:'hidden' }}, React.createElement("div", {style: { display:'grid', gridTemplateColumns:'40px 40px 1fr 120px 100px', gap:12, padding:'12px 20px', borderBottom:`1px solid ${C.border}`, background:C.deep }}, ['#','DIM','TEXT','BRAIN','ACTIONS'].map(h => (
+                          React.createElement("div", {key: h, style: { ...mono, fontSize:8, letterSpacing:2.5, color:C.muted }}, h)
+                        ))), React.createElement("div", {style: { maxHeight:560, overflowY:'auto' }}, localCFIItems.map(item => {
                           const brainColor = C.brains[item.brain]?.color || C.cyan;
                           return (
-                            <div key={item.id} style={{
+                            React.createElement("div", {key: item.id, style: {
                               display:'grid', gridTemplateColumns:'40px 40px 1fr 120px 100px', gap:12,
                               padding:'12px 20px', borderBottom:`1px solid ${C.border}`, transition:'background 0.15s',
-                            }}
-                              onMouseEnter={e => e.currentTarget.style.background=C.deep}
-                              onMouseLeave={e => e.currentTarget.style.background='transparent'}
-                            >
-                              <div style={{ ...mono, fontSize:10, color:C.dim }}>{item.id}</div>
-                              <div style={{ ...mono, fontSize:12, fontWeight:700, color:brainColor }}>{item.dim}</div>
-                              <div style={{ fontSize:12, color:C.muted, lineHeight:1.5 }}>{item.text}</div>
-                              <div style={{ ...mono, fontSize:9, color:brainColor, textTransform:'capitalize' }}>{item.brain}</div>
-                              <div style={{ display:'flex', gap:6 }}>
-                                <button onClick={() => { setEditingCFI(item.id); setCfiDraft({...item}); }} style={{ ...mono, fontSize:8, padding:'4px 10px', borderRadius:2, cursor:'pointer', background:C.cyanDim, border:`1px solid ${C.borderBright}`, color:C.cyan }}>Edit</button>
-                                <button onClick={() => deleteCFIItem(item.id)} style={{ ...mono, fontSize:8, padding:'4px 10px', borderRadius:2, cursor:'pointer', background:'rgba(248,113,113,0.06)', border:'1px solid rgba(248,113,113,0.2)', color:'#F87171' }}>✕</button>
-                              </div>
-                            </div>
+                            }, onMouseEnter: e => e.currentTarget.style.background=C.deep, onMouseLeave: e => e.currentTarget.style.background='transparent'}, React.createElement("div", {style: { ...mono, fontSize:10, color:C.dim }}, item.id), React.createElement("div", {style: { ...mono, fontSize:12, fontWeight:700, color:brainColor }}, item.dim), React.createElement("div", {style: { fontSize:12, color:C.muted, lineHeight:1.5 }}, item.text), React.createElement("div", {style: { ...mono, fontSize:9, color:brainColor, textTransform:'capitalize' }}, item.brain), React.createElement("div", {style: { display:'flex', gap:6 }}, React.createElement("button", {onClick: () => { setEditingCFI(item.id); setCfiDraft({...item}); }, style: { ...mono, fontSize:8, padding:'4px 10px', borderRadius:2, cursor:'pointer', background:C.cyanDim, border:`1px solid ${C.borderBright}`, color:C.cyan }}, 'Edit'), React.createElement("button", {onClick: () => deleteCFIItem(item.id), style: { ...mono, fontSize:8, padding:'4px 10px', borderRadius:2, cursor:'pointer', background:'rgba(248,113,113,0.06)', border:'1px solid rgba(248,113,113,0.2)', color:'#F87171' }}, '✕')))
                           );
-                        })}
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {/* ─── BROADCAST ─── */}
-                {tab === 'broadcast' && (
-                  <div style={{ maxWidth:800 }}>
-                    <div className="card" style={{ padding:'32px', marginBottom:20, borderColor:'rgba(196,160,80,0.25)' }}>
-                      <div style={{ ...mono, fontSize:9, letterSpacing:3, color:C.cyan, marginBottom:16 }}>SEND PLATFORM ANNOUNCEMENT</div>
-                      <div style={{ marginBottom:16 }}>
-                        <div style={{ ...mono, fontSize:8, letterSpacing:2, color:C.muted, marginBottom:8 }}>TARGET AUDIENCE</div>
-                        <div style={{ display:'flex', gap:8, flexWrap:'wrap' }}>
-                          {[['all','All Users'],['pro','Pro Users'],['free','Free Users'],['enterprise','Enterprise Users']].map(([val,label]) => (
-                            <button key={val} onClick={() => setBroadcastTarget(val)} style={{
+                        }))))
+                ), tab === 'broadcast' && (
+                  React.createElement("div", {style: { maxWidth:800 }}, React.createElement("div", {className: "card", style: { padding:'32px', marginBottom:20, borderColor:'rgba(196,160,80,0.25)' }}, React.createElement("div", {style: { ...mono, fontSize:9, letterSpacing:3, color:C.cyan, marginBottom:16 }}, 'SEND PLATFORM ANNOUNCEMENT'), React.createElement("div", {style: { marginBottom:16 }}, React.createElement("div", {style: { ...mono, fontSize:8, letterSpacing:2, color:C.muted, marginBottom:8 }}, 'TARGET AUDIENCE'), React.createElement("div", {style: { display:'flex', gap:8, flexWrap:'wrap' }}, [['all','All Users'],['pro','Pro Users'],['free','Free Users'],['enterprise','Enterprise Users']].map(([val,label]) => (
+                            React.createElement("button", {key: val, onClick: () => setBroadcastTarget(val), style: {
                               ...mono, fontSize:9, padding:'6px 14px', borderRadius:2, cursor:'pointer',
                               background: broadcastTarget===val ? C.cyanDim : 'transparent',
                               border: broadcastTarget===val ? `1px solid ${C.borderBright}` : `1px solid ${C.border}`,
                               color: broadcastTarget===val ? C.cyan : C.muted,
-                            }}>{label}</button>
-                          ))}
-                        </div>
-                      </div>
-                      <div style={{ marginBottom:16 }}>
-                        <div style={{ ...mono, fontSize:8, letterSpacing:2, color:C.muted, marginBottom:8 }}>MESSAGE</div>
-                        <textarea
-                          value={broadcastMsg}
-                          onChange={e => setBroadcastMsg(e.target.value)}
-                          placeholder="Enter your announcement or message..."
-                          rows={4}
-                          style={{ fontSize:13, width:'100%', resize:'vertical', background:C.deep, border:`1px solid ${C.border}`, color:C.text, padding:'12px 14px', borderRadius:4, fontFamily:'inherit', lineHeight:1.6 }}
-                        />
-                      </div>
-                      <div style={{ display:'flex', gap:12, alignItems:'center' }}>
-                        <button className="btn-primary" onClick={sendBroadcast} disabled={!broadcastMsg.trim()}>
-                          Send Broadcast →
-                        </button>
-                        <div style={{ ...mono, fontSize:9, color:C.muted }}>
-                          Will reach: {broadcastTarget==='all' ? users.length : broadcastTarget==='pro' ? proUsers.length : broadcastTarget==='enterprise' ? entUsers.length : users.filter(u=>!u.is_pro).length} users
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Broadcast history */}
-                    <div style={{ ...mono, fontSize:9, letterSpacing:3, color:C.muted, marginBottom:12 }}>BROADCAST HISTORY ({broadcasts.length})</div>
-                    {broadcasts.length === 0 && (
-                      <div className="card" style={{ padding:'32px', textAlign:'center', color:C.dim, fontSize:13 }}>No broadcasts sent yet.</div>
-                    )}
-                    {broadcasts.map(b => (
-                      <div key={b.id} className="card" style={{ padding:'20px 24px', marginBottom:10 }}>
-                        <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', marginBottom:8 }}>
-                          <div style={{ display:'flex', gap:10, alignItems:'center' }}>
-                            <span style={{ ...mono, fontSize:8, color:'#4CF7C0', background:'rgba(76,247,192,0.1)', border:'1px solid rgba(76,247,192,0.2)', padding:'2px 8px', borderRadius:100 }}>
-                              {b.target?.toUpperCase()}
-                            </span>
-                            <span style={{ ...mono, fontSize:9, color:C.dim }}>
-                              {new Date(b.sent).toLocaleString('en-GB',{day:'2-digit',month:'short',year:'2-digit',hour:'2-digit',minute:'2-digit'})}
-                            </span>
-                          </div>
-                          <button onClick={() => deleteBroadcast(b.id)} style={{ ...mono, fontSize:9, color:'#F87171', background:'none', border:'none', cursor:'pointer' }}>✕</button>
-                        </div>
-                        <div style={{ fontSize:13, color:C.text, lineHeight:1.6 }}>{b.message}</div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-
-                {/* ─── BRANDING ─── */}
-                {tab === 'branding' && (
-                  <div style={{ maxWidth:720 }}>
-                    <div style={{ ...mono, fontSize:9, letterSpacing:3, color:C.muted, marginBottom:20 }}>
-                      Edit platform copy and messaging. Changes saved to localStorage and apply on reload.
-                    </div>
-                    <div className="card" style={{ padding:'32px', marginBottom:16 }}>
-                      <div style={{ ...mono, fontSize:9, letterSpacing:3, color:C.cyan, marginBottom:20 }}>PLATFORM COPY</div>
-                      <div style={{ display:'flex', flexDirection:'column', gap:16 }}>
-                        {[
+                            }}, label)
+                          )))), React.createElement("div", {style: { marginBottom:16 }}, React.createElement("div", {style: { ...mono, fontSize:8, letterSpacing:2, color:C.muted, marginBottom:8 }}, 'MESSAGE'), React.createElement("textarea", {value: broadcastMsg, onChange: e => setBroadcastMsg(e.target.value), placeholder: "Enter your announcement or message...", rows: 4, style: { fontSize:13, width:'100%', resize:'vertical', background:C.deep, border:`1px solid ${C.border}`, color:C.text, padding:'12px 14px', borderRadius:4, fontFamily:'inherit', lineHeight:1.6 }})), React.createElement("div", {style: { display:'flex', gap:12, alignItems:'center' }}, React.createElement("button", {className: "btn-primary", onClick: sendBroadcast, disabled: !broadcastMsg.trim()}, 'Send Broadcast →'), React.createElement("div", {style: { ...mono, fontSize:9, color:C.muted }}, 'Will reach:', broadcastTarget==='all' ? users.length : broadcastTarget==='pro' ? proUsers.length : broadcastTarget==='enterprise' ? entUsers.length : users.filter(u=>!u.is_pro).length, 'users'))), React.createElement("div", {style: { ...mono, fontSize:9, letterSpacing:3, color:C.muted, marginBottom:12 }}, 'BROADCAST HISTORY (', broadcasts.length, ')'), broadcasts.length === 0 && (
+                      React.createElement("div", {className: "card", style: { padding:'32px', textAlign:'center', color:C.dim, fontSize:13 }}, 'No broadcasts sent yet.')
+                    ), broadcasts.map(b => (
+                      React.createElement("div", {key: b.id, className: "card", style: { padding:'20px 24px', marginBottom:10 }}, React.createElement("div", {style: { display:'flex', justifyContent:'space-between', alignItems:'flex-start', marginBottom:8 }}, React.createElement("div", {style: { display:'flex', gap:10, alignItems:'center' }}, React.createElement("span", {style: { ...mono, fontSize:8, color:'#4CF7C0', background:'rgba(76,247,192,0.1)', border:'1px solid rgba(76,247,192,0.2)', padding:'2px 8px', borderRadius:100 }}, b.target?.toUpperCase()), React.createElement("span", {style: { ...mono, fontSize:9, color:C.dim }}, new Date(b.sent).toLocaleString('en-GB',{day:'2-digit',month:'short',year:'2-digit',hour:'2-digit',minute:'2-digit'}))), React.createElement("button", {onClick: () => deleteBroadcast(b.id), style: { ...mono, fontSize:9, color:'#F87171', background:'none', border:'none', cursor:'pointer' }}, '✕')), React.createElement("div", {style: { fontSize:13, color:C.text, lineHeight:1.6 }}, b.message))
+                    )))
+                ), tab === 'branding' && (
+                  React.createElement("div", {style: { maxWidth:720 }}, React.createElement("div", {style: { ...mono, fontSize:9, letterSpacing:3, color:C.muted, marginBottom:20 }}, 'Edit platform copy and messaging. Changes saved to localStorage and apply on reload.'), React.createElement("div", {className: "card", style: { padding:'32px', marginBottom:16 }}, React.createElement("div", {style: { ...mono, fontSize:9, letterSpacing:3, color:C.cyan, marginBottom:20 }}, 'PLATFORM COPY'), React.createElement("div", {style: { display:'flex', flexDirection:'column', gap:16 }}, [
                           { key:'heroTitle', label:'Hero Title', placeholder:'e.g. Most people were never taught HOW to think.' },
                           { key:'tagline', label:'Tagline / Subheadline', placeholder:'e.g. The World\'s First Cognitive Performance Operating System' },
                           { key:'ctaText', label:'Primary CTA Button Text', placeholder:'e.g. Begin Your Assessment' },
                         ].map(f => (
-                          <div key={f.key}>
-                            <div style={{ ...mono, fontSize:8, letterSpacing:2, color:C.muted, marginBottom:6 }}>{f.label.toUpperCase()}</div>
-                            <input
-                              value={brandSettings[f.key] || ''}
-                              onChange={e => setBrandSettings(p => ({...p, [f.key]: e.target.value}))}
-                              placeholder={f.placeholder}
-                              style={{ fontSize:13, width:'100%' }}
-                            />
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-
-                    <div className="card" style={{ padding:'32px', marginBottom:16 }}>
-                      <div style={{ ...mono, fontSize:9, letterSpacing:3, color:C.cyan, marginBottom:20 }}>ANNOUNCEMENT BAR</div>
-                      <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:16 }}>
-                        <div>
-                          <div style={{ fontSize:13, color:C.text, fontWeight:500 }}>Show Announcement Bar</div>
-                          <div style={{ fontSize:12, color:C.muted }}>Displays a banner at the top of the platform</div>
-                        </div>
-                        <button onClick={() => setBrandSettings(p => ({...p, announcementActive: !p.announcementActive}))} style={{
+                          React.createElement("div", {key: f.key}, React.createElement("div", {style: { ...mono, fontSize:8, letterSpacing:2, color:C.muted, marginBottom:6 }}, f.label.toUpperCase()), React.createElement("input", {value: brandSettings[f.key] || '', onChange: e => setBrandSettings(p => ({...p, [f.key]: e.target.value})), placeholder: f.placeholder, style: { fontSize:13, width:'100%' }}))
+                        )))), React.createElement("div", {className: "card", style: { padding:'32px', marginBottom:16 }}, React.createElement("div", {style: { ...mono, fontSize:9, letterSpacing:3, color:C.cyan, marginBottom:20 }}, 'ANNOUNCEMENT BAR'), React.createElement("div", {style: { display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:16 }}, React.createElement("div", null, React.createElement("div", {style: { fontSize:13, color:C.text, fontWeight:500 }}, 'Show Announcement Bar'), React.createElement("div", {style: { fontSize:12, color:C.muted }}, 'Displays a banner at the top of the platform')), React.createElement("button", {onClick: () => setBrandSettings(p => ({...p, announcementActive: !p.announcementActive})), style: {
                           ...mono, fontSize:9, padding:'8px 16px', borderRadius:2, cursor:'pointer',
                           background: brandSettings.announcementActive ? 'rgba(76,247,192,0.1)' : 'rgba(122,175,207,0.1)',
                           border: brandSettings.announcementActive ? '1px solid rgba(76,247,192,0.3)' : `1px solid ${C.border}`,
                           color: brandSettings.announcementActive ? '#4CF7C0' : C.muted,
-                        }}>{brandSettings.announcementActive ? 'ON: Disable' : 'OFF: Enable'}</button>
-                      </div>
-                      <div style={{ ...mono, fontSize:8, letterSpacing:2, color:C.muted, marginBottom:6 }}>ANNOUNCEMENT TEXT</div>
-                      <input
-                        value={brandSettings.announcementBar || ''}
-                        onChange={e => setBrandSettings(p => ({...p, announcementBar: e.target.value}))}
-                        placeholder="e.g. New enterprise cohorts now available. Contact us to enrol your team."
-                        style={{ fontSize:13, width:'100%' }}
-                      />
-                    </div>
-
-                    <button className="btn-primary" onClick={saveBranding}>Save Branding Changes →</button>
-                  </div>
-                )}
-
-                {/* ─── PRICING ─── */}
-                {tab === 'pricing' && (
-                  <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit,minmax(min(400px,100%),1fr))', gap:20 }}>
-                    {/* Pro pricing */}
-                    <div className="card" style={{ padding:'40px', position:'relative', overflow:'hidden', borderColor:'rgba(196,160,80,0.3)' }}>
-                      <ScanLine />
-                      <div style={{ ...mono, fontSize:9, letterSpacing:3, color:C.cyan, marginBottom:16 }}>PRO PLAN PRICING</div>
-                      <div style={{ ...syne, fontSize:22, fontWeight:800, color:C.text, marginBottom:8 }}>Edit Pro Price</div>
-                      <div style={{ fontSize:13, color:C.muted, marginBottom:28, lineHeight:1.7 }}>
-                        Updates the price shown on the platform and passed to Paystack for payment processing.
-                      </div>
-
-                      <div style={{ marginBottom:20 }}>
-                        <div style={{ ...mono, fontSize:9, letterSpacing:2, color:C.muted, marginBottom:8 }}>CURRENT PRICE (NAIRA)</div>
-                        <div style={{ ...syne, fontSize:48, fontWeight:800, color:C.cyan, lineHeight:1, marginBottom:4 }}>
-                          ₦{(proPrice/100).toLocaleString()}
-                        </div>
-                        <div style={{ ...mono, fontSize:9, color:C.muted }}>= {proPrice.toLocaleString()} kobo</div>
-                      </div>
-
-                      <div style={{ marginBottom:20 }}>
-                        <div style={{ ...mono, fontSize:9, letterSpacing:2, color:C.muted, marginBottom:8 }}>NEW PRICE (₦)</div>
-                        <div style={{ display:'flex', gap:12, alignItems:'center' }}>
-                          <div style={{ position:'relative', flex:1 }}>
-                            <div style={{ position:'absolute', left:16, top:'50%', transform:'translateY(-50%)', ...syne, fontSize:16, fontWeight:700, color:C.muted }}>₦</div>
-                            <input type="number" value={priceInput} onChange={e => setPriceInput(e.target.value)} style={{ paddingLeft:36, fontSize:20, ...syne, fontWeight:700 }} min="100" step="100" />
-                          </div>
-                          <button className="btn-primary" onClick={savePrice} style={{ whiteSpace:'nowrap' }}>
-                            {priceSaved ? '✓ Saved!' : 'Save Price'}
-                          </button>
-                        </div>
-                      </div>
-
-                      <div style={{ padding:'20px', background:C.deep, borderRadius:2, border:`1px solid ${C.border}` }}>
-                        <div style={{ ...mono, fontSize:8, letterSpacing:3, color:C.muted, marginBottom:8 }}>PAYSTACK INTEGRATION</div>
-                        <div style={{ fontSize:13, color:C.muted, lineHeight:1.7 }}>
-                          Live key: <span style={{ color:C.cyan, fontFamily:'monospace' }}>loaded from platform_settings at runtime</span><br/>
-                          Currency: NGN · Gateway: Paystack inline · Verified server-side
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Enterprise pricing */}
-                    <div className="card" style={{ padding:'40px', position:'relative', overflow:'hidden', borderColor:'rgba(76,247,192,0.2)' }}>
-                      <div style={{ ...mono, fontSize:9, letterSpacing:3, color:'#4CF7C0', marginBottom:16 }}>ENTERPRISE PLAN PRICING</div>
-                      <div style={{ ...syne, fontSize:22, fontWeight:800, color:C.text, marginBottom:8 }}>Edit Enterprise Price</div>
-                      <div style={{ fontSize:13, color:C.muted, marginBottom:28, lineHeight:1.7 }}>
-                        Sets the displayed price for enterprise cohort enrolment on the platform.
-                      </div>
-
-                      <div style={{ marginBottom:20 }}>
-                        <div style={{ ...mono, fontSize:9, letterSpacing:2, color:C.muted, marginBottom:8 }}>CURRENT PRICE (NAIRA)</div>
-                        <div style={{ ...syne, fontSize:48, fontWeight:800, color:'#4CF7C0', lineHeight:1, marginBottom:4 }}>
-                          ₦{(entPrice/100).toLocaleString()}
-                        </div>
-                        <div style={{ ...mono, fontSize:9, color:C.muted }}>= {entPrice.toLocaleString()} kobo</div>
-                      </div>
-
-                      <div style={{ marginBottom:20 }}>
-                        <div style={{ ...mono, fontSize:9, letterSpacing:2, color:C.muted, marginBottom:8 }}>NEW PRICE (₦)</div>
-                        <div style={{ display:'flex', gap:12, alignItems:'center' }}>
-                          <div style={{ position:'relative', flex:1 }}>
-                            <div style={{ position:'absolute', left:16, top:'50%', transform:'translateY(-50%)', ...syne, fontSize:16, fontWeight:700, color:C.muted }}>₦</div>
-                            <input type="number" value={entPriceInput} onChange={e => setEntPriceInput(e.target.value)} style={{ paddingLeft:36, fontSize:20, ...syne, fontWeight:700 }} min="100" step="1000" />
-                          </div>
-                          <button className="btn-primary" onClick={saveEntPrice} style={{ whiteSpace:'nowrap' }}>Save Price</button>
-                        </div>
-                      </div>
-
-                      <div style={{ padding:'16px 20px', background:C.deep, borderRadius:2, border:`1px solid ${C.border}`, ...mono, fontSize:10, color:C.muted }}>
-                        Grant enterprise access manually in the <button onClick={() => setTab('users')} style={{ background:'none', border:'none', color:C.cyan, cursor:'pointer', ...mono, fontSize:10, padding:0 }}>Users tab →</button>
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {/* ─── SETTINGS ─── */}
-                {tab === 'settings' && (
-                  <div style={{ maxWidth:680 }}>
-                    <div className="card" style={{ padding:'36px', marginBottom:16 }}>
-                      <div style={{ ...mono, fontSize:9, letterSpacing:3, color:C.cyan, marginBottom:16 }}>PLATFORM INFO</div>
-                      {[
+                        }}, brandSettings.announcementActive ? 'ON: Disable' : 'OFF: Enable')), React.createElement("div", {style: { ...mono, fontSize:8, letterSpacing:2, color:C.muted, marginBottom:6 }}, 'ANNOUNCEMENT TEXT'), React.createElement("input", {value: brandSettings.announcementBar || '', onChange: e => setBrandSettings(p => ({...p, announcementBar: e.target.value})), placeholder: "e.g. New enterprise cohorts now available. Contact us to enrol your team.", style: { fontSize:13, width:'100%' }})), React.createElement("button", {className: "btn-primary", onClick: saveBranding}, 'Save Branding Changes →'))
+                ), tab === 'pricing' && (
+                  React.createElement("div", {style: { display:'grid', gridTemplateColumns:'repeat(auto-fit,minmax(min(400px,100%),1fr))', gap:20 }}, React.createElement("div", {className: "card", style: { padding:'40px', position:'relative', overflow:'hidden', borderColor:'rgba(196,160,80,0.3)' }}, React.createElement(ScanLine, null), React.createElement("div", {style: { ...mono, fontSize:9, letterSpacing:3, color:C.cyan, marginBottom:16 }}, 'PRO PLAN PRICING'), React.createElement("div", {style: { ...syne, fontSize:22, fontWeight:800, color:C.text, marginBottom:8 }}, 'Edit Pro Price'), React.createElement("div", {style: { fontSize:13, color:C.muted, marginBottom:28, lineHeight:1.7 }}, 'Updates the price shown on the platform and passed to Paystack for payment processing.'), React.createElement("div", {style: { marginBottom:20 }}, React.createElement("div", {style: { ...mono, fontSize:9, letterSpacing:2, color:C.muted, marginBottom:8 }}, 'CURRENT PRICE (NAIRA)'), React.createElement("div", {style: { ...syne, fontSize:48, fontWeight:800, color:C.cyan, lineHeight:1, marginBottom:4 }}, '₦', (proPrice/100).toLocaleString()), React.createElement("div", {style: { ...mono, fontSize:9, color:C.muted }}, '=', proPrice.toLocaleString(), 'kobo')), React.createElement("div", {style: { marginBottom:20 }}, React.createElement("div", {style: { ...mono, fontSize:9, letterSpacing:2, color:C.muted, marginBottom:8 }}, 'NEW PRICE (₦)'), React.createElement("div", {style: { display:'flex', gap:12, alignItems:'center' }}, React.createElement("div", {style: { position:'relative', flex:1 }}, React.createElement("div", {style: { position:'absolute', left:16, top:'50%', transform:'translateY(-50%)', ...syne, fontSize:16, fontWeight:700, color:C.muted }}, '₦'), React.createElement("input", {type: "number", value: priceInput, onChange: e => setPriceInput(e.target.value), style: { paddingLeft:36, fontSize:20, ...syne, fontWeight:700 }, min: "100", step: "100"})), React.createElement("button", {className: "btn-primary", onClick: savePrice, style: { whiteSpace:'nowrap' }}, priceSaved ? '✓ Saved!' : 'Save Price'))), React.createElement("div", {style: { padding:'20px', background:C.deep, borderRadius:2, border:`1px solid ${C.border}` }}, React.createElement("div", {style: { ...mono, fontSize:8, letterSpacing:3, color:C.muted, marginBottom:8 }}, 'PAYSTACK INTEGRATION'), React.createElement("div", {style: { fontSize:13, color:C.muted, lineHeight:1.7 }}, 'Live key:', React.createElement("span", {style: { color:C.cyan, fontFamily:'monospace' }}, 'loaded from platform_settings at runtime'), React.createElement("br", null), 'Currency: NGN · Gateway: Paystack inline · Verified server-side'))), React.createElement("div", {className: "card", style: { padding:'40px', position:'relative', overflow:'hidden', borderColor:'rgba(76,247,192,0.2)' }}, React.createElement("div", {style: { ...mono, fontSize:9, letterSpacing:3, color:'#4CF7C0', marginBottom:16 }}, 'ENTERPRISE PLAN PRICING'), React.createElement("div", {style: { ...syne, fontSize:22, fontWeight:800, color:C.text, marginBottom:8 }}, 'Edit Enterprise Price'), React.createElement("div", {style: { fontSize:13, color:C.muted, marginBottom:28, lineHeight:1.7 }}, 'Sets the displayed price for enterprise cohort enrolment on the platform.'), React.createElement("div", {style: { marginBottom:20 }}, React.createElement("div", {style: { ...mono, fontSize:9, letterSpacing:2, color:C.muted, marginBottom:8 }}, 'CURRENT PRICE (NAIRA)'), React.createElement("div", {style: { ...syne, fontSize:48, fontWeight:800, color:'#4CF7C0', lineHeight:1, marginBottom:4 }}, '₦', (entPrice/100).toLocaleString()), React.createElement("div", {style: { ...mono, fontSize:9, color:C.muted }}, '=', entPrice.toLocaleString(), 'kobo')), React.createElement("div", {style: { marginBottom:20 }}, React.createElement("div", {style: { ...mono, fontSize:9, letterSpacing:2, color:C.muted, marginBottom:8 }}, 'NEW PRICE (₦)'), React.createElement("div", {style: { display:'flex', gap:12, alignItems:'center' }}, React.createElement("div", {style: { position:'relative', flex:1 }}, React.createElement("div", {style: { position:'absolute', left:16, top:'50%', transform:'translateY(-50%)', ...syne, fontSize:16, fontWeight:700, color:C.muted }}, '₦'), React.createElement("input", {type: "number", value: entPriceInput, onChange: e => setEntPriceInput(e.target.value), style: { paddingLeft:36, fontSize:20, ...syne, fontWeight:700 }, min: "100", step: "1000"})), React.createElement("button", {className: "btn-primary", onClick: saveEntPrice, style: { whiteSpace:'nowrap' }}, 'Save Price'))), React.createElement("div", {style: { padding:'16px 20px', background:C.deep, borderRadius:2, border:`1px solid ${C.border}`, ...mono, fontSize:10, color:C.muted }}, 'Grant enterprise access manually in the', React.createElement("button", {onClick: () => setTab('users'), style: { background:'none', border:'none', color:C.cyan, cursor:'pointer', ...mono, fontSize:10, padding:0 }}, 'Users tab →'))))
+                ), tab === 'settings' && (
+                  React.createElement("div", {style: { maxWidth:680 }}, React.createElement("div", {className: "card", style: { padding:'36px', marginBottom:16 }}, React.createElement("div", {style: { ...mono, fontSize:9, letterSpacing:3, color:C.cyan, marginBottom:16 }}, 'PLATFORM INFO'), [
                         { label:'Platform',      value:'NeuralFusion™ Cognitive OS' },
                         { label:'Admin Access',   value:'Supabase RLS · profiles.is_admin' },
                         { label:'Supabase URL',   value:'ckrxgbosyohcmjtemrvu.supabase.co' },
                         { label:'Supabase Ref',   value:'civwcmteqidppscbpqni' },
                         { label:'Live App',       value:'life322-c.github.io/NeuralFusion.app2/' },
                       ].map((r,i) => (
-                        <div key={i} style={{ display:'flex', justifyContent:'space-between', padding:'12px 0', borderBottom:`1px solid ${C.border}`, gap:16 }}>
-                          <div style={{ ...mono, fontSize:9, letterSpacing:2, color:C.muted, flexShrink:0 }}>{r.label.toUpperCase()}</div>
-                          <div style={{ fontSize:12, color:C.text, fontFamily:'monospace', textAlign:'right', wordBreak:'break-all' }}>{r.value}</div>
-                        </div>
-                      ))}
-                    </div>
-
-                    <div className="card" style={{ padding:'36px', marginBottom:16 }}>
-                      <div style={{ ...mono, fontSize:9, letterSpacing:3, color:C.cyan, marginBottom:16 }}>PLATFORM CONTROLS</div>
-                      <div style={{ display:'flex', flexDirection:'column', gap:0 }}>
-                        {[
+                        React.createElement("div", {key: i, style: { display:'flex', justifyContent:'space-between', padding:'12px 0', borderBottom:`1px solid ${C.border}`, gap:16 }}, React.createElement("div", {style: { ...mono, fontSize:9, letterSpacing:2, color:C.muted, flexShrink:0 }}, r.label.toUpperCase()), React.createElement("div", {style: { fontSize:12, color:C.text, fontFamily:'monospace', textAlign:'right', wordBreak:'break-all' }}, r.value))
+                      ))), React.createElement("div", {className: "card", style: { padding:'36px', marginBottom:16 }}, React.createElement("div", {style: { ...mono, fontSize:9, letterSpacing:3, color:C.cyan, marginBottom:16 }}, 'PLATFORM CONTROLS'), React.createElement("div", {style: { display:'flex', flexDirection:'column', gap:0 }}, [
                           {
                             label:'Maintenance Mode',
                             desc:'Shows maintenance message to users (session only)',
@@ -4159,63 +2093,20 @@ a premium mental performance environment for{' '}
                             onColor:'#4CF7C0', offColor:'#F87171',
                           },
                         ].map((ctrl,i) => (
-                          <div key={i} style={{ display:'flex', justifyContent:'space-between', alignItems:'center', padding:'14px 0', borderBottom:`1px solid ${C.border}` }}>
-                            <div>
-                              <div style={{ fontSize:13, color:C.text, fontWeight:500 }}>{ctrl.label}</div>
-                              <div style={{ fontSize:12, color:C.muted }}>{ctrl.desc}</div>
-                            </div>
-                            <button onClick={ctrl.onToggle} style={{
+                          React.createElement("div", {key: i, style: { display:'flex', justifyContent:'space-between', alignItems:'center', padding:'14px 0', borderBottom:`1px solid ${C.border}` }}, React.createElement("div", null, React.createElement("div", {style: { fontSize:13, color:C.text, fontWeight:500 }}, ctrl.label), React.createElement("div", {style: { fontSize:12, color:C.muted }}, ctrl.desc)), React.createElement("button", {onClick: ctrl.onToggle, style: {
                               ...mono, fontSize:9, padding:'8px 16px', cursor:'pointer', borderRadius:2, flexShrink:0,
                               background: ctrl.value ? `rgba(${ctrl.onColor==='#F87171'?'248,113,113':'76,247,192'},0.1)` : `rgba(${ctrl.offColor==='#F87171'?'248,113,113':'122,175,207'},0.1)`,
                               border: `1px solid ${ctrl.value ? ctrl.onColor : ctrl.offColor}44`,
                               color: ctrl.value ? ctrl.onColor : ctrl.offColor,
-                            }}>
-                              {ctrl.value ? 'ON: Disable' : 'OFF: Enable'}
-                            </button>
-                          </div>
-                        ))}
-                        <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', padding:'14px 0', borderBottom:`1px solid ${C.border}` }}>
-                          <div>
-                            <div style={{ fontSize:13, color:C.text, fontWeight:500 }}>Refresh All Data</div>
-                            <div style={{ fontSize:12, color:C.muted }}>Pull latest from Supabase</div>
-                          </div>
-                          <button className="btn-outline" style={{ fontSize:10 }} onClick={loadAdminData}>↺ Refresh</button>
-                        </div>
-                        <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', padding:'14px 0', borderBottom:`1px solid ${C.border}` }}>
-                          <div>
-                            <div style={{ fontSize:13, color:C.text, fontWeight:500 }}>Reset localStorage Overrides</div>
-                            <div style={{ fontSize:12, color:C.muted }}>Clear all admin edits (lessons, CFI items, branding)</div>
-                          </div>
-                          <button onClick={() => {
+                            }}, ctrl.value ? 'ON: Disable' : 'OFF: Enable'))
+                        )), React.createElement("div", {style: { display:'flex', justifyContent:'space-between', alignItems:'center', padding:'14px 0', borderBottom:`1px solid ${C.border}` }}, React.createElement("div", null, React.createElement("div", {style: { fontSize:13, color:C.text, fontWeight:500 }}, 'Refresh All Data'), React.createElement("div", {style: { fontSize:12, color:C.muted }}, 'Pull latest from Supabase')), React.createElement("button", {className: "btn-outline", style: { fontSize:10 }, onClick: loadAdminData}, '↺ Refresh')), React.createElement("div", {style: { display:'flex', justifyContent:'space-between', alignItems:'center', padding:'14px 0', borderBottom:`1px solid ${C.border}` }}, React.createElement("div", null, React.createElement("div", {style: { fontSize:13, color:C.text, fontWeight:500 }}, 'Reset localStorage Overrides'), React.createElement("div", {style: { fontSize:12, color:C.muted }}, 'Clear all admin edits (lessons, CFI items, branding)')), React.createElement("button", {onClick: () => {
                             ['nf_lessons_overrides','nf_cfi_items','nf_brand','nf_cohorts','nf_broadcasts'].forEach(k => localStorage.removeItem(k));
                             showMsg('localStorage overrides cleared. Reload to see effect.', 'success');
-                          }} style={{ ...mono, fontSize:9, padding:'8px 16px', cursor:'pointer', borderRadius:2, background:'rgba(248,113,113,0.08)', border:'1px solid rgba(248,113,113,0.2)', color:'#F87171' }}>Clear Overrides</button>
-                        </div>
-                        <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', padding:'14px 0' }}>
-                          <div>
-                            <div style={{ fontSize:13, color:C.text, fontWeight:500 }}>Lock Admin Portal</div>
-                            <div style={{ fontSize:12, color:C.muted }}>Re-lock this session</div>
-                          </div>
-                          <button onClick={() => { setView('home'); }} style={{ ...mono, fontSize:9, padding:'8px 16px', cursor:'pointer', borderRadius:2, background:'rgba(248,113,113,0.1)', border:'1px solid rgba(248,113,113,0.3)', color:'#F87171' }}>Exit Admin</button>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="card" style={{ padding:'28px' }}>
-                      <div style={{ ...mono, fontSize:9, letterSpacing:3, color:C.cyan, marginBottom:12 }}>SUPABASE TABLES</div>
-                      {['profiles','cfi_results','lesson_progress','platform_settings'].map((t,i) => (
-                        <div key={i} style={{ display:'flex', alignItems:'center', gap:10, padding:'8px 0', borderBottom:`1px solid ${C.border}` }}>
-                          <div style={{ width:6, height:6, borderRadius:'50%', background:'#7AAFCF', flexShrink:0 }} />
-                          <div style={{ fontFamily:'monospace', fontSize:13, color:C.text }}>{t}</div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </>
-            )}
-          </div>
-        </div>
+                          }, style: { ...mono, fontSize:9, padding:'8px 16px', cursor:'pointer', borderRadius:2, background:'rgba(248,113,113,0.08)', border:'1px solid rgba(248,113,113,0.2)', color:'#F87171' }}, 'Clear Overrides')), React.createElement("div", {style: { display:'flex', justifyContent:'space-between', alignItems:'center', padding:'14px 0' }}, React.createElement("div", null, React.createElement("div", {style: { fontSize:13, color:C.text, fontWeight:500 }}, 'Lock Admin Portal'), React.createElement("div", {style: { fontSize:12, color:C.muted }}, 'Re-lock this session')), React.createElement("button", {onClick: () => { setView('home'); }, style: { ...mono, fontSize:9, padding:'8px 16px', cursor:'pointer', borderRadius:2, background:'rgba(248,113,113,0.1)', border:'1px solid rgba(248,113,113,0.3)', color:'#F87171' }}, 'Exit Admin')))), React.createElement("div", {className: "card", style: { padding:'28px' }}, React.createElement("div", {style: { ...mono, fontSize:9, letterSpacing:3, color:C.cyan, marginBottom:12 }}, 'SUPABASE TABLES'), ['profiles','cfi_results','lesson_progress','platform_settings'].map((t,i) => (
+                        React.createElement("div", {key: i, style: { display:'flex', alignItems:'center', gap:10, padding:'8px 0', borderBottom:`1px solid ${C.border}` }}, React.createElement("div", {style: { width:6, height:6, borderRadius:'50%', background:'#7AAFCF', flexShrink:0 }}), React.createElement("div", {style: { fontFamily:'monospace', fontSize:13, color:C.text }}, t))
+                      ))))
+                ))
+            )))
       );
     }
 
@@ -4387,16 +2278,14 @@ a premium mental performance environment for{' '}
     // ── Enterprise BandPill ────────────────────────────────────────────
     function EntBandPill({ score }) {
       const band = entGetBand(score);
-      return <span style={{ fontSize:'0.6rem', letterSpacing:'0.1em', textTransform:'uppercase', color:band.color, border:`1px solid ${band.color}50`, padding:'0.2rem 0.6rem' }}>{band.label}</span>;
+      return React.createElement("span", {style: { fontSize:'0.6rem', letterSpacing:'0.1em', textTransform:'uppercase', color:band.color, border:`1px solid ${band.color}50`, padding:'0.2rem 0.6rem' }}, band.label);
     }
 
     // ── Enterprise ProgressBar ─────────────────────────────────────────
     function EntProgressBar({ value, max=65 }) {
       const pct = Math.min(100,(value/max)*100);
       return (
-        <div style={{ background:EC.border, height:4, borderRadius:2, overflow:'hidden' }}>
-          <div style={{ height:'100%', width:`${pct}%`, background:EC.accent, transition:'width 0.5s ease' }} />
-        </div>
+        React.createElement("div", {style: { background:EC.border, height:4, borderRadius:2, overflow:'hidden' }}, React.createElement("div", {style: { height:'100%', width:`${pct}%`, background:EC.accent, transition:'width 0.5s ease' }}))
       );
     }
 
@@ -4406,15 +2295,9 @@ a premium mental performance environment for{' '}
         ? [['dashboard','Dashboard'],['lessons','Lessons'],['cfi','CFI Data'],['results','Results']]
         : [['assessment','Assessment'],['programme','Programme']];
       return (
-        <nav style={{ position:'fixed', top:0, left:0, right:0, zIndex:200, display:'flex', alignItems:'center', justifyContent:'space-between', padding:'1rem 2rem', background:'rgba(5,12,26,0.95)', backdropFilter:'blur(20px)', borderBottom:`1px solid ${EC.border}` }}>
-          <div style={{ ...ES.mono({ color:EC.accent }), textTransform:'uppercase', letterSpacing:'0.2em' }}>◈ NeuralFusion™ <span style={{ color:EC.muted }}>/ Enterprise</span></div>
-          <div style={{ display:'flex', gap:'0.25rem' }}>
-            {tabs.map(([id,label]) => (
-              <button key={id} style={ES.navTab(view===id)} onClick={()=>setView(id)}>{label}</button>
-            ))}
-          </div>
-          <button style={{ ...ES.mono({ color:EC.muted }), background:'none', border:`1px solid ${EC.border}`, padding:'0.4rem 0.9rem', cursor:'pointer' }} onClick={onExit}>← Exit</button>
-        </nav>
+        React.createElement("nav", {style: { position:'fixed', top:0, left:0, right:0, zIndex:200, display:'flex', alignItems:'center', justifyContent:'space-between', padding:'1rem 2rem', background:'rgba(5,12,26,0.95)', backdropFilter:'blur(20px)', borderBottom:`1px solid ${EC.border}` }}, React.createElement("div", {style: { ...ES.mono({ color:EC.accent }), textTransform:'uppercase', letterSpacing:'0.2em' }}, '◈ NeuralFusion™', React.createElement("span", {style: { color:EC.muted }}, '/ Enterprise')), React.createElement("div", {style: { display:'flex', gap:'0.25rem' }}, tabs.map(([id,label]) => (
+              React.createElement("button", {key: id, style: ES.navTab(view===id), onClick: ()=>setView(id)}, label)
+            ))), React.createElement("button", {style: { ...ES.mono({ color:EC.muted }), background:'none', border:`1px solid ${EC.border}`, padding:'0.4rem 0.9rem', cursor:'pointer' }, onClick: onExit}, '← Exit'))
       );
     }
 
@@ -4433,38 +2316,7 @@ a premium mental performance environment for{' '}
         onSelect('facilitator', { cohort });
       }
       return (
-        <div style={{ minHeight:'100vh', display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', padding:'2rem', paddingTop:'5rem', background:EC.bg }}>
-          <div style={{ position:'fixed', inset:0, backgroundImage:`linear-gradient(${EC.accent}08 1px,transparent 1px),linear-gradient(90deg,${EC.accent}08 1px,transparent 1px)`, backgroundSize:'60px 60px', pointerEvents:'none' }} />
-          <div style={{ position:'relative', zIndex:1, width:'100%', maxWidth:700, display:'flex', flexDirection:'column', alignItems:'center' }}>
-            <div style={{ ...ES.tag, textAlign:'center' }}>◈ Enterprise Cohort System · Active</div>
-            <h1 style={{ ...ES.h1, textAlign:'center', maxWidth:600, marginBottom:'0.75rem' }}>
-              NeuralFusion™<br /><em style={{ color:EC.accent }}>Enterprise Portal</em>
-            </h1>
-            <p style={{ ...ES.mono(), textAlign:'center', maxWidth:480, marginBottom:'3rem' }}>
-              Select your role to enter the programme. Facilitators access session controls, CFI data entry, and live cohort results. Participants complete assessments and access lesson materials.
-            </p>
-            <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:'1.5rem', width:'100%', marginBottom:'2rem' }}>
-              <div style={{ ...ES.card(), borderTop:`2px solid ${EC.gold}`, display:'flex', flexDirection:'column', gap:'1rem' }}>
-                <div style={{ fontSize:'0.6rem', letterSpacing:'0.15em', color:EC.gold, textTransform:'uppercase' }}>Facilitator</div>
-                <div style={ES.h3}>Run the programme</div>
-                <p style={ES.mono()}>Deliver sessions, manage CFI data entry, view live cohort scores and Clarity Delta reports.</p>
-                <input style={ES.input} placeholder="Cohort code (e.g. ORG2026-A)" value={cohort} onChange={e=>setCohort(e.target.value)} />
-                <input style={ES.input} type="password" placeholder="Facilitator PIN" value={facPin} onChange={e=>{ setFacPin(e.target.value); setFacPinError(''); }} />
-                {facPinError && <div style={{ fontSize:'0.65rem', color:EC.red, fontFamily:"'Space Mono', monospace" }}>{facPinError}</div>}
-                <button style={ES.btnGold} onClick={handleFacilitatorEnter}>Enter as Facilitator →</button>
-              </div>
-              <div style={{ ...ES.card(), borderTop:`2px solid ${EC.accent}`, display:'flex', flexDirection:'column', gap:'1rem' }}>
-                <div style={{ fontSize:'0.6rem', letterSpacing:'0.15em', color:EC.accent, textTransform:'uppercase' }}>Participant</div>
-                <div style={ES.h3}>Complete the programme</div>
-                <p style={ES.mono()}>Take the CFI assessment, access lesson materials, and track your cognitive progress.</p>
-                <input style={ES.input} placeholder="Participant ID (e.g. NF-AB12)" value={pid} onChange={e=>setPid(e.target.value.toUpperCase())} />
-                <input style={ES.input} placeholder="Cohort code" value={cohort} onChange={e=>setCohort(e.target.value)} />
-                <button style={ES.btnPrimary} onClick={()=>pid&&cohort&&onSelect('participant',{pid,cohort})}>Enter Programme →</button>
-              </div>
-            </div>
-            <button style={{ ...ES.mono({ color:EC.muted, cursor:'pointer' }), background:'none', border:'none', marginTop:'1rem' }} onClick={onExit}>← Return to Platform</button>
-          </div>
-        </div>
+        React.createElement("div", {style: { minHeight:'100vh', display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', padding:'2rem', paddingTop:'5rem', background:EC.bg }}, React.createElement("div", {style: { position:'fixed', inset:0, backgroundImage:`linear-gradient(${EC.accent}08 1px,transparent 1px),linear-gradient(90deg,${EC.accent}08 1px,transparent 1px)`, backgroundSize:'60px 60px', pointerEvents:'none' }}), React.createElement("div", {style: { position:'relative', zIndex:1, width:'100%', maxWidth:700, display:'flex', flexDirection:'column', alignItems:'center' }}, React.createElement("div", {style: { ...ES.tag, textAlign:'center' }}, '◈ Enterprise Cohort System · Active'), React.createElement("h1", {style: { ...ES.h1, textAlign:'center', maxWidth:600, marginBottom:'0.75rem' }}, 'NeuralFusion™', React.createElement("br", null), React.createElement("em", {style: { color:EC.accent }}, 'Enterprise Portal')), React.createElement("p", {style: { ...ES.mono(), textAlign:'center', maxWidth:480, marginBottom:'3rem' }}, 'Select your role to enter the programme. Facilitators access session controls, CFI data entry, and live cohort results. Participants complete assessments and access lesson materials.'), React.createElement("div", {style: { display:'grid', gridTemplateColumns:'1fr 1fr', gap:'1.5rem', width:'100%', marginBottom:'2rem' }}, React.createElement("div", {style: { ...ES.card(), borderTop:`2px solid ${EC.gold}`, display:'flex', flexDirection:'column', gap:'1rem' }}, React.createElement("div", {style: { fontSize:'0.6rem', letterSpacing:'0.15em', color:EC.gold, textTransform:'uppercase' }}, 'Facilitator'), React.createElement("div", {style: ES.h3}, 'Run the programme'), React.createElement("p", {style: ES.mono()}, 'Deliver sessions, manage CFI data entry, view live cohort scores and Clarity Delta reports.'), React.createElement("input", {style: ES.input, placeholder: "Cohort code (e.g. ORG2026-A)", value: cohort, onChange: e=>setCohort(e.target.value)}), React.createElement("input", {style: ES.input, type: "password", placeholder: "Facilitator PIN", value: facPin, onChange: e=>{ setFacPin(e.target.value); setFacPinError(''); }}), facPinError && React.createElement("div", {style: { fontSize:'0.65rem', color:EC.red, fontFamily:"'Space Mono', monospace" }}, facPinError), React.createElement("button", {style: ES.btnGold, onClick: handleFacilitatorEnter}, 'Enter as Facilitator →')), React.createElement("div", {style: { ...ES.card(), borderTop:`2px solid ${EC.accent}`, display:'flex', flexDirection:'column', gap:'1rem' }}, React.createElement("div", {style: { fontSize:'0.6rem', letterSpacing:'0.15em', color:EC.accent, textTransform:'uppercase' }}, 'Participant'), React.createElement("div", {style: ES.h3}, 'Complete the programme'), React.createElement("p", {style: ES.mono()}, 'Take the CFI assessment, access lesson materials, and track your cognitive progress.'), React.createElement("input", {style: ES.input, placeholder: "Participant ID (e.g. NF-AB12)", value: pid, onChange: e=>setPid(e.target.value.toUpperCase())}), React.createElement("input", {style: ES.input, placeholder: "Cohort code", value: cohort, onChange: e=>setCohort(e.target.value)}), React.createElement("button", {style: ES.btnPrimary, onClick: ()=>pid&&cohort&&onSelect('participant',{pid,cohort})}, 'Enter Programme →'))), React.createElement("button", {style: { ...ES.mono({ color:EC.muted, cursor:'pointer' }), background:'none', border:'none', marginTop:'1rem' }, onClick: onExit}, '← Return to Platform')))
       );
     }
 
@@ -4487,80 +2339,30 @@ a premium mental performance environment for{' '}
       }
 
       if (step==='intro') return (
-        <div style={{ maxWidth:700, margin:'0 auto', padding:'5rem 2rem 2rem' }}>
-          <div style={ES.tag}>Cognitive Fusion Index · Edition 2.0</div>
-          <h1 style={ES.h1}>CFI <em style={{ color:EC.accent }}>Assessment</em></h1>
-          <div style={ES.accentCard({ marginBottom:'2rem' })}>
-            <div style={{ ...ES.mono({ color:EC.text }), marginBottom:'1rem' }}>Instructions to Participant</div>
-            <p style={ES.mono()}>Read each statement below and select the number that best describes how often you experience this, based on the <strong style={{ color:EC.text }}>past two weeks</strong>.</p>
-            <div style={{ display:'flex', gap:'1rem', flexWrap:'wrap', marginTop:'1.25rem' }}>
-              {ENT_SCALE.map(s=><span key={s.val} style={{ fontSize:'0.65rem', color:EC.text, background:EC.bg3, padding:'0.3rem 0.75rem', border:`1px solid ${EC.border2}` }}>{s.val} = {s.label}</span>)}
-            </div>
-          </div>
-          <div style={{ display:'flex', gap:'1rem', marginBottom:'1.5rem' }}>
-            {['pre','post'].map(p=><button key={p} style={p===phase?ES.btnPrimary:ES.btnGhost} onClick={()=>setPhase(p)}>{p==='pre'?'Pre-Assessment (Week 1)':'Post-Assessment (Week 6)'}</button>)}
-          </div>
-          <div style={ES.mono({ marginBottom:'2rem' })}>
-            Participant ID: <strong style={{ color:EC.accent }}>{session.pid}</strong> · Cohort: <strong style={{ color:EC.accent }}>{session.cohort}</strong>
-          </div>
-          <button style={ES.btnPrimary} onClick={()=>setStep('items')}>Begin Assessment →</button>
-        </div>
+        React.createElement("div", {style: { maxWidth:700, margin:'0 auto', padding:'5rem 2rem 2rem' }}, React.createElement("div", {style: ES.tag}, 'Cognitive Fusion Index · Edition 2.0'), React.createElement("h1", {style: ES.h1}, 'CFI', React.createElement("em", {style: { color:EC.accent }}, 'Assessment')), React.createElement("div", {style: ES.accentCard({ marginBottom:'2rem' })}, React.createElement("div", {style: { ...ES.mono({ color:EC.text }), marginBottom:'1rem' }}, 'Instructions to Participant'), React.createElement("p", {style: ES.mono()}, 'Read each statement below and select the number that best describes how often you experience this, based on the', React.createElement("strong", {style: { color:EC.text }}, 'past two weeks'), '.'), React.createElement("div", {style: { display:'flex', gap:'1rem', flexWrap:'wrap', marginTop:'1.25rem' }}, ENT_SCALE.map(s=>React.createElement("span", {key: s.val, style: { fontSize:'0.65rem', color:EC.text, background:EC.bg3, padding:'0.3rem 0.75rem', border:`1px solid ${EC.border2}` }}, s.val, '=', s.label)))), React.createElement("div", {style: { display:'flex', gap:'1rem', marginBottom:'1.5rem' }}, ['pre','post'].map(p=>React.createElement("button", {key: p, style: p===phase?ES.btnPrimary:ES.btnGhost, onClick: ()=>setPhase(p)}, p==='pre'?'Pre-Assessment (Week 1)':'Post-Assessment (Week 6)'))), React.createElement("div", {style: ES.mono({ marginBottom:'2rem' })}, 'Participant ID:', React.createElement("strong", {style: { color:EC.accent }}, session.pid), '· Cohort:', React.createElement("strong", {style: { color:EC.accent }}, session.cohort)), React.createElement("button", {style: ES.btnPrimary, onClick: ()=>setStep('items')}, 'Begin Assessment →'))
       );
 
       if (step==='done') return (
-        <div style={{ maxWidth:600, margin:'0 auto', padding:'5rem 2rem 2rem', textAlign:'center' }}>
-          <div style={{ fontSize:'3rem', marginBottom:'1rem' }}>◈</div>
-          <div style={ES.tag}>Assessment Complete</div>
-          <h2 style={ES.h2}>Your responses have<br /><em style={{ color:EC.accent }}>been recorded.</em></h2>
-          <p style={ES.mono()}>Your facilitator will share cohort-level results at Week 7. Individual scores are not disclosed during the programme.</p>
-        </div>
+        React.createElement("div", {style: { maxWidth:600, margin:'0 auto', padding:'5rem 2rem 2rem', textAlign:'center' }}, React.createElement("div", {style: { fontSize:'3rem', marginBottom:'1rem' }}, '◈'), React.createElement("div", {style: ES.tag}, 'Assessment Complete'), React.createElement("h2", {style: ES.h2}, 'Your responses have', React.createElement("br", null), React.createElement("em", {style: { color:EC.accent }}, 'been recorded.')), React.createElement("p", {style: ES.mono()}, 'Your facilitator will share cohort-level results at Week 7. Individual scores are not disclosed during the programme.'))
       );
 
       const dimGroups = ['A','B','C','D','E'];
       const dimNames = { A:'Decision Latency', B:'Mode Rigidity', C:'Emotional Reactivity', D:'Thought Interruption', E:'Cognitive Overload' };
 
       return (
-        <div style={{ maxWidth:760, margin:'0 auto', padding:'5rem 2rem 4rem' }}>
-          <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'2rem' }}>
-            <div style={ES.mono()}>CFI Edition 2.0 · {phase==='pre'?'Pre-Assessment':'Post-Assessment'}</div>
-            <div style={ES.mono()}><span style={{ color:EC.accent }}>{current}</span> / {total} items</div>
-          </div>
-          <EntProgressBar value={current} max={total} />
-          <div style={{ height:'2rem' }} />
-          {dimGroups.map(dim=>{
+        React.createElement("div", {style: { maxWidth:760, margin:'0 auto', padding:'5rem 2rem 4rem' }}, React.createElement("div", {style: { display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'2rem' }}, React.createElement("div", {style: ES.mono()}, 'CFI Edition 2.0 ·', phase==='pre'?'Pre-Assessment':'Post-Assessment'), React.createElement("div", {style: ES.mono()}, React.createElement("span", {style: { color:EC.accent }}, current), '/', total, 'items')), React.createElement(EntProgressBar, {value: current, max: total}), React.createElement("div", {style: { height:'2rem' }}), dimGroups.map(dim=>{
             const items = ENT_CFI_ITEMS.filter(i=>i.dim===dim);
             return (
-              <div key={dim} style={{ marginBottom:'3rem' }}>
-                <div style={{ ...ES.tag, color:EC.accent, marginBottom:'1.5rem' }}>
-                  Dimension {dim}: {dimNames[dim]}{dim==='E'?' ★ New in Edition 2.0':''}
-                </div>
-                {items.map(item=>(
-                  <div key={item.id} style={{ ...ES.card({ marginBottom:'1rem', padding:'1.5rem' }), borderLeft:responses[item.id]?`2px solid ${EC.accent}`:`2px solid transparent` }}>
-                    <div style={{ display:'flex', gap:'1rem', marginBottom:'1.25rem', alignItems:'flex-start' }}>
-                      <span style={{ ...ES.mono({ color:EC.muted, flexShrink:0 }) }}>{String(item.id).padStart(2,'0')}{item.reversed?' ★':''}</span>
-                      <span style={ES.mono({ color:EC.text, lineHeight:1.7 })}>{item.text}</span>
-                    </div>
-                    <div style={{ display:'flex', gap:'0.5rem', flexWrap:'wrap' }}>
-                      {ENT_SCALE.map(s=>{
+              React.createElement("div", {key: dim, style: { marginBottom:'3rem' }}, React.createElement("div", {style: { ...ES.tag, color:EC.accent, marginBottom:'1.5rem' }}, 'Dimension', dim, ':', dimNames[dim], dim==='E'?' ★ New in Edition 2.0':''), items.map(item=>(
+                  React.createElement("div", {key: item.id, style: { ...ES.card({ marginBottom:'1rem', padding:'1.5rem' }), borderLeft:responses[item.id]?`2px solid ${EC.accent}`:`2px solid transparent` }}, React.createElement("div", {style: { display:'flex', gap:'1rem', marginBottom:'1.25rem', alignItems:'flex-start' }}, React.createElement("span", {style: { ...ES.mono({ color:EC.muted, flexShrink:0 }) }}, String(item.id).padStart(2,'0'), item.reversed?' ★':''), React.createElement("span", {style: ES.mono({ color:EC.text, lineHeight:1.7 })}, item.text)), React.createElement("div", {style: { display:'flex', gap:'0.5rem', flexWrap:'wrap' }}, ENT_SCALE.map(s=>{
                         const sel = responses[item.id]===s.val;
                         return (
-                          <button key={s.val} onClick={()=>setResponses(r=>({...r,[item.id]:s.val}))}
-                            style={{ fontFamily:"'Space Mono', monospace", fontSize:'0.6rem', letterSpacing:'0.1em', padding:'0.5rem 0.75rem', border:`1px solid ${sel?EC.accent:EC.border2}`, background:sel?'rgba(76,247,192,0.12)':'transparent', color:sel?EC.accent:EC.muted, cursor:'pointer', transition:'all 0.15s' }}>
-                            {s.val}<br /><span style={{ fontSize:'0.5rem' }}>{s.label}</span>
-                          </button>
+                          React.createElement("button", {key: s.val, onClick: ()=>setResponses(r=>({...r,[item.id]:s.val})), style: { fontFamily:"'Space Mono', monospace", fontSize:'0.6rem', letterSpacing:'0.1em', padding:'0.5rem 0.75rem', border:`1px solid ${sel?EC.accent:EC.border2}`, background:sel?'rgba(76,247,192,0.12)':'transparent', color:sel?EC.accent:EC.muted, cursor:'pointer', transition:'all 0.15s' }}, s.val, React.createElement("br", null), React.createElement("span", {style: { fontSize:'0.5rem' }}, s.label))
                         );
-                      })}
-                    </div>
-                  </div>
-                ))}
-              </div>
+                      })))
+                )))
             );
-          })}
-          <div style={{ marginTop:'2rem', paddingTop:'2rem', borderTop:`1px solid ${EC.border}`, display:'flex', justifyContent:'space-between', alignItems:'center' }}>
-            <span style={ES.mono()}>{allDone?'All items complete. Ready to submit.':`${total-current} items remaining.`}</span>
-            <button style={allDone?ES.btnPrimary:{...ES.btnPrimary,opacity:0.4,cursor:'not-allowed'}} disabled={!allDone} onClick={handleSubmit}>Submit Assessment →</button>
-          </div>
-        </div>
+          }), React.createElement("div", {style: { marginTop:'2rem', paddingTop:'2rem', borderTop:`1px solid ${EC.border}`, display:'flex', justifyContent:'space-between', alignItems:'center' }}, React.createElement("span", {style: ES.mono()}, allDone?'All items complete. Ready to submit.':`${total-current} items remaining.`), React.createElement("button", {style: allDone?ES.btnPrimary:{...ES.btnPrimary,opacity:0.4,cursor:'not-allowed'}, disabled: !allDone, onClick: handleSubmit}, 'Submit Assessment →')))
       );
     }
 
@@ -4573,92 +2375,30 @@ a premium mental performance environment for{' '}
         const L = ENT_LESSONS[activeLesson];
         const tabs = [['plan','Session Plan'],['practice','Practice Script'],['debrief','Debrief Prompts'],['watchpoints','Watch-Points']];
         return (
-          <div style={{ maxWidth:880, margin:'0 auto', padding:'5rem 2rem 4rem' }}>
-            <button style={{ ...ES.mono({ color:EC.accent }), background:'none', border:'none', cursor:'pointer', marginBottom:'2rem' }} onClick={()=>setActiveLesson(null)}>← Back to Programme</button>
-            <div style={ES.tag}>Lesson {L.num} · Week {L.week} · {L.level}</div>
-            <h1 style={ES.h1}>{L.title}</h1>
-            <div style={ES.accentCard({ marginBottom:'2rem' })}>
-              <div style={{ ...ES.mono({ color:EC.accent, marginBottom:'0.5rem' }) }}>Facilitator Framing</div>
-              <p style={ES.mono({ color:EC.text, lineHeight:1.9 })}>{L.framing}</p>
-            </div>
-            <div style={{ display:'flex', gap:'0.5rem', marginBottom:'2rem', flexWrap:'wrap' }}>
-              {tabs.map(([id,label])=><button key={id} style={ES.navTab(lessonTab===id)} onClick={()=>setLessonTab(id)}>{label}</button>)}
-            </div>
-            {lessonTab==='plan'&&(
-              <div>
-                {L.plan.map((row,i)=>(
-                  <div key={i} style={{ display:'grid', gridTemplateColumns:'100px 1fr', gap:'1.5rem', padding:'1.25rem 0', borderBottom:`1px solid ${EC.border}` }}>
-                    <span style={ES.mono({ color:EC.accent })}>{row.t}</span>
-                    <div>
-                      <div style={{ ...ES.mono({ color:EC.text, marginBottom:'0.3rem' }) }}>{row.act}</div>
-                      <div style={ES.mono()}>{row.detail}</div>
-                    </div>
-                  </div>
-                ))}
-                <div style={{ marginTop:'2rem', ...ES.card({ borderLeft:`2px solid ${EC.gold}` }) }}>
-                  <div style={{ fontSize:'0.6rem', letterSpacing:'0.15em', color:EC.gold, textTransform:'uppercase', marginBottom:'0.5rem' }}>Assignment</div>
-                  <p style={ES.mono({ color:EC.text })}>{L.assignment}</p>
-                </div>
-              </div>
-            )}
-            {lessonTab==='practice'&&(
-              <div style={{ display:'flex', flexDirection:'column', gap:'1rem' }}>
-                {L.practice.map((step,i)=>(
-                  <div key={i} style={{ ...ES.card({ padding:'1.25rem 1.5rem' }), borderLeft:`2px solid ${EC.accent2}`, display:'flex', gap:'1.25rem' }}>
-                    <span style={{ ...ES.mono({ color:EC.accent, flexShrink:0 }) }}>{String(i+1).padStart(2,'0')}</span>
-                    <span style={ES.mono({ color:EC.text, fontStyle:step.startsWith("'")?'italic':'normal', lineHeight:1.9 })}>{step}</span>
-                  </div>
-                ))}
-              </div>
-            )}
-            {lessonTab==='debrief'&&(
-              <div style={{ display:'flex', flexDirection:'column', gap:'0.75rem' }}>
-                {L.debrief.map((q,i)=>(
-                  <div key={i} style={{ ...ES.card({ padding:'1.25rem 1.5rem' }), display:'flex', gap:'1.25rem' }}>
-                    <span style={{ ...ES.mono({ color:EC.accent }) }}>→</span>
-                    <span style={ES.mono({ color:EC.text })}>{q}</span>
-                  </div>
-                ))}
-              </div>
-            )}
-            {lessonTab==='watchpoints'&&(
-              <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit,minmax(min(340px,100%),1fr))', gap:'1rem' }}>
-                {L.watchpoints.map((w,i)=>(
-                  <div key={i} style={{ ...ES.card({ padding:'1.25rem' }), display:'flex', gap:'1rem' }}>
-                    <span style={{ width:6, height:6, borderRadius:'50%', background:EC.gold, flexShrink:0, marginTop:6 }} />
-                    <span style={ES.mono({ color:EC.muted, lineHeight:1.8 })}>{w}</span>
-                  </div>
-                ))}
-              </div>
-            )}
-            <div style={{ ...ES.card({ marginTop:'2.5rem', background:EC.bg3, textAlign:'center', padding:'2rem' }) }}>
-              <div style={{ fontSize:'0.6rem', letterSpacing:'0.15em', color:EC.accent, textTransform:'uppercase', marginBottom:'0.75rem' }}>Key Insight: Lesson {L.num}</div>
-              <div style={{ fontFamily:"'DM Serif Display', serif", fontSize:'1.3rem', fontStyle:'italic', color:EC.text, lineHeight:1.6 }}>{L.keyInsight}</div>
-            </div>
-          </div>
+          React.createElement("div", {style: { maxWidth:880, margin:'0 auto', padding:'5rem 2rem 4rem' }}, React.createElement("button", {style: { ...ES.mono({ color:EC.accent }), background:'none', border:'none', cursor:'pointer', marginBottom:'2rem' }, onClick: ()=>setActiveLesson(null)}, '← Back to Programme'), React.createElement("div", {style: ES.tag}, 'Lesson', L.num, '· Week', L.week, '·', L.level), React.createElement("h1", {style: ES.h1}, L.title), React.createElement("div", {style: ES.accentCard({ marginBottom:'2rem' })}, React.createElement("div", {style: { ...ES.mono({ color:EC.accent, marginBottom:'0.5rem' }) }}, 'Facilitator Framing'), React.createElement("p", {style: ES.mono({ color:EC.text, lineHeight:1.9 })}, L.framing)), React.createElement("div", {style: { display:'flex', gap:'0.5rem', marginBottom:'2rem', flexWrap:'wrap' }}, tabs.map(([id,label])=>React.createElement("button", {key: id, style: ES.navTab(lessonTab===id), onClick: ()=>setLessonTab(id)}, label))), lessonTab==='plan'&&(
+              React.createElement("div", null, L.plan.map((row,i)=>(
+                  React.createElement("div", {key: i, style: { display:'grid', gridTemplateColumns:'100px 1fr', gap:'1.5rem', padding:'1.25rem 0', borderBottom:`1px solid ${EC.border}` }}, React.createElement("span", {style: ES.mono({ color:EC.accent })}, row.t), React.createElement("div", null, React.createElement("div", {style: { ...ES.mono({ color:EC.text, marginBottom:'0.3rem' }) }}, row.act), React.createElement("div", {style: ES.mono()}, row.detail)))
+                )), React.createElement("div", {style: { marginTop:'2rem', ...ES.card({ borderLeft:`2px solid ${EC.gold}` }) }}, React.createElement("div", {style: { fontSize:'0.6rem', letterSpacing:'0.15em', color:EC.gold, textTransform:'uppercase', marginBottom:'0.5rem' }}, 'Assignment'), React.createElement("p", {style: ES.mono({ color:EC.text })}, L.assignment)))
+            ), lessonTab==='practice'&&(
+              React.createElement("div", {style: { display:'flex', flexDirection:'column', gap:'1rem' }}, L.practice.map((step,i)=>(
+                  React.createElement("div", {key: i, style: { ...ES.card({ padding:'1.25rem 1.5rem' }), borderLeft:`2px solid ${EC.accent2}`, display:'flex', gap:'1.25rem' }}, React.createElement("span", {style: { ...ES.mono({ color:EC.accent, flexShrink:0 }) }}, String(i+1).padStart(2,'0')), React.createElement("span", {style: ES.mono({ color:EC.text, fontStyle:step.startsWith("'")?'italic':'normal', lineHeight:1.9 })}, step))
+                )))
+            ), lessonTab==='debrief'&&(
+              React.createElement("div", {style: { display:'flex', flexDirection:'column', gap:'0.75rem' }}, L.debrief.map((q,i)=>(
+                  React.createElement("div", {key: i, style: { ...ES.card({ padding:'1.25rem 1.5rem' }), display:'flex', gap:'1.25rem' }}, React.createElement("span", {style: { ...ES.mono({ color:EC.accent }) }}, '→'), React.createElement("span", {style: ES.mono({ color:EC.text })}, q))
+                )))
+            ), lessonTab==='watchpoints'&&(
+              React.createElement("div", {style: { display:'grid', gridTemplateColumns:'repeat(auto-fit,minmax(min(340px,100%),1fr))', gap:'1rem' }}, L.watchpoints.map((w,i)=>(
+                  React.createElement("div", {key: i, style: { ...ES.card({ padding:'1.25rem' }), display:'flex', gap:'1rem' }}, React.createElement("span", {style: { width:6, height:6, borderRadius:'50%', background:EC.gold, flexShrink:0, marginTop:6 }}), React.createElement("span", {style: ES.mono({ color:EC.muted, lineHeight:1.8 })}, w))
+                )))
+            ), React.createElement("div", {style: { ...ES.card({ marginTop:'2.5rem', background:EC.bg3, textAlign:'center', padding:'2rem' }) }}, React.createElement("div", {style: { fontSize:'0.6rem', letterSpacing:'0.15em', color:EC.accent, textTransform:'uppercase', marginBottom:'0.75rem' }}, 'Key Insight: Lesson', L.num), React.createElement("div", {style: { fontFamily:"'DM Serif Display', serif", fontSize:'1.3rem', fontStyle:'italic', color:EC.text, lineHeight:1.6 }}, L.keyInsight)))
         );
       }
 
       return (
-        <div style={{ maxWidth:880, margin:'0 auto', padding:'5rem 2rem 4rem' }}>
-          <div style={ES.tag}>5-Lesson Programme · 7 Weeks</div>
-          <h1 style={ES.h1}>Your <em style={{ color:EC.accent }}>Programme</em></h1>
-          <div style={{ display:'flex', flexDirection:'column', borderTop:`1px solid ${EC.border}` }}>
-            {ENT_LESSONS.map((L,i)=>(
-              <button key={i} onClick={()=>setActiveLesson(i)}
-                style={{ display:'grid', gridTemplateColumns:'3rem 1fr auto', gap:'2rem', alignItems:'center', padding:'1.75rem 0', borderBottom:`1px solid ${EC.border}`, background:'none', border:'none', borderTop:'none', textAlign:'left', cursor:'pointer', color:EC.text, width:'100%', transition:'padding-left 0.2s' }}
-                onMouseEnter={e=>e.currentTarget.style.paddingLeft='1rem'}
-                onMouseLeave={e=>e.currentTarget.style.paddingLeft='0'}>
-                <span style={ES.mono({ color:EC.muted })}>{String(L.num).padStart(2,'0')}</span>
-                <div>
-                  <div style={{ fontFamily:"'DM Serif Display', serif", fontSize:'1.3rem', marginBottom:'0.3rem', color:EC.text }}>{L.title}</div>
-                  <div style={ES.mono({ fontSize:'0.62rem' })}>{L.skill} · Week {L.week} · {L.duration} min</div>
-                </div>
-                <span style={ES.mono({ color:EC.accent })}>{L.level} →</span>
-              </button>
-            ))}
-          </div>
-        </div>
+        React.createElement("div", {style: { maxWidth:880, margin:'0 auto', padding:'5rem 2rem 4rem' }}, React.createElement("div", {style: ES.tag}, '5-Lesson Programme · 7 Weeks'), React.createElement("h1", {style: ES.h1}, 'Your', React.createElement("em", {style: { color:EC.accent }}, 'Programme')), React.createElement("div", {style: { display:'flex', flexDirection:'column', borderTop:`1px solid ${EC.border}` }}, ENT_LESSONS.map((L,i)=>(
+              React.createElement("button", {key: i, onClick: ()=>setActiveLesson(i), style: { display:'grid', gridTemplateColumns:'3rem 1fr auto', gap:'2rem', alignItems:'center', padding:'1.75rem 0', borderBottom:`1px solid ${EC.border}`, background:'none', border:'none', borderTop:'none', textAlign:'left', cursor:'pointer', color:EC.text, width:'100%', transition:'padding-left 0.2s' }, onMouseEnter: e=>e.currentTarget.style.paddingLeft='1rem', onMouseLeave: e=>e.currentTarget.style.paddingLeft='0'}, React.createElement("span", {style: ES.mono({ color:EC.muted })}, String(L.num).padStart(2,'0')), React.createElement("div", null, React.createElement("div", {style: { fontFamily:"'DM Serif Display', serif", fontSize:'1.3rem', marginBottom:'0.3rem', color:EC.text }}, L.title), React.createElement("div", {style: ES.mono({ fontSize:'0.62rem' })}, L.skill, '· Week', L.week, '·', L.duration, 'min')), React.createElement("span", {style: ES.mono({ color:EC.accent })}, L.level, '→'))
+            ))))
       );
     }
 
@@ -4676,52 +2416,26 @@ a premium mental performance environment for{' '}
       const dimMax   = { A:15, B:15, C:15, D:15, E:5 };
 
       return (
-        <div style={{ maxWidth:1100, margin:'0 auto', padding:'5rem 2rem 4rem' }}>
-          <div style={ES.tag}>Cohort: {session.cohort}</div>
-          <h1 style={ES.h1}>Facilitator <em style={{ color:EC.accent }}>Dashboard</em></h1>
-          <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit,minmax(min(200px,100%),1fr))', gap:'1rem', marginBottom:'2.5rem' }}>
-            {[
+        React.createElement("div", {style: { maxWidth:1100, margin:'0 auto', padding:'5rem 2rem 4rem' }}, React.createElement("div", {style: ES.tag}, 'Cohort:', session.cohort), React.createElement("h1", {style: ES.h1}, 'Facilitator', React.createElement("em", {style: { color:EC.accent }}, 'Dashboard')), React.createElement("div", {style: { display:'grid', gridTemplateColumns:'repeat(auto-fit,minmax(min(200px,100%),1fr))', gap:'1rem', marginBottom:'2.5rem' }}, [
               { label:'Pre-assessments', val:preResults.length },
               { label:'Post-assessments', val:postResults.length },
               { label:'Mean Pre CFI', val:preMean!==null?preMean:'N/A' },
               { label:'Clarity Delta', val:delta!==null?(delta>0?'+':'')+delta:'N/A', color:threshold?EC.accent:delta!==null?EC.red:EC.muted },
             ].map((s,i)=>(
-              <div key={i} style={ES.card({ padding:'1.5rem' })}>
-                <div style={ES.mono({ fontSize:'0.6rem', marginBottom:'0.4rem' })}>{s.label}</div>
-                <div style={{ fontFamily:"'DM Serif Display', serif", fontSize:'2rem', color:s.color||EC.text }}>{s.val}</div>
-              </div>
-            ))}
-          </div>
-          {threshold&&(
-            <div style={{ ...ES.accentCard({ marginBottom:'2rem', borderLeft:`2px solid ${EC.accent}` }) }}>
-              <div style={{ ...ES.mono({ color:EC.accent }) }}>◈ Clarity Delta threshold met (≤–15). The NeuralFusion™ programme has demonstrated measurable cognitive improvement.</div>
-            </div>
-          )}
-          {preResults.length>0&&(
-            <div style={ES.card({ padding:'2rem' })}>
-              <div style={{ ...ES.tag, marginBottom:'1.5rem' }}>Dimension Breakdown: Pre-Assessment Means</div>
-              <div style={{ display:'grid', gridTemplateColumns:'repeat(5,1fr)', gap:'1rem' }}>
-                {['A','B','C','D','E'].map(dim=>{
+              React.createElement("div", {key: i, style: ES.card({ padding:'1.5rem' })}, React.createElement("div", {style: ES.mono({ fontSize:'0.6rem', marginBottom:'0.4rem' })}, s.label), React.createElement("div", {style: { fontFamily:"'DM Serif Display', serif", fontSize:'2rem', color:s.color||EC.text }}, s.val))
+            ))), threshold&&(
+            React.createElement("div", {style: { ...ES.accentCard({ marginBottom:'2rem', borderLeft:`2px solid ${EC.accent}` }) }}, React.createElement("div", {style: { ...ES.mono({ color:EC.accent }) }}, '◈ Clarity Delta threshold met (≤–15). The NeuralFusion™ programme has demonstrated measurable cognitive improvement.'))
+          ), preResults.length>0&&(
+            React.createElement("div", {style: ES.card({ padding:'2rem' })}, React.createElement("div", {style: { ...ES.tag, marginBottom:'1.5rem' }}, 'Dimension Breakdown: Pre-Assessment Means'), React.createElement("div", {style: { display:'grid', gridTemplateColumns:'repeat(5,1fr)', gap:'1rem' }}, ['A','B','C','D','E'].map(dim=>{
                   const dimItems = ENT_CFI_ITEMS.filter(i=>i.dim===dim);
                   const mean = preResults.length ? Math.round(preResults.reduce((s,r)=>s+(r.dims?.[dim]||0),0)/preResults.length) : 0;
                   return (
-                    <div key={dim} style={{ textAlign:'center', padding:'1rem', border:`1px solid ${EC.border}` }}>
-                      <div style={{ fontFamily:"'DM Serif Display', serif", fontSize:'2rem', color:EC.accent, marginBottom:'0.25rem' }}>{mean}</div>
-                      <div style={ES.mono({ fontSize:'0.55rem' })}>/{dimMax[dim]}</div>
-                      <div style={{ ...ES.mono({ fontSize:'0.58rem', color:EC.text, marginTop:'0.3rem' }) }}>Dim {dim}</div>
-                      <div style={ES.mono({ fontSize:'0.55rem' })}>{dimNames[dim]}</div>
-                    </div>
+                    React.createElement("div", {key: dim, style: { textAlign:'center', padding:'1rem', border:`1px solid ${EC.border}` }}, React.createElement("div", {style: { fontFamily:"'DM Serif Display', serif", fontSize:'2rem', color:EC.accent, marginBottom:'0.25rem' }}, mean), React.createElement("div", {style: ES.mono({ fontSize:'0.55rem' })}, '/', dimMax[dim]), React.createElement("div", {style: { ...ES.mono({ fontSize:'0.58rem', color:EC.text, marginTop:'0.3rem' }) }}, 'Dim', dim), React.createElement("div", {style: ES.mono({ fontSize:'0.55rem' })}, dimNames[dim]))
                   );
-                })}
-              </div>
-            </div>
-          )}
-          {preResults.length===0&&(
-            <div style={ES.accentCard({ textAlign:'center', padding:'3rem' })}>
-              <div style={ES.mono()}>No assessment data yet for cohort <strong style={{ color:EC.accent }}>{session.cohort}</strong>.<br />Participants must complete the CFI assessment to populate this dashboard.</div>
-            </div>
-          )}
-        </div>
+                })))
+          ), preResults.length===0&&(
+            React.createElement("div", {style: ES.accentCard({ textAlign:'center', padding:'3rem' })}, React.createElement("div", {style: ES.mono()}, 'No assessment data yet for cohort', React.createElement("strong", {style: { color:EC.accent }}, session.cohort), '.', React.createElement("br", null), 'Participants must complete the CFI assessment to populate this dashboard.'))
+          ))
       );
     }
 
@@ -4746,69 +2460,21 @@ a premium mental performance environment for{' '}
 
       const dimNames = { A:'Decision Latency', B:'Mode Rigidity', C:'Emotional Reactivity', D:'Thought Interruption', E:'Cognitive Overload' };
       return (
-        <div style={{ maxWidth:900, margin:'0 auto', padding:'5rem 2rem 4rem' }}>
-          <div style={ES.tag}>Manual CFI Data Entry · Cohort {session.cohort}</div>
-          <h1 style={ES.h1}>Enter <em style={{ color:EC.accent }}>CFI Responses</em></h1>
-          <p style={ES.mono({ marginBottom:'2rem' })}>Enter raw responses (1–5) exactly as given by the participant. Reversal for reversed items is applied automatically.</p>
-          <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr 1fr', gap:'1rem', marginBottom:'2rem' }}>
-            <div>
-              <label style={ES.label}>Participant ID</label>
-              <input style={ES.input} value={pid} onChange={e=>setPid(e.target.value.toUpperCase())} placeholder="NF-XXXX" />
-            </div>
-            <div>
-              <label style={ES.label}>Group</label>
-              <div style={{ display:'flex', gap:'0.5rem' }}>
-                {['T','C'].map(g=><button key={g} style={g===group?ES.btnPrimary:ES.btnGhost} onClick={()=>setGroup(g)}>{g==='T'?'Treatment (T)':'Control (C)'}</button>)}
-              </div>
-            </div>
-            <div>
-              <label style={ES.label}>Phase</label>
-              <div style={{ display:'flex', gap:'0.5rem' }}>
-                {['pre','post'].map(p=><button key={p} style={p===phaseEntry?ES.btnPrimary:ES.btnGhost} onClick={()=>setPhaseEntry(p)}>{p==='pre'?'Pre (Wk 1)':'Post (Wk 6)'}</button>)}
-              </div>
-            </div>
-          </div>
-          {['A','B','C','D','E'].map(dim=>{
+        React.createElement("div", {style: { maxWidth:900, margin:'0 auto', padding:'5rem 2rem 4rem' }}, React.createElement("div", {style: ES.tag}, 'Manual CFI Data Entry · Cohort', session.cohort), React.createElement("h1", {style: ES.h1}, 'Enter', React.createElement("em", {style: { color:EC.accent }}, 'CFI Responses')), React.createElement("p", {style: ES.mono({ marginBottom:'2rem' })}, 'Enter raw responses (1–5) exactly as given by the participant. Reversal for reversed items is applied automatically.'), React.createElement("div", {style: { display:'grid', gridTemplateColumns:'1fr 1fr 1fr', gap:'1rem', marginBottom:'2rem' }}, React.createElement("div", null, React.createElement("label", {style: ES.label}, 'Participant ID'), React.createElement("input", {style: ES.input, value: pid, onChange: e=>setPid(e.target.value.toUpperCase()), placeholder: "NF-XXXX"})), React.createElement("div", null, React.createElement("label", {style: ES.label}, 'Group'), React.createElement("div", {style: { display:'flex', gap:'0.5rem' }}, ['T','C'].map(g=>React.createElement("button", {key: g, style: g===group?ES.btnPrimary:ES.btnGhost, onClick: ()=>setGroup(g)}, g==='T'?'Treatment (T)':'Control (C)')))), React.createElement("div", null, React.createElement("label", {style: ES.label}, 'Phase'), React.createElement("div", {style: { display:'flex', gap:'0.5rem' }}, ['pre','post'].map(p=>React.createElement("button", {key: p, style: p===phaseEntry?ES.btnPrimary:ES.btnGhost, onClick: ()=>setPhaseEntry(p)}, p==='pre'?'Pre (Wk 1)':'Post (Wk 6)'))))), ['A','B','C','D','E'].map(dim=>{
             const items = ENT_CFI_ITEMS.filter(i=>i.dim===dim);
             return (
-              <div key={dim} style={{ marginBottom:'2rem' }}>
-                <div style={{ ...ES.tag, color:EC.accent, marginBottom:'1rem' }}>Dimension {dim}: {dimNames[dim]}</div>
-                {items.map(item=>(
-                  <div key={item.id} style={{ display:'grid', gridTemplateColumns:'2rem 1fr auto', gap:'1.25rem', alignItems:'center', padding:'0.75rem 0', borderBottom:`1px solid ${EC.border}` }}>
-                    <span style={ES.mono({ color:EC.muted, fontSize:'0.65rem' })}>Q{item.id}{item.reversed?'*':''}{item.isNew?' ★':''}</span>
-                    <span style={ES.mono({ color:EC.text, lineHeight:1.6 })}>{item.text}</span>
-                    <div style={{ display:'flex', gap:'0.35rem' }}>
-                      {[1,2,3,4,5].map(v=>(
-                        <button key={v} onClick={()=>setResponses(r=>({...r,[item.id]:v}))}
-                          style={{ width:32, height:32, fontFamily:"'Space Mono', monospace", fontSize:'0.65rem', border:`1px solid ${responses[item.id]===v?EC.accent:EC.border2}`, background:responses[item.id]===v?'rgba(76,247,192,0.15)':'transparent', color:responses[item.id]===v?EC.accent:EC.muted, cursor:'pointer' }}>
-                          {v}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                ))}
-              </div>
+              React.createElement("div", {key: dim, style: { marginBottom:'2rem' }}, React.createElement("div", {style: { ...ES.tag, color:EC.accent, marginBottom:'1rem' }}, 'Dimension', dim, ':', dimNames[dim]), items.map(item=>(
+                  React.createElement("div", {key: item.id, style: { display:'grid', gridTemplateColumns:'2rem 1fr auto', gap:'1.25rem', alignItems:'center', padding:'0.75rem 0', borderBottom:`1px solid ${EC.border}` }}, React.createElement("span", {style: ES.mono({ color:EC.muted, fontSize:'0.65rem' })}, 'Q', item.id, item.reversed?'*':'', item.isNew?' ★':''), React.createElement("span", {style: ES.mono({ color:EC.text, lineHeight:1.6 })}, item.text), React.createElement("div", {style: { display:'flex', gap:'0.35rem' }}, [1,2,3,4,5].map(v=>(
+                        React.createElement("button", {key: v, onClick: ()=>setResponses(r=>({...r,[item.id]:v})), style: { width:32, height:32, fontFamily:"'Space Mono', monospace", fontSize:'0.65rem', border:`1px solid ${responses[item.id]===v?EC.accent:EC.border2}`, background:responses[item.id]===v?'rgba(76,247,192,0.15)':'transparent', color:responses[item.id]===v?EC.accent:EC.muted, cursor:'pointer' }}, v)
+                      ))))
+                )))
             );
-          })}
-          {allFilled&&(
-            <div style={{ ...ES.card({ marginBottom:'1.5rem' }), display:'flex', justifyContent:'space-between', alignItems:'center', flexWrap:'wrap', gap:'1rem' }}>
-              <div>
-                <div style={ES.mono({ color:EC.text })}>Composite Score: <strong style={{ color:EC.accent }}>{entCalcComposite(responses)}</strong> / 65</div>
-                <EntBandPill score={entCalcComposite(responses)} />
-              </div>
-              <div style={{ display:'flex', gap:'1.5rem', flexWrap:'wrap' }}>
-                {['A','B','C','D','E'].map(d=>{
+          }), allFilled&&(
+            React.createElement("div", {style: { ...ES.card({ marginBottom:'1.5rem' }), display:'flex', justifyContent:'space-between', alignItems:'center', flexWrap:'wrap', gap:'1rem' }}, React.createElement("div", null, React.createElement("div", {style: ES.mono({ color:EC.text })}, 'Composite Score:', React.createElement("strong", {style: { color:EC.accent }}, entCalcComposite(responses)), '/ 65'), React.createElement(EntBandPill, {score: entCalcComposite(responses)})), React.createElement("div", {style: { display:'flex', gap:'1.5rem', flexWrap:'wrap' }}, ['A','B','C','D','E'].map(d=>{
                   const ds = entCalcDimScores(responses);
-                  return <span key={d} style={ES.mono({ fontSize:'0.65rem' })}>Dim {d}: <strong style={{ color:EC.accent }}>{ds[d]}</strong></span>;
-                })}
-              </div>
-            </div>
-          )}
-          <button style={allFilled&&pid?ES.btnPrimary:{...ES.btnPrimary,opacity:0.4,cursor:'not-allowed'}}
-            disabled={!allFilled||!pid} onClick={handleSubmit}>
-            {submitted?'✓ Saved':'Save Participant Record →'}
-          </button>
-        </div>
+                  return React.createElement("span", {key: d, style: ES.mono({ fontSize:'0.65rem' })}, 'Dim', d, ':', React.createElement("strong", {style: { color:EC.accent }}, ds[d]));
+                })))
+          ), React.createElement("button", {style: allFilled&&pid?ES.btnPrimary:{...ES.btnPrimary,opacity:0.4,cursor:'not-allowed'}, disabled: !allFilled||!pid, onClick: handleSubmit}, submitted?'✓ Saved':'Save Participant Record →'))
       );
     }
 
@@ -4818,44 +2484,20 @@ a premium mental performance environment for{' '}
       const [filterPhase, setFilterPhase] = useState('all');
       const filtered = filterPhase==='all' ? cohortResults : cohortResults.filter(r=>r.phase===filterPhase);
       return (
-        <div style={{ maxWidth:1100, margin:'0 auto', padding:'5rem 2rem 4rem' }}>
-          <div style={ES.tag}>Cohort Results · {session.cohort}</div>
-          <h1 style={ES.h1}>CFI <em style={{ color:EC.accent }}>Records</em></h1>
-          <div style={{ display:'flex', gap:'0.5rem', marginBottom:'2rem', flexWrap:'wrap' }}>
-            {[['all','All Records'],['pre','Pre-Assessment'],['post','Post-Assessment']].map(([id,label])=>(
-              <button key={id} style={ES.navTab(filterPhase===id)} onClick={()=>setFilterPhase(id)}>{label}</button>
-            ))}
-          </div>
-          {filtered.length===0 ? (
-            <div style={ES.accentCard({ textAlign:'center', padding:'3rem' })}>
-              <p style={ES.mono()}>No records found for this filter.</p>
-            </div>
+        React.createElement("div", {style: { maxWidth:1100, margin:'0 auto', padding:'5rem 2rem 4rem' }}, React.createElement("div", {style: ES.tag}, 'Cohort Results ·', session.cohort), React.createElement("h1", {style: ES.h1}, 'CFI', React.createElement("em", {style: { color:EC.accent }}, 'Records')), React.createElement("div", {style: { display:'flex', gap:'0.5rem', marginBottom:'2rem', flexWrap:'wrap' }}, [['all','All Records'],['pre','Pre-Assessment'],['post','Post-Assessment']].map(([id,label])=>(
+              React.createElement("button", {key: id, style: ES.navTab(filterPhase===id), onClick: ()=>setFilterPhase(id)}, label)
+            ))), filtered.length===0 ? (
+            React.createElement("div", {style: ES.accentCard({ textAlign:'center', padding:'3rem' })}, React.createElement("p", {style: ES.mono()}, 'No records found for this filter.'))
           ) : (
-            <div>
-              <div style={{ display:'grid', gridTemplateColumns:'120px 60px 60px 60px 60px 60px 60px 60px 60px 1fr', gap:'0.75rem', padding:'0.75rem 0', borderBottom:`1px solid ${EC.border}`, overflowX:'auto' }}>
-                {['Participant','Group','Phase','Date','Dim A','Dim B','Dim C','Dim D','Dim E','Composite'].map(h=>(
-                  <span key={h} style={{ fontSize:'0.55rem', letterSpacing:'0.12em', color:EC.muted, textTransform:'uppercase' }}>{h}</span>
-                ))}
-              </div>
-              {filtered.map((r,i)=>{
+            React.createElement("div", null, React.createElement("div", {style: { display:'grid', gridTemplateColumns:'120px 60px 60px 60px 60px 60px 60px 60px 60px 1fr', gap:'0.75rem', padding:'0.75rem 0', borderBottom:`1px solid ${EC.border}`, overflowX:'auto' }}, ['Participant','Group','Phase','Date','Dim A','Dim B','Dim C','Dim D','Dim E','Composite'].map(h=>(
+                  React.createElement("span", {key: h, style: { fontSize:'0.55rem', letterSpacing:'0.12em', color:EC.muted, textTransform:'uppercase' }}, h)
+                ))), filtered.map((r,i)=>{
                 const band = entGetBand(r.composite);
                 return (
-                  <div key={i} style={{ display:'grid', gridTemplateColumns:'120px 60px 60px 60px 60px 60px 60px 60px 60px 1fr', gap:'0.75rem', padding:'1rem 0', borderBottom:`1px solid ${EC.border}`, alignItems:'center' }}>
-                    <span style={ES.mono({ color:EC.accent, fontSize:'0.65rem' })}>{r.pid}</span>
-                    <span style={ES.mono({ fontSize:'0.65rem' })}>{r.group||'N/A'}</span>
-                    <span style={{ ...ES.mono({ fontSize:'0.65rem' }), color:r.phase==='pre'?EC.gold:EC.accent2 }}>{r.phase}</span>
-                    <span style={ES.mono({ fontSize:'0.6rem' })}>{new Date(r.ts).toLocaleDateString('en-GB',{day:'2-digit',month:'short'})}</span>
-                    {['A','B','C','D','E'].map(d=><span key={d} style={ES.mono({ fontSize:'0.65rem' })}>{r.dims?.[d]||'--'}</span>)}
-                    <div style={{ display:'flex', alignItems:'center', gap:'0.75rem' }}>
-                      <span style={{ fontFamily:"'DM Serif Display', serif", fontSize:'1.3rem', color:band.color }}>{r.composite}</span>
-                      <EntBandPill score={r.composite} />
-                    </div>
-                  </div>
+                  React.createElement("div", {key: i, style: { display:'grid', gridTemplateColumns:'120px 60px 60px 60px 60px 60px 60px 60px 60px 1fr', gap:'0.75rem', padding:'1rem 0', borderBottom:`1px solid ${EC.border}`, alignItems:'center' }}, React.createElement("span", {style: ES.mono({ color:EC.accent, fontSize:'0.65rem' })}, r.pid), React.createElement("span", {style: ES.mono({ fontSize:'0.65rem' })}, r.group||'N/A'), React.createElement("span", {style: { ...ES.mono({ fontSize:'0.65rem' }), color:r.phase==='pre'?EC.gold:EC.accent2 }}, r.phase), React.createElement("span", {style: ES.mono({ fontSize:'0.6rem' })}, new Date(r.ts).toLocaleDateString('en-GB',{day:'2-digit',month:'short'})), ['A','B','C','D','E'].map(d=>React.createElement("span", {key: d, style: ES.mono({ fontSize:'0.65rem' })}, r.dims?.[d]||'--')), React.createElement("div", {style: { display:'flex', alignItems:'center', gap:'0.75rem' }}, React.createElement("span", {style: { fontFamily:"'DM Serif Display', serif", fontSize:'1.3rem', color:band.color }}, r.composite), React.createElement(EntBandPill, {score: r.composite})))
                 );
-              })}
-            </div>
-          )}
-        </div>
+              }))
+          ))
       );
     }
 
@@ -4914,11 +2556,7 @@ a premium mental performance environment for{' '}
       // If not enterprise, show paywall
       if (!isEnterprise) {
         return (
-          <div style={{ paddingTop:80, paddingBottom:120, background:C.void, minHeight:'100vh' }}>
-            <div style={{ maxWidth:800, margin:'0 auto', padding:'60px 24px', textAlign:'center' }}>
-              {/* Header */}
-              <div style={{ ...mono, fontSize:9, letterSpacing:4, color:C.cyan, marginBottom:20 }}>NEURALFUSION™ · ENTERPRISE SYSTEM</div>
-              <div style={{
+          React.createElement("div", {style: { paddingTop:80, paddingBottom:120, background:C.void, minHeight:'100vh' }}, React.createElement("div", {style: { maxWidth:800, margin:'0 auto', padding:'60px 24px', textAlign:'center' }}, React.createElement("div", {style: { ...mono, fontSize:9, letterSpacing:4, color:C.cyan, marginBottom:20 }}, 'NEURALFUSION™ · ENTERPRISE SYSTEM'), React.createElement("div", {style: {
                 width:100, height:100, borderRadius:'50%',
                 background:`radial-gradient(circle, rgba(76,247,192,0.15), transparent)`,
                 border:'1px solid rgba(76,247,192,0.3)',
@@ -4927,17 +2565,7 @@ a premium mental performance environment for{' '}
                 margin:'0 auto 32px',
                 boxShadow:'0 0 60px rgba(76,247,192,0.15)',
                 animation:'neuralPulse 3s ease-in-out infinite',
-              }}>◈</div>
-              <h1 style={{ ...syne, fontSize:'clamp(32px,5vw,56px)', fontWeight:900, color:C.text, marginBottom:16, lineHeight:1.05 }}>
-                NeuralFusion™<br /><span style={{ color:'#4CF7C0' }}>Enterprise</span>
-              </h1>
-              <p style={{ ...inter, fontSize:16, color:C.muted, maxWidth:520, margin:'0 auto 48px', lineHeight:1.8 }}>
-                The complete organisational delivery system. Run NeuralFusion™ with your teams, cohorts, and clients. Includes facilitator tools, CFI data management, Clarity Delta reporting, and the full 5-lesson programme.
-              </p>
-
-              {/* Features grid */}
-              <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit,minmax(min(240px,100%),1fr))', gap:20, marginBottom:56, textAlign:'left' }}>
-                {[
+              }}, '◈'), React.createElement("h1", {style: { ...syne, fontSize:'clamp(32px,5vw,56px)', fontWeight:900, color:C.text, marginBottom:16, lineHeight:1.05 }}, 'NeuralFusion™', React.createElement("br", null), React.createElement("span", {style: { color:'#4CF7C0' }}, 'Enterprise')), React.createElement("p", {style: { ...inter, fontSize:16, color:C.muted, maxWidth:520, margin:'0 auto 48px', lineHeight:1.8 }}, 'The complete organisational delivery system. Run NeuralFusion™ with your teams, cohorts, and clients. Includes facilitator tools, CFI data management, Clarity Delta reporting, and the full 5-lesson programme.'), React.createElement("div", {style: { display:'grid', gridTemplateColumns:'repeat(auto-fit,minmax(min(240px,100%),1fr))', gap:20, marginBottom:56, textAlign:'left' }}, [
                   { icon:'◈', title:'Cohort Management', desc:'Run multiple cohorts simultaneously. Full participant tracking.' },
                   { icon:'◰', title:'CFI Data Entry', desc:'Manual and participant-led CFI assessments. Edition 2.0 with Dim E.' },
                   { icon:'◱', title:'Facilitator Dashboard', desc:'Live cohort scores, dimension breakdown, Clarity Delta reports.' },
@@ -4945,87 +2573,38 @@ a premium mental performance environment for{' '}
                   { icon:'◳', title:'Results Archive', desc:'Full participant records with pre/post comparison.' },
                   { icon:'★', title:'Certification Track', desc:'7-week programme with Week 7 certification session.' },
                 ].map((f,i)=>(
-                  <div key={i} style={{
+                  React.createElement("div", {key: i, style: {
                     padding:'24px', borderRadius:2,
                     background:'rgba(10,22,40,0.6)',
                     border:'1px solid rgba(76,247,192,0.12)',
                     backdropFilter:'blur(8px)',
-                  }}>
-                    <div style={{ ...mono, fontSize:22, color:'#4CF7C0', marginBottom:12 }}>{f.icon}</div>
-                    <div style={{ ...syne, fontSize:15, fontWeight:700, color:C.text, marginBottom:8 }}>{f.title}</div>
-                    <div style={{ ...inter, fontSize:13, color:C.muted, lineHeight:1.6 }}>{f.desc}</div>
-                  </div>
-                ))}
-              </div>
-
-              {/* Price card */}
-              <div style={{
+                  }}, React.createElement("div", {style: { ...mono, fontSize:22, color:'#4CF7C0', marginBottom:12 }}, f.icon), React.createElement("div", {style: { ...syne, fontSize:15, fontWeight:700, color:C.text, marginBottom:8 }}, f.title), React.createElement("div", {style: { ...inter, fontSize:13, color:C.muted, lineHeight:1.6 }}, f.desc))
+                ))), React.createElement("div", {style: {
                 padding:'48px', borderRadius:4,
                 background:'rgba(10,22,40,0.8)',
                 border:'1px solid rgba(76,247,192,0.25)',
                 backdropFilter:'blur(20px)',
                 marginBottom:32,
-              }}>
-                <div style={{ ...mono, fontSize:9, letterSpacing:4, color:'#4CF7C0', marginBottom:16 }}>ENTERPRISE ACCESS · ONE-TIME</div>
-                <div style={{ ...syne, fontSize:52, fontWeight:900, color:'#4CF7C0', marginBottom:8, letterSpacing:'-0.03em' }}>
-                  ₦{ENTERPRISE_PRICE_DISPLAY}
-                </div>
-                <div style={{ ...inter, fontSize:14, color:C.muted, marginBottom:40 }}>
-                  One-time payment · Permanent access · All cohorts · All features
-                </div>
-                <button
-                  onClick={handleUnlock}
-                  style={{
+              }}, React.createElement("div", {style: { ...mono, fontSize:9, letterSpacing:4, color:'#4CF7C0', marginBottom:16 }}, 'ENTERPRISE ACCESS · ONE-TIME'), React.createElement("div", {style: { ...syne, fontSize:52, fontWeight:900, color:'#4CF7C0', marginBottom:8, letterSpacing:'-0.03em' }}, '₦', ENTERPRISE_PRICE_DISPLAY), React.createElement("div", {style: { ...inter, fontSize:14, color:C.muted, marginBottom:40 }}, 'One-time payment · Permanent access · All cohorts · All features'), React.createElement("button", {onClick: handleUnlock, style: {
                     ...syne, fontSize:14, fontWeight:700, letterSpacing:'0.05em',
                     padding:'18px 48px', background:'#4CF7C0', color:'#050C1A',
                     border:'none', cursor:'pointer', borderRadius:2,
                     transition:'all 0.2s', boxShadow:'0 0 40px rgba(76,247,192,0.3)',
-                  }}
-                  onMouseEnter={e=>{ e.currentTarget.style.background='#6FFAD0'; e.currentTarget.style.transform='translateY(-2px)'; }}
-                  onMouseLeave={e=>{ e.currentTarget.style.background='#4CF7C0'; e.currentTarget.style.transform='translateY(0)'; }}
-                >
-                  {user ? `Unlock Enterprise: ₦${ENTERPRISE_PRICE_DISPLAY} →` : 'Sign In to Unlock Enterprise →'}
-                </button>
-                {!user&&<div style={{ ...mono, fontSize:10, color:C.muted, marginTop:16 }}>Create a free account to proceed with payment.</div>}
-              </div>
-
-              <div style={{ ...mono, fontSize:9, letterSpacing:2, color:C.dim }}>
-                NeuralFusion™ Enterprise · Edition 2.0 · Life Edet · 2026 · Confidential
-              </div>
-            </div>
-          </div>
+                  }, onMouseEnter: e=>{ e.currentTarget.style.background='#6FFAD0'; e.currentTarget.style.transform='translateY(-2px)'; }, onMouseLeave: e=>{ e.currentTarget.style.background='#4CF7C0'; e.currentTarget.style.transform='translateY(0)'; }}, user ? `Unlock Enterprise: ₦${ENTERPRISE_PRICE_DISPLAY} →` : 'Sign In to Unlock Enterprise →'), !user&&React.createElement("div", {style: { ...mono, fontSize:10, color:C.muted, marginTop:16 }}, 'Create a free account to proceed with payment.')), React.createElement("div", {style: { ...mono, fontSize:9, letterSpacing:2, color:C.dim }}, 'NeuralFusion™ Enterprise · Edition 2.0 · Life Edet · 2026 · Confidential')))
         );
       }
 
       // If enterprise, show the app
       if (!entRole) return (
-        <EntRoleGate
-          onSelect={(role,info)=>{ setEntRole(role); setEntSession({...info}); setEntView(role==='facilitator'?'dashboard':'programme'); }}
-          onExit={()=>{ setView('home'); }}
-        />
+        React.createElement(EntRoleGate, {onSelect: (role,info)=>{ setEntRole(role); setEntSession({...info}); setEntView(role==='facilitator'?'dashboard':'programme'); }, onExit: ()=>{ setView('home'); }})
       );
 
       return (
-        <div style={{ background:EC.bg, minHeight:'100vh', fontFamily:"'Space Mono', monospace", color:EC.text }}>
-          <div style={{ position:'fixed', inset:0, backgroundImage:`linear-gradient(${EC.accent}08 1px,transparent 1px),linear-gradient(90deg,${EC.accent}08 1px,transparent 1px)`, backgroundSize:'60px 60px', pointerEvents:'none', zIndex:0 }} />
-          <div style={{ position:'relative', zIndex:1 }}>
-            <EntNavBar view={entView} setView={setEntView} role={entRole} onExit={()=>setEntRole(null)} />
-            {entRole==='participant'&&(
-              <>
-                {entView==='assessment'&&<EntCFIAssessment session={entSession} onComplete={r=>{setEntResults(p=>[...p,r]);}} />}
-                {entView==='programme'&&<EntProgrammeView session={entSession} />}
-              </>
-            )}
-            {entRole==='facilitator'&&(
-              <>
-                {entView==='dashboard'&&<EntFacilitatorDashboard session={entSession} allResults={entResults} />}
-                {entView==='lessons'&&<EntProgrammeView session={entSession} />}
-                {entView==='cfi'&&<EntCFIDataEntry session={entSession} onSave={r=>{setEntResults(p=>{const idx=p.findIndex(x=>x.pid===r.pid&&x.cohort===r.cohort&&x.phase===r.phase);if(idx>=0){const u=[...p];u[idx]=r;return u;}return [...p,r];});}} />}
-                {entView==='results'&&<EntResultsView session={entSession} allResults={entResults} />}
-              </>
-            )}
-          </div>
-        </div>
+        React.createElement("div", {style: { background:EC.bg, minHeight:'100vh', fontFamily:"'Space Mono', monospace", color:EC.text }}, React.createElement("div", {style: { position:'fixed', inset:0, backgroundImage:`linear-gradient(${EC.accent}08 1px,transparent 1px),linear-gradient(90deg,${EC.accent}08 1px,transparent 1px)`, backgroundSize:'60px 60px', pointerEvents:'none', zIndex:0 }}), React.createElement("div", {style: { position:'relative', zIndex:1 }}, React.createElement(EntNavBar, {view: entView, setView: setEntView, role: entRole, onExit: ()=>setEntRole(null)}), entRole==='participant'&&(
+              React.createElement(React.Fragment, null, entView==='assessment'&&React.createElement(EntCFIAssessment, {session: entSession, onComplete: r=>{setEntResults(p=>[...p,r]);}}), entView==='programme'&&React.createElement(EntProgrammeView, {session: entSession}))
+            ), entRole==='facilitator'&&(
+              React.createElement(React.Fragment, null, entView==='dashboard'&&React.createElement(EntFacilitatorDashboard, {session: entSession, allResults: entResults}), entView==='lessons'&&React.createElement(EntProgrammeView, {session: entSession}), entView==='cfi'&&React.createElement(EntCFIDataEntry, {session: entSession, onSave: r=>{setEntResults(p=>{const idx=p.findIndex(x=>x.pid===r.pid&&x.cohort===r.cohort&&x.phase===r.phase);if(idx>=0){const u=[...p];u[idx]=r;return u;}return [...p,r];});}}), entView==='results'&&React.createElement(EntResultsView, {session: entSession, allResults: entResults}))
+            )))
       );
     }
 
@@ -5120,38 +2699,13 @@ a premium mental performance environment for{' '}
       };
 
       if (authLoading) return (
-        <div style={{ background:C.void, minHeight:'100vh', display:'flex', alignItems:'center', justifyContent:'center' }}>
-          <div style={{ textAlign:'center' }}>
-            <div style={{ ...mono, fontSize:36, color:C.cyan, animation:'neuralPulse 2s ease-in-out infinite' }}>◈</div>
-            <div style={{ ...mono, fontSize:9, letterSpacing:3, color:C.muted, marginTop:16 }}>INITIALIZING SYSTEM...</div>
-          </div>
-        </div>
+        React.createElement("div", {style: { background:C.void, minHeight:'100vh', display:'flex', alignItems:'center', justifyContent:'center' }}, React.createElement("div", {style: { textAlign:'center' }}, React.createElement("div", {style: { ...mono, fontSize:36, color:C.cyan, animation:'neuralPulse 2s ease-in-out infinite' }}, '◈'), React.createElement("div", {style: { ...mono, fontSize:9, letterSpacing:3, color:C.muted, marginTop:16 }}, 'INITIALIZING SYSTEM...')))
       );
 
       const viewProps = { setView, user, session, paystackKey, setShowAuth, isPro, setIsPro, isEnterprise, setIsEnterprise, cfiResult, setCfiResult, lessonProgress, setLessonProgress, sessions, setSessions, proPrice };
 
       return (
-        <div style={{ background:C.void, minHeight:'100vh', color:C.text }}>
-          {showAuth && <AuthModal initialTab={authInitialTab} onClose={()=>{ setShowAuth(false); setAuthInitialTab('login'); }} onSuccess={()=>{ setShowAuth(false); setAuthInitialTab('login'); }} />}
-
-          <Navbar view={view} setView={setView} user={user} profile={profile} setShowAuth={setShowAuth} onSignOut={handleSignOut} />
-
-          <main>
-            {view==='home'        && <HomeView {...viewProps} />}
-            {view==='four-brains' && <FourBrainsView {...viewProps} />}
-            {view==='cfi'         && <CFIView {...viewProps} />}
-            {view==='training'    && <TrainingView {...viewProps} />}
-            {view==='analytics'   && <AnalyticsView {...viewProps} />}
-            {view==='lessons'     && <LessonsView {...viewProps} />}
-            {view==='about'       && <AboutView {...viewProps} />}
-            {view==='legal'       && <LegalView setView={setView} />}
-            {view==='enterprise'  && <EnterpriseView user={user} session={session} paystackKey={paystackKey} setShowAuth={setShowAuth} isEnterprise={isEnterprise} setIsEnterprise={setIsEnterprise} proPrice={proPrice} setView={setView} />}
-            {view==='admin'       && profile?.is_admin === true && <AdminView user={user} setView={setView} onPriceChange={setProPrice} />}
-          </main>
-
-          <Footer setView={setView} />
-          {view !== 'enterprise' && <BottomNav view={view} setView={setView} />}
-        </div>
+        React.createElement("div", {style: { background:C.void, minHeight:'100vh', color:C.text }}, showAuth && React.createElement(AuthModal, {initialTab: authInitialTab, onClose: ()=>{ setShowAuth(false); setAuthInitialTab('login'); }, onSuccess: ()=>{ setShowAuth(false); setAuthInitialTab('login'); }}), React.createElement(Navbar, {view: view, setView: setView, user: user, profile: profile, setShowAuth: setShowAuth, onSignOut: handleSignOut}), React.createElement("main", null, view==='home'        && React.createElement(HomeView, viewProps), view==='four-brains' && React.createElement(FourBrainsView, viewProps), view==='cfi'         && React.createElement(CFIView, viewProps), view==='training'    && React.createElement(TrainingView, viewProps), view==='analytics'   && React.createElement(AnalyticsView, viewProps), view==='lessons'     && React.createElement(LessonsView, viewProps), view==='about'       && React.createElement(AboutView, viewProps), view==='legal'       && React.createElement(LegalView, {setView: setView}), view==='enterprise'  && React.createElement(EnterpriseView, {user: user, session: session, paystackKey: paystackKey, setShowAuth: setShowAuth, isEnterprise: isEnterprise, setIsEnterprise: setIsEnterprise, proPrice: proPrice, setView: setView}), view==='admin'       && profile?.is_admin === true && React.createElement(AdminView, {user: user, setView: setView, onPriceChange: setProPrice})), React.createElement(Footer, {setView: setView}), view !== 'enterprise' && React.createElement(BottomNav, {view: view, setView: setView}))
       );
     }
 
