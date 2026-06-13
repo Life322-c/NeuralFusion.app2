@@ -1247,6 +1247,37 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress, sessi
       const [activeLesson, setActiveLesson] = useState(null);
       const [page, setPage] = useState(0);
       const [paystackLoading, setPaystackLoading] = useState(false);
+      const paystackHandlerRef = React.useRef(null);
+
+      // Pre-warm Paystack handler as soon as user+key are available
+      useEffect(()=>{
+        if (!user || !paystackKey || typeof PaystackPop === 'undefined' || isPro) return;
+        try {
+          paystackHandlerRef.current = PaystackPop.setup({
+            key: paystackKey,
+            email: user.email,
+            amount: proPrice,
+            currency: 'NGN',
+            ref: 'NF_' + Date.now() + '_' + user.id.slice(0,8),
+            metadata: { user_id: user.id, product: 'neuralfusion_pro' },
+            onSuccess: async (transaction) => {
+              setPaystackLoading(false);
+              paystackHandlerRef.current = null;
+              try {
+                const res = await fetch(SUPABASE_URL + '/functions/v1/verify-payment', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + session.access_token },
+                  body: JSON.stringify({ reference: transaction.reference, plan: 'pro' }),
+                });
+                const data = await res.json();
+                if (res.ok && data.success) { setIsPro(true); }
+                else { alert('Payment received but verification failed. Contact support with ref: ' + transaction.reference); }
+              } catch(e) { alert('Network error during verification. Contact support with ref: ' + transaction.reference); }
+            },
+            onCancel: () => { setPaystackLoading(false); paystackHandlerRef.current = null; },
+          });
+        } catch(e) { paystackHandlerRef.current = null; }
+      }, [user, paystackKey, proPrice, isPro]);
 
       const levelColors = { Foundation:C.cyan, Intermediate:'#E2BE78', Advanced:'#C4A050', Mastery:'#7AAFCF' };
 
@@ -1300,29 +1331,31 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress, sessi
                   if (typeof PaystackPop === 'undefined') { alert('Payment system failed to load. Please refresh and try again.'); return; }
                   setPaystackLoading(true);
                   try {
-                  const handler = PaystackPop.setup({
-                    key: paystackKey,
-                    email: user.email,
-                    amount: proPrice,
-                    currency: 'NGN',
-                    ref: 'NF_' + Date.now() + '_' + user.id.slice(0,8),
-                    metadata: { user_id: user.id, product: 'neuralfusion_pro' },
-                    onSuccess: async (transaction) => {
-                      setPaystackLoading(false);
-                      try {
-                        const res = await fetch(SUPABASE_URL + '/functions/v1/verify-payment', {
-                          method: 'POST',
-                          headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + session.access_token },
-                          body: JSON.stringify({ reference: transaction.reference, plan: 'pro' }),
-                        });
-                        const data = await res.json();
-                        if (res.ok && data.success) { setIsPro(true); }
-                        else { alert('Payment received but verification failed. Contact support with ref: ' + transaction.reference); }
-                      } catch(e) { alert('Network error during verification. Contact support with ref: ' + transaction.reference); }
-                    },
-                    onCancel: () => { setPaystackLoading(false); },
-                  });
-                  handler.openIframe();
+                    // Use pre-warmed handler if available, else setup fresh
+                    const handler = paystackHandlerRef.current || PaystackPop.setup({
+                      key: paystackKey,
+                      email: user.email,
+                      amount: proPrice,
+                      currency: 'NGN',
+                      ref: 'NF_' + Date.now() + '_' + user.id.slice(0,8),
+                      metadata: { user_id: user.id, product: 'neuralfusion_pro' },
+                      onSuccess: async (transaction) => {
+                        setPaystackLoading(false);
+                        paystackHandlerRef.current = null;
+                        try {
+                          const res = await fetch(SUPABASE_URL + '/functions/v1/verify-payment', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + session.access_token },
+                            body: JSON.stringify({ reference: transaction.reference, plan: 'pro' }),
+                          });
+                          const data = await res.json();
+                          if (res.ok && data.success) { setIsPro(true); }
+                          else { alert('Payment received but verification failed. Contact support with ref: ' + transaction.reference); }
+                        } catch(e) { alert('Network error during verification. Contact support with ref: ' + transaction.reference); }
+                      },
+                      onCancel: () => { setPaystackLoading(false); paystackHandlerRef.current = null; },
+                    });
+                    handler.openIframe();
                   } catch(e) { setPaystackLoading(false); alert('Could not open payment window. Please refresh and try again.'); }
                 }}, paystackLoading ? 'Opening...' : React.createElement(React.Fragment, null, 'Upgrade to Pro: ₦', (proPrice/100).toLocaleString(), ' →')))
             ), !isEnterprise && (
@@ -2497,6 +2530,37 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress, sessi
       const [entView, setEntView]       = useState(null);
       const [entResults, setEntResults] = useState([]);
       const [paystackLoading, setPaystackLoading] = useState(false);
+      const paystackHandlerRef = React.useRef(null);
+
+      // Pre-warm Paystack handler as soon as user+key are available
+      useEffect(()=>{
+        if (!user || !paystackKey || typeof PaystackPop === 'undefined' || isEnterprise) return;
+        try {
+          paystackHandlerRef.current = PaystackPop.setup({
+            key: paystackKey,
+            email: user.email,
+            amount: ENTERPRISE_PRICE_KOBO,
+            currency: 'NGN',
+            ref: 'NF_ENT_' + Date.now() + '_' + user.id.slice(0,8),
+            metadata: { user_id:user.id, product:'neuralfusion_enterprise' },
+            onSuccess: async (transaction) => {
+              setPaystackLoading(false);
+              paystackHandlerRef.current = null;
+              try {
+                const res = await fetch(SUPABASE_URL + '/functions/v1/verify-payment', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + session.access_token },
+                  body: JSON.stringify({ reference: transaction.reference, plan: 'enterprise' }),
+                });
+                const data = await res.json();
+                if (res.ok && data.success) { setIsEnterprise(true); }
+                else { alert('Payment received but verification failed. Contact support with ref: ' + transaction.reference); }
+              } catch(e) { alert('Network error during verification. Contact support with ref: ' + transaction.reference); }
+            },
+            onCancel: ()=>{ setPaystackLoading(false); paystackHandlerRef.current = null; },
+          });
+        } catch(e) { paystackHandlerRef.current = null; }
+      }, [user, paystackKey, isEnterprise]);
 
       // Load persisted results from Supabase when a session is established
       useEffect(()=>{
@@ -2516,7 +2580,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress, sessi
         }
         setPaystackLoading(true);
         try {
-          const handler = PaystackPop.setup({
+          const handler = paystackHandlerRef.current || PaystackPop.setup({
             key: paystackKey,
             email: user.email,
             amount: ENTERPRISE_PRICE_KOBO,
