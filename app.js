@@ -1249,20 +1249,32 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress, sessi
       const [paystackLoading, setPaystackLoading] = useState(false);
       const paystackHandlerRef = React.useRef(null);
 
-      // Pre-warm Paystack handler as soon as user+key are available
-      useEffect(()=>{
-        if (!user || !paystackKey || typeof PaystackPop === 'undefined' || isPro) return;
+      // initiate-payment then open Paystack popup (Pro)
+      const handleProPayment = async () => {
+        if (!user) { setShowAuth(true); return; }
+        if (typeof PaystackPop === 'undefined') { alert('Payment system failed to load. Please refresh and try again.'); return; }
+        setPaystackLoading(true);
         try {
-          paystackHandlerRef.current = PaystackPop.setup({
+          const initRes = await fetch(SUPABASE_URL + '/functions/v1/initiate-payment', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + session.access_token },
+            body: JSON.stringify({ plan: 'pro', amount: proPrice }),
+          });
+          const initData = await initRes.json();
+          if (!initRes.ok || !initData.success) {
+            setPaystackLoading(false);
+            alert('Could not initiate payment: ' + (initData.error || 'Unknown error'));
+            return;
+          }
+          const handler = PaystackPop.setup({
             key: paystackKey,
             email: user.email,
             amount: proPrice,
             currency: 'NGN',
-            ref: 'NF_' + Date.now() + '_' + user.id.slice(0,8),
+            ref: initData.reference,
             metadata: { user_id: user.id, product: 'neuralfusion_pro' },
             onSuccess: async (transaction) => {
               setPaystackLoading(false);
-              paystackHandlerRef.current = null;
               try {
                 const res = await fetch(SUPABASE_URL + '/functions/v1/verify-payment', {
                   method: 'POST',
@@ -1274,10 +1286,11 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress, sessi
                 else { alert('Payment received but verification failed. Contact support with ref: ' + transaction.reference); }
               } catch(e) { alert('Network error during verification. Contact support with ref: ' + transaction.reference); }
             },
-            onCancel: () => { setPaystackLoading(false); paystackHandlerRef.current = null; },
+            onCancel: () => { setPaystackLoading(false); },
           });
-        } catch(e) { paystackHandlerRef.current = null; }
-      }, [user, paystackKey, proPrice, isPro]);
+          handler.openIframe();
+        } catch(e) { setPaystackLoading(false); alert('Could not open payment window. Please refresh and try again.'); }
+      };
 
       const levelColors = { Foundation:C.cyan, Intermediate:'#E2BE78', Advanced:'#C4A050', Mastery:'#7AAFCF' };
 
@@ -1326,38 +1339,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress, sessi
                     ))
                 );
               })), !isPro && (
-              React.createElement("div", {className: "card", style: { marginTop:40, padding:'40px', textAlign:'center', borderColor:`${C.cyan}22` }}, React.createElement("div", {style: { ...mono, fontSize:11, letterSpacing:1, color:C.cyan, marginBottom:16 }}, 'Unlock all lessons'), React.createElement("div", {style: { ...syne, fontSize:15, fontWeight:800, color:C.text, marginBottom:8, overflowWrap:'break-word', minWidth:0}}, 'Pro access'), React.createElement("div", {style: { ...mono, fontSize:14, fontWeight:800, color:C.cyan, marginBottom:16, overflowWrap:'break-word', minWidth:0}}, '₦', (proPrice/100).toLocaleString()), React.createElement("div", {style: { fontSize:14, color:C.muted, marginBottom:32, maxWidth:400, margin:'0 auto 32px' }}, 'One-time payment. Unlocks Lessons 2–5 and the full training system.'), React.createElement("button", {className: "btn-primary", disabled: paystackLoading, onClick: ()=>{
-                  if (!user) { setShowAuth(true); return; }
-                  if (typeof PaystackPop === 'undefined') { alert('Payment system failed to load. Please refresh and try again.'); return; }
-                  setPaystackLoading(true);
-                  try {
-                    // Use pre-warmed handler if available, else setup fresh
-                    const handler = paystackHandlerRef.current || PaystackPop.setup({
-                      key: paystackKey,
-                      email: user.email,
-                      amount: proPrice,
-                      currency: 'NGN',
-                      ref: 'NF_' + Date.now() + '_' + user.id.slice(0,8),
-                      metadata: { user_id: user.id, product: 'neuralfusion_pro' },
-                      onSuccess: async (transaction) => {
-                        setPaystackLoading(false);
-                        paystackHandlerRef.current = null;
-                        try {
-                          const res = await fetch(SUPABASE_URL + '/functions/v1/verify-payment', {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + session.access_token },
-                            body: JSON.stringify({ reference: transaction.reference, plan: 'pro' }),
-                          });
-                          const data = await res.json();
-                          if (res.ok && data.success) { setIsPro(true); }
-                          else { alert('Payment received but verification failed. Contact support with ref: ' + transaction.reference); }
-                        } catch(e) { alert('Network error during verification. Contact support with ref: ' + transaction.reference); }
-                      },
-                      onCancel: () => { setPaystackLoading(false); paystackHandlerRef.current = null; },
-                    });
-                    handler.openIframe();
-                  } catch(e) { setPaystackLoading(false); alert('Could not open payment window. Please refresh and try again.'); }
-                }}, paystackLoading ? 'Opening...' : React.createElement(React.Fragment, null, 'Upgrade to Pro: ₦', (proPrice/100).toLocaleString(), ' →')))
+              React.createElement("div", {className: "card", style: { marginTop:40, padding:'40px', textAlign:'center', borderColor:`${C.cyan}22` }}, React.createElement("div", {style: { ...mono, fontSize:11, letterSpacing:1, color:C.cyan, marginBottom:16 }}, 'Unlock all lessons'), React.createElement("div", {style: { ...syne, fontSize:15, fontWeight:800, color:C.text, marginBottom:8, overflowWrap:'break-word', minWidth:0}}, 'Pro access'), React.createElement("div", {style: { ...mono, fontSize:14, fontWeight:800, color:C.cyan, marginBottom:16, overflowWrap:'break-word', minWidth:0}}, '₦', (proPrice/100).toLocaleString()), React.createElement("div", {style: { fontSize:14, color:C.muted, marginBottom:32, maxWidth:400, margin:'0 auto 32px' }}, 'One-time payment. Unlocks Lessons 2–5 and the full training system.'), React.createElement("button", {className: "btn-primary", disabled: paystackLoading, onClick: handleProPayment}, paystackLoading ? 'Opening...' : React.createElement(React.Fragment, null, 'Upgrade to Pro: ₦', (proPrice/100).toLocaleString(), ' →')))
             ), !isEnterprise && (
               React.createElement("div", {className: "card", style: { marginTop:20, padding:'40px', textAlign:'center', borderColor:'rgba(76,247,192,0.25)', background:'rgba(5,20,38,0.8)' }}, React.createElement("div", {style: { ...mono, fontSize:11, letterSpacing:1, color:'#4CF7C0', marginBottom:16 }}, 'NeuralFusion™ Enterprise'), React.createElement("div", {style: { ...syne, fontSize:15, fontWeight:800, color:C.text, marginBottom:8, overflowWrap:'break-word', minWidth:0}}, 'Deploy it across your organisation'), React.createElement("div", {style: { ...mono, fontSize:14, fontWeight:800, color:'#4CF7C0', marginBottom:16, overflowWrap:'break-word', minWidth:0}}, '₦', ENTERPRISE_PRICE_DISPLAY), React.createElement("div", {style: { fontSize:14, color:C.muted, marginBottom:32, maxWidth:480, margin:'0 auto 32px', lineHeight:1.8 }}, 'Cohort management · CFI data entry · Facilitator dashboard · 5-lesson programme · Clarity Delta™ reporting'), React.createElement("button", {style: { ...syne, fontSize:13, fontWeight:700, padding:'14px 36px', background:'#4CF7C0', color:'#050C1A', border:'none', cursor:'pointer', borderRadius:2, overflowWrap:'break-word', minWidth:0}, onClick: ()=>setView('enterprise')}, 'Explore enterprise →'))
             )))
@@ -2532,35 +2514,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress, sessi
       const [paystackLoading, setPaystackLoading] = useState(false);
       const paystackHandlerRef = React.useRef(null);
 
-      // Pre-warm Paystack handler as soon as user+key are available
-      useEffect(()=>{
-        if (!user || !paystackKey || typeof PaystackPop === 'undefined' || isEnterprise) return;
-        try {
-          paystackHandlerRef.current = PaystackPop.setup({
-            key: paystackKey,
-            email: user.email,
-            amount: ENTERPRISE_PRICE_KOBO,
-            currency: 'NGN',
-            ref: 'NF_ENT_' + Date.now() + '_' + user.id.slice(0,8),
-            metadata: { user_id:user.id, product:'neuralfusion_enterprise' },
-            onSuccess: async (transaction) => {
-              setPaystackLoading(false);
-              paystackHandlerRef.current = null;
-              try {
-                const res = await fetch(SUPABASE_URL + '/functions/v1/verify-payment', {
-                  method: 'POST',
-                  headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + session.access_token },
-                  body: JSON.stringify({ reference: transaction.reference, plan: 'enterprise' }),
-                });
-                const data = await res.json();
-                if (res.ok && data.success) { setIsEnterprise(true); }
-                else { alert('Payment received but verification failed. Contact support with ref: ' + transaction.reference); }
-              } catch(e) { alert('Network error during verification. Contact support with ref: ' + transaction.reference); }
-            },
-            onCancel: ()=>{ setPaystackLoading(false); paystackHandlerRef.current = null; },
-          });
-        } catch(e) { paystackHandlerRef.current = null; }
-      }, [user, paystackKey, isEnterprise]);
+      // (pre-warm removed — initiate-payment is called on click)
 
       // Load persisted results from Supabase when a session is established
       useEffect(()=>{
@@ -2571,21 +2525,29 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress, sessi
         }
       },[entSession?.cohort]);
 
-      // Paystack Enterprise unlock
-      const handleUnlock = () => {
+      // Paystack Enterprise unlock — calls initiate-payment first
+      const handleUnlock = async () => {
         if (!user) { setShowAuth(true); return; }
-        if (typeof PaystackPop === 'undefined') {
-          alert('Payment system failed to load. Please check your connection and refresh the page.');
-          return;
-        }
+        if (typeof PaystackPop === 'undefined') { alert('Payment system failed to load. Please check your connection and refresh the page.'); return; }
         setPaystackLoading(true);
         try {
-          const handler = paystackHandlerRef.current || PaystackPop.setup({
+          const initRes = await fetch(SUPABASE_URL + '/functions/v1/initiate-payment', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + session.access_token },
+            body: JSON.stringify({ plan: 'enterprise', amount: ENTERPRISE_PRICE_KOBO }),
+          });
+          const initData = await initRes.json();
+          if (!initRes.ok || !initData.success) {
+            setPaystackLoading(false);
+            alert('Could not initiate payment: ' + (initData.error || 'Unknown error'));
+            return;
+          }
+          const handler = PaystackPop.setup({
             key: paystackKey,
             email: user.email,
             amount: ENTERPRISE_PRICE_KOBO,
             currency: 'NGN',
-            ref: 'NF_ENT_' + Date.now() + '_' + user.id.slice(0,8),
+            ref: initData.reference,
             metadata: { user_id:user.id, product:'neuralfusion_enterprise' },
             onSuccess: async (transaction) => {
               setPaystackLoading(false);
