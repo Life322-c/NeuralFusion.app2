@@ -1184,17 +1184,16 @@ footer [style*="fontWeight:800"] {
   letter-spacing: 0.2em !important;
 }
 
-/* ── Input fields ────────────────────────────────────────────── */
+/* ── Input fields (font harmony) ─────────────────────────────── */
 input, textarea, select {
-  font-family: var(--font-body) !important;
-  font-size: 13px !important;
-  font-weight: 400 !important;
-  letter-spacing: 0.003em !important;
-  line-height: 1.55 !important;
+  font-family: var(--font-body);
+  font-size: 14px;
+  font-weight: 400;
+  letter-spacing: 0.003em;
 }
 input::placeholder, textarea::placeholder {
-  font-weight: 400 !important;
-  opacity: 0.55 !important;
+  font-weight: 400;
+  opacity: 0.55;
 }
 
 /* ── Progress / score labels ─────────────────────────────────── */
