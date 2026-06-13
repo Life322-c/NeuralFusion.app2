@@ -1246,6 +1246,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress, sessi
     function LessonsView({ setView, user, session, paystackKey, setShowAuth, isPro, setIsPro, isEnterprise, lessonProgress, setLessonProgress, proPrice = 600000 }) {
       const [activeLesson, setActiveLesson] = useState(null);
       const [page, setPage] = useState(0);
+      const [paystackLoading, setPaystackLoading] = useState(false);
 
       const levelColors = { Foundation:C.cyan, Intermediate:'#E2BE78', Advanced:'#C4A050', Mastery:'#7AAFCF' };
 
@@ -1294,10 +1295,10 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress, sessi
                     ))
                 );
               })), !isPro && (
-              React.createElement("div", {className: "card", style: { marginTop:40, padding:'40px', textAlign:'center', borderColor:`${C.cyan}22` }}, React.createElement("div", {style: { ...mono, fontSize:11, letterSpacing:1, color:C.cyan, marginBottom:16 }}, 'Unlock all lessons'), React.createElement("div", {style: { ...syne, fontSize:15, fontWeight:800, color:C.text, marginBottom:8, overflowWrap:'break-word', minWidth:0}}, 'Pro access'), React.createElement("div", {style: { ...mono, fontSize:14, fontWeight:800, color:C.cyan, marginBottom:16, overflowWrap:'break-word', minWidth:0}}, '₦', (proPrice/100).toLocaleString()), React.createElement("div", {style: { fontSize:14, color:C.muted, marginBottom:32, maxWidth:400, margin:'0 auto 32px' }}, 'One-time payment. Unlocks Lessons 2–5 and the full training system.'), React.createElement("button", {className: "btn-primary", onClick: ()=>{
+              React.createElement("div", {className: "card", style: { marginTop:40, padding:'40px', textAlign:'center', borderColor:`${C.cyan}22` }}, React.createElement("div", {style: { ...mono, fontSize:11, letterSpacing:1, color:C.cyan, marginBottom:16 }}, 'Unlock all lessons'), React.createElement("div", {style: { ...syne, fontSize:15, fontWeight:800, color:C.text, marginBottom:8, overflowWrap:'break-word', minWidth:0}}, 'Pro access'), React.createElement("div", {style: { ...mono, fontSize:14, fontWeight:800, color:C.cyan, marginBottom:16, overflowWrap:'break-word', minWidth:0}}, '₦', (proPrice/100).toLocaleString()), React.createElement("div", {style: { fontSize:14, color:C.muted, marginBottom:32, maxWidth:400, margin:'0 auto 32px' }}, 'One-time payment. Unlocks Lessons 2–5 and the full training system.'), React.createElement("button", {className: "btn-primary", disabled: paystackLoading, onClick: ()=>{
                   if (!user) { setShowAuth(true); return; }
-                  if (!paystackKey) { alert('Payment system is not ready yet. Please refresh and try again.'); return; }
                   if (typeof PaystackPop === 'undefined') { alert('Payment system failed to load. Please refresh and try again.'); return; }
+                  setPaystackLoading(true);
                   try {
                   const handler = PaystackPop.setup({
                     key: paystackKey,
@@ -1307,6 +1308,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress, sessi
                     ref: 'NF_' + Date.now() + '_' + user.id.slice(0,8),
                     metadata: { user_id: user.id, product: 'neuralfusion_pro' },
                     onSuccess: async (transaction) => {
+                      setPaystackLoading(false);
                       try {
                         const res = await fetch(SUPABASE_URL + '/functions/v1/verify-payment', {
                           method: 'POST',
@@ -1318,11 +1320,12 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress, sessi
                         else { alert('Payment received but verification failed. Contact support with ref: ' + transaction.reference); }
                       } catch(e) { alert('Network error during verification. Contact support with ref: ' + transaction.reference); }
                     },
-                    onCancel: () => {},
+                    onCancel: () => { setPaystackLoading(false); },
                   });
                   handler.openIframe();
-                  } catch(e) { alert('Could not open payment window. Please refresh and try again.'); }
-                }}, 'Upgrade to Pro: ₦', (proPrice/100).toLocaleString(), '→'))
+                  setPaystackLoading(false);
+                  } catch(e) { setPaystackLoading(false); alert('Could not open payment window. Please refresh and try again.'); }
+                }}, paystackLoading ? 'Opening...' : React.createElement(React.Fragment, null, 'Upgrade to Pro: ₦', (proPrice/100).toLocaleString(), ' →')))
             ), !isEnterprise && (
               React.createElement("div", {className: "card", style: { marginTop:20, padding:'40px', textAlign:'center', borderColor:'rgba(76,247,192,0.25)', background:'rgba(5,20,38,0.8)' }}, React.createElement("div", {style: { ...mono, fontSize:11, letterSpacing:1, color:'#4CF7C0', marginBottom:16 }}, 'NeuralFusion™ Enterprise'), React.createElement("div", {style: { ...syne, fontSize:15, fontWeight:800, color:C.text, marginBottom:8, overflowWrap:'break-word', minWidth:0}}, 'Deploy it across your organisation'), React.createElement("div", {style: { ...mono, fontSize:14, fontWeight:800, color:'#4CF7C0', marginBottom:16, overflowWrap:'break-word', minWidth:0}}, '₦', ENTERPRISE_PRICE_DISPLAY), React.createElement("div", {style: { fontSize:14, color:C.muted, marginBottom:32, maxWidth:480, margin:'0 auto 32px', lineHeight:1.8 }}, 'Cohort management · CFI data entry · Facilitator dashboard · 5-lesson programme · Clarity Delta™ reporting'), React.createElement("button", {style: { ...syne, fontSize:13, fontWeight:700, padding:'14px 36px', background:'#4CF7C0', color:'#050C1A', border:'none', cursor:'pointer', borderRadius:2, overflowWrap:'break-word', minWidth:0}, onClick: ()=>setView('enterprise')}, 'Explore enterprise →'))
             )))
@@ -2494,6 +2497,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress, sessi
       const [entSession, setEntSession] = useState(null);
       const [entView, setEntView]       = useState(null);
       const [entResults, setEntResults] = useState([]);
+      const [paystackLoading, setPaystackLoading] = useState(false);
 
       // Load persisted results from Supabase when a session is established
       useEffect(()=>{
@@ -2507,11 +2511,11 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress, sessi
       // Paystack Enterprise unlock
       const handleUnlock = () => {
         if (!user) { setShowAuth(true); return; }
-        if (!paystackKey) { alert('Payment system is not ready yet. Please refresh and try again.'); return; }
         if (typeof PaystackPop === 'undefined') {
           alert('Payment system failed to load. Please check your connection and refresh the page.');
           return;
         }
+        setPaystackLoading(true);
         try {
           const handler = PaystackPop.setup({
             key: paystackKey,
@@ -2521,6 +2525,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress, sessi
             ref: 'NF_ENT_' + Date.now() + '_' + user.id.slice(0,8),
             metadata: { user_id:user.id, product:'neuralfusion_enterprise' },
             onSuccess: async (transaction) => {
+              setPaystackLoading(false);
               try {
                 const res = await fetch(SUPABASE_URL + '/functions/v1/verify-payment', {
                   method: 'POST',
@@ -2532,10 +2537,12 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress, sessi
                 else { alert('Payment received but verification failed. Contact support with ref: ' + transaction.reference); }
               } catch(e) { alert('Network error during verification. Contact support with ref: ' + transaction.reference); }
             },
-            onCancel: ()=>{},
+            onCancel: ()=>{ setPaystackLoading(false); },
           });
           handler.openIframe();
+          setPaystackLoading(false);
         } catch(e) {
+          setPaystackLoading(false);
           alert('Could not open payment window. Please refresh and try again.');
         }
       };
@@ -2572,11 +2579,11 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress, sessi
                 border:'1px solid rgba(76,247,192,0.25)',
                 backdropFilter:'blur(20px)',
                 marginBottom:32,
-              }}, React.createElement("div", {style: { ...mono, fontSize:11, letterSpacing:1.5, color:'#4CF7C0', marginBottom:16 }}, 'ENTERPRISE ACCESS · ONE-TIME'), React.createElement("div", {style: { ...syne, fontSize:52, fontWeight:900, color:'#4CF7C0', marginBottom:8, letterSpacing:'-0.02em' }}, '₦', ENTERPRISE_PRICE_DISPLAY), React.createElement("div", {style: { ...inter, fontSize:14, color:C.muted, marginBottom:40 }}, 'One-time payment · Permanent access · All cohorts · All features'), React.createElement("button", {onClick: handleUnlock, style: {
+              }}, React.createElement("div", {style: { ...mono, fontSize:11, letterSpacing:1.5, color:'#4CF7C0', marginBottom:16 }}, 'ENTERPRISE ACCESS · ONE-TIME'), React.createElement("div", {style: { ...syne, fontSize:52, fontWeight:900, color:'#4CF7C0', marginBottom:8, letterSpacing:'-0.02em' }}, '₦', ENTERPRISE_PRICE_DISPLAY), React.createElement("div", {style: { ...inter, fontSize:14, color:C.muted, marginBottom:40 }}, 'One-time payment · Permanent access · All cohorts · All features'), React.createElement("button", {onClick: handleUnlock, disabled: paystackLoading, style: {
                     ...syne, fontSize:14, fontWeight:700, letterSpacing:'0.05em',
                     padding:'18px 48px', background:'#4CF7C0', color:'#050C1A',
-                    border:'none', cursor:'pointer', borderRadius:2,
-                    transition:'all 0.2s', boxShadow:'0 0 40px rgba(76,247,192,0.3)', overflowWrap:'break-word', minWidth:0}, onMouseEnter: e=>{ e.currentTarget.style.background='#6FFAD0'; e.currentTarget.style.transform='translateY(-2px)'; }, onMouseLeave: e=>{ e.currentTarget.style.background='#4CF7C0'; e.currentTarget.style.transform='translateY(0)'; }}, user ? `Unlock Enterprise: ₦${ENTERPRISE_PRICE_DISPLAY} →` : 'Sign In to Unlock Enterprise →'), !user&&React.createElement("div", {style: { ...mono, fontSize:10, color:C.muted, marginTop:16 }}, 'Create a free account to proceed with payment.')), React.createElement("div", {style: { ...mono, fontSize:9, letterSpacing:1, color:C.dim }}, 'NeuralFusion™ Enterprise · Edition 2.0 · Life Edet · 2026 · Confidential')))
+                    border:'none', cursor: paystackLoading ? 'default' : 'pointer', borderRadius:2,
+                    transition:'all 0.2s', boxShadow:'0 0 40px rgba(76,247,192,0.3)', overflowWrap:'break-word', minWidth:0, opacity: paystackLoading ? 0.7 : 1}, onMouseEnter: e=>{ if(!paystackLoading){ e.currentTarget.style.background='#6FFAD0'; e.currentTarget.style.transform='translateY(-2px)'; } }, onMouseLeave: e=>{ e.currentTarget.style.background='#4CF7C0'; e.currentTarget.style.transform='translateY(0)'; }}, paystackLoading ? 'Opening...' : (user ? `Unlock Enterprise: ₦${ENTERPRISE_PRICE_DISPLAY} →` : 'Sign In to Unlock Enterprise →')), !user&&React.createElement("div", {style: { ...mono, fontSize:10, color:C.muted, marginTop:16 }}, 'Create a free account to proceed with payment.')), React.createElement("div", {style: { ...mono, fontSize:9, letterSpacing:1, color:C.dim }}, 'NeuralFusion™ Enterprise · Edition 2.0 · Life Edet · 2026 · Confidential')))
         );
       }
 
