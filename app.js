@@ -2704,11 +2704,4 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress, sessi
       }, 600);
     });
 
-    // Register PWA Service Worker
-    if ('serviceWorker' in navigator) {
-      window.addEventListener('load', () => {
-        navigator.serviceWorker.register('/sw.js')
-          .then(reg => console.log('[NF] SW registered:', reg.scope))
-          .catch(err => console.log('[NF] SW failed:', err));
-      });
-    }
+    // Service worker disabled for performance
