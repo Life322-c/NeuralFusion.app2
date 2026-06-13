@@ -1255,16 +1255,16 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress, sessi
         if (typeof PaystackPop === 'undefined') { alert('Payment system failed to load. Please refresh and try again.'); return; }
         setPaystackLoading(true);
         try {
-          const { data: { session: _sess } } = await sb.auth.getSession();
-          const _tok = _sess?.access_token;
-          if (!_tok) {
+          // Always refresh session to guarantee a valid token
+          const { data: { session: freshSess }, error: sessErr } = await sb.auth.refreshSession();
+          if (sessErr || !freshSess?.access_token) {
             setPaystackLoading(false);
             alert('Session expired. Please sign out and sign in again.');
             return;
           }
           const initRes = await fetch(SUPABASE_URL + '/functions/v1/initiate-payment', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + _tok },
+            headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + freshSess.access_token },
             body: JSON.stringify({ plan: 'pro', amount: proPrice }),
           });
           const initData = await initRes.json();
@@ -1283,10 +1283,10 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress, sessi
             onSuccess: async (transaction) => {
               setPaystackLoading(false);
               try {
-                const { data: { session: _sess2 } } = await sb.auth.getSession();
+                const { data: { session: verifySess } } = await sb.auth.refreshSession();
                 const res = await fetch(SUPABASE_URL + '/functions/v1/verify-payment', {
                   method: 'POST',
-                  headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + _sess2?.access_token },
+                  headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + (verifySess?.access_token || freshSess.access_token) },
                   body: JSON.stringify({ reference: transaction.reference, plan: 'pro' }),
                 });
                 const data = await res.json();
@@ -1297,7 +1297,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress, sessi
             onCancel: () => { setPaystackLoading(false); },
           });
           handler.openIframe();
-        } catch(e) { setPaystackLoading(false); alert('Payment error: ' + e.message); }
+        } catch(e) { setPaystackLoading(false); alert('Could not open payment window. Please refresh and try again.'); }
       };
 
       const levelColors = { Foundation:C.cyan, Intermediate:'#E2BE78', Advanced:'#C4A050', Mastery:'#7AAFCF' };
@@ -2539,16 +2539,16 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress, sessi
         if (typeof PaystackPop === 'undefined') { alert('Payment system failed to load. Please check your connection and refresh the page.'); return; }
         setPaystackLoading(true);
         try {
-          const { data: { session: _esess } } = await sb.auth.getSession();
-          const _etok = _esess?.access_token;
-          if (!_etok) {
+          // Always refresh session to guarantee a valid token
+          const { data: { session: freshSess }, error: sessErr } = await sb.auth.refreshSession();
+          if (sessErr || !freshSess?.access_token) {
             setPaystackLoading(false);
             alert('Session expired. Please sign out and sign in again.');
             return;
           }
           const initRes = await fetch(SUPABASE_URL + '/functions/v1/initiate-payment', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + _etok },
+            headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + freshSess.access_token },
             body: JSON.stringify({ plan: 'enterprise', amount: ENTERPRISE_PRICE_KOBO }),
           });
           const initData = await initRes.json();
@@ -2567,10 +2567,10 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress, sessi
             onSuccess: async (transaction) => {
               setPaystackLoading(false);
               try {
-                const { data: { session: _esess2 } } = await sb.auth.getSession();
+                const { data: { session: verifySess } } = await sb.auth.refreshSession();
                 const res = await fetch(SUPABASE_URL + '/functions/v1/verify-payment', {
                   method: 'POST',
-                  headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + _esess2?.access_token },
+                  headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + (verifySess?.access_token || freshSess.access_token) },
                   body: JSON.stringify({ reference: transaction.reference, plan: 'enterprise' }),
                 });
                 const data = await res.json();
@@ -2583,7 +2583,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress, sessi
           handler.openIframe();
         } catch(e) {
           setPaystackLoading(false);
-          alert('Payment error: ' + e.message);
+          alert('Could not open payment window. Please refresh and try again.');
         }
       };
 
