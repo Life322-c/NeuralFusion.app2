@@ -1255,8 +1255,14 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress, sessi
         if (typeof PaystackPop === 'undefined') { alert('Payment system failed to load. Please refresh and try again.'); return; }
         setPaystackLoading(true);
         try {
-          const { data: _sd } = await sb.auth.getSession();
-          const _tok = _sd?.session?.access_token;
+          // Get token with timeout fallback to session prop
+          let _tok = session?.access_token;
+          try {
+            const _p = sb.auth.getSession();
+            const _t = new Promise((_,rej)=>setTimeout(()=>rej(new Error('timeout')),3000));
+            const { data: _sd } = await Promise.race([_p, _t]);
+            if (_sd?.session?.access_token) _tok = _sd.session.access_token;
+          } catch(_) {}
           if (!_tok) { setPaystackLoading(false); setShowAuth(true); return; }
           const initRes = await fetch(SUPABASE_URL + '/functions/v1/initiate-payment', {
             method: 'POST',
@@ -1279,11 +1285,11 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress, sessi
             onSuccess: async (transaction) => {
               setPaystackLoading(false);
               try {
-                const { data: _sd2 } = await sb.auth.getSession();
-                const _tok2 = _sd2?.session?.access_token;
+                let _vtok = session?.access_token;
+                try { const {data:_vd}=await sb.auth.getSession(); if(_vd?.session?.access_token) _vtok=_vd.session.access_token; } catch(_){}
                 const res = await fetch(SUPABASE_URL + '/functions/v1/verify-payment', {
                   method: 'POST',
-                  headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + _tok2 },
+                  headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + _vtok },
                   body: JSON.stringify({ reference: transaction.reference, plan: 'pro' }),
                 });
                 const data = await res.json();
@@ -2536,8 +2542,13 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress, sessi
         if (typeof PaystackPop === 'undefined') { alert('Payment system failed to load. Please check your connection and refresh the page.'); return; }
         setPaystackLoading(true);
         try {
-          const { data: _esd } = await sb.auth.getSession();
-          const _etok = _esd?.session?.access_token;
+          let _etok = session?.access_token;
+          try {
+            const _ep = sb.auth.getSession();
+            const _et = new Promise((_,rej)=>setTimeout(()=>rej(new Error('timeout')),3000));
+            const { data: _esd } = await Promise.race([_ep, _et]);
+            if (_esd?.session?.access_token) _etok = _esd.session.access_token;
+          } catch(_) {}
           if (!_etok) { setPaystackLoading(false); setShowAuth(true); return; }
           const initRes = await fetch(SUPABASE_URL + '/functions/v1/initiate-payment', {
             method: 'POST',
@@ -2560,11 +2571,11 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress, sessi
             onSuccess: async (transaction) => {
               setPaystackLoading(false);
               try {
-                const { data: _esd2 } = await sb.auth.getSession();
-                const _etok2 = _esd2?.session?.access_token;
+                let _evtok = session?.access_token;
+                try { const {data:_evd}=await sb.auth.getSession(); if(_evd?.session?.access_token) _evtok=_evd.session.access_token; } catch(_){}
                 const res = await fetch(SUPABASE_URL + '/functions/v1/verify-payment', {
                   method: 'POST',
-                  headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + _etok2 },
+                  headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + _evtok },
                   body: JSON.stringify({ reference: transaction.reference, plan: 'enterprise' }),
                 });
                 const data = await res.json();
