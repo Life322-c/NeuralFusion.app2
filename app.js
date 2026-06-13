@@ -1255,9 +1255,17 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress, sessi
         if (typeof PaystackPop === 'undefined') { alert('Payment system failed to load. Please refresh and try again.'); return; }
         setPaystackLoading(true);
         try {
+          // Always get a fresh session token before calling Edge Function
+          const { data: sessionData, error: sessionError } = await sb.auth.getSession();
+          const currentToken = sessionData?.session?.access_token;
+          if (!currentToken) {
+            setPaystackLoading(false);
+            setShowAuth(true);
+            return;
+          }
           const initRes = await fetch(SUPABASE_URL + '/functions/v1/initiate-payment', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + session.access_token },
+            headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + currentToken },
             body: JSON.stringify({ plan: 'pro', amount: proPrice }),
           });
           const initData = await initRes.json();
@@ -1276,9 +1284,11 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress, sessi
             onSuccess: async (transaction) => {
               setPaystackLoading(false);
               try {
+                const { data: vsd } = await sb.auth.getSession();
+                const vToken = vsd?.session?.access_token;
                 const res = await fetch(SUPABASE_URL + '/functions/v1/verify-payment', {
                   method: 'POST',
-                  headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + session.access_token },
+                  headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + vToken },
                   body: JSON.stringify({ reference: transaction.reference, plan: 'pro' }),
                 });
                 const data = await res.json();
@@ -2531,9 +2541,17 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress, sessi
         if (typeof PaystackPop === 'undefined') { alert('Payment system failed to load. Please check your connection and refresh the page.'); return; }
         setPaystackLoading(true);
         try {
+          // Always get a fresh session token before calling Edge Function
+          const { data: sessionData } = await sb.auth.getSession();
+          const currentToken = sessionData?.session?.access_token;
+          if (!currentToken) {
+            setPaystackLoading(false);
+            setShowAuth(true);
+            return;
+          }
           const initRes = await fetch(SUPABASE_URL + '/functions/v1/initiate-payment', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + session.access_token },
+            headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + currentToken },
             body: JSON.stringify({ plan: 'enterprise', amount: ENTERPRISE_PRICE_KOBO }),
           });
           const initData = await initRes.json();
@@ -2552,9 +2570,11 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress, sessi
             onSuccess: async (transaction) => {
               setPaystackLoading(false);
               try {
+                const { data: vsd } = await sb.auth.getSession();
+                const vToken = vsd?.session?.access_token;
                 const res = await fetch(SUPABASE_URL + '/functions/v1/verify-payment', {
                   method: 'POST',
-                  headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + session.access_token },
+                  headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + vToken },
                   body: JSON.stringify({ reference: transaction.reference, plan: 'enterprise' }),
                 });
                 const data = await res.json();
