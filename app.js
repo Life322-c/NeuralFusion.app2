@@ -736,24 +736,24 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress, sessi
         width:800, height:400,
         background:'radial-gradient(ellipse, rgba(196,160,80,0.05) 0%, transparent 70%)',
         pointerEvents:'none', zIndex:0,
-      }}), React.createElement("div", {className: "bento-section", style: { position:'relative', zIndex:1 }}, React.createElement("div", {className: "bento-grid", style: { marginBottom:'var(--bento-gap-lg)' }}, React.createElement("div", {className: "bento-card bento-card-bright bento-p-xl bento-card-hero bento-col-7 bento-tab-2 bento-shimmer", style: { display:'flex', flexDirection:'column', justifyContent:'space-between' }}, React.createElement("div", {className: "bento-grid-lines"}), React.createElement("div", {className: "bento-noise"}), React.createElement("div", null, React.createElement("div", {style: { display:'flex', alignItems:'center', gap:10, marginBottom:24 }}, React.createElement("span", {className: "bento-tag"}, React.createElement("span", {className: "bento-tag-dot"}), 'Cognitive architecture platform')), React.createElement("h1", {style: {
+      }}), React.createElement("div", {className: "bento-section", style: { position:'relative', zIndex:1 }}, React.createElement("div", {className: "bento-grid", style: { marginBottom:'var(--bento-gap-lg)' }}, React.createElement("div", {className: "bento-card bento-card-bright bento-p-xl bento-card-hero bento-col-7 bento-tab-2 bento-shimmer", style: { display:'flex', flexDirection:'column', justifyContent:'space-between' }}, React.createElement("div", {className: "bento-grid-lines"}), React.createElement("div", {className: "bento-noise"}), React.createElement("div", null, React.createElement("div", {style: { display:'flex', alignItems:'center', gap:10, marginBottom:24 }}, React.createElement("span", {className: "bento-tag"}, React.createElement("span", {className: "bento-tag-dot"}), 'Cognitive Architecture Platform · V4.0')), React.createElement("h1", {style: {
                 fontFamily:"'Syne', sans-serif",
-                fontSize:'clamp(28px, 4vw, 54px)',
-                fontWeight:800, lineHeight:1.0,
+                fontSize:'clamp(32px, 5vw, 62px)',
+                fontWeight:800, lineHeight:0.92,
                 color:'#F0E8D0',
-                letterSpacing:'-0.03em',
-                marginBottom:20,
-                maxWidth:'16ch',
-              }}, 'Turn fragmentation into', ' ', React.createElement("span", {style: {
+                letterSpacing:'-0.04em',
+                marginBottom:24,
+                maxWidth:'14ch',
+              }}, 'Turn Mental Fragmentation Into ', React.createElement("span", {style: {
                   color:'transparent',
                   backgroundClip:'text',
                   WebkitBackgroundClip:'text',
                   backgroundImage:'linear-gradient(135deg, #C4A050, #E2BE78)',
-                }}, 'structured clarity.')), React.createElement("p", {style: {
+                }}, 'Structured Clarity.')), React.createElement("p", {style: {
                 fontFamily:"'DM Sans', sans-serif",
                 fontSize:15, color:'#8A7A5A', lineHeight:1.85,
                 maxWidth:'52ch', marginBottom:32,
-              }}, 'NeuralFusion™ is a structured training system for human cognition: a premium environment for', ' ', React.createElement("strong", {style: { color:'#F0E8D0', fontWeight:600 }}, 'integrated thinking, decision mastery, synthesis training,'), ' ', 'and cognitive stability.'), React.createElement("div", {style: { display:'flex', gap:12, flexWrap:'wrap' }}, React.createElement("button", {className: "btn-primary", onClick: () => user ? setView('training') : setShowAuth(true)}, 'Get started →'), React.createElement("button", {className: "btn-outline", onClick: () => setView('four-brains')}, 'View architecture'))), React.createElement("div", {style: { marginTop:32, opacity:0.5 }}, React.createElement(BentoWaveform, {color: "#C4A050", bars: 20, height: 28}))), React.createElement("div", {className: "bento-card bento-card-deep bento-p-md bento-card-hero bento-col-5 bento-tab-2", style: {
+              }}, 'NeuralFusion™ is the operating system for structured human cognition: a premium mental performance environment for', ' ', React.createElement("strong", {style: { color:'#F0E8D0', fontWeight:600 }}, 'integrated thinking, decision mastery, synthesis training,'), ' ', 'and cognitive stabilization.'), React.createElement("div", {style: { display:'flex', gap:12, flexWrap:'wrap' }}, React.createElement("button", {className: "btn-primary", onClick: () => user ? setView('training') : setShowAuth(true)}, 'Initialize Cognitive OS →'), React.createElement("button", {className: "btn-outline", onClick: () => setView('four-brains')}, 'View Architecture'))), React.createElement("div", {style: { marginTop:32, opacity:0.5 }}, React.createElement(BentoWaveform, {color: "#C4A050", bars: 20, height: 28}))), React.createElement("div", {className: "bento-card bento-card-deep bento-p-md bento-card-hero bento-col-5 bento-tab-2", style: {
               display:'flex', flexDirection:'column',
               alignItems:'center', justifyContent:'center',
               gap:24, textAlign:'center',
