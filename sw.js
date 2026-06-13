@@ -1,16 +1,17 @@
-const CACHE_NAME = 'neuralfusion-v4';
+const CACHE_NAME = 'neuralfusion-v5';
 
-// Core assets to cache on install
+// Core assets to precache on install — includes app.js so it's always ready
 const PRECACHE_ASSETS = [
   '/',
   '/index.html',
   '/style.css',
+  '/app.js',
   '/manifest.json',
   '/icons/icon-192.png',
 ];
 
 // CDN assets — cache aggressively (they're versioned/immutable)
-const CDN_CACHE = 'neuralfusion-cdn-v4';
+const CDN_CACHE = 'neuralfusion-cdn-v5';
 const CDN_ORIGINS = [
   'cdn.jsdelivr.net',
   'unpkg.com',
@@ -19,15 +20,16 @@ const CDN_ORIGINS = [
   'api.fontshare.com',
 ];
 
-// Install — cache core assets
+// Install — precache all core assets atomically
 self.addEventListener('install', event => {
   event.waitUntil(
-    caches.open(CACHE_NAME).then(cache => cache.addAll(PRECACHE_ASSETS))
+    caches.open(CACHE_NAME)
+      .then(cache => cache.addAll(PRECACHE_ASSETS))
+      .then(() => self.skipWaiting())
   );
-  self.skipWaiting();
 });
 
-// Activate — delete old caches
+// Activate — delete ALL old caches, claim clients immediately
 self.addEventListener('activate', event => {
   event.waitUntil(
     caches.keys().then(keys =>
@@ -36,9 +38,8 @@ self.addEventListener('activate', event => {
           .filter(key => key !== CACHE_NAME && key !== CDN_CACHE)
           .map(key => caches.delete(key))
       )
-    )
+    ).then(() => self.clients.claim())
   );
-  self.clients.claim();
 });
 
 self.addEventListener('fetch', event => {
@@ -46,14 +47,13 @@ self.addEventListener('fetch', event => {
 
   const url = new URL(event.request.url);
 
-  // Never intercept blog navigation or HTML navigation requests for blog
+  // Never intercept blog pages
   if (url.pathname.startsWith('/blog')) return;
 
-  // Never intercept navigation requests (browser fetching an HTML page)
-  // Let the network decide for navigations, preventing SW from serving wrong HTML
+  // Never intercept HTML navigation — always go to network for fresh HTML
   if (event.request.mode === 'navigate') return;
 
-  // CDN assets: cache-first (they're versioned, safe to cache long-term)
+  // CDN assets: cache-first (versioned, safe to cache indefinitely)
   if (CDN_ORIGINS.includes(url.hostname)) {
     event.respondWith(
       caches.open(CDN_CACHE).then(cache =>
@@ -71,19 +71,22 @@ self.addEventListener('fetch', event => {
     return;
   }
 
-  // Own-origin assets: stale-while-revalidate (fast + fresh)
+  // Own-origin assets: cache-first with background revalidation
+  // Returns cached version INSTANTLY, fetches fresh copy in background
   if (url.origin === self.location.origin) {
     event.respondWith(
       caches.open(CACHE_NAME).then(cache =>
         cache.match(event.request).then(cached => {
-          const fetchPromise = fetch(event.request).then(response => {
+          // Always revalidate in background regardless of cache hit
+          const networkFetch = fetch(event.request).then(response => {
             if (response && response.status === 200) {
               cache.put(event.request, response.clone());
             }
             return response;
-          }).catch(() => cached);
-          // Return cache immediately, update in background
-          return cached || fetchPromise;
+          }).catch(() => null);
+
+          // Return cache immediately if available, else wait for network
+          return cached ?? networkFetch;
         })
       )
     );
