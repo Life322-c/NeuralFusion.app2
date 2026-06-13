@@ -47,11 +47,7 @@
   ],
   "rewrites": [
     {
-      "source": "/blog/:path*",
-      "destination": "/blog/:path*"
-    },
-    {
-      "source": "/:path*",
+      "source": "/((?!blog|icons|style.css|sw.js|manifest.json|robots.txt|sitemap.xml).*)",
       "destination": "/index.html"
     }
   ],
