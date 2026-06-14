@@ -25,7 +25,7 @@
         },
         {
           "key": "Content-Security-Policy",
-          "value": "default-src 'self'; script-src 'self' 'unsafe-eval' https://unpkg.com https://cdn.jsdelivr.net https://js.paystack.co; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://api.fontshare.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' https://ckrxgbosyohcmjtemrvu.supabase.co wss://ckrxgbosyohcmjtemrvu.supabase.co https://api.paystack.co https://standard.paystack.co https://checkout.paystack.com; frame-src https://js.paystack.co https://standard.paystack.co https://checkout.paystack.com https://paystack.com; object-src 'none'; base-uri 'self'; form-action 'self';"
+          "value": "default-src 'self'; script-src 'self' 'unsafe-eval' https://unpkg.com https://cdn.jsdelivr.net https://js.paystack.co; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://api.fontshare.com; font-src 'self' https://fonts.gstatic.com https://api.fontshare.com https://cdn.fontshare.com; img-src 'self' data: https:; connect-src 'self' https://ckrxgbosyohcmjtemrvu.supabase.co wss://ckrxgbosyohcmjtemrvu.supabase.co https://api.paystack.co https://standard.paystack.co https://checkout.paystack.com; frame-src https://js.paystack.co https://standard.paystack.co https://checkout.paystack.com https://paystack.com; object-src 'none'; base-uri 'self'; form-action 'self';"
         }
       ]
     },
@@ -43,7 +43,7 @@
       "headers": [
         {
           "key": "Cache-Control",
-          "value": "public, max-age=31536000, immutable"
+          "value": "public, max-age=3600, stale-while-revalidate=86400"
         }
       ]
     },
@@ -100,7 +100,7 @@
       "headers": [
         {
           "key": "Cache-Control",
-          "value": "public, max-age=31536000, immutable"
+          "value": "public, max-age=3600, stale-while-revalidate=86400"
         }
       ]
     }
