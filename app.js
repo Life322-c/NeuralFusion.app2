@@ -2628,7 +2628,8 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress, sessi
       const [lessonProgress, setLessonProgress] = useState({});
       const [sessions, setSessions] = useState([]);
       const [proPrice, setProPrice] = useState(() => parseInt(localStorage.getItem('nf_pro_price') || '600000'));
-      const [paystackKey, setPaystackKey] = useState(() => localStorage.getItem('nf_paystack_key') || '');
+      // Public key is safe to embed — it is not a secret.
+      const paystackKey = 'pk_live_dfa71eca29f942cadc337cb8e41834857e2b129b';
 
       // Load platform settings from Supabase on mount
       useEffect(()=>{
@@ -2637,9 +2638,6 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress, sessi
             const p = parseInt(val);
             if (!isNaN(p)) { setProPrice(p); localStorage.setItem('nf_pro_price', p); }
           }
-        });
-        getPlatformSetting('paystack_public_key').then(val=>{
-          if (val) { setPaystackKey(val); localStorage.setItem('nf_paystack_key', val); }
         });
       },[]);
 
