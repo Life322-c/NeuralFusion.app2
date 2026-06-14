@@ -1252,25 +1252,30 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress, sessi
       const [paystackLoading, setPaystackLoading] = useState(false);
       const paystackHandlerRef = React.useRef(null);
 
-      // Open Paystack popup synchronously on click (Pro)
-      // NOTE: openIframe() must be called in the same synchronous call stack as the
-      // user gesture — any await before it causes browsers to block the popup.
+      // Load Paystack script dynamically then open popup
+      const loadPaystackScript = () => new Promise((resolve, reject) => {
+        if (typeof PaystackPop !== 'undefined') { resolve(); return; }
+        const s = document.createElement('script');
+        s.src = 'https://js.paystack.co/v1/inline.js';
+        s.onload = resolve;
+        s.onerror = reject;
+        document.head.appendChild(s);
+      });
+
       const handleProPayment = () => {
         if (!user) { setShowAuth(true); return; }
-        if (typeof PaystackPop === 'undefined') { alert('Payment system failed to load. Please refresh and try again.'); return; }
-        const activeKey = (paystackKey && paystackKey.startsWith('pk_')) ? paystackKey : 'pk_live_dfa71eca29f942cadc337cb8e41834857e2b129b';
+        const PAYSTACK_KEY = 'pk_live_dfa71eca29f942cadc337cb8e41834857e2b129b';
         setPaystackLoading(true);
-        const resetTimer = setTimeout(() => setPaystackLoading(false), 15000);
-        try {
+        loadPaystackScript().then(() => {
+          const ref = 'nf_pro_' + Date.now() + '_' + user.id.slice(0, 8);
           const handler = PaystackPop.setup({
-            key: activeKey,
+            key: PAYSTACK_KEY,
             email: user.email,
             amount: proPrice,
             currency: 'NGN',
-            ref: 'nf_pro_' + Date.now() + '_' + user.id.slice(0, 8),
+            ref: ref,
             metadata: { user_id: user.id, plan: 'pro' },
             onSuccess: async (transaction) => {
-              clearTimeout(resetTimer);
               setPaystackLoading(false);
               try {
                 const res = await fetch(SUPABASE_URL + '/functions/v1/verify-payment', {
@@ -1283,10 +1288,10 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress, sessi
                 else { alert('Payment received but verification failed. Contact support with ref: ' + transaction.reference); }
               } catch(e) { alert('Network error during verification. Contact support with ref: ' + transaction.reference); }
             },
-            onCancel: () => { clearTimeout(resetTimer); setPaystackLoading(false); },
+            onCancel: () => { setPaystackLoading(false); },
           });
           handler.openIframe();
-        } catch(e) { clearTimeout(resetTimer); setPaystackLoading(false); alert('Could not open payment window. Please refresh and try again.'); }
+        }).catch(() => { setPaystackLoading(false); alert('Could not load payment system. Check your internet connection and try again.'); });
       };
 
       const levelColors = { Foundation:C.cyan, Intermediate:'#E2BE78', Advanced:'#C4A050', Mastery:'#7AAFCF' };
@@ -2539,25 +2544,20 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress, sessi
         }
       },[entSession?.cohort]);
 
-      // Open Paystack popup synchronously on click (Enterprise)
-      // NOTE: openIframe() must be called in the same synchronous call stack as the
-      // user gesture — any await before it causes browsers to block the popup.
       const handleUnlock = () => {
         if (!user) { setShowAuth(true); return; }
-        if (typeof PaystackPop === 'undefined') { alert('Payment system failed to load. Please check your connection and refresh the page.'); return; }
-        const activeKey = (paystackKey && paystackKey.startsWith('pk_')) ? paystackKey : 'pk_live_dfa71eca29f942cadc337cb8e41834857e2b129b';
+        const PAYSTACK_KEY = 'pk_live_dfa71eca29f942cadc337cb8e41834857e2b129b';
         setPaystackLoading(true);
-        const resetTimer = setTimeout(() => setPaystackLoading(false), 15000);
-        try {
+        loadPaystackScript().then(() => {
+          const ref = 'nf_ent_' + Date.now() + '_' + user.id.slice(0, 8);
           const handler = PaystackPop.setup({
-            key: activeKey,
+            key: PAYSTACK_KEY,
             email: user.email,
             amount: ENTERPRISE_PRICE_KOBO,
             currency: 'NGN',
-            ref: 'nf_ent_' + Date.now() + '_' + user.id.slice(0, 8),
+            ref: ref,
             metadata: { user_id: user.id, plan: 'enterprise' },
             onSuccess: async (transaction) => {
-              clearTimeout(resetTimer);
               setPaystackLoading(false);
               try {
                 const res = await fetch(SUPABASE_URL + '/functions/v1/verify-payment', {
@@ -2570,7 +2570,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress, sessi
                 else { alert('Payment received but verification failed. Contact support with ref: ' + transaction.reference); }
               } catch(e) { alert('Network error during verification. Contact support with ref: ' + transaction.reference); }
             },
-            onCancel: ()=>{ clearTimeout(resetTimer); setPaystackLoading(false); },
+            onCancel: ()=>{ setPaystackLoading(false); },
           });
           handler.openIframe();
         } catch(e) {
