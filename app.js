@@ -1258,12 +1258,12 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress, sessi
       const handleProPayment = () => {
         if (!user) { setShowAuth(true); return; }
         if (typeof PaystackPop === 'undefined') { alert('Payment system failed to load. Please refresh and try again.'); return; }
-        if (!paystackKey) { alert('Payment system is not configured. Please try again shortly.'); return; }
+        const activeKey = (paystackKey && paystackKey.startsWith('pk_')) ? paystackKey : 'pk_live_dfa71eca29f942cadc337cb8e41834857e2b129b';
         setPaystackLoading(true);
         const resetTimer = setTimeout(() => setPaystackLoading(false), 15000);
         try {
           const handler = PaystackPop.setup({
-            key: paystackKey,
+            key: activeKey,
             email: user.email,
             amount: proPrice,
             currency: 'NGN',
@@ -2545,12 +2545,12 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress, sessi
       const handleUnlock = () => {
         if (!user) { setShowAuth(true); return; }
         if (typeof PaystackPop === 'undefined') { alert('Payment system failed to load. Please check your connection and refresh the page.'); return; }
-        if (!paystackKey) { alert('Payment system is not configured. Please try again shortly.'); return; }
+        const activeKey = (paystackKey && paystackKey.startsWith('pk_')) ? paystackKey : 'pk_live_dfa71eca29f942cadc337cb8e41834857e2b129b';
         setPaystackLoading(true);
         const resetTimer = setTimeout(() => setPaystackLoading(false), 15000);
         try {
           const handler = PaystackPop.setup({
-            key: paystackKey,
+            key: activeKey,
             email: user.email,
             amount: ENTERPRISE_PRICE_KOBO,
             currency: 'NGN',
@@ -2668,17 +2668,10 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress, sessi
           }
         });
         getPlatformSetting('paystack_public_key').then(val=>{
-          if (val && val.startsWith('pk_')) {
-            setPaystackKey(val);
-            localStorage.setItem('nf_paystack_key', val);
-          } else {
-            // DB has no key or invalid key — ensure fallback is active
-            setPaystackKey(FALLBACK_PAYSTACK_KEY);
-            localStorage.setItem('nf_paystack_key', FALLBACK_PAYSTACK_KEY);
-          }
-        }).catch(()=>{
-          setPaystackKey(FALLBACK_PAYSTACK_KEY);
-        });
+          const key = (val && val.startsWith('pk_')) ? val : FALLBACK_PAYSTACK_KEY;
+          setPaystackKey(key);
+          localStorage.setItem('nf_paystack_key', key);
+        }).catch(()=>{ setPaystackKey(FALLBACK_PAYSTACK_KEY); });
       },[]);
 
       // Auth
