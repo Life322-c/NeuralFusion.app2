@@ -1249,36 +1249,42 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress, sessi
       const [paystackLoading, setPaystackLoading] = useState(false);
       const paystackHandlerRef = React.useRef(null);
 
-      // Open Paystack directly — webhook handles profile update server-side
+      // initiate-payment then open Paystack popup (Pro)
       const handleProPayment = async () => {
         if (!user) { setShowAuth(true); return; }
         if (typeof PaystackPop === 'undefined') { alert('Payment system failed to load. Please refresh and try again.'); return; }
         setPaystackLoading(true);
         try {
-          const reference = 'NF_PRO_' + Date.now() + '_' + user.id.slice(0, 8);
+          const initRes = await fetch(SUPABASE_URL + '/functions/v1/initiate-payment', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + session.access_token },
+            body: JSON.stringify({ plan: 'pro', amount: proPrice }),
+          });
+          const initData = await initRes.json();
+          if (!initRes.ok || !initData.success) {
+            setPaystackLoading(false);
+            alert('Could not initiate payment: ' + (initData.error || 'Unknown error'));
+            return;
+          }
           const handler = PaystackPop.setup({
             key: paystackKey,
             email: user.email,
             amount: proPrice,
             currency: 'NGN',
-            ref: reference,
-            metadata: { user_id: user.id, plan: 'pro', product: 'neuralfusion_pro' },
-            onSuccess: async () => {
-              let attempts = 0;
-              const poll = async () => {
-                attempts++;
-                const { data: prof } = await sb.from('profiles').select('is_pro').eq('id', user.id).single();
-                if (prof?.is_pro) {
-                  setIsPro(true);
-                  setPaystackLoading(false);
-                } else if (attempts < 10) {
-                  setTimeout(poll, 1000);
-                } else {
-                  setPaystackLoading(false);
-                  alert('Payment received! Access will activate shortly. Refresh if needed.');
-                }
-              };
-              setTimeout(poll, 1500);
+            ref: initData.reference,
+            metadata: { user_id: user.id, product: 'neuralfusion_pro' },
+            onSuccess: async (transaction) => {
+              setPaystackLoading(false);
+              try {
+                const res = await fetch(SUPABASE_URL + '/functions/v1/verify-payment', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + session.access_token },
+                  body: JSON.stringify({ reference: transaction.reference, plan: 'pro' }),
+                });
+                const data = await res.json();
+                if (res.ok && data.success) { setIsPro(true); }
+                else { alert('Payment received but verification failed. Contact support with ref: ' + transaction.reference); }
+              } catch(e) { alert('Network error during verification. Contact support with ref: ' + transaction.reference); }
             },
             onCancel: () => { setPaystackLoading(false); },
           });
@@ -2519,38 +2525,44 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress, sessi
         }
       },[entSession?.cohort]);
 
-      // Paystack Enterprise unlock — webhook handles profile update server-side
+      // Paystack Enterprise unlock — calls initiate-payment first
       const handleUnlock = async () => {
         if (!user) { setShowAuth(true); return; }
         if (typeof PaystackPop === 'undefined') { alert('Payment system failed to load. Please check your connection and refresh the page.'); return; }
         setPaystackLoading(true);
         try {
-          const reference = 'NF_ENT_' + Date.now() + '_' + user.id.slice(0, 8);
+          const initRes = await fetch(SUPABASE_URL + '/functions/v1/initiate-payment', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + session.access_token },
+            body: JSON.stringify({ plan: 'enterprise', amount: ENTERPRISE_PRICE_KOBO }),
+          });
+          const initData = await initRes.json();
+          if (!initRes.ok || !initData.success) {
+            setPaystackLoading(false);
+            alert('Could not initiate payment: ' + (initData.error || 'Unknown error'));
+            return;
+          }
           const handler = PaystackPop.setup({
             key: paystackKey,
             email: user.email,
             amount: ENTERPRISE_PRICE_KOBO,
             currency: 'NGN',
-            ref: reference,
-            metadata: { user_id: user.id, plan: 'enterprise', product: 'neuralfusion_enterprise' },
-            onSuccess: async () => {
-              let attempts = 0;
-              const poll = async () => {
-                attempts++;
-                const { data: prof } = await sb.from('profiles').select('is_enterprise').eq('id', user.id).single();
-                if (prof?.is_enterprise) {
-                  setIsEnterprise(true);
-                  setPaystackLoading(false);
-                } else if (attempts < 10) {
-                  setTimeout(poll, 1000);
-                } else {
-                  setPaystackLoading(false);
-                  alert('Payment received! Enterprise access will activate shortly. Refresh if needed.');
-                }
-              };
-              setTimeout(poll, 1500);
+            ref: initData.reference,
+            metadata: { user_id:user.id, product:'neuralfusion_enterprise' },
+            onSuccess: async (transaction) => {
+              setPaystackLoading(false);
+              try {
+                const res = await fetch(SUPABASE_URL + '/functions/v1/verify-payment', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + session.access_token },
+                  body: JSON.stringify({ reference: transaction.reference, plan: 'enterprise' }),
+                });
+                const data = await res.json();
+                if (res.ok && data.success) { setIsEnterprise(true); }
+                else { alert('Payment received but verification failed. Contact support with ref: ' + transaction.reference); }
+              } catch(e) { alert('Network error during verification. Contact support with ref: ' + transaction.reference); }
             },
-            onCancel: () => { setPaystackLoading(false); },
+            onCancel: ()=>{ setPaystackLoading(false); },
           });
           handler.openIframe();
         } catch(e) {
@@ -2632,15 +2644,18 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress, sessi
       const [lessonProgress, setLessonProgress] = useState({});
       const [sessions, setSessions] = useState([]);
       const [proPrice, setProPrice] = useState(() => parseInt(localStorage.getItem('nf_pro_price') || '600000'));
-      const [paystackKey] = useState('pk_live_dfa71eca29f942cadc337cb8e41834857e2b129b');
+      const [paystackKey, setPaystackKey] = useState(() => localStorage.getItem('nf_paystack_key') || '');
 
-      // Load pro price from Supabase on mount (Paystack public key is hardcoded — no fetch needed)
+      // Load platform settings from Supabase on mount
       useEffect(()=>{
         getPlatformSetting('pro_price').then(val=>{
           if (val) {
             const p = parseInt(val);
             if (!isNaN(p)) { setProPrice(p); localStorage.setItem('nf_pro_price', p); }
           }
+        });
+        getPlatformSetting('paystack_public_key').then(val=>{
+          if (val) { setPaystackKey(val); localStorage.setItem('nf_paystack_key', val); }
         });
       },[]);
 
