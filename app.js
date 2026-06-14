@@ -1265,20 +1265,20 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress, sessi
             currency: 'NGN',
             ref: 'nf_pro_' + Date.now() + '_' + user.id.slice(0, 8),
             metadata: { user_id: user.id, plan: 'pro' },
-            onSuccess: async (transaction) => {
+            callback: async function(response) {
               setPaystackLoading(false);
               try {
                 const res = await fetch(SUPABASE_URL + '/functions/v1/verify-payment', {
                   method: 'POST',
                   headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + session.access_token },
-                  body: JSON.stringify({ reference: transaction.reference, plan: 'pro' }),
+                  body: JSON.stringify({ reference: response.reference, plan: 'pro' }),
                 });
                 const data = await res.json();
                 if (res.ok && data.success) { setIsPro(true); }
-                else { alert('Payment received but verification failed. Contact support with ref: ' + transaction.reference); }
-              } catch(e) { alert('Network error during verification. Contact support with ref: ' + transaction.reference); }
+                else { alert('Payment received but verification failed. Contact support with ref: ' + response.reference); }
+              } catch(e) { alert('Network error during verification. Contact support with ref: ' + response.reference); }
             },
-            onCancel: () => { setPaystackLoading(false); },
+            onClose: function() { setPaystackLoading(false); },
           });
           handler.openIframe();
         } catch(e) { setPaystackLoading(false); alert('Could not open payment window. Please refresh and try again.'); }
@@ -2533,20 +2533,20 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress, sessi
             currency: 'NGN',
             ref: 'nf_ent_' + Date.now() + '_' + user.id.slice(0, 8),
             metadata: { user_id: user.id, plan: 'enterprise' },
-            onSuccess: async (transaction) => {
+            callback: async function(response) {
               setPaystackLoading(false);
               try {
                 const res = await fetch(SUPABASE_URL + '/functions/v1/verify-payment', {
                   method: 'POST',
                   headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + session.access_token },
-                  body: JSON.stringify({ reference: transaction.reference, plan: 'enterprise' }),
+                  body: JSON.stringify({ reference: response.reference, plan: 'enterprise' }),
                 });
                 const data = await res.json();
                 if (res.ok && data.success) { setIsEnterprise(true); }
-                else { alert('Payment received but verification failed. Contact support with ref: ' + transaction.reference); }
-              } catch(e) { alert('Network error during verification. Contact support with ref: ' + transaction.reference); }
+                else { alert('Payment received but verification failed. Contact support with ref: ' + response.reference); }
+              } catch(e) { alert('Network error during verification. Contact support with ref: ' + response.reference); }
             },
-            onCancel: ()=>{ setPaystackLoading(false); },
+            onClose: function(){ setPaystackLoading(false); },
           });
           handler.openIframe();
         } catch(e) {
