@@ -2547,9 +2547,17 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress, sessi
       // Open Paystack popup synchronously on click (Enterprise)
       // NOTE: openIframe() must be called in the same synchronous call stack as the
       // user gesture — any await before it causes browsers to block the popup.
+      const loadPaystackScript = () => new Promise((resolve, reject) => {
+        if (typeof PaystackPop !== 'undefined') { resolve(); return; }
+        const s = document.createElement('script');
+        s.src = 'https://js.paystack.co/v1/inline.js';
+        s.onload = resolve; s.onerror = reject;
+        document.head.appendChild(s);
+      });
+
       const handleUnlock = () => {
         if (!user) { setShowAuth(true); return; }
-        const PAYSTACK_KEY = 'pk_live_dfa71eca29f942cadc337cb8e41834857e2b129b';
+        const PAYSTACK_KEY = paystackKey || 'pk_live_dfa71eca29f942cadc337cb8e41834857e2b129b';
         setPaystackLoading(true);
         loadPaystackScript().then(() => {
           const handler = PaystackPop.setup({
