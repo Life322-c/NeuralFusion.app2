@@ -291,6 +291,7 @@ const { useState, useEffect, useCallback, useRef, useMemo } = React;
       const handleSignup = async () => {
         if (!email||!password||!name) { setMsg({text:'All fields required.',type:'error'}); return; }
         if (password.length < 8) { setMsg({text:'Password must be at least 8 characters.',type:'error'}); return; }
+        if (confirmPassword && password !== confirmPassword) { setMsg({text:'Passwords do not match.',type:'error'}); return; }
         setLoading(true); setMsg({text:'',type:''});
         try {
           const { data, error } = await sb.auth.signUp({
@@ -378,7 +379,7 @@ const { useState, useEffect, useCallback, useRef, useMemo } = React;
             ), tab==='login' && (React.createElement(React.Fragment, null, React.createElement("div", {style: { marginBottom:14 }}, React.createElement("div", {style: { ...mono, fontSize:9, letterSpacing:1, color:C.muted, marginBottom:8 }}, 'Email'), React.createElement("input", {type: "email", value: email, onChange: e=>setEmail(e.target.value), placeholder: "you@example.com"})), React.createElement("div", {style: { marginBottom:8 }}, React.createElement("div", {style: { ...mono, fontSize:9, letterSpacing:1, color:C.muted, marginBottom:8 }}, 'Password'), React.createElement("input", {type: "password", value: password, onChange: e=>setPassword(e.target.value), placeholder: "••••••••", onKeyDown: e=>e.key==='Enter'&&handleLogin()})), React.createElement("div", {style: { textAlign:'right', marginBottom:20 }}, React.createElement("button", {onClick: ()=>{ setTab('forgot-password'); setMsg({text:'',type:''}); }, style: {
                   background:'none', border:'none', ...mono, fontSize:9, letterSpacing:1,
                   color:C.muted, cursor:'pointer', textDecoration:'underline',
-                }}, 'Forgot password?')))), tab==='signup' && (React.createElement(React.Fragment, null, React.createElement("div", {style: { marginBottom:14 }}, React.createElement("div", {style: { ...mono, fontSize:9, letterSpacing:1, color:C.muted, marginBottom:8 }}, 'Full name'), React.createElement("input", {value: name, onChange: e=>setName(e.target.value), placeholder: "Your name"})), React.createElement("div", {style: { marginBottom:14 }}, React.createElement("div", {style: { ...mono, fontSize:9, letterSpacing:1, color:C.muted, marginBottom:8 }}, 'Email'), React.createElement("input", {type: "email", value: email, onChange: e=>setEmail(e.target.value), placeholder: "you@example.com"})), React.createElement("div", {style: { marginBottom:24 }}, React.createElement("div", {style: { ...mono, fontSize:9, letterSpacing:1, color:C.muted, marginBottom:8 }}, 'Password'), React.createElement("input", {type: "password", value: password, onChange: e=>setPassword(e.target.value), placeholder: "••••••••", onKeyDown: e=>e.key==='Enter'&&handleSignup()})))), tab==='forgot-password' && (React.createElement(React.Fragment, null, React.createElement("div", {style: { marginBottom:24 }}, React.createElement("div", {style: { ...mono, fontSize:9, letterSpacing:1, color:C.muted, marginBottom:8 }}, 'Email'), React.createElement("input", {type: "email", value: email, onChange: e=>setEmail(e.target.value), placeholder: "you@example.com", onKeyDown: e=>e.key==='Enter'&&handleForgotPassword()})))), tab==='update-password' && (React.createElement(React.Fragment, null, React.createElement("div", {style: { marginBottom:14 }}, React.createElement("div", {style: { ...mono, fontSize:9, letterSpacing:1, color:C.muted, marginBottom:8 }}, 'New password'), React.createElement("input", {type: "password", value: password, onChange: e=>setPassword(e.target.value), placeholder: "••••••••"})), React.createElement("div", {style: { marginBottom:24 }}, React.createElement("div", {style: { ...mono, fontSize:9, letterSpacing:1, color:C.muted, marginBottom:8 }}, 'Confirm password'), React.createElement("input", {type: "password", value: confirmPassword, onChange: e=>setConfirmPassword(e.target.value), placeholder: "••••••••", onKeyDown: e=>e.key==='Enter'&&handleUpdatePassword()})))), msg.text && (
+                }}, 'Forgot password?')))), tab==='signup' && (React.createElement(React.Fragment, null, React.createElement("div", {style: { marginBottom:14 }}, React.createElement("div", {style: { ...mono, fontSize:9, letterSpacing:1, color:C.muted, marginBottom:8 }}, 'Full name'), React.createElement("input", {value: name, onChange: e=>setName(e.target.value), placeholder: "Your name"})), React.createElement("div", {style: { marginBottom:14 }}, React.createElement("div", {style: { ...mono, fontSize:9, letterSpacing:1, color:C.muted, marginBottom:8 }}, 'Email'), React.createElement("input", {type: "email", value: email, onChange: e=>setEmail(e.target.value), placeholder: "you@example.com"})), React.createElement("div", {style: { marginBottom:14 }}, React.createElement("div", {style: { ...mono, fontSize:9, letterSpacing:1, color:C.muted, marginBottom:8 }}, 'Password'), React.createElement("input", {type: "password", value: password, onChange: e=>setPassword(e.target.value), placeholder: "••••••••"})), React.createElement("div", {style: { marginBottom:24 }}, React.createElement("div", {style: { ...mono, fontSize:9, letterSpacing:1, color:C.muted, marginBottom:8 }}, 'Confirm password'), React.createElement("input", {type: "password", value: confirmPassword, onChange: e=>setConfirmPassword(e.target.value), placeholder: "••••••••", onKeyDown: e=>e.key==='Enter'&&handleSignup()})))), tab==='forgot-password' && (React.createElement(React.Fragment, null, React.createElement("div", {style: { marginBottom:24 }}, React.createElement("div", {style: { ...mono, fontSize:9, letterSpacing:1, color:C.muted, marginBottom:8 }}, 'Email'), React.createElement("input", {type: "email", value: email, onChange: e=>setEmail(e.target.value), placeholder: "you@example.com", onKeyDown: e=>e.key==='Enter'&&handleForgotPassword()})))), tab==='update-password' && (React.createElement(React.Fragment, null, React.createElement("div", {style: { marginBottom:14 }}, React.createElement("div", {style: { ...mono, fontSize:9, letterSpacing:1, color:C.muted, marginBottom:8 }}, 'New password'), React.createElement("input", {type: "password", value: password, onChange: e=>setPassword(e.target.value), placeholder: "••••••••"})), React.createElement("div", {style: { marginBottom:24 }}, React.createElement("div", {style: { ...mono, fontSize:9, letterSpacing:1, color:C.muted, marginBottom:8 }}, 'Confirm password'), React.createElement("input", {type: "password", value: confirmPassword, onChange: e=>setConfirmPassword(e.target.value), placeholder: "••••••••", onKeyDown: e=>e.key==='Enter'&&handleUpdatePassword()})))), msg.text && (
               React.createElement("div", {style: { marginBottom:20, padding:'12px 16px', background:msg.type==='error'?'rgba(248,113,113,0.1)':'rgba(128,203,196,0.1)',
                 border:`1px solid ${msg.type==='error'?'#F8717144':'#7AAFCF44'}`, borderRadius:2,
                 color:msg.type==='error'?'#F87171':'#7AAFCF', fontSize:13 }}, msg.text)
@@ -1203,12 +1204,12 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress, sessi
     // ═══════════════════════════════════════════════════════════════════
     //  ANALYTICS VIEW
     // ═══════════════════════════════════════════════════════════════════
-    function AnalyticsView({ cfiResult, sessions, lessonProgress }) {
+    function AnalyticsView({ cfiResult, sessions, lessonProgress, setView }) {
       const completedLessons = Object.values(lessonProgress).filter(v=>v===100).length;
 
       return (
         React.createElement("div", {style: { paddingTop:80, paddingBottom:100 }}, React.createElement("div", {style: { maxWidth:1200, margin:'0 auto', padding:'40px 24px' }}, React.createElement("div", {style: { ...mono, fontSize:11, letterSpacing:1.5, color:C.cyan, marginBottom:16 }}, 'Analytics'), React.createElement("h1", {style: { ...syne, fontSize:17, fontWeight:800, color:C.text, marginBottom:16, overflowWrap:'break-word', minWidth:0}}, 'Your cognitive', React.createElement("br", null), 'performance map'), React.createElement("p", {style: { fontSize:15, color:C.muted, maxWidth:560, lineHeight:1.8, marginBottom:48 }}, 'Track your thinking evolution, mode balance, and training effectiveness.'), !cfiResult ? (
-              React.createElement("div", {className: "card", style: { padding:'60px', textAlign:'center' }}, React.createElement("div", {style: { ...mono, fontSize:14, color:C.dim, marginBottom:24 }}, '◎'), React.createElement("div", {style: { ...syne, fontSize:17, fontWeight:700, color:C.text, marginBottom:12, overflowWrap:'break-word', minWidth:0}}, 'No data yet'), React.createElement("div", {style: { fontSize:14, color:C.muted, marginBottom:32, maxWidth:400, margin:'0 auto 32px' }}, 'Complete the CFI assessment to generate your profile and unlock analytics.'), React.createElement("button", {className: "btn-primary", onClick: ()=>{}}, 'Take CFI assessment →'))
+              React.createElement("div", {className: "card", style: { padding:'60px', textAlign:'center' }}, React.createElement("div", {style: { ...mono, fontSize:14, color:C.dim, marginBottom:24 }}, '◎'), React.createElement("div", {style: { ...syne, fontSize:17, fontWeight:700, color:C.text, marginBottom:12, overflowWrap:'break-word', minWidth:0}}, 'No data yet'), React.createElement("div", {style: { fontSize:14, color:C.muted, marginBottom:32, maxWidth:400, margin:'0 auto 32px' }}, 'Complete the CFI assessment to generate your profile and unlock analytics.'), React.createElement("button", {className: "btn-primary", onClick: ()=>setView('cfi')}, 'Take CFI assessment →'))
             ) : (
               React.createElement(React.Fragment, null, React.createElement("div", {style: { display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(min(180px, 100%), 1fr))', gap:16, marginBottom:40 }}, [
                     { label:'CFI score', value:cfiResult.total, unit:'/75', color:cfiResult.total<=20?'#7AAFCF':cfiResult.total<=33?'#C4A050':'#F87171' },
@@ -1267,13 +1268,12 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress, sessi
         const PAYSTACK_KEY = 'pk_live_dfa71eca29f942cadc337cb8e41834857e2b129b';
         setPaystackLoading(true);
         loadPaystackScript().then(() => {
-          const ref = 'nf_pro_' + Date.now() + '_' + user.id.slice(0, 8);
           const handler = PaystackPop.setup({
             key: PAYSTACK_KEY,
             email: user.email,
             amount: proPrice,
             currency: 'NGN',
-            ref: ref,
+            ref: 'nf_pro_' + Date.now() + '_' + user.id.slice(0, 8),
             metadata: { user_id: user.id, plan: 'pro' },
             onSuccess: async (transaction) => {
               setPaystackLoading(false);
@@ -1291,7 +1291,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress, sessi
             onCancel: () => { setPaystackLoading(false); },
           });
           handler.openIframe();
-        }).catch(() => { setPaystackLoading(false); alert('Could not load payment system. Check your internet connection and try again.'); });
+        }).catch(() => { setPaystackLoading(false); alert('Could not load payment system. Check your connection and try again.'); });
       };
 
       const levelColors = { Foundation:C.cyan, Intermediate:'#E2BE78', Advanced:'#C4A050', Mastery:'#7AAFCF' };
@@ -1433,7 +1433,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress, sessi
       ];
 
       const PrivacyContent = () => (
-        React.createElement("div", null, React.createElement(Section, {num: "01", title: "Who we are"}, React.createElement(P, null, 'NeuralFusion™ is a cognitive performance platform developed and operated by', React.createElement("strong", {style: {color:C.text}}, 'Life Edet'), ', accessible at tryneuralFusion.com. The platform delivers a structured cognitive training programme teaching participants to work across four thinking modes through a curriculum delivered to individual users and organisational cohorts.'), React.createElement(P, null, '"We," "us," and "our" refer to NeuralFusion™ and its operator. "You" refers to any individual who accesses or uses the platform, including individual subscribers, enterprise participants, and facilitators.')), React.createElement(Section, {num: "02", title: "Information we collect"}, React.createElement(P, null, 'We collect the following categories of personal information:'), React.createElement(UL, {items: [
+        React.createElement("div", null, React.createElement(Section, {num: "01", title: "Who we are"}, React.createElement(P, null, 'NeuralFusion™ is a cognitive performance platform developed and operated by', React.createElement("strong", {style: {color:C.text}}, 'Life Edet'), ', accessible at tryneuralfusion.com. The platform delivers a structured cognitive training programme teaching participants to work across four thinking modes through a curriculum delivered to individual users and organisational cohorts.'), React.createElement(P, null, '"We," "us," and "our" refer to NeuralFusion™ and its operator. "You" refers to any individual who accesses or uses the platform, including individual subscribers, enterprise participants, and facilitators.')), React.createElement(Section, {num: "02", title: "Information we collect"}, React.createElement(P, null, 'We collect the following categories of personal information:'), React.createElement(UL, {items: [
               'Account Information: Name, email address, and password when you register.',
               'Assessment Data: CFI responses, scoring results across five cognitive dimensions (Decision Latency, Mode Rigidity, Emotional Reactivity, Thought Interruption, Cognitive Overload), and composite scores.',
               'Learning Progress: Lesson completion records, module progress, and programme milestone data.',
@@ -1462,13 +1462,13 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress, sessi
             ]}), React.createElement(HB, {title: "Enterprise Participants"}, 'Your cohort facilitator has access to your assessment results and progress data for the duration of the programme. If you have concerns, please contact your organisation before completing assessments.')), React.createElement(Section, {num: "06", title: "Data storage & security"}, React.createElement(P, null, 'Your data is stored on Supabase infrastructure. We implement appropriate technical and organisational measures including TLS/HTTPS encryption in transit, row-level security and access control policies, and secure session management via Supabase Auth.'), React.createElement(P, null, 'We retain your personal data for as long as your account is active or as necessary to fulfil the purposes described here, and thereafter as required by applicable law.')), React.createElement(Section, {num: "07", title: "Your rights"}, React.createElement(P, null, 'Under the Nigeria Data Protection Act 2023, you have the right of access, rectification, erasure, restriction, data portability, and the right to object to certain processing. To exercise any right, contact us at the details below. We will respond within 30 days.')), React.createElement(Section, {num: "08", title: "Children's privacy"}, React.createElement(P, null, 'NeuralFusion™ is designed for professional and organisational use and is not directed at children under 13. We do not knowingly collect personal information from children.')), React.createElement(Section, {num: "09", title: "Changes & contact"}, React.createElement(P, null, 'We may update this policy from time to time. Continued use after changes constitutes acceptance. For privacy queries, contact us:'), React.createElement(ContactCard, {items: [
               { label: 'Platform', value: 'NeuralFusion™' },
               { label: 'Operator', value: 'Life Edet' },
-              { label: 'Website', value: 'tryneuralFusion.com' },
+              { label: 'Website', value: 'tryneuralfusion.com' },
               { label: 'Subject Line', value: 'Privacy Request: NeuralFusion' },
             ]})))
       );
 
       const TermsContent = () => (
-        React.createElement("div", null, React.createElement(Section, {num: "01", title: "Acceptance of terms"}, React.createElement(P, null, 'By accessing or using the NeuralFusion™ platform at tryneuralFusion.com, you agree to be bound by these Terms and Conditions. If you do not agree, you must not access or use the platform.'), React.createElement(P, null, 'These Terms constitute a legally binding agreement between you and', React.createElement("strong", {style: {color:C.text}}, 'Life Edet'), ', the developer and operator of NeuralFusion™. If using the platform on behalf of an organisation, you represent that you have authority to bind that organisation.')), React.createElement(Section, {num: "02", title: "Description of service"}, React.createElement(P, null, 'NeuralFusion™ is a cognitive performance platform delivering:'), React.createElement(UL, {items: [
+        React.createElement("div", null, React.createElement(Section, {num: "01", title: "Acceptance of terms"}, React.createElement(P, null, 'By accessing or using the NeuralFusion™ platform at tryneuralfusion.com, you agree to be bound by these Terms and Conditions. If you do not agree, you must not access or use the platform.'), React.createElement(P, null, 'These Terms constitute a legally binding agreement between you and', React.createElement("strong", {style: {color:C.text}}, 'Life Edet'), ', the developer and operator of NeuralFusion™. If using the platform on behalf of an organisation, you represent that you have authority to bind that organisation.')), React.createElement(Section, {num: "02", title: "Description of service"}, React.createElement(P, null, 'NeuralFusion™ is a cognitive performance platform delivering:'), React.createElement(UL, {items: [
               'A structured 5-lesson, 7-week cognitive curriculum.',
               'The Cognitive Fragmentation Index (CFI) Edition 2.0 assessment.',
               'Individual cognitive profiling across five dimensions.',
@@ -1483,7 +1483,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress, sessi
             ]})), React.createElement(Section, {num: "07", title: "Intellectual property"}, React.createElement(P, null, 'All content on the NeuralFusion™ platform, including the curriculum, CFI assessment, cognitive framework, scoring methodologies, interface design, and software, is the intellectual property of', React.createElement("strong", {style: {color:C.text}}, 'Life Edet'), 'and is protected by Nigerian and international copyright law.'), React.createElement(P, null, 'The NeuralFusion™ name and logo are trademarks of Life Edet. You may not use these marks without prior written consent.')), React.createElement(Section, {num: "08", title: "Assessment Content & Accuracy"}, React.createElement("div", {style: { background: 'rgba(200,60,60,0.06)', border: '1px solid rgba(200,60,60,0.2)', borderLeft: '3px solid rgba(200,80,80,0.6)', padding: '18px 22px', margin: '0 0 16px', fontSize: 14, color: C.muted, lineHeight: 1.8 }}, React.createElement("div", {style: { ...syne, fontSize: 12, fontWeight: 700, color: 'rgba(240,160,160,0.85)', marginBottom: 6, textTransform: 'uppercase', letterSpacing: 1 }}, 'Not Clinical or Diagnostic'), 'NeuralFusion™ assessments are not clinical, psychological, or diagnostic tools. Results should not be used as a basis for medical or clinical evaluation. If you have concerns about your cognitive health, consult a qualified healthcare professional.'), React.createElement(P, null, 'We make no warranty that assessment results are accurate, complete, or suitable for any specific purpose beyond the developmental and training context for which they are designed.')), React.createElement(Section, {num: "09", title: "Disclaimers & Limitation of Liability"}, React.createElement(P, null, 'The platform is provided on an "as is" and "as available" basis. We disclaim all warranties, express or implied. To the maximum extent permitted by Nigerian law, our total aggregate liability shall not exceed the amount paid by you in the 12 months preceding any claim.')), React.createElement(Section, {num: "10", title: "Governing Law, Changes & Contact"}, React.createElement(P, null, 'These Terms are governed by the laws of the', React.createElement("strong", {style: {color:C.text}}, 'Federal Republic of Nigeria'), '. We may modify these Terms from time to time; continued use after changes constitutes acceptance.'), React.createElement(ContactCard, {items: [
               { label: 'Platform', value: 'NeuralFusion™' },
               { label: 'Operator', value: 'Life Edet' },
-              { label: 'Website', value: 'tryneuralFusion.com' },
+              { label: 'Website', value: 'tryneuralfusion.com' },
               { label: 'Subject Line', value: 'Terms Query: NeuralFusion' },
             ]})))
       );
@@ -1492,7 +1492,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress, sessi
         React.createElement("div", null, React.createElement(Section, {num: "01", title: "Our Commitment"}, React.createElement(P, null, 'NeuralFusion™ is committed to protecting the personal data of every individual who interacts with the platform. We process personal data lawfully, fairly, and transparently in accordance with the', React.createElement("strong", {style: {color:C.text}}, 'Nigeria Data Protection Act 2023 (NDPA)'), 'and regulations issued by the Nigeria Data Protection Commission (NDPC).'), React.createElement(HB, {title: "Regulatory Framework"}, 'This policy is written in compliance with the NDPA 2023. Where enterprise clients operate across jurisdictions subject to additional frameworks (such as GDPR), this policy is designed to be compatible with those requirements.')), React.createElement(Section, {num: "02", title: "Data controller"}, React.createElement(ContactCard, {items: [
               { label: 'Controller', value: 'Life Edet' },
               { label: 'Trading As', value: 'NeuralFusion™' },
-              { label: 'Platform', value: 'tryneuralFusion.com' },
+              { label: 'Platform', value: 'tryneuralfusion.com' },
               { label: 'Jurisdiction', value: 'Federal Republic of Nigeria' },
             ]})), React.createElement(Section, {num: "03", title: "Data we process"}, React.createElement(DataTable, {rows: [
               ['Name & Email', 'Account creation, authentication, communications', 'Contract performance'],
@@ -1519,14 +1519,14 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress, sessi
               'Administrative access: Restricted and subject to strong credential requirements.',
             ]})), React.createElement(Section, {num: "07", title: "Your data rights"}, React.createElement(P, null, 'Under the NDPA 2023, you have the right to be informed, the right of access, rectification, erasure, restriction of processing, data portability, and the right to object to certain processing. To exercise any right, contact us at the details below. We will respond within', React.createElement("strong", {style: {color:C.text}}, '30 days'), '.')), React.createElement(Section, {num: "08", title: "Data Breach Response"}, React.createElement(P, null, 'In the event of a personal data breach, we will assess the breach without undue delay, notify the NDPC within 72 hours where required, notify affected individuals where there is high risk to their rights, and take appropriate remedial action.')), React.createElement(Section, {num: "09", title: "Contact & Complaints"}, React.createElement(P, null, 'For all data protection enquiries or to report a security concern:'), React.createElement(ContactCard, {items: [
               { label: 'Data Controller', value: 'Life Edet / NeuralFusion™' },
-              { label: 'Website', value: 'tryneuralFusion.com' },
+              { label: 'Website', value: 'tryneuralfusion.com' },
               { label: 'Subject Line', value: 'Data Protection: NeuralFusion' },
               { label: 'Response Time', value: 'Within 30 days' },
             ]}), React.createElement(P, null, 'If unsatisfied with our response, you may lodge a complaint with the', React.createElement("strong", {style: {color:C.text}}, 'Nigeria Data Protection Commission (NDPC)'), 'at ndpc.gov.ng.')))
       );
 
       return (
-        React.createElement("div", {style: { paddingTop: 80, paddingBottom: 120, minHeight: '100vh' }}, React.createElement("div", {style: { maxWidth: 900, margin: '0 auto', padding: '60px 24px 0' }}, React.createElement("div", {style: { marginBottom: 48 }}, React.createElement("div", {style: { ...mono, fontSize: 9, letterSpacing: 4, color: C.cyan, marginBottom: 16, textTransform: 'uppercase', display: 'flex', alignItems: 'center', gap: 12 }}, React.createElement("span", {style: { width: 28, height: 1, background: C.cyan, opacity: 0.5, display: 'inline-block' }}), 'Legal Documentation'), React.createElement("h1", {style: { ...syne, fontSize: 'clamp(16px,1.5vw,20px)', fontWeight: 800, color: C.text, letterSpacing: '-0.04em', lineHeight: 0.96, marginBottom: 16 }}, 'Legal &amp;', React.createElement("span", {style: { color: C.cyan }}, 'Compliance')), React.createElement("p", {style: { fontSize: 14, color: C.muted, maxWidth: 520, lineHeight: 1.8 }}, 'Our commitments to your privacy, the terms governing your use of NeuralFusion™, and our data protection practices under the Nigeria Data Protection Act 2023.'), React.createElement("div", {style: { display: 'flex', gap: 32, marginTop: 24, paddingTop: 24, borderTop: `1px solid ${C.border}`, flexWrap: 'wrap' }}, [{ label: 'Effective', value: '4 June 2026' }, { label: 'Governing Law', value: 'Nigeria (NDPA 2023)' }, { label: 'Controller', value: 'Life Edet' }].map((m,i) => (
+        React.createElement("div", {style: { paddingTop: 80, paddingBottom: 120, minHeight: '100vh' }}, React.createElement("div", {style: { maxWidth: 900, margin: '0 auto', padding: '60px 24px 0' }}, React.createElement("div", {style: { marginBottom: 48 }}, React.createElement("div", {style: { ...mono, fontSize: 9, letterSpacing: 4, color: C.cyan, marginBottom: 16, textTransform: 'uppercase', display: 'flex', alignItems: 'center', gap: 12 }}, React.createElement("span", {style: { width: 28, height: 1, background: C.cyan, opacity: 0.5, display: 'inline-block' }}), 'Legal Documentation'), React.createElement("h1", {style: { ...syne, fontSize: 'clamp(16px,1.5vw,20px)', fontWeight: 800, color: C.text, letterSpacing: '-0.04em', lineHeight: 0.96, marginBottom: 16 }}, 'Legal &', React.createElement("span", {style: { color: C.cyan }}, 'Compliance')), React.createElement("p", {style: { fontSize: 14, color: C.muted, maxWidth: 520, lineHeight: 1.8 }}, 'Our commitments to your privacy, the terms governing your use of NeuralFusion™, and our data protection practices under the Nigeria Data Protection Act 2023.'), React.createElement("div", {style: { display: 'flex', gap: 32, marginTop: 24, paddingTop: 24, borderTop: `1px solid ${C.border}`, flexWrap: 'wrap' }}, [{ label: 'Effective', value: '4 June 2026' }, { label: 'Governing Law', value: 'Nigeria (NDPA 2023)' }, { label: 'Controller', value: 'Life Edet' }].map((m,i) => (
                   React.createElement("div", {key: i}, React.createElement("div", {style: { ...mono, fontSize: 9, letterSpacing: 2, color: C.muted, textTransform: 'uppercase', marginBottom: 3 }}, m.label), React.createElement("div", {style: { fontSize: 13, color: C.cyan, fontWeight: 500 }}, m.value))
                 )))), React.createElement("div", {style: { borderBottom: `1px solid ${C.border}`, marginBottom: 48, display: 'flex', gap: 4, overflowX: 'auto' }}, tabs.map(t => (
                 React.createElement("button", {key: t.id, style: tabStyle(t.id), onClick: () => setTab(t.id)}, t.label)
@@ -1929,7 +1929,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress, sessi
                               }}, '✕')))
                         )))))
                 ), tab === 'cfi' && (
-                  React.createElement("div", null, React.createElement("div", {style: { display:'flex', gap:12, marginBottom:20, flexWrap:'wrap', alignItems:'center' }}, React.createElement("div", {style: { display:'flex', gap:4, background:C.deep, padding:4, borderRadius:3, flexWrap:'wrap' }}, ['all','Integrated','Moderate fragmentation','High Fragmentation','Critical Fragmentation'].map(f => (
+                  React.createElement("div", null, React.createElement("div", {style: { display:'flex', gap:12, marginBottom:20, flexWrap:'wrap', alignItems:'center' }}, React.createElement("div", {style: { display:'flex', gap:4, background:C.deep, padding:4, borderRadius:3, flexWrap:'wrap' }}, ['all','Integrated','Moderate fragmentation','High fragmentation','Critical fragmentation'].map(f => (
                           React.createElement("button", {key: f, onClick: () => setCfiFilter(f), style: {
                             padding:'7px 12px', background:cfiFilter===f?C.surface:'transparent',
                             border:cfiFilter===f?`1px solid ${C.borderBright}`:'1px solid transparent',
@@ -2096,8 +2096,8 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress, sessi
                         { label:'Platform',      value:'NeuralFusion™ Cognitive OS' },
                         { label:'Admin Access',   value:'Supabase RLS · profiles.is_admin' },
                         { label:'Supabase URL',   value:'ckrxgbosyohcmjtemrvu.supabase.co' },
-                        { label:'Supabase Ref',   value:'civwcmteqidppscbpqni' },
-                        { label:'Live App',       value:'life322-c.github.io/NeuralFusion.app2/' },
+                        { label:'Supabase Ref',   value:'ckrxgbosyohcmjtemrvu' },
+                        { label:'Live App',       value:'tryneuralfusion.com' },
                       ].map((r,i) => (
                         React.createElement("div", {key: i, style: { display:'flex', justifyContent:'space-between', padding:'12px 0', borderBottom:`1px solid ${C.border}`, gap:16 }}, React.createElement("div", {style: { ...mono, fontSize:9, letterSpacing:1, color:C.muted, flexShrink:0 }}, r.label.toUpperCase()), React.createElement("div", {style: { fontSize:12, color:C.text, fontFamily:'monospace', textAlign:'right', wordBreak:'break-all' }}, r.value))
                       ))), React.createElement("div", {className: "card", style: { padding:'36px', marginBottom:16 }}, React.createElement("div", {style: { ...mono, fontSize:11, letterSpacing:1, color:C.cyan, marginBottom:16 }}, 'Platform controls'), React.createElement("div", {style: { display:'flex', flexDirection:'column', gap:0 }}, [
@@ -2544,18 +2544,20 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress, sessi
         }
       },[entSession?.cohort]);
 
+      // Open Paystack popup synchronously on click (Enterprise)
+      // NOTE: openIframe() must be called in the same synchronous call stack as the
+      // user gesture — any await before it causes browsers to block the popup.
       const handleUnlock = () => {
         if (!user) { setShowAuth(true); return; }
         const PAYSTACK_KEY = 'pk_live_dfa71eca29f942cadc337cb8e41834857e2b129b';
         setPaystackLoading(true);
         loadPaystackScript().then(() => {
-          const ref = 'nf_ent_' + Date.now() + '_' + user.id.slice(0, 8);
           const handler = PaystackPop.setup({
             key: PAYSTACK_KEY,
             email: user.email,
             amount: ENTERPRISE_PRICE_KOBO,
             currency: 'NGN',
-            ref: ref,
+            ref: 'nf_ent_' + Date.now() + '_' + user.id.slice(0, 8),
             metadata: { user_id: user.id, plan: 'enterprise' },
             onSuccess: async (transaction) => {
               setPaystackLoading(false);
@@ -2573,11 +2575,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress, sessi
             onCancel: ()=>{ setPaystackLoading(false); },
           });
           handler.openIframe();
-        } catch(e) {
-          clearTimeout(resetTimer);
-          setPaystackLoading(false);
-          alert('Could not open payment window. Please refresh and try again.');
-        }
+        }).catch(() => { setPaystackLoading(false); alert('Could not load payment system. Check your connection and try again.'); });
       };
 
       // If not enterprise, show paywall
@@ -2653,11 +2651,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress, sessi
       const [lessonProgress, setLessonProgress] = useState({});
       const [sessions, setSessions] = useState([]);
       const [proPrice, setProPrice] = useState(() => parseInt(localStorage.getItem('nf_pro_price') || '600000'));
-      const FALLBACK_PAYSTACK_KEY = 'pk_live_dfa71eca29f942cadc337cb8e41834857e2b129b';
-      const [paystackKey, setPaystackKey] = useState(() => {
-        const stored = localStorage.getItem('nf_paystack_key');
-        return (stored && stored.startsWith('pk_')) ? stored : FALLBACK_PAYSTACK_KEY;
-      });
+      const [paystackKey, setPaystackKey] = useState(() => localStorage.getItem('nf_paystack_key') || 'pk_live_dfa71eca29f942cadc337cb8e41834857e2b129b');
 
       // Load platform settings from Supabase on mount
       useEffect(()=>{
@@ -2668,10 +2662,8 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress, sessi
           }
         });
         getPlatformSetting('paystack_public_key').then(val=>{
-          const key = (val && val.startsWith('pk_')) ? val : FALLBACK_PAYSTACK_KEY;
-          setPaystackKey(key);
-          localStorage.setItem('nf_paystack_key', key);
-        }).catch(()=>{ setPaystackKey(FALLBACK_PAYSTACK_KEY); });
+          if (val) { setPaystackKey(val); localStorage.setItem('nf_paystack_key', val); }
+        });
       },[]);
 
       // Auth
