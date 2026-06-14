@@ -1249,30 +1249,22 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress, sessi
       const [paystackLoading, setPaystackLoading] = useState(false);
       const paystackHandlerRef = React.useRef(null);
 
-      // initiate-payment then open Paystack popup (Pro)
-      const handleProPayment = async () => {
+      // Open Paystack popup synchronously on click (Pro)
+      // NOTE: openIframe() must be called in the same synchronous call stack as the
+      // user gesture — any await before it causes browsers to block the popup.
+      const handleProPayment = () => {
         if (!user) { setShowAuth(true); return; }
         if (typeof PaystackPop === 'undefined') { alert('Payment system failed to load. Please refresh and try again.'); return; }
+        if (!paystackKey) { alert('Payment system is not configured. Please try again shortly.'); return; }
         setPaystackLoading(true);
         try {
-          const initRes = await fetch(SUPABASE_URL + '/functions/v1/initiate-payment', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + session.access_token },
-            body: JSON.stringify({ plan: 'pro', amount: proPrice }),
-          });
-          const initData = await initRes.json();
-          if (!initRes.ok || !initData.success) {
-            setPaystackLoading(false);
-            alert('Could not initiate payment: ' + (initData.error || 'Unknown error'));
-            return;
-          }
           const handler = PaystackPop.setup({
             key: paystackKey,
             email: user.email,
             amount: proPrice,
             currency: 'NGN',
-            ref: initData.reference,
-            metadata: { user_id: user.id, product: 'neuralfusion_pro' },
+            ref: 'nf_pro_' + Date.now() + '_' + user.id.slice(0, 8),
+            metadata: { user_id: user.id, plan: 'pro' },
             onSuccess: async (transaction) => {
               setPaystackLoading(false);
               try {
@@ -2525,30 +2517,22 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress, sessi
         }
       },[entSession?.cohort]);
 
-      // Paystack Enterprise unlock — calls initiate-payment first
-      const handleUnlock = async () => {
+      // Open Paystack popup synchronously on click (Enterprise)
+      // NOTE: openIframe() must be called in the same synchronous call stack as the
+      // user gesture — any await before it causes browsers to block the popup.
+      const handleUnlock = () => {
         if (!user) { setShowAuth(true); return; }
         if (typeof PaystackPop === 'undefined') { alert('Payment system failed to load. Please check your connection and refresh the page.'); return; }
+        if (!paystackKey) { alert('Payment system is not configured. Please try again shortly.'); return; }
         setPaystackLoading(true);
         try {
-          const initRes = await fetch(SUPABASE_URL + '/functions/v1/initiate-payment', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + session.access_token },
-            body: JSON.stringify({ plan: 'enterprise', amount: ENTERPRISE_PRICE_KOBO }),
-          });
-          const initData = await initRes.json();
-          if (!initRes.ok || !initData.success) {
-            setPaystackLoading(false);
-            alert('Could not initiate payment: ' + (initData.error || 'Unknown error'));
-            return;
-          }
           const handler = PaystackPop.setup({
             key: paystackKey,
             email: user.email,
             amount: ENTERPRISE_PRICE_KOBO,
             currency: 'NGN',
-            ref: initData.reference,
-            metadata: { user_id:user.id, product:'neuralfusion_enterprise' },
+            ref: 'nf_ent_' + Date.now() + '_' + user.id.slice(0, 8),
+            metadata: { user_id: user.id, plan: 'enterprise' },
             onSuccess: async (transaction) => {
               setPaystackLoading(false);
               try {
