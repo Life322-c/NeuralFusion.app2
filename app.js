@@ -2653,7 +2653,11 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress, sessi
       const [lessonProgress, setLessonProgress] = useState({});
       const [sessions, setSessions] = useState([]);
       const [proPrice, setProPrice] = useState(() => parseInt(localStorage.getItem('nf_pro_price') || '600000'));
-      const [paystackKey, setPaystackKey] = useState(() => localStorage.getItem('nf_paystack_key') || 'pk_live_dfa71eca29f942cadc337cb8e41834857e2b129b');
+      const FALLBACK_PAYSTACK_KEY = 'pk_live_dfa71eca29f942cadc337cb8e41834857e2b129b';
+      const [paystackKey, setPaystackKey] = useState(() => {
+        const stored = localStorage.getItem('nf_paystack_key');
+        return (stored && stored.startsWith('pk_')) ? stored : FALLBACK_PAYSTACK_KEY;
+      });
 
       // Load platform settings from Supabase on mount
       useEffect(()=>{
@@ -2664,7 +2668,16 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress, sessi
           }
         });
         getPlatformSetting('paystack_public_key').then(val=>{
-          if (val) { setPaystackKey(val); localStorage.setItem('nf_paystack_key', val); }
+          if (val && val.startsWith('pk_')) {
+            setPaystackKey(val);
+            localStorage.setItem('nf_paystack_key', val);
+          } else {
+            // DB has no key or invalid key — ensure fallback is active
+            setPaystackKey(FALLBACK_PAYSTACK_KEY);
+            localStorage.setItem('nf_paystack_key', FALLBACK_PAYSTACK_KEY);
+          }
+        }).catch(()=>{
+          setPaystackKey(FALLBACK_PAYSTACK_KEY);
         });
       },[]);
 
