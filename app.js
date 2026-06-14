@@ -2653,7 +2653,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress, sessi
       const [lessonProgress, setLessonProgress] = useState({});
       const [sessions, setSessions] = useState([]);
       const [proPrice, setProPrice] = useState(() => parseInt(localStorage.getItem('nf_pro_price') || '600000'));
-      const [paystackKey, setPaystackKey] = useState(() => localStorage.getItem('nf_paystack_key') || '');
+      const [paystackKey, setPaystackKey] = useState(() => localStorage.getItem('nf_paystack_key') || 'pk_live_dfa71eca29f942cadc337cb8e41834857e2b129b');
 
       // Load platform settings from Supabase on mount
       useEffect(()=>{
