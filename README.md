@@ -12,7 +12,7 @@ Built by Life Edet · [tryneuralFusion.com](https://www.tryneuralFusion.com)
 - PWA (manifest + service worker)
 - Single-file deployment (`index.html` + `style.css`)
 
----
+
 
 ## Supabase Tables Required
 
