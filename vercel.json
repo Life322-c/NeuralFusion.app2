@@ -107,7 +107,7 @@
   ],
   "rewrites": [
     {
-      "source": "/((?!blog|icons|app\\.js|style\\.css|sw\\.js|manifest\\.json|robots\\.txt|sitemap\\.xml).*)",
+      "source": "/((?!blog(/.*)?$|icons(/.*)?$|app\\.js$|style\\.css$|sw\\.js$|manifest\\.json$|robots\\.txt$|sitemap\\.xml$).*)",
       "destination": "/index.html"
     }
   ],
