@@ -1,6 +1,13 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+<script>
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.getRegistrations().then(function(regs) {
+      regs.forEach(function(reg) { reg.unregister(); });
+    });
+  }
+</script>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
@@ -9,7 +16,7 @@
   <meta name="description" content="Cognitive fragmentation, not laziness, not lack of discipline, is why high performers feel stuck, scattered, and exhausted. Discover the Four Modes Framework, the CFI™ assessment, and the cognitive operating system built to fix it." />
   <meta name="keywords" content="cognitive fragmentation, four modes framework, cognitive performance, why high performers feel stuck, brain modes, cognitive operating system, NeuralFusion, CFI assessment, cognitive clarity" />
   <meta name="author" content="Life Edet, Founder, NeuralFusion™" />
-  <link rel="canonical" href="https://tryneurafusion.com/blog/cognitive-fragmentation" />
+  <link rel="canonical" href="https://tryneuralfusion.com/blog/your-brain-isnt-broken-its-fragmented" />
 
   <!-- Open Graph -->
   <meta property="og:type" content="article" />
