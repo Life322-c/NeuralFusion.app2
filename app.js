@@ -1418,7 +1418,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress, sessi
                 'Tools for the ', React.createElement('span', { style: { color: C.cyan } }, 'integrated mind.')
               ),
               React.createElement('p', { style: { fontSize: 14, color: C.muted, lineHeight: 1.9, maxWidth: 560 } },
-                'Companion resources built to extend your NeuralFusion™ training — designed for depth, not distraction.'
+                'Companion resources built to extend your NeuralFusion™ training, designed for depth, not distraction.'
               )
             ),
 
