@@ -412,6 +412,7 @@ const { useState, useEffect, useCallback, useRef, useMemo } = React;
         { v:'cfi', label:'Assess' },
         { v:'analytics', label:'Analytics' },
         { v:'enterprise', label:'Enterprise' },
+        { v:'resources', label:'Resources' },
         { v:'about', label:'About' },
         ...(profile?.is_admin === true ? [{ v:'admin', label:'⚙ Admin' }] : []),
       ];
@@ -1381,6 +1382,103 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress, sessi
     // ═══════════════════════════════════════════════════════════════════
     //  LEGAL VIEW: Privacy, Terms & Data Protection
     // ═══════════════════════════════════════════════════════════════════
+    // ═══════════════════════════════════════════════════════════════════
+    //  RESOURCES VIEW
+    // ═══════════════════════════════════════════════════════════════════
+    function ResourcesView() {
+      const products = [
+        {
+          tag: 'Cognitive Training',
+          icon: '◎',
+          title: '30 Days NeuralFusion™ Cognitive Training',
+          description: 'A structured 30-day programme engineered to rebuild how you think. Not motivation. Not mindset. A repeatable cognitive system that installs clarity, decisiveness, and integrated thinking — permanently.',
+          price: 'Get Access',
+          url: 'https://selar.com/72b11e1167',
+          highlights: ['30-day structured programme', 'Four Brains activation system', 'Daily cognitive drills', 'Pressure stabilisation protocols'],
+        },
+        {
+          tag: 'Ebook',
+          icon: '◱',
+          title: 'The Integrated Mind',
+          description: 'A practical system for better thinking, smarter decisions, and stronger leadership. You don\'t struggle because you lack intelligence — you struggle because your thinking is fragmented. This book fixes that.',
+          price: 'Get the Book',
+          url: 'https://selar.com/6846128584',
+          highlights: ['Four Modes Framework explained', 'Decision architecture system', 'Leadership cognition model', 'Practical integration exercises'],
+        },
+      ];
+
+      return (
+        React.createElement('div', { style: { paddingTop: 80, paddingBottom: 100 } },
+          React.createElement('div', { style: { maxWidth: 1100, margin: '0 auto', padding: '60px 24px' } },
+
+            // Header
+            React.createElement('div', { style: { marginBottom: 64 } },
+              React.createElement('div', { style: { ...mono, fontSize: 11, letterSpacing: 1.5, color: C.cyan, marginBottom: 16 } }, 'NeuralFusion™ Resources'),
+              React.createElement('h1', { style: { ...syne, fontSize: 17, fontWeight: 800, color: C.text, marginBottom: 16, lineHeight: 1.05 } },
+                'Tools for the ', React.createElement('span', { style: { color: C.cyan } }, 'integrated mind.')
+              ),
+              React.createElement('p', { style: { fontSize: 14, color: C.muted, lineHeight: 1.9, maxWidth: 560 } },
+                'Companion resources built to extend your NeuralFusion™ training — designed for depth, not distraction.'
+              )
+            ),
+
+            // Product cards
+            React.createElement('div', { style: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(340px, 100%), 1fr))', gap: 28 } },
+              products.map((p, i) =>
+                React.createElement('div', {
+                  key: i,
+                  className: 'card',
+                  style: { padding: '40px 36px', display: 'flex', flexDirection: 'column', position: 'relative', overflow: 'hidden', borderTop: `2px solid ${C.cyan}` }
+                },
+                  React.createElement(ScanLine, null),
+
+                  // Tag + icon
+                  React.createElement('div', { style: { display: 'flex', alignItems: 'center', gap: 10, marginBottom: 24 } },
+                    React.createElement('div', { style: { ...mono, fontSize: 18, color: C.cyan } }, p.icon),
+                    React.createElement('div', { style: { ...mono, fontSize: 10, letterSpacing: 1.5, color: C.cyan, textTransform: 'uppercase' } }, p.tag)
+                  ),
+
+                  // Title
+                  React.createElement('h2', { style: { ...syne, fontSize: 15, fontWeight: 800, color: C.text, marginBottom: 16, lineHeight: 1.2 } }, p.title),
+
+                  // Description
+                  React.createElement('p', { style: { fontSize: 13, color: C.muted, lineHeight: 1.85, marginBottom: 28, flex: 1 } }, p.description),
+
+                  // Highlights
+                  React.createElement('div', { style: { marginBottom: 32 } },
+                    p.highlights.map((h, j) =>
+                      React.createElement('div', { key: j, style: { display: 'flex', alignItems: 'center', gap: 10, padding: '9px 0', borderBottom: `1px solid ${C.border}` } },
+                        React.createElement('div', { style: { width: 4, height: 4, background: C.cyan, flexShrink: 0, opacity: 0.7 } }),
+                        React.createElement('div', { style: { fontSize: 12, color: C.muted } }, h)
+                      )
+                    )
+                  ),
+
+                  // CTA button
+                  React.createElement('a', {
+                    href: p.url,
+                    target: '_blank',
+                    rel: 'noopener noreferrer',
+                    className: 'btn-primary',
+                    style: { textAlign: 'center', textDecoration: 'none', display: 'block' }
+                  }, p.price + ' →')
+                )
+              )
+            ),
+
+            // Bottom note
+            React.createElement('div', { style: { marginTop: 64, padding: '32px 40px', background: C.deep, border: `1px solid ${C.border}`, display: 'flex', alignItems: 'center', gap: 20, flexWrap: 'wrap' } },
+              React.createElement('div', { style: { ...mono, fontSize: 18, color: C.cyan } }, '◈'),
+              React.createElement('div', null,
+                React.createElement('div', { style: { ...syne, fontSize: 13, fontWeight: 700, color: C.text, marginBottom: 4 } }, 'All resources are built on the NeuralFusion™ Four Brains Framework'),
+                React.createElement('div', { style: { fontSize: 12, color: C.muted } }, 'Analytical · Intuitive · Associative · Reflective — fully integrated.')
+              )
+            )
+          )
+        )
+      );
+    }
+
     function LegalView({ setView }) {
       const [tab, setTab] = React.useState('privacy');
 
@@ -2734,7 +2832,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress, sessi
       const viewProps = { setView, user, session, paystackKey, setShowAuth, isPro, setIsPro, isEnterprise, setIsEnterprise, cfiResult, setCfiResult, lessonProgress, setLessonProgress, sessions, setSessions, proPrice };
 
       return (
-        React.createElement("div", {style: { background:C.void, minHeight:'100vh', color:C.text }}, showAuth && React.createElement(AuthModal, {initialTab: authInitialTab, onClose: ()=>{ setShowAuth(false); setAuthInitialTab('login'); }, onSuccess: ()=>{ setShowAuth(false); setAuthInitialTab('login'); }}), React.createElement(Navbar, {view: view, setView: setView, user: user, profile: profile, setShowAuth: setShowAuth, onSignOut: handleSignOut, authLoading: authLoading}), React.createElement("main", null, view==='home'        && React.createElement(HomeView, viewProps), view==='four-brains' && React.createElement(FourBrainsView, viewProps), view==='cfi'         && React.createElement(CFIView, viewProps), view==='training'    && React.createElement(TrainingView, viewProps), view==='analytics'   && React.createElement(AnalyticsView, viewProps), view==='lessons'     && React.createElement(LessonsView, viewProps), view==='about'       && React.createElement(AboutView, viewProps), view==='legal'       && React.createElement(LegalView, {setView: setView}), view==='enterprise'  && React.createElement(EnterpriseView, {user: user, session: session, paystackKey: paystackKey, setShowAuth: setShowAuth, isEnterprise: isEnterprise, setIsEnterprise: setIsEnterprise, proPrice: proPrice, setView: setView}), view==='admin'       && profile?.is_admin === true && React.createElement(AdminView, {user: user, setView: setView, onPriceChange: setProPrice})), React.createElement(Footer, {setView: setView}), view !== 'enterprise' && React.createElement(BottomNav, {view: view, setView: setView}))
+        React.createElement("div", {style: { background:C.void, minHeight:'100vh', color:C.text }}, showAuth && React.createElement(AuthModal, {initialTab: authInitialTab, onClose: ()=>{ setShowAuth(false); setAuthInitialTab('login'); }, onSuccess: ()=>{ setShowAuth(false); setAuthInitialTab('login'); }}), React.createElement(Navbar, {view: view, setView: setView, user: user, profile: profile, setShowAuth: setShowAuth, onSignOut: handleSignOut, authLoading: authLoading}), React.createElement("main", null, view==='home'        && React.createElement(HomeView, viewProps), view==='four-brains' && React.createElement(FourBrainsView, viewProps), view==='cfi'         && React.createElement(CFIView, viewProps), view==='training'    && React.createElement(TrainingView, viewProps), view==='analytics'   && React.createElement(AnalyticsView, viewProps), view==='lessons'     && React.createElement(LessonsView, viewProps), view==='about'       && React.createElement(AboutView, viewProps), view==='resources'   && React.createElement(ResourcesView, viewProps), view==='legal'       && React.createElement(LegalView, {setView: setView}), view==='enterprise'  && React.createElement(EnterpriseView, {user: user, session: session, paystackKey: paystackKey, setShowAuth: setShowAuth, isEnterprise: isEnterprise, setIsEnterprise: setIsEnterprise, proPrice: proPrice, setView: setView}), view==='admin'       && profile?.is_admin === true && React.createElement(AdminView, {user: user, setView: setView, onPriceChange: setProPrice})), React.createElement(Footer, {setView: setView}), view !== 'enterprise' && React.createElement(BottomNav, {view: view, setView: setView}))
       );
     }
 
