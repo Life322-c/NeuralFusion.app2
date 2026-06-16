@@ -1471,7 +1471,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress, sessi
               React.createElement('div', { style: { ...mono, fontSize: 18, color: C.cyan } }, '◈'),
               React.createElement('div', null,
                 React.createElement('div', { style: { ...syne, fontSize: 13, fontWeight: 700, color: C.text, marginBottom: 4 } }, 'All resources are built on the NeuralFusion™ Four Brains Framework'),
-                React.createElement('div', { style: { fontSize: 12, color: C.muted } }, 'Analytical · Intuitive · Associative · Reflective — fully integrated.')
+                React.createElement('div', { style: { fontSize: 12, color: C.muted } }, 'Analytical · Intuitive · Associative · Reflective, fully integrated.')
               )
             )
           )
