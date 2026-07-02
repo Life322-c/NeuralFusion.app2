@@ -2819,6 +2819,22 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress, sessi
           const [prof, lp] = await Promise.all([getProfile(u.id), loadLessonProgress(u.id)]);
           if (prof) { setProfile(prof); setIsPro(!!prof.is_pro); setIsEnterprise(!!prof.is_enterprise); }
           setLessonProgress(lp);
+          // Load most recent CFI result from Supabase
+          const { data: cfiRows } = await sb.from('cfi_results').select('*').eq('user_id', u.id).order('created_at', { ascending: false }).limit(1);
+          if (cfiRows && cfiRows.length > 0) {
+            const r = cfiRows[0];
+            const dimScores = r.dim_scores || {};
+            const brainMap = { analytical:'analytical', intuitive:'intuitive', associative:'associative', reflective:'reflective', integration:'reflective' };
+            const sortedDims = Object.entries(dimScores).sort((a,b)=>b[1]-a[1]);
+            const dominantBrain = brainMap[sortedDims[0]?.[0]] || 'analytical';
+            const total = r.total_score;
+            let desc, recommendation;
+            if (total<=20) { desc='Low fragmentation. Your thinking modes are well-coordinated.'; recommendation='Maintain your daily integration protocol. Advance to Lessons 4–5 for fluency installation.'; }
+            else if (total<=33) { desc='Some fragmentation detected. Specific modes need targeted training.'; recommendation='Focus on mode activation (Lesson 2). Daily mode-switching drills for 14 days.'; }
+            else if (total<=46) { desc='Significant fragmentation. Integration is inconsistent under pressure.'; recommendation='Begin from Lesson 1. Run the Core Loop daily.'; }
+            else { desc='Severe fragmentation. Decision-making and clarity are compromised.'; recommendation='Start Lesson 1 immediately and track your CFI weekly.'; }
+            setCfiResult({ total, band: r.band, desc, recommendation, dimScores, dominantBrain });
+          }
         } catch(e){}
         setAuthLoading(false);
       };
