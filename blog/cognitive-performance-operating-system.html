@@ -1,0 +1,760 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>NeuralFusion™: The Cognitive Performance Operating System</title>
+<meta content="Discover NeuralFusion™, the world's first Cognitive Performance OS. Measure your CFI™, train your thinking, and make sharper decisions. Start free." name="description"/>
+<meta content="cognitive performance operating system, NeuralFusion, CFI, cognitive fragmentation index, four thinking modes, decision intelligence, structured thinking system, cognitive training, leadership decision making" name="keywords">
+<meta content="Life Edet" name="author">
+<meta content="index, follow" name="robots">
+<link href="https://tryneuralfusion.com/blog/cognitive-performance-operating-system" rel="canonical"/>
+<meta content="article" property="og:type"/>
+<meta content="https://tryneuralfusion.com/blog/cognitive-performance-operating-system" property="og:url"/>
+<meta content="NeuralFusion™" property="og:site_name"/>
+<meta content="NeuralFusion™: The Cognitive Performance Operating System" property="og:title"/>
+<meta content="Discover NeuralFusion™, the world's first Cognitive Performance OS. Measure your CFI™, train your thinking, and make sharper decisions." property="og:description"/>
+<meta content="https://tryneuralfusion.com/icons/og-image.png" property="og:image"/>
+<meta content="Life Edet" property="article:author"/>
+<meta content="https://tryneuralfusion.com/" property="article:publisher"/>
+<meta content="summary_large_image" name="twitter:card"/>
+<meta content="@NeuralFusion" name="twitter:site"/>
+<meta content="NeuralFusion™: The Cognitive Performance Operating System" name="twitter:title"/>
+<meta content="Your mind is the only operating system you never upgrade. Discover the structured way to measure, train, and optimize how you think." name="twitter:description"/>
+<meta content="https://tryneuralfusion.com/icons/og-image.png" name="twitter:image"/>
+<link href="/icons/icon-192.png" rel="icon" sizes="192x192" type="image/png"/>
+<meta content="#03070F" name="theme-color"/>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": "NeuralFusion™: The Cognitive Performance Operating System",
+  "description": "Discover NeuralFusion™, the world's first Cognitive Performance OS. Measure your CFI™, train your thinking, and make sharper decisions.",
+  "author": {
+    "@type": "Person",
+    "name": "Life Edet",
+    "jobTitle": "Founder, NeuralFusion™"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "NeuralFusion™",
+    "url": "https://tryneuralfusion.com/",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "https://tryneuralfusion.com/icons/icon-192.png"
+    }
+  },
+  "url": "https://tryneuralfusion.com/blog/cognitive-performance-operating-system",
+  "mainEntityOfPage": "https://tryneuralfusion.com/blog/cognitive-performance-operating-system",
+  "image": "https://tryneuralfusion.com/icons/og-image.png",
+  "about": {
+    "@type": "Thing",
+    "name": "Cognitive Performance",
+    "description": "Cognitive Performance Operating System, CFI, Four Thinking Modes, decision intelligence, structured cognitive training"
+  }
+}
+</script>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&amp;family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,450;0,9..40,500;0,9..40,600;1,9..40,400&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&amp;display=optional" rel="stylesheet"/>
+<style>
+/* ============================================================
+   DESIGN TOKENS
+   ============================================================ */
+:root{
+  /* surfaces */
+  --void:#03070F;
+  --ink-900:#060B14;
+  --ink-800:#0A1322;
+  --ink-700:#0E1B2E;
+  --raised:#122140;
+
+  /* accent */
+  --gold:#C4A050;
+  --gold-bright:#E7C687;
+  --gold-dim:rgba(196,160,80,0.08);
+  --gold-glow:rgba(196,160,80,0.20);
+  --line:rgba(196,160,80,0.14);
+  --line-soft:rgba(196,160,80,0.08);
+
+  /* thinking-mode accents */
+  --analytical:#C4A050;
+  --intuitive:#E7C687;
+  --associative:#7FB3D5;
+  --reflective:#D8AE72;
+
+  /* text */
+  --paper:#F4F0E6;
+  --body-text:#D9DEE7;
+  --muted:#93A0B4;
+  --dim:#57647A;
+
+  /* type */
+  --syne:'Syne','Century Gothic','Futura',system-ui,sans-serif;
+  --mono:'Space Mono',monospace;
+  --sans:'DM Sans',system-ui,sans-serif;
+
+  /* rhythm */
+  --measure:680px;
+  --wide:960px;
+  --radius-sm:3px;
+  --radius-md:6px;
+  --ease:cubic-bezier(.22,.61,.36,1);
+}
+
+/* ============================================================
+   RESET
+   ============================================================ */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;background:var(--void);}
+@media (prefers-reduced-motion:reduce){
+  html{scroll-behavior:auto;}
+  *,*::before,*::after{animation-duration:0.01ms !important;animation-iteration-count:1 !important;transition-duration:0.01ms !important;scroll-behavior:auto !important;}
+}
+body{
+  background:var(--void);
+  color:var(--body-text);
+  font-family:var(--sans);
+  font-weight:400;
+  line-height:1.7;
+  -webkit-font-smoothing:antialiased;
+  text-rendering:optimizeLegibility;
+  overflow-x:hidden;
+}
+img,svg{display:block;max-width:100%;}
+a{color:var(--gold-bright);text-decoration:none;transition:color .18s var(--ease);}
+a:hover{color:var(--paper);}
+a:focus-visible,button:focus-visible,summary:focus-visible{outline:2px solid var(--gold-bright);outline-offset:3px;border-radius:2px;}
+ul,ol{list-style:none;}
+
+/* ============================================================
+   BACKGROUND ATMOSPHERE
+   ============================================================ */
+.atmosphere{
+  position:fixed;inset:0;z-index:0;pointer-events:none;
+  background:
+    radial-gradient(1100px 620px at 12% -8%, rgba(196,160,80,0.10), transparent 60%),
+    radial-gradient(900px 700px at 100% 10%, rgba(127,179,213,0.06), transparent 55%),
+    var(--void);
+}
+.atmosphere::after{
+  content:'';position:absolute;inset:0;
+  background-image:radial-gradient(rgba(255,255,255,0.035) 1px, transparent 1px);
+  background-size:3px 3px;
+  opacity:.35;
+  mix-blend-mode:overlay;
+}
+
+/* ============================================================
+   LAYOUT UTILITIES
+   ============================================================ */
+.container{max-width:var(--measure);margin:0 auto;padding:0 24px;position:relative;z-index:1;}
+.container-wide{max-width:var(--wide);margin:0 auto;padding:0 24px;position:relative;z-index:1;}
+.eyebrow{
+  font-family:var(--mono);font-size:11px;letter-spacing:.22em;text-transform:uppercase;
+  color:var(--gold);display:inline-flex;align-items:center;gap:8px;
+}
+.eyebrow::before{content:'◈';font-size:11px;color:var(--gold);}
+
+/* content sections (motion removed) */
+
+/* ============================================================
+   PROGRESS BAR
+   ============================================================ */
+
+/* ============================================================
+   HEADER / NAV
+   ============================================================ */
+header.site-header{
+  position:static;
+  background:rgba(3,7,10,0.72);
+  backdrop-filter:blur(14px) saturate(140%);
+  -webkit-backdrop-filter:blur(14px) saturate(140%);
+  border-bottom:1px solid var(--line);
+}
+nav.site-nav{
+  max-width:var(--wide);margin:0 auto;padding:16px 24px;
+  display:flex;align-items:center;justify-content:space-between;
+}
+.logo{font-family:var(--syne);font-weight:800;font-size:16px;letter-spacing:.2px;color:var(--paper);display:flex;align-items:center;gap:7px;}
+.logo .sigil{color:var(--gold);font-size:15px;}
+.logo em{font-style:normal;color:var(--gold);}
+.navlinks{display:flex;gap:24px;align-items:center;}
+.navlinks a.cta{
+  color:var(--void);background:var(--gold);padding:10px 18px;border-radius:2px;
+  font-family:var(--syne);font-weight:700;font-size:13px;letter-spacing:.01em;
+  transition:background .18s var(--ease), transform .18s var(--ease);
+}
+.navlinks a.cta:hover{background:var(--gold-bright);transform:translateY(-1px);}
+
+/* ============================================================
+   HERO
+   ============================================================ */
+.hero{
+  position:relative;max-width:var(--wide);margin:0 auto;
+  padding:clamp(64px,10vw,112px) 24px clamp(48px,7vw,72px);
+  text-align:center;border-bottom:1px solid var(--line);
+  overflow:hidden;
+}
+.hero-orbit{
+  position:absolute;top:50%;left:50%;width:min(720px,140vw);height:min(720px,140vw);
+  transform:translate(-50%,-52%);z-index:0;pointer-events:none;opacity:.55;
+}
+.hero-orbit svg{width:100%;height:100%;}
+.hero-orbit .orbit-ring{stroke:var(--line);}
+.hero-orbit .orbit-spin{transform-origin:200px 200px;}
+.hero-orbit .orbit-node{filter:drop-shadow(0 0 6px currentColor);}
+.hero-orbit .node-analytical{fill:var(--analytical);color:var(--analytical);}
+.hero-orbit .node-intuitive{fill:var(--intuitive);color:var(--intuitive);}
+.hero-orbit .node-associative{fill:var(--associative);color:var(--associative);}
+.hero-orbit .node-reflective{fill:var(--reflective);color:var(--reflective);}
+.hero-content{position:relative;z-index:1;}
+.hero h1{
+  font-family:var(--syne);font-weight:800;
+  font-size:26px;
+  line-height:1.2;letter-spacing:-0.01em;
+  margin:12px 0 12px;color:var(--paper);
+  text-wrap:balance;overflow-wrap:break-word;
+}
+.hero .sub{font-size:16.5px;color:var(--muted);max-width:640px;margin:0 auto 16px;line-height:1.6;}
+.hero .intro{font-size:16.5px;color:var(--dim);max-width:580px;margin:0 auto 32px;line-height:1.6;}
+.cta-row{display:flex;gap:14px;justify-content:center;flex-wrap:wrap;}
+.btn-primary,.btn-outline{
+  font-family:var(--syne);font-weight:700;font-size:14px;
+  padding:14px 24px;border-radius:2px;display:inline-flex;align-items:center;gap:6px;
+  transition:transform .18s var(--ease), background .18s var(--ease), border-color .18s var(--ease), box-shadow .18s var(--ease);
+}
+.btn-primary{background:var(--gold);color:var(--void);box-shadow:0 0 0 0 rgba(196,160,80,0);}
+.btn-primary:hover{background:var(--gold-bright);transform:translateY(-2px);box-shadow:0 8px 24px -8px rgba(196,160,80,.55);color:var(--void);}
+.btn-outline{border:1px solid var(--line);color:var(--paper);}
+.btn-outline:hover{border-color:var(--gold);transform:translateY(-2px);color:var(--paper);}
+
+/* ============================================================
+   PAGE GRID (rail + article)
+   ============================================================ */
+.page-grid{max-width:1180px;margin:0 auto;padding:0 24px;position:relative;z-index:1;
+  display:grid;grid-template-columns:240px minmax(0,var(--measure));gap:56px;align-items:start;
+}
+@media (max-width:1100px){
+  .page-grid{grid-template-columns:1fr;max-width:var(--measure);}
+}
+
+/* ---- TOC (desktop rail) ---- */
+.toc-rail{position:static;align-self:start;}
+.toc-rail .toc-inner{padding-left:20px;border-left:1px solid var(--line);position:relative;}
+.toc-title{font-family:var(--mono);font-size:10.5px;letter-spacing:.22em;text-transform:uppercase;color:var(--gold);margin-bottom:16px;}
+.toc-rail ol{display:flex;flex-direction:column;gap:2px;}
+.toc-rail li a{
+  display:block;font-size:13px;color:var(--dim);padding:6px 0 6px 14px;line-height:1.4;
+  border-left:2px solid transparent;margin-left:-15px;transition:color .18s var(--ease), border-color .18s var(--ease);
+}
+.toc-rail li a:hover{color:var(--muted);}
+.toc-rail li a.active{color:var(--gold-bright);border-left-color:var(--gold);}
+
+
+/* ============================================================
+   ARTICLE TYPOGRAPHY
+   ============================================================ */
+article{padding:8px 0 88px;min-width:0;}
+article > section{padding:clamp(40px,6vw,60px) 0;border-bottom:1px solid var(--line);scroll-margin-top:96px;}
+article > section:last-of-type{border-bottom:none;}
+
+h1,h2,h3,h4,h5,h6{text-wrap:balance;overflow-wrap:break-word;font-family:var(--syne);color:var(--paper);}
+h2{
+  font-weight:700;font-size:20px;line-height:1.3;
+  letter-spacing:-0.01em;margin:0 0 18px;
+  position:relative;padding-left:28px;
+}
+h2::before{
+  content:'';position:absolute;left:0;top:0.55em;width:22px;height:2px;background:var(--gold);
+}
+h3{font-weight:700;font-size:18px;line-height:1.4;margin:26px 0 8px;letter-spacing:-0.008em;color:var(--gold-bright);}
+h4{font-weight:600;font-size:16.5px;line-height:1.4;margin:20px 0 8px;color:var(--paper);}
+h5{font-weight:600;font-size:15px;line-height:1.45;margin:14px 0 6px;color:var(--paper);}
+h6{font-weight:600;font-size:13px;line-height:1.5;letter-spacing:.16em;text-transform:uppercase;margin:12px 0 6px;color:var(--muted);}
+
+p{font-size:16.5px;color:var(--body-text);margin-bottom:17px;max-width:64ch;}
+.lede{font-size:19px;color:var(--paper);font-weight:400;line-height:1.65;max-width:60ch;}
+strong{color:var(--paper);font-weight:600;}
+em{color:var(--paper);font-style:italic;}
+
+ul{margin:4px 0 20px 0;display:flex;flex-direction:column;gap:10px;}
+section > ul > li,.case ul li{
+  font-size:16px;color:var(--body-text);position:relative;padding-left:22px;max-width:62ch;
+}
+section > ul > li::before{
+  content:'';position:absolute;left:0;top:9px;width:6px;height:6px;border-radius:1px;
+  background:var(--gold);transform:rotate(45deg);
+}
+
+/* callout */
+.callout{
+  background:var(--gold-dim);border-left:3px solid var(--gold);
+  padding:20px 24px;margin:28px 0;border-radius:0 var(--radius-md) var(--radius-md) 0;
+  position:relative;
+}
+.callout p{margin:0;font-size:15px;color:var(--paper);max-width:none;}
+.callout strong{color:var(--gold-bright);}
+
+/* blockquote */
+blockquote{
+  font-family:var(--syne);font-size:clamp(19px,2.6vw,22px);font-weight:600;font-style:italic;
+  color:var(--paper);border-left:2px solid var(--gold);padding:4px 0 4px 26px;
+  margin:36px 0;line-height:1.5;position:relative;max-width:58ch;
+}
+blockquote::before{content:'“';position:absolute;left:-2px;top:-18px;font-family:var(--syne);font-size:52px;color:var(--gold-glow);font-style:normal;}
+
+/* mini case-study card */
+.case{
+  background:var(--ink-800);border:1px solid var(--line);border-radius:var(--radius-md);
+  padding:24px 26px;margin:24px 0;
+}
+.case .tag{font-family:var(--mono);font-size:10.5px;letter-spacing:.18em;text-transform:uppercase;color:var(--gold);display:block;margin-bottom:12px;}
+.case p{margin:0;font-size:15px;color:var(--muted);max-width:none;}
+
+/* four thinking modes grid */
+.modes-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:28px 0;}
+.mode-card{
+  background:var(--ink-800);border:1px solid var(--line);
+  border-top:2px solid var(--accent,var(--gold));border-radius:var(--radius-md);
+  padding:24px;transition:transform .22s var(--ease), border-color .22s var(--ease), box-shadow .22s var(--ease);
+}
+.mode-card:hover{transform:translateY(-4px);box-shadow:0 16px 32px -18px rgba(0,0,0,.6);}
+.mode-card h3{margin-top:0;color:var(--accent,var(--gold-bright));font-size:18px;}
+.mode-card p{font-size:14px;color:var(--muted);margin-bottom:8px;max-width:none;}
+.mode-card .q{font-family:var(--mono);font-size:12px;color:var(--dim);}
+.mode-card.analytical{--accent:var(--analytical);}
+.mode-card.intuitive{--accent:var(--intuitive);}
+.mode-card.associative{--accent:var(--associative);}
+.mode-card.reflective{--accent:var(--reflective);}
+
+/* table */
+.table-wrap{overflow-x:auto;margin:28px 0;border-radius:var(--radius-md);border:1px solid var(--line);}
+table{width:100%;border-collapse:collapse;font-size:14px;min-width:420px;}
+th,td{padding:15px 18px;text-align:left;border-bottom:1px solid var(--line);}
+tr:last-child th,tr:last-child td{border-bottom:none;}
+th[scope="col"]{font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--gold);background:var(--ink-800);}
+th[scope="row"]{font-family:var(--sans);font-weight:600;font-size:14px;color:var(--paper);background:var(--ink-900);}
+td{color:var(--body-text);}
+
+.section-cta{margin-top:6px;}
+.section-cta a{
+  font-family:var(--syne);font-weight:700;font-size:14.5px;color:var(--gold-bright);
+  display:inline-flex;align-items:center;gap:6px;transition:gap .18s var(--ease), color .18s var(--ease);
+}
+.section-cta a:hover{gap:10px;color:var(--paper);}
+.section-cta a.btn-outline,.section-cta a.btn-primary{display:inline-flex;}
+
+/* FAQ */
+#faq details{
+  background:var(--ink-800);border:1px solid var(--line);border-radius:var(--radius-md);
+  padding:0;margin-bottom:10px;overflow:hidden;transition:border-color .2s var(--ease);
+}
+#faq details[open]{border-color:var(--gold-glow);}
+#faq summary{
+  list-style:none;cursor:pointer;font-family:var(--syne);font-weight:700;font-size:15.5px;color:var(--paper);
+  padding:18px 22px;display:flex;align-items:center;justify-content:space-between;gap:16px;
+}
+#faq summary::-webkit-details-marker{display:none;}
+#faq summary::after{
+  content:'+';flex:0 0 auto;font-family:var(--sans);font-weight:400;font-size:20px;color:var(--gold);
+  transition:transform .25s var(--ease);
+}
+#faq details[open] summary::after{transform:rotate(45deg);}
+#faq details p{margin:0 22px 20px;font-size:14.5px;color:var(--muted);max-width:none;}
+
+/* related reading */
+.related{background:var(--ink-800);border:1px solid var(--line);border-radius:var(--radius-md);padding:32px;}
+.related h2{font-size:20px;line-height:1.25;letter-spacing:-0.01em;margin-bottom:18px;}
+.related ul{margin:0;gap:0;}
+.related li{padding:16px 0;border-bottom:1px solid var(--line);}
+.related li:last-child{border-bottom:none;}
+.related a{color:var(--paper);font-family:var(--syne);font-weight:600;font-size:15.5px;display:inline-flex;align-items:center;gap:6px;transition:gap .18s var(--ease), color .18s var(--ease);}
+.related a:hover{gap:10px;color:var(--gold-bright);}
+.related .desc{display:block;font-family:var(--sans);font-weight:400;font-size:13.5px;color:var(--dim);margin-top:5px;}
+
+/* footer */
+footer.site-footer{border-top:1px solid var(--line);padding:44px 24px;text-align:center;position:relative;z-index:1;}
+footer.site-footer p{font-family:var(--mono);font-size:11px;color:var(--dim);letter-spacing:.05em;}
+footer.site-footer a{color:var(--gold);}
+
+
+/* ============================================================
+   RESPONSIVE
+   ============================================================ */
+@media (max-width:640px){
+  .hero{padding:52px 20px 36px;}
+  .hero h1{font-size:26px;margin:10px 0 10px;}
+  .hero .sub{font-size:14px;}
+  .hero .intro{margin-bottom:28px;}
+  .modes-grid{grid-template-columns:1fr;}
+  .navlinks a:not(.cta){display:none;}
+  h2{padding-left:26px;}
+  h2::before{width:16px;}
+  .related{padding:22px;}
+}
+@media (min-width:1600px){
+  .page-grid{max-width:1280px;}
+}
+</style>
+</head>
+<body>
+
+<div class="atmosphere" aria-hidden="true"></div>
+
+<header class="site-header">
+<nav class="site-nav">
+<a class="logo" href="https://tryneuralfusion.com/"><span class="sigil">◈</span> Neural<em>Fusion</em>™</a>
+<div class="navlinks">
+<a class="cta" href="https://tryneuralfusion.com/">Start Free →</a>
+</div>
+</nav>
+</header>
+
+<main>
+<section class="hero">
+  <div class="hero-orbit" aria-hidden="true">
+    <svg viewbox="0 0 400 400" xmlns="http://www.w3.org/2000/svg">
+      <circle class="orbit-ring" cx="200" cy="200" fill="none" opacity="0.5" r="150" stroke-width="1"></circle>
+      <circle class="orbit-ring" cx="200" cy="200" fill="none" opacity="0.3" r="110" stroke-width="1"></circle>
+      <g class="orbit-spin">
+        <circle class="orbit-node node-analytical" cx="200" cy="50" r="4"></circle>
+        <circle class="orbit-node node-intuitive" cx="350" cy="200" r="4"></circle>
+        <circle class="orbit-node node-associative" cx="200" cy="350" r="4"></circle>
+        <circle class="orbit-node node-reflective" cx="50" cy="200" r="4"></circle>
+      </g>
+    </svg>
+  </div>
+  <div class="hero-content">
+    <span class="eyebrow">Cognitive Performance Operating System</span>
+    <h1>Your Mind Is the Only Operating System You Never Upgrade</h1>
+    <p class="sub">NeuralFusion™ is the world's first Cognitive Performance Operating System: a structured way to measure, train, and optimize how you think.</p>
+    <p class="intro">Information is no longer scarce. Thinking clearly still is. NeuralFusion™ helps individuals, teams, and organizations close that gap, not by thinking for you, but by training you to think better.</p>
+    <div class="cta-row">
+      <a class="btn-primary" href="https://tryneuralfusion.com/">Discover Your Cognitive Fragmentation Index (CFI™) →</a>
+      <a class="btn-outline" href="#what-is-neuralfusion">See How NeuralFusion™ Works →</a>
+    </div>
+  </div>
+</section>
+
+<div class="page-grid">
+  <nav aria-label="Table of contents" class="toc-rail">
+    <div class="toc-inner">
+      <p class="toc-title">On this page</p>
+      <ol id="tocList">
+        <li><a href="#introduction">Introduction</a></li>
+        <li><a href="#the-hidden-thinking-crisis">The Hidden Thinking Crisis</a></li>
+        <li><a href="#why-intelligence-isnt-enough">Why Intelligence Isn't Enough</a></li>
+        <li><a href="#what-is-neuralfusion">What Is NeuralFusion™</a></li>
+        <li><a href="#the-cognitive-fragmentation-problem">The Cognitive Fragmentation Problem</a></li>
+        <li><a href="#the-four-thinking-modes">The Four Thinking Modes</a></li>
+        <li><a href="#the-cognitive-fragmentation-index-cfi">The Cognitive Fragmentation Index (CFI™)</a></li>
+        <li><a href="#why-better-thinking-creates-better-decisions">Why Better Thinking Creates Better Decisions</a></li>
+        <li><a href="#neuralfusion-for-individuals">NeuralFusion™ for Individuals</a></li>
+        <li><a href="#neuralfusion-for-teams">NeuralFusion™ for Teams</a></li>
+        <li><a href="#neuralfusion-for-organizations">NeuralFusion™ for Organizations</a></li>
+        <li><a href="#neuralfusion-vs-ai">NeuralFusion™ vs AI</a></li>
+        <li><a href="#the-future-of-human-cognition">The Future of Human Cognition</a></li>
+        <li><a href="#conclusion">Conclusion</a></li>
+        <li><a href="#faq">FAQ</a></li>
+      </ol>
+    </div>
+  </nav>
+
+  <article>
+    <section id="introduction">
+      <h2>Introduction</h2>
+      <p class="lede">Every generation believes it has finally solved the information problem. Ours actually has. A search bar and an AI model can now produce more facts, summaries, and ideas in ten seconds than a research team could gather in a week.</p>
+      <p>And yet decision quality hasn't improved at the same pace.</p>
+      <p>Leaders still stall on choices they have enough data to make. Teams still spin in circles that better dashboards can't fix. Smart, capable people still make avoidable mistakes, not because they lack intelligence, but because they lack a system for organizing how they think.</p>
+      <p>That gap between <em>having information</em> and <em>thinking well with it</em> is where NeuralFusion™ operates.</p>
+      <div class="callout">
+        <p><strong>Key takeaway:</strong> The bottleneck in modern performance isn't access to information. It's the absence of a structured system for thinking.</p>
+      </div>
+    </section>
+
+    <section id="the-hidden-thinking-crisis">
+      <h2>The Hidden Thinking Crisis</h2>
+      <p>Cognitive overload rarely announces itself. It shows up disguised as other problems:</p>
+      <ul>
+        <li>A "communication issue" that's really two people using different thinking modes to solve the same problem.</li>
+        <li>A "productivity problem" that's really decision fatigue from unstructured choices.</li>
+        <li>A "leadership gap" that's really a reflex to default to one comfortable thinking style under pressure.</li>
+      </ul>
+      <div class="case">
+        <span class="tag">Mini case study</span>
+        <p>Consider a product leader who is brilliant analytically: she can model a market with precision, but freezes when a decision requires intuition under ambiguity. Her team doesn't experience this as a "cognitive" issue. They experience it as missed deadlines and stalled roadmaps. The real cause sits one level beneath the visible symptom: an underused thinking mode.</p>
+      </div>
+      <p>This is the hidden thinking crisis. It's rarely diagnosed correctly because most tools measure output (productivity, KPIs, engagement) rather than the cognitive process producing that output.</p>
+    </section>
+
+    <section id="why-intelligence-isnt-enough">
+      <h2>Why Intelligence Isn't Enough</h2>
+      <p>IQ measures raw processing capacity. It does not measure whether that capacity is being deployed in a balanced way.</p>
+      <p>A highly intelligent person can still:</p>
+      <ul>
+        <li>Over-rely on data and miss creative opportunities</li>
+        <li>Trust instinct while ignoring available evidence</li>
+        <li>Generate brilliant ideas they never execute</li>
+        <li>Reflect endlessly without ever deciding</li>
+      </ul>
+      <p>Intelligence gives you horsepower. It doesn't give you steering. NeuralFusion™ is built on a simple premise: <strong>performance is a function of thinking structure, not thinking capacity alone.</strong></p>
+    </section>
+
+    <section id="what-is-neuralfusion">
+      <h2>What Is NeuralFusion™</h2>
+      <p>NeuralFusion™ is the world's first <strong>Cognitive Performance Operating System</strong>: a structured framework that measures, trains, and optimizes how people think across the brain's four natural thinking modes.</p>
+      <p>Just as an operating system coordinates every application running on a computer, NeuralFusion™ coordinates how different modes of human thought work together. It doesn't generate answers for you. It doesn't replace your judgment. It strengthens the underlying process that produces your judgment in the first place.</p>
+      <p>NeuralFusion™ is built around one core distinction:</p>
+      <blockquote>NeuralFusion™ does not think for you. It trains you to think better. You are the intelligence. NeuralFusion™ is the operating system.</blockquote>
+      <p>This is a meaningful departure from most productivity and AI tools, which optimize <em>outputs</em>: tasks completed, content generated, decisions automated. NeuralFusion™ optimizes the <em>process upstream of every output</em>: cognition itself.</p>
+    </section>
+
+    <section id="the-cognitive-fragmentation-problem">
+      <h2>The Cognitive Fragmentation Problem</h2>
+      <p>Most people assume their challenges are situational: a hard quarter, a difficult stakeholder, an ambiguous market. Often, the deeper issue is structural: <strong>cognitive fragmentation</strong>.</p>
+      <p>Cognitive fragmentation occurs when one or more thinking modes dominate while others go undeveloped. A few recognizable patterns:</p>
+      <ul>
+        <li><strong>The over-analyzer:</strong> strong with data, weak with creative leaps</li>
+        <li><strong>The idea generator:</strong> abundant creativity, poor follow-through</li>
+        <li><strong>The instinct-led leader:</strong> fast judgment, thin evidence base</li>
+        <li><strong>The perpetual reflector:</strong> deep insight, delayed action</li>
+      </ul>
+      <p>None of these patterns are flaws in character. They're patterns of imbalance. And imbalance, left unmeasured, compounds: in decisions, in relationships, in leadership, in team dynamics.</p>
+      <p>NeuralFusion™ exists to make this imbalance visible and correctable.</p>
+    </section>
+
+    <section id="the-four-thinking-modes">
+      <h2>The Four Thinking Modes</h2>
+      <p>NeuralFusion™'s framework rests on four complementary, natural modes of cognition. High performers don't favor one, they integrate all four, deploying the right mode at the right moment.</p>
+      <div class="modes-grid">
+        <div class="mode-card analytical">
+          <h3>Analytical Thinking</h3>
+          <p>Grounded in logic, evidence, and structured reasoning.</p>
+          <p class="q">What do the facts say? What's the risk? What does the data show?</p>
+        </div>
+        <div class="mode-card intuitive">
+          <h3>Intuitive Thinking</h3>
+          <p>Rapid pattern recognition built from accumulated experience.</p>
+          <p class="q">What feels right here? What pattern am I noticing?</p>
+        </div>
+        <div class="mode-card associative">
+          <h3>Associative Thinking</h3>
+          <p>The engine of creativity: connecting unrelated ideas into new possibilities.</p>
+          <p class="q">What if? What could combine? What hasn't been tried?</p>
+        </div>
+        <div class="mode-card reflective">
+          <h3>Reflective Thinking</h3>
+          <p>The mode of perspective, ethics, and long-term learning.</p>
+          <p class="q">Why does this matter? What did I learn?</p>
+        </div>
+      </div>
+      <div class="callout">
+        <p><strong>Key takeaway:</strong> No single thinking mode is "better." Performance comes from integration, not dominance.</p>
+      </div>
+    </section>
+
+    <section id="the-cognitive-fragmentation-index-cfi">
+      <h2>The Cognitive Fragmentation Index (CFI™)</h2>
+      <p>The <strong>Cognitive Fragmentation Index (CFI™)</strong> is NeuralFusion™'s core diagnostic: a structured assessment of how balanced a person's thinking process is.</p>
+      <p>Unlike personality tests or IQ assessments, the CFI™ doesn't measure <em>who you are</em>. It measures <em>how you currently process decisions</em>, and where that process breaks down.</p>
+      <p>A CFI™ profile surfaces:</p>
+      <ul>
+        <li>Dominant thinking modes</li>
+        <li>Underdeveloped thinking modes</li>
+        <li>Specific blind spots</li>
+        <li>Decision-making risks tied to those blind spots</li>
+        <li>Collaboration friction points</li>
+        <li>A personalized training path</li>
+      </ul>
+      <p>Instead of guessing what to improve, users get a measurable starting point and a repeatable path forward. This is the mechanism that turns "think better" from a vague aspiration into a trainable, trackable skill.</p>
+      <div class="case">
+        <span class="tag">What is the Cognitive Fragmentation Index?</span>
+        <p>The CFI™ is a structured assessment that measures how balanced a person's thinking is across four natural cognitive modes, identifying blind spots that affect decisions and collaboration.</p>
+      </div>
+      <p class="section-cta"><a class="btn-outline" href="https://tryneuralfusion.com/">Take the CFI™ Assessment →</a></p>
+    </section>
+
+    <section id="why-better-thinking-creates-better-decisions">
+      <h2>Why Better Thinking Creates Better Decisions</h2>
+      <p>Nearly every meaningful outcome, a promotion, a product launch, a negotiation, a relationship, begins with a decision. And decision quality is downstream of thinking quality.</p>
+      <h3>Fragmented thinking produces:</h3>
+      <ul>
+        <li>Decision fatigue</li>
+        <li>Analysis paralysis</li>
+        <li>Confirmation bias</li>
+        <li>Reactive leadership</li>
+        <li>Friction in collaboration</li>
+        <li>Missed opportunities</li>
+      </ul>
+      <h3>Integrated thinking produces:</h3>
+      <ul>
+        <li>Clarity under pressure</li>
+        <li>Faster, more confident execution</li>
+        <li>Judgment that holds up under scrutiny</li>
+        <li>Smoother collaboration across different thinking styles</li>
+      </ul>
+      <blockquote>"Every organization has invested in tools that improve execution. Almost none have invested in the operating system behind every decision: the human mind."</blockquote>
+    </section>
+
+    <section id="neuralfusion-for-individuals">
+      <h2>NeuralFusion™ for Individuals</h2>
+      <p>For individuals, NeuralFusion™ replaces an endless stream of productivity hacks with a structured, compounding system.</p>
+      <p>Common applications:</p>
+      <ul>
+        <li>Career growth and promotion readiness</li>
+        <li>Entrepreneurial decision-making</li>
+        <li>Leadership development</li>
+        <li>Critical thinking under ambiguity</li>
+        <li>Learning effectiveness</li>
+        <li>Strategic personal planning</li>
+      </ul>
+      <p>Rather than another app competing for attention, NeuralFusion™ functions as infrastructure: a system that gets more valuable the longer it's used, because the CFI™ baseline improves with training.</p>
+      <p class="section-cta"><a class="btn-outline" href="https://tryneuralfusion.com/">Discover Your CFI™ →</a></p>
+    </section>
+
+    <section id="neuralfusion-for-teams">
+      <h2>NeuralFusion™ for Teams</h2>
+      <p>Most team dysfunction isn't a communication problem. It's a thinking-mode mismatch.</p>
+      <p>An analytical planner and an associative ideator aren't failing to communicate clearly, they're speaking from two different cognitive starting points, each valid, neither wrong. Without a shared vocabulary for that difference, friction gets misread as personality conflict.</p>
+      <p>NeuralFusion™ gives teams a shared cognitive language that improves:</p>
+      <ul>
+        <li>Communication clarity</li>
+        <li>Decision quality</li>
+        <li>Innovation velocity</li>
+        <li>Trust and psychological safety</li>
+        <li>Cross-functional alignment</li>
+      </ul>
+      <p class="section-cta"><a class="btn-outline" href="https://tryneuralfusion.com/">Explore Cognitive Performance for Teams →</a></p>
+    </section>
+
+    <section id="neuralfusion-for-organizations">
+      <h2>NeuralFusion™ for Organizations</h2>
+      <p>Organizations operate under constant uncertainty, and leadership decisions compound at scale: a single fragmented decision at the top can ripple through an entire quarter.</p>
+      <p>NeuralFusion™ helps organizations build a stronger cognitive foundation by:</p>
+      <ul>
+        <li>Measuring thinking quality across leadership and teams</li>
+        <li>Identifying cognitive fragmentation before it becomes a strategic risk</li>
+        <li>Delivering personalized cognitive training at scale</li>
+        <li>Strengthening leadership capability</li>
+        <li>Building genuinely high-performing teams</li>
+        <li>Supporting a durable culture of innovation</li>
+      </ul>
+      <p>The outcome isn't simply "smarter employees." It's a smarter organization: one where decision quality is a measured, trainable capability rather than a matter of luck or tenure.</p>
+      <p class="section-cta"><a class="btn-outline" href="https://tryneuralfusion.com/">Explore Enterprise &amp; Teams →</a></p>
+    </section>
+
+    <section id="neuralfusion-vs-ai">
+      <h2>NeuralFusion™ vs AI</h2>
+      <p>This is one of the most common points of confusion, and one of the most important distinctions NeuralFusion™ makes.</p>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th scope="col"></th><th scope="col">Artificial Intelligence</th><th scope="col">NeuralFusion™</th></tr>
+          </thead>
+          <tbody>
+            <tr><th scope="row">Function</th><td>Generates answers</td><td>Develops thinkers</td></tr>
+            <tr><th scope="row">Mechanism</th><td>Predicts outcomes</td><td>Strengthens judgment</td></tr>
+            <tr><th scope="row">Focus</th><td>Automates tasks</td><td>Improves cognition</td></tr>
+            <tr><th scope="row">Role in decisions</th><td>Supports the decision</td><td>Improves the decision-maker</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>AI can accelerate research, drafting, and analysis. But someone still has to weigh trade-offs, own the judgment call, and live with the outcome. NeuralFusion™ strengthens exactly that layer: the human judgment AI cannot replace.</p>
+      <div class="callout">
+        <p><strong>Key takeaway:</strong> AI changes what information you have access to. NeuralFusion™ changes how well you process it.</p>
+      </div>
+    </section>
+
+    <section id="the-future-of-human-cognition">
+      <h2>The Future of Human Cognition</h2>
+      <p>Access to information is no longer a differentiator, everyone has it. What separates high performers now is the consistency and integration of their thinking: logic paired with creativity, data paired with intuition, speed paired with reflection.</p>
+      <p>This is the shift NeuralFusion™ is built for: structured human cognition as the next competitive advantage, in an era where raw information has stopped being one.</p>
+    </section>
+
+    <section id="conclusion">
+      <h2>Conclusion</h2>
+      <p>The most overlooked upgrade available to anyone right now isn't another productivity tool, another AI assistant, or another dashboard. It's the operating system behind every decision a person makes: their own mind.</p>
+      <p>NeuralFusion™ exists to turn fragmented thinking into integrated intelligence: helping individuals think with more clarity, teams collaborate with less friction, and organizations decide with more confidence.</p>
+      <p class="lede"><strong>Train how you think. Transform how you perform.</strong></p>
+      <p class="section-cta"><a class="btn-primary" href="https://tryneuralfusion.com/">Start Improving How You Think →</a></p>
+    </section>
+
+    <section id="faq">
+      <h2>FAQ</h2>
+      <details><summary>What is NeuralFusion™?</summary><p>NeuralFusion™ is a Cognitive Performance Operating System that measures, trains, and optimizes how people think across four natural thinking modes.</p></details>
+      <details><summary>What is the Cognitive Fragmentation Index (CFI™)?</summary><p>The CFI™ is a structured assessment that measures how balanced someone's thinking is, identifying dominant modes, blind spots, and a personalized path for improvement.</p></details>
+      <details><summary>Is NeuralFusion™ an AI tool?</summary><p>No. NeuralFusion™ trains human judgment rather than generating answers or automating decisions. It complements AI rather than replacing human thinking.</p></details>
+      <details><summary>What are the four thinking modes?</summary><p>Analytical, Intuitive, Associative, and Reflective, each with distinct strengths and blind spots.</p></details>
+      <details><summary>Who is NeuralFusion™ for?</summary><p>Individuals, teams, and organizations looking to improve decision-making, leadership, collaboration, and innovation.</p></details>
+      <details><summary>How is cognitive fragmentation different from a personality trait?</summary><p>Personality describes tendencies; fragmentation describes an imbalance in how thinking modes are currently being used, and unlike personality, it's trainable.</p></details>
+      <details><summary>Can cognitive performance really be trained?</summary><p>Yes. Like physical fitness, thinking patterns can be measured, targeted, and strengthened with consistent, structured practice.</p></details>
+      <details><summary>How does NeuralFusion™ help teams?</summary><p>It gives teams a shared vocabulary for different thinking styles, reducing friction that's often misread as a communication or personality problem.</p></details>
+      <details><summary>What makes NeuralFusion™ different from typical productivity apps?</summary><p>Productivity apps optimize task execution. NeuralFusion™ optimizes the cognitive process that determines which tasks and decisions are worth executing in the first place.</p></details>
+      <details><summary>How long does it take to see results?</summary><p>Because the CFI™ establishes a measurable baseline, most users can track shifts in decision clarity and confidence within weeks of structured training.</p></details>
+      <details><summary>Does NeuralFusion™ replace leadership training?</summary><p>No, it strengthens the cognitive foundation underneath leadership training, making existing leadership development more effective.</p></details>
+      <details><summary>Is the CFI™ a one-time test?</summary><p>It functions best as a recurring baseline, retaken periodically to track how thinking balance shifts as training progresses.</p></details>
+    </section>
+
+    <section class="related" style="border:1px solid var(--line);">
+      <h2 style="font-size:20px;line-height:1.25;letter-spacing:-0.01em;">Related Reading</h2>
+      <ul>
+        <li>
+          <a href="https://tryneuralfusion.com/blog/your-brain-isnt-broken-its-fragmented">Your Brain Isn't Broken. It's Fragmented.</a>
+          <span class="desc">A closer look at cognitive fragmentation and what it actually means for decision-making.</span>
+        </li>
+        <li>
+          <a href="https://tryneuralfusion.com/blog/why-your-brain-cant-think-clearly">Why Your Brain Can't Think Clearly (And the Structured System That Fixes It)</a>
+          <span class="desc">The structural case for training thinking instead of chasing more productivity hacks.</span>
+        </li>
+        <li>
+          <a href="https://tryneuralfusion.com/blog">Browse the full NeuralFusion™ blog →</a>
+        </li>
+      </ul>
+    </section>
+  </article>
+</div>
+</main>
+
+<footer class="site-footer">
+<p>◈ NEURALFUSION™  ·  <a href="https://tryneuralfusion.com/">tryneuralfusion.com</a>  ·  <a href="https://tryneuralfusion.com/">Start your CFI™ assessment</a></p>
+</footer>
+
+<script>
+(function(){
+  // Reading progress bar (top rail)
+  // Active TOC link highlighting
+  var sections = document.querySelectorAll('article > section[id]');
+  var tocLinks = document.querySelectorAll('.toc-rail a');
+  if ('IntersectionObserver' in window && sections.length){
+    var activeObserver = new IntersectionObserver(function(entries){
+      entries.forEach(function(entry){
+        var id = entry.target.getAttribute('id');
+        var link = document.querySelector('.toc-rail a[href="#' + id + '"]');
+        if (!link) return;
+        if (entry.isIntersecting){
+          tocLinks.forEach(function(a){ a.classList.remove('active'); });
+          link.classList.add('active');
+        }
+      });
+    }, { rootMargin: '-15% 0px -70% 0px', threshold: 0 });
+    sections.forEach(function(s){ activeObserver.observe(s); });
+  }
+
+  // Smooth scroll offset for in-page anchors (accounts for sticky header)
+  document.querySelectorAll('a[href^="#"]').forEach(function(link){
+    link.addEventListener('click', function(e){
+      var id = link.getAttribute('href').slice(1);
+      var target = document.getElementById(id);
+      if (!target) return;
+      e.preventDefault();
+      var top = target.getBoundingClientRect().top + window.scrollY - 84;
+      window.scrollTo({ top: top, behavior:'smooth' });
+      history.pushState(null, '', '#' + id);
+    });
+  });
+})();
+</script>
+</body>
+</html>
