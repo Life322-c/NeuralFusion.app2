@@ -77,115 +77,113 @@
     --text:#F2EFE8; --muted:#93A0B4; --dim:#5C6A82; --border:rgba(196,160,80,0.12);
     --syne:'Syne',sans-serif; --mono:'Space Mono',monospace; --sans:'DM Sans',sans-serif;
   }
-  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+  .nf-post *, .nf-post *::before, .nf-post *::after{box-sizing:border-box;margin:0;padding:0;}
   html{scroll-behavior:smooth;}
-  body{background:var(--void);color:var(--text);font-family:var(--sans);line-height:1.7;-webkit-font-smoothing:antialiased;}
-  a{color:var(--gold-bright);text-decoration:none;}
-  a:hover{text-decoration:underline;}
-  .wrap{max-width:760px;margin:0 auto;padding:0 24px;}
-  .eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--gold);}
+  .nf-post{background:var(--void);color:var(--text);font-family:var(--sans);line-height:1.7;-webkit-font-smoothing:antialiased;}
+  .nf-post a{color:var(--gold-bright);text-decoration:none;}
+  .nf-post a:hover{text-decoration:underline;}
+  .nf-post .wrap{max-width:760px;margin:0 auto;padding:0 24px;}
+  .nf-post .eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--gold);}
 
   /* Nav */
-  header{position:sticky;top:0;z-index:20;background:rgba(3,7,15,0.85);backdrop-filter:blur(10px);border-bottom:1px solid var(--border);}
-  nav{max-width:960px;margin:0 auto;padding:18px 24px;display:flex;align-items:center;justify-content:space-between;}
-  .logo{font-family:var(--syne);font-weight:800;font-size:16px;letter-spacing:0.3px;color:var(--text);}
-  .logo span{color:var(--gold);}
-  .navlinks{display:flex;gap:28px;align-items:center;}
-  .navlinks a{font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);}
-  .navlinks a:hover{color:var(--gold-bright);text-decoration:none;}
-  .navlinks .cta{color:var(--void);background:var(--gold);padding:9px 16px;border-radius:2px;font-weight:700;}
-  .navlinks .cta:hover{background:var(--gold-bright);text-decoration:none;}
+  .nf-post header{position:sticky;top:0;z-index:20;background:rgba(3,7,15,0.85);backdrop-filter:blur(10px);border-bottom:1px solid var(--border);}
+  .nf-post nav{max-width:960px;margin:0 auto;padding:18px 24px;display:flex;align-items:center;justify-content:space-between;}
+  .nf-post .logo{font-family:var(--syne);font-weight:800;font-size:16px;letter-spacing:0.3px;color:var(--text);}
+  .nf-post .logo span{color:var(--gold);}
+  .nf-post .navlinks{display:flex;gap:28px;align-items:center;}
+  .nf-post .navlinks a{font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);}
+  .nf-post .navlinks a:hover{color:var(--gold-bright);text-decoration:none;}
+  .nf-post .navlinks .cta{color:var(--void);background:var(--gold);padding:9px 16px;border-radius:2px;font-weight:700;}
+  .nf-post .navlinks .cta:hover{background:var(--gold-bright);text-decoration:none;}
 
   /* Hero */
-  .hero{max-width:960px;margin:0 auto;padding:88px 24px 56px;text-align:center;border-bottom:1px solid var(--border);}
-  .hero h1{font-family:var(--syne);font-weight:800;font-size:clamp(32px,5vw,54px);line-height:1.08;margin:22px 0 20px;letter-spacing:-0.5px;}
-  .hero .sub{font-size:19px;color:var(--muted);max-width:640px;margin:0 auto 22px;line-height:1.6;}
-  .hero .intro{font-size:15px;color:var(--dim);max-width:600px;margin:0 auto 36px;}
-  .cta-row{display:flex;gap:14px;justify-content:center;flex-wrap:wrap;}
-  .btn-primary{background:var(--gold);color:var(--void);font-family:var(--syne);font-weight:700;font-size:14px;padding:14px 26px;border-radius:2px;display:inline-block;}
-  .btn-primary:hover{background:var(--gold-bright);text-decoration:none;}
-  .btn-outline{border:1px solid var(--gold-border);color:var(--text);font-family:var(--syne);font-weight:600;font-size:14px;padding:13px 26px;border-radius:2px;display:inline-block;}
-  .btn-outline:hover{border-color:var(--gold);text-decoration:none;}
+  .nf-post .hero{max-width:960px;margin:0 auto;padding:88px 24px 56px;text-align:center;border-bottom:1px solid var(--border);}
+  .nf-post .hero h1{font-family:var(--syne);font-weight:800;font-size:clamp(32px,5vw,54px);line-height:1.08;margin:22px 0 20px;letter-spacing:-0.5px;}
+  .nf-post .hero .sub{font-size:19px;color:var(--muted);max-width:640px;margin:0 auto 22px;line-height:1.6;}
+  .nf-post .hero .intro{font-size:15px;color:var(--dim);max-width:600px;margin:0 auto 36px;}
+  .nf-post .cta-row{display:flex;gap:14px;justify-content:center;flex-wrap:wrap;}
+  .nf-post .btn-primary{background:var(--gold);color:var(--void);font-family:var(--syne);font-weight:700;font-size:14px;padding:14px 26px;border-radius:2px;display:inline-block;}
+  .nf-post .btn-primary:hover{background:var(--gold-bright);text-decoration:none;}
+  .nf-post .btn-outline{border:1px solid var(--gold-border);color:var(--text);font-family:var(--syne);font-weight:600;font-size:14px;padding:13px 26px;border-radius:2px;display:inline-block;}
+  .nf-post .btn-outline:hover{border-color:var(--gold);text-decoration:none;}
 
   /* TOC */
-  .toc{max-width:760px;margin:48px auto;padding:28px 28px;background:var(--surface);border:1px solid var(--border);border-radius:4px;}
-  .toc h2{font-family:var(--mono);font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--gold);margin-bottom:16px;}
-  .toc ol{list-style:none;columns:2;column-gap:24px;}
-  .toc li{font-size:13.5px;margin-bottom:10px;break-inside:avoid;}
-  .toc a{color:var(--muted);}
-  .toc a:hover{color:var(--gold-bright);}
+  .nf-post .toc{max-width:760px;margin:48px auto;padding:28px 28px;background:var(--surface);border:1px solid var(--border);border-radius:4px;}
+  .nf-post .toc h2{font-family:var(--mono);font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--gold);margin-bottom:16px;}
+  .nf-post .toc ol{list-style:none;columns:2;column-gap:24px;}
+  .nf-post .toc li{font-size:13.5px;margin-bottom:10px;break-inside:avoid;}
+  .nf-post .toc a{color:var(--muted);}
+  .nf-post .toc a:hover{color:var(--gold-bright);}
 
   /* Article body */
-  article{padding:16px 0 80px;}
-  section{padding:52px 0;border-bottom:1px solid var(--border);}
-  section:last-of-type{border-bottom:none;}
-  h2{font-family:var(--syne);font-weight:700;font-size:28px;margin-bottom:20px;letter-spacing:-0.3px;}
-  h3{font-family:var(--syne);font-weight:700;font-size:19px;margin:26px 0 8px;color:var(--gold-soft);}
-  p{font-size:16px;color:#D7DCE5;margin-bottom:16px;}
-  .lede{font-size:18px;color:var(--text);}
-  ul{margin:0 0 18px 20px;}
-  li{font-size:16px;color:#D7DCE5;margin-bottom:8px;}
-  .callout{background:var(--gold-dim);border-left:3px solid var(--gold);padding:18px 22px;margin:24px 0;border-radius:2px;}
-  .callout p{margin:0;font-size:15px;color:var(--text);}
-  .callout strong{color:var(--gold-bright);}
-  blockquote{font-family:var(--syne);font-size:19px;font-weight:600;color:var(--text);border-left:2px solid var(--gold-border);padding-left:22px;margin:28px 0;line-height:1.5;}
-  blockquote em, blockquote{font-style:italic;}
-  .case{background:var(--panel);border:1px solid var(--border);border-radius:4px;padding:22px 24px;margin:20px 0;}
-  .case .tag{font-family:var(--mono);font-size:10.5px;letter-spacing:1.5px;text-transform:uppercase;color:var(--gold);display:block;margin-bottom:10px;}
-  .case p{margin:0;font-size:15px;color:var(--muted);}
+  .nf-post article{padding:16px 0 80px;}
+  .nf-post section{padding:52px 0;border-bottom:1px solid var(--border);}
+  .nf-post section:last-of-type{border-bottom:none;}
+  .nf-post h2{font-family:var(--syne);font-weight:700;font-size:28px;margin-bottom:20px;letter-spacing:-0.3px;}
+  .nf-post h3{font-family:var(--syne);font-weight:700;font-size:19px;margin:26px 0 8px;color:var(--gold-soft);}
+  .nf-post p{font-size:16px;color:#D7DCE5;margin-bottom:16px;}
+  .nf-post .lede{font-size:18px;color:var(--text);}
+  .nf-post ul{margin:0 0 18px 20px;}
+  .nf-post li{font-size:16px;color:#D7DCE5;margin-bottom:8px;}
+  .nf-post .callout{background:var(--gold-dim);border-left:3px solid var(--gold);padding:18px 22px;margin:24px 0;border-radius:2px;}
+  .nf-post .callout p{margin:0;font-size:15px;color:var(--text);}
+  .nf-post .callout strong{color:var(--gold-bright);}
+  .nf-post blockquote{font-family:var(--syne);font-size:19px;font-weight:600;color:var(--text);border-left:2px solid var(--gold-border);padding-left:22px;margin:28px 0;line-height:1.5;}
+  .nf-post blockquote em, .nf-post blockquote{font-style:italic;}
+  .nf-post .case{background:var(--panel);border:1px solid var(--border);border-radius:4px;padding:22px 24px;margin:20px 0;}
+  .nf-post .case .tag{font-family:var(--mono);font-size:10.5px;letter-spacing:1.5px;text-transform:uppercase;color:var(--gold);display:block;margin-bottom:10px;}
+  .nf-post .case p{margin:0;font-size:15px;color:var(--muted);}
 
-  .modes-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:24px 0;}
-  .mode-card{background:var(--surface);border:1px solid var(--border);border-radius:4px;padding:22px;}
-  .mode-card h3{margin-top:0;}
-  .mode-card p{font-size:14px;color:var(--muted);margin-bottom:8px;}
-  .mode-card .q{font-family:var(--mono);font-size:12px;color:var(--dim);}
+  .nf-post .modes-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:24px 0;}
+  .nf-post .mode-card{background:var(--surface);border:1px solid var(--border);border-radius:4px;padding:22px;}
+  .nf-post .mode-card h3{margin-top:0;}
+  .nf-post .mode-card p{font-size:14px;color:var(--muted);margin-bottom:8px;}
+  .nf-post .mode-card .q{font-family:var(--mono);font-size:12px;color:var(--dim);}
 
-  table{width:100%;border-collapse:collapse;margin:24px 0;font-size:14px;}
-  th,td{padding:14px 16px;text-align:left;border:1px solid var(--border);}
-  th{font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--gold);background:var(--surface);}
-  td{color:#D7DCE5;}
+  .nf-post table{width:100%;border-collapse:collapse;margin:24px 0;font-size:14px;}
+  .nf-post th, .nf-post td{padding:14px 16px;text-align:left;border:1px solid var(--border);}
+  .nf-post th{font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--gold);background:var(--surface);}
+  .nf-post td{color:#D7DCE5;}
 
-  .section-cta{margin-top:8px;}
+  .nf-post .section-cta{margin-top:8px;}
 
-  details{background:var(--surface);border:1px solid var(--border);border-radius:4px;padding:18px 20px;margin-bottom:10px;}
-  summary{font-family:var(--syne);font-weight:700;font-size:15px;cursor:pointer;color:var(--text);}
-  details p{margin-top:12px;font-size:14.5px;color:var(--muted);}
+  .nf-post details{background:var(--surface);border:1px solid var(--border);border-radius:4px;padding:18px 20px;margin-bottom:10px;}
+  .nf-post summary{font-family:var(--syne);font-weight:700;font-size:15px;cursor:pointer;color:var(--text);}
+  .nf-post details p{margin-top:12px;font-size:14.5px;color:var(--muted);}
 
-  .related{background:var(--panel);border:1px solid var(--border);border-radius:4px;padding:28px;}
-  .related h2{font-size:20px;}
-  .related ul{margin-left:0;list-style:none;}
-  .related li{padding:12px 0;border-bottom:1px solid var(--border);}
-  .related li:last-child{border-bottom:none;}
-  .related a{color:var(--text);font-family:var(--syne);font-weight:600;font-size:15px;}
-  .related a:hover{color:var(--gold-bright);}
-  .related .desc{display:block;font-family:var(--sans);font-weight:400;font-size:13px;color:var(--dim);margin-top:4px;}
+  .nf-post .related{background:var(--panel);border:1px solid var(--border);border-radius:4px;padding:28px;}
+  .nf-post .related h2{font-size:20px;}
+  .nf-post .related ul{margin-left:0;list-style:none;}
+  .nf-post .related li{padding:12px 0;border-bottom:1px solid var(--border);}
+  .nf-post .related li:last-child{border-bottom:none;}
+  .nf-post .related a{color:var(--text);font-family:var(--syne);font-weight:600;font-size:15px;}
+  .nf-post .related a:hover{color:var(--gold-bright);}
+  .nf-post .related .desc{display:block;font-family:var(--sans);font-weight:400;font-size:13px;color:var(--dim);margin-top:4px;}
 
-  footer{border-top:1px solid var(--border);padding:40px 24px;text-align:center;}
-  footer p{font-family:var(--mono);font-size:11px;color:var(--dim);letter-spacing:0.5px;}
-  footer a{color:var(--gold);}
+  .nf-post footer{border-top:1px solid var(--border);padding:40px 24px;text-align:center;}
+  .nf-post footer p{font-family:var(--mono);font-size:11px;color:var(--dim);letter-spacing:0.5px;}
+  .nf-post footer a{color:var(--gold);}
 
-  .back-top{position:fixed;bottom:24px;right:24px;background:var(--gold);color:var(--void);width:42px;height:42px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;opacity:0;pointer-events:none;transition:opacity .2s;}
-  .back-top.show{opacity:1;pointer-events:auto;}
-  .back-top:hover{text-decoration:none;background:var(--gold-bright);}
+  .nf-post .back-top{position:fixed;bottom:24px;right:24px;background:var(--gold);color:var(--void);width:42px;height:42px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;opacity:0;pointer-events:none;transition:opacity .2s;}
+  .nf-post .back-top.show{opacity:1;pointer-events:auto;}
+  .nf-post .back-top:hover{text-decoration:none;background:var(--gold-bright);}
 
   @media(max-width:640px){
-    .toc ol{columns:1;}
-    .modes-grid{grid-template-columns:1fr;}
-    .navlinks{gap:14px;}
-    .navlinks a:not(.cta){display:none;}
+    .nf-post .toc ol{columns:1;}
+    .nf-post .modes-grid{grid-template-columns:1fr;}
+    .nf-post .navlinks{gap:14px;}
+    .nf-post .navlinks a:not(.cta){display:none;}
   }
 </style>
 </head>
 <body>
 
+<div class="nf-post">
 <header>
   <nav>
     <a href="https://tryneuralfusion.com/" class="logo">◈ Neural<span>Fusion</span>™</a>
     <div class="navlinks">
-      <a href="https://tryneuralfusion.com/">Home</a>
-      <a href="https://tryneuralfusion.com/blog">Blog</a>
-      <a href="#faq">FAQ</a>
-      <a href="https://tryneuralfusion.com/assess" class="cta">Start Free →</a>
+      <a href="https://tryneuralfusion.com/" class="cta">Start Free →</a>
     </div>
   </nav>
 </header>
@@ -197,7 +195,7 @@
     <p class="sub">NeuralFusion™ is the world's first Cognitive Performance Operating System: a structured way to measure, train, and optimize how you think.</p>
     <p class="intro">Information is no longer scarce. Thinking clearly still is. NeuralFusion™ helps individuals, teams, and organizations close that gap, not by thinking for you, but by training you to think better.</p>
     <div class="cta-row">
-      <a href="https://tryneuralfusion.com/assess" class="btn-primary">Discover Your Cognitive Fragmentation Index (CFI™) →</a>
+      <a href="https://tryneuralfusion.com/" class="btn-primary">Discover Your Cognitive Fragmentation Index (CFI™) →</a>
       <a href="#what-is-neuralfusion" class="btn-outline">See How NeuralFusion™ Works →</a>
     </div>
   </section>
@@ -335,7 +333,7 @@
           <span class="tag">What is the Cognitive Fragmentation Index?</span>
           <p>The CFI™ is a structured assessment that measures how balanced a person's thinking is across four natural cognitive modes, identifying blind spots that affect decisions and collaboration.</p>
         </div>
-        <p class="section-cta"><a href="https://tryneuralfusion.com/assess" class="btn-outline">Take the CFI™ Assessment →</a></p>
+        <p class="section-cta"><a href="https://tryneuralfusion.com/" class="btn-outline">Take the CFI™ Assessment →</a></p>
       </section>
 
       <section id="why-better-thinking-creates-better-decisions">
@@ -373,7 +371,7 @@
           <li>Strategic personal planning</li>
         </ul>
         <p>Rather than another app competing for attention, NeuralFusion™ functions as infrastructure: a system that gets more valuable the longer it's used, because the CFI™ baseline improves with training.</p>
-        <p class="section-cta"><a href="https://tryneuralfusion.com/assess" class="btn-outline">Discover Your CFI™ →</a></p>
+        <p class="section-cta"><a href="https://tryneuralfusion.com/" class="btn-outline">Discover Your CFI™ →</a></p>
       </section>
 
       <section id="neuralfusion-for-teams">
@@ -438,7 +436,7 @@
         <p>The most overlooked upgrade available to anyone right now isn't another productivity tool, another AI assistant, or another dashboard. It's the operating system behind every decision a person makes: their own mind.</p>
         <p>NeuralFusion™ exists to turn fragmented thinking into integrated intelligence: helping individuals think with more clarity, teams collaborate with less friction, and organizations decide with more confidence.</p>
         <p class="lede"><strong>Train how you think. Transform how you perform.</strong></p>
-        <p class="section-cta"><a href="https://tryneuralfusion.com/assess" class="btn-primary">Start Improving How You Think →</a></p>
+        <p class="section-cta"><a href="https://tryneuralfusion.com/" class="btn-primary">Start Improving How You Think →</a></p>
       </section>
 
       <section id="faq">
@@ -478,10 +476,11 @@
 </main>
 
 <footer>
-  <p>◈ NEURALFUSION™ &nbsp;·&nbsp; <a href="https://tryneuralfusion.com/">tryneuralfusion.com</a> &nbsp;·&nbsp; <a href="https://tryneuralfusion.com/assess">Start your CFI™ assessment</a></p>
+  <p>◈ NEURALFUSION™ &nbsp;·&nbsp; <a href="https://tryneuralfusion.com/">tryneuralfusion.com</a> &nbsp;·&nbsp; <a href="https://tryneuralfusion.com/">Start your CFI™ assessment</a></p>
 </footer>
 
 <a href="#" class="back-top" id="backTop" aria-label="Back to top">↑</a>
+</div>
 
 <script>
   const backTop = document.getElementById('backTop');
