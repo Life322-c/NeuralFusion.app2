@@ -100,7 +100,7 @@
 
   /* Hero */
   .nf-post .hero{max-width:960px;margin:0 auto;padding:88px 24px 56px;text-align:center;border-bottom:1px solid var(--border);}
-  .nf-post .hero h1{font-family:var(--syne);font-weight:800;font-size:clamp(28px,8vw,54px);line-height:1.12;margin:20px 0 18px;letter-spacing:-0.5px;}
+  .nf-post .hero h1{font-family:var(--syne);font-weight:800;font-size:clamp(28px,8vw,54px);line-height:1.06;margin:20px 0 18px;letter-spacing:-0.02em;text-wrap:balance;overflow-wrap:break-word;word-break:normal;}
   .nf-post .hero .sub{font-size:19px;color:var(--muted);max-width:640px;margin:0 auto 22px;line-height:1.6;}
   .nf-post .hero .intro{font-size:15px;color:var(--dim);max-width:600px;margin:0 auto 36px;}
   .nf-post .cta-row{display:flex;gap:14px;justify-content:center;flex-wrap:wrap;}
@@ -111,7 +111,7 @@
 
   /* TOC */
   .nf-post .toc{max-width:760px;margin:48px auto;padding:28px 28px;background:var(--surface);border:1px solid var(--border);border-radius:4px;}
-  .nf-post .toc h2{font-family:var(--mono);font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--gold);margin-bottom:16px;}
+  .nf-post .toc h2{font-family:var(--mono);font-size:11px;line-height:1.4;letter-spacing:2px;text-transform:uppercase;color:var(--gold);margin-bottom:16px;text-wrap:balance;overflow-wrap:break-word;}
   .nf-post .toc ol{list-style:none;columns:2;column-gap:24px;}
   .nf-post .toc li{font-size:13.5px;margin-bottom:10px;break-inside:avoid;}
   .nf-post .toc a{color:var(--muted);}
@@ -121,8 +121,12 @@
   .nf-post article{padding:16px 0 80px;}
   .nf-post section{padding:52px 0;border-bottom:1px solid var(--border);}
   .nf-post section:last-of-type{border-bottom:none;}
-  .nf-post h2{font-family:var(--syne);font-weight:700;font-size:28px;margin-bottom:20px;letter-spacing:-0.3px;}
-  .nf-post h3{font-family:var(--syne);font-weight:700;font-size:19px;margin:26px 0 8px;color:var(--gold-soft);}
+  .nf-post h1, .nf-post h2, .nf-post h3, .nf-post h4, .nf-post h5, .nf-post h6{text-wrap:balance;overflow-wrap:break-word;word-break:normal;}
+  .nf-post h2{font-family:var(--syne);font-weight:700;font-size:clamp(22px,4.5vw,28px);line-height:1.2;margin-bottom:20px;letter-spacing:-0.02em;}
+  .nf-post h3{font-family:var(--syne);font-weight:700;font-size:clamp(17px,3vw,19px);line-height:1.35;margin:26px 0 8px;letter-spacing:-0.01em;color:var(--gold-soft);}
+  .nf-post h4{font-family:var(--syne);font-weight:600;font-size:clamp(15.5px,2.2vw,17px);line-height:1.4;margin:20px 0 8px;letter-spacing:-0.005em;color:var(--text);}
+  .nf-post h5{font-family:var(--syne);font-weight:600;font-size:clamp(14.5px,1.8vw,15.5px);line-height:1.45;margin:16px 0 6px;color:var(--text);}
+  .nf-post h6{font-family:var(--syne);font-weight:600;font-size:clamp(13px,1.4vw,14px);line-height:1.5;letter-spacing:0.2px;text-transform:uppercase;margin:14px 0 6px;color:var(--muted);}
   .nf-post p{font-size:16px;color:#D7DCE5;margin-bottom:16px;}
   .nf-post .lede{font-size:18px;color:var(--text);}
   .nf-post ul{margin:0 0 18px 20px;}
@@ -159,7 +163,7 @@
   .nf-post details p{margin-top:12px;font-size:14.5px;color:var(--muted);}
 
   .nf-post .related{background:var(--panel);border:1px solid var(--border);border-radius:4px;padding:28px;}
-  .nf-post .related h2{font-size:20px;}
+  .nf-post .related h2{font-size:20px;line-height:1.25;letter-spacing:-0.01em;}
   .nf-post .related ul{margin-left:0;list-style:none;}
   .nf-post .related li{padding:12px 0;border-bottom:1px solid var(--border);}
   .nf-post .related li:last-child{border-bottom:none;}
@@ -177,9 +181,11 @@
 
   @media(max-width:640px){
     .nf-post .hero{padding:56px 20px 40px;}
-    .nf-post .hero h1{font-size:clamp(26px,7.5vw,40px);line-height:1.15;margin:16px 0 14px;}
+    .nf-post .hero h1{font-size:clamp(26px,7.5vw,40px);line-height:1.1;letter-spacing:-0.01em;margin:16px 0 14px;}
     .nf-post .hero .sub{font-size:16px;margin-bottom:16px;}
     .nf-post .hero .intro{font-size:14px;margin-bottom:24px;}
+    .nf-post h2{font-size:clamp(21px,5.5vw,24px);line-height:1.22;}
+    .nf-post h3{font-size:clamp(16.5px,4vw,18px);line-height:1.38;}
     .nf-post .toc ol{columns:1;}
     .nf-post .modes-grid{grid-template-columns:1fr;}
     .nf-post .navlinks{gap:14px;}
