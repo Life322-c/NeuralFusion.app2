@@ -1,6 +1,8 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <script>
   if ('serviceWorker' in navigator) {
     navigator.serviceWorker.getRegistrations().then(function(regs) {
@@ -8,8 +10,6 @@
     });
   }
 </script>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>NeuralFusion™: The Cognitive Performance Operating System</title>
 <meta name="description" content="Discover NeuralFusion™, the world's first Cognitive Performance OS. Measure your CFI™, train your thinking, and make sharper decisions. Start free.">
 <meta name="keywords" content="cognitive performance operating system, NeuralFusion, CFI, cognitive fragmentation index, four thinking modes, decision intelligence, structured thinking system, cognitive training, leadership decision making" />
@@ -68,7 +68,7 @@
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,450;0,9..40,500;0,9..40,600;1,9..40,400&family=Syne:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&amp;family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,450;0,9..40,500;0,9..40,600;1,9..40,400&amp;family=Syne:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet">
 <style>
   :root{
     --void:#03070F; --abyss:#050C1A; --deep:#071020; --surface:#0A1628; --panel:#0E1E36; --raised:#122244;
@@ -78,6 +78,7 @@
     --syne:'Syne',sans-serif; --mono:'Space Mono',monospace; --sans:'DM Sans',sans-serif;
   }
   .nf-post *, .nf-post *::before, .nf-post *::after{box-sizing:border-box;margin:0;padding:0;}
+  html,body{background:var(--void);}
   html{scroll-behavior:smooth;}
   .nf-post{background:var(--void);color:var(--text);font-family:var(--sans);line-height:1.7;-webkit-font-smoothing:antialiased;}
   .nf-post a{color:var(--gold-bright);text-decoration:none;}
@@ -98,7 +99,7 @@
 
   /* Hero */
   .nf-post .hero{max-width:960px;margin:0 auto;padding:88px 24px 56px;text-align:center;border-bottom:1px solid var(--border);}
-  .nf-post .hero h1{font-family:var(--syne);font-weight:800;font-size:clamp(32px,5vw,54px);line-height:1.08;margin:22px 0 20px;letter-spacing:-0.5px;}
+  .nf-post .hero h1{font-family:var(--syne);font-weight:800;font-size:clamp(28px,8vw,54px);line-height:1.12;margin:20px 0 18px;letter-spacing:-0.5px;}
   .nf-post .hero .sub{font-size:19px;color:var(--muted);max-width:640px;margin:0 auto 22px;line-height:1.6;}
   .nf-post .hero .intro{font-size:15px;color:var(--dim);max-width:600px;margin:0 auto 36px;}
   .nf-post .cta-row{display:flex;gap:14px;justify-content:center;flex-wrap:wrap;}
@@ -135,14 +136,19 @@
   .nf-post .case p{margin:0;font-size:15px;color:var(--muted);}
 
   .nf-post .modes-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:24px 0;}
-  .nf-post .mode-card{background:var(--surface);border:1px solid var(--border);border-radius:4px;padding:22px;}
-  .nf-post .mode-card h3{margin-top:0;}
+  .nf-post .mode-card{background:var(--surface);border:1px solid var(--border);border-top:2px solid var(--accent, var(--gold));border-radius:4px;padding:22px;}
+  .nf-post .mode-card h3{margin-top:0;color:var(--accent, var(--gold-soft));}
   .nf-post .mode-card p{font-size:14px;color:var(--muted);margin-bottom:8px;}
   .nf-post .mode-card .q{font-family:var(--mono);font-size:12px;color:var(--dim);}
+  .nf-post .mode-card.analytical{--accent:var(--analytical);}
+  .nf-post .mode-card.intuitive{--accent:var(--intuitive);}
+  .nf-post .mode-card.associative{--accent:var(--associative);}
+  .nf-post .mode-card.reflective{--accent:var(--reflective);}
 
   .nf-post table{width:100%;border-collapse:collapse;margin:24px 0;font-size:14px;}
   .nf-post th, .nf-post td{padding:14px 16px;text-align:left;border:1px solid var(--border);}
-  .nf-post th{font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--gold);background:var(--surface);}
+  .nf-post th[scope="col"]{font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--gold);background:var(--surface);}
+  .nf-post th[scope="row"]{font-family:var(--sans);font-weight:600;font-size:14px;color:var(--text);}
   .nf-post td{color:#D7DCE5;}
 
   .nf-post .section-cta{margin-top:8px;}
@@ -169,6 +175,10 @@
   .nf-post .back-top:hover{text-decoration:none;background:var(--gold-bright);}
 
   @media(max-width:640px){
+    .nf-post .hero{padding:56px 20px 40px;}
+    .nf-post .hero h1{font-size:clamp(26px,7.5vw,40px);line-height:1.15;margin:16px 0 14px;}
+    .nf-post .hero .sub{font-size:16px;margin-bottom:16px;}
+    .nf-post .hero .intro{font-size:14px;margin-bottom:24px;}
     .nf-post .toc ol{columns:1;}
     .nf-post .modes-grid{grid-template-columns:1fr;}
     .nf-post .navlinks{gap:14px;}
@@ -289,22 +299,22 @@
         <h2>The Four Thinking Modes</h2>
         <p>NeuralFusion™'s framework rests on four complementary, natural modes of cognition. High performers don't favor one, they integrate all four, deploying the right mode at the right moment.</p>
         <div class="modes-grid">
-          <div class="mode-card">
+          <div class="mode-card analytical">
             <h3>Analytical Thinking</h3>
             <p>Grounded in logic, evidence, and structured reasoning.</p>
             <p class="q">What do the facts say? What's the risk? What does the data show?</p>
           </div>
-          <div class="mode-card">
+          <div class="mode-card intuitive">
             <h3>Intuitive Thinking</h3>
             <p>Rapid pattern recognition built from accumulated experience.</p>
             <p class="q">What feels right here? What pattern am I noticing?</p>
           </div>
-          <div class="mode-card">
+          <div class="mode-card associative">
             <h3>Associative Thinking</h3>
             <p>The engine of creativity: connecting unrelated ideas into new possibilities.</p>
             <p class="q">What if? What could combine? What hasn't been tried?</p>
           </div>
-          <div class="mode-card">
+          <div class="mode-card reflective">
             <h3>Reflective Thinking</h3>
             <p>The mode of perspective, ethics, and long-term learning.</p>
             <p class="q">Why does this matter? What did I learn?</p>
@@ -402,7 +412,7 @@
           <li>Supporting a durable culture of innovation</li>
         </ul>
         <p>The outcome isn't simply "smarter employees." It's a smarter organization: one where decision quality is a measured, trainable capability rather than a matter of luck or tenure.</p>
-        <p class="section-cta"><a href="https://tryneuralfusion.com/" class="btn-outline">Explore Enterprise & Teams →</a></p>
+        <p class="section-cta"><a href="https://tryneuralfusion.com/" class="btn-outline">Explore Enterprise &amp; Teams →</a></p>
       </section>
 
       <section id="neuralfusion-vs-ai">
@@ -410,13 +420,13 @@
         <p>This is one of the most common points of confusion, and one of the most important distinctions NeuralFusion™ makes.</p>
         <table>
           <thead>
-            <tr><th></th><th>Artificial Intelligence</th><th>NeuralFusion™</th></tr>
+            <tr><th scope="col"></th><th scope="col">Artificial Intelligence</th><th scope="col">NeuralFusion™</th></tr>
           </thead>
           <tbody>
-            <tr><td>Function</td><td>Generates answers</td><td>Develops thinkers</td></tr>
-            <tr><td>Mechanism</td><td>Predicts outcomes</td><td>Strengthens judgment</td></tr>
-            <tr><td>Focus</td><td>Automates tasks</td><td>Improves cognition</td></tr>
-            <tr><td>Role in decisions</td><td>Supports the decision</td><td>Improves the decision-maker</td></tr>
+            <tr><th scope="row">Function</th><td>Generates answers</td><td>Develops thinkers</td></tr>
+            <tr><th scope="row">Mechanism</th><td>Predicts outcomes</td><td>Strengthens judgment</td></tr>
+            <tr><th scope="row">Focus</th><td>Automates tasks</td><td>Improves cognition</td></tr>
+            <tr><th scope="row">Role in decisions</th><td>Supports the decision</td><td>Improves the decision-maker</td></tr>
           </tbody>
         </table>
         <p>AI can accelerate research, drafting, and analysis. But someone still has to weigh trade-offs, own the judgment call, and live with the outcome. NeuralFusion™ strengthens exactly that layer: the human judgment AI cannot replace.</p>
