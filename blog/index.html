@@ -1,277 +1,244 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Blog | NeuralFusion™</title>
-  <meta name="description" content="Insights on cognitive performance, the Four Modes Framework, and the science behind NeuralFusion™." />
-  <link rel="canonical" href="https://tryneuralfusion.com/blog" />
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Blog | NeuralFusion™</title>
+<meta content="Insights on cognitive performance, the Four Modes Framework, and the science behind NeuralFusion™." name="description"/>
+<link href="https://tryneuralfusion.com/blog" rel="canonical"/>
+<meta content="website" property="og:type"/>
+<meta content="https://tryneuralfusion.com/blog" property="og:url"/>
+<meta content="NeuralFusion™" property="og:site_name"/>
+<meta content="Blog | NeuralFusion™" property="og:title"/>
+<meta content="Insights on cognitive performance, the Four Modes Framework, and the science behind NeuralFusion™." property="og:description"/>
+<meta content="https://tryneuralfusion.com/icons/og-image.png" property="og:image"/>
+<meta content="summary_large_image" name="twitter:card"/>
+<meta content="@NeuralFusion" name="twitter:site"/>
+<meta content="Blog | NeuralFusion™" name="twitter:title"/>
+<meta content="Insights on cognitive performance, the Four Modes Framework, and the science behind NeuralFusion™." name="twitter:description"/>
+<meta content="https://tryneuralfusion.com/icons/og-image.png" name="twitter:image"/>
+<link href="/icons/icon-192.png" rel="icon" sizes="192x192" type="image/png"/>
+<meta content="#03070F" name="theme-color"/>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&amp;family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,450;0,9..40,500;0,9..40,600;1,9..40,400&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&amp;display=optional" rel="stylesheet"/>
+<style>
+:root{
+  --void:#03070F;
+  --ink-900:#060B14;
+  --ink-800:#0A1322;
+  --ink-700:#0E1B2E;
+  --raised:#122140;
 
-  <style>
-    @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=Syne:wght@400;500;600;700&family=DM+Mono:wght@300;400&display=swap');
+  --gold:#C4A050;
+  --gold-bright:#E7C687;
+  --gold-dim:rgba(196,160,80,0.08);
+  --gold-glow:rgba(196,160,80,0.20);
+  --line:rgba(196,160,80,0.14);
+  --line-soft:rgba(196,160,80,0.08);
 
-    :root {
-      --navy-deep:  #050C1A;
-      --navy:       #0A1628;
-      --navy-mid:   #0F1F3D;
-      --navy-light: #1a2d50;
-      --gold:       #C8962E;
-      --gold-light: #C9A84C;
-      --gold-pale:  #e8c97a;
-      --cream:      #F5F0E8;
-      --cream-dim:  #EDE7D8;
-      --white:      #FFFFFF;
-      --muted:      #8A9BBF;
-      --border:     rgba(200,150,46,0.18);
-    }
+  --paper:#F4F0E6;
+  --body-text:#D9DEE7;
+  --muted:#93A0B4;
+  --dim:#57647A;
 
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    html {
-      scroll-behavior: smooth;
-      -webkit-text-size-adjust: 100%;
-      -moz-text-size-adjust: 100%;
-      text-size-adjust: 100%;
-    }
+  --syne:'Syne','Century Gothic','Futura',system-ui,sans-serif;
+  --mono:'Space Mono',monospace;
+  --sans:'DM Sans',system-ui,sans-serif;
 
-    body {
-      background: var(--navy-deep);
-      color: var(--cream);
-      font-family: 'Cormorant Garamond', Georgia, serif;
-      min-height: 100vh;
-      -webkit-font-smoothing: antialiased;
-      -webkit-text-size-adjust: 100%;
-      text-size-adjust: 100%;
-    }
+  --measure:680px;
+  --wide:960px;
+  --radius-sm:3px;
+  --radius-md:6px;
+  --ease:cubic-bezier(.22,.61,.36,1);
+}
 
-    /* ── Top bar ── */
-    .topbar {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 24px 40px;
-      border-bottom: 1px solid var(--border);
-    }
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;background:var(--void);}
+@media (prefers-reduced-motion:reduce){
+  html{scroll-behavior:auto;}
+  *,*::before,*::after{animation-duration:0.01ms !important;animation-iteration-count:1 !important;transition-duration:0.01ms !important;scroll-behavior:auto !important;}
+}
+body{
+  background:var(--void);
+  color:var(--body-text);
+  font-family:var(--sans);
+  font-weight:400;
+  line-height:1.7;
+  -webkit-font-smoothing:antialiased;
+  text-rendering:optimizeLegibility;
+  overflow-x:hidden;
+  min-height:100vh;
+}
+a{color:var(--gold-bright);text-decoration:none;transition:color .18s var(--ease);}
+a:hover{color:var(--paper);}
+a:focus-visible{outline:2px solid var(--gold-bright);outline-offset:3px;border-radius:2px;}
 
-    .topbar__logo {
-      font-family: 'Syne', sans-serif;
-      font-size: 0.85rem;
-      font-weight: 700;
-      letter-spacing: 0.18em;
-      text-transform: uppercase;
-      color: var(--white);
-      text-decoration: none;
-    }
+.atmosphere{
+  position:fixed;inset:0;z-index:0;pointer-events:none;
+  background:
+    radial-gradient(1100px 620px at 12% -8%, rgba(196,160,80,0.10), transparent 60%),
+    radial-gradient(900px 700px at 100% 10%, rgba(127,179,213,0.06), transparent 55%),
+    var(--void);
+}
+.atmosphere::after{
+  content:'';position:absolute;inset:0;
+  background-image:radial-gradient(rgba(255,255,255,0.035) 1px, transparent 1px);
+  background-size:3px 3px;
+  opacity:.35;
+  mix-blend-mode:overlay;
+}
 
-    .topbar__logo span { color: var(--gold); }
+header.site-header{
+  position:static;
+  background:rgba(3,7,10,0.72);
+  backdrop-filter:blur(14px) saturate(140%);
+  -webkit-backdrop-filter:blur(14px) saturate(140%);
+  border-bottom:1px solid var(--line);
+}
+nav.site-nav{
+  max-width:var(--wide);margin:0 auto;padding:16px 24px;
+  display:flex;align-items:center;justify-content:space-between;
+  position:relative;z-index:1;
+}
+.logo{font-family:var(--syne);font-weight:800;font-size:16px;letter-spacing:.2px;color:var(--paper);display:flex;align-items:center;gap:7px;}
+.logo .sigil{color:var(--gold);font-size:15px;}
+.logo em{font-style:normal;color:var(--gold);}
+.navlinks{display:flex;gap:24px;align-items:center;}
+.navlinks a.cta{
+  color:var(--void);background:var(--gold);padding:10px 18px;border-radius:2px;
+  font-family:var(--syne);font-weight:700;font-size:13px;letter-spacing:.01em;
+  transition:background .18s var(--ease), transform .18s var(--ease);
+}
+.navlinks a.cta:hover{background:var(--gold-bright);transform:translateY(-1px);color:var(--void);}
 
-    .topbar__back {
-      font-family: 'DM Mono', monospace;
-      font-size: 0.72rem;
-      letter-spacing: 0.14em;
-      text-transform: uppercase;
-      color: var(--muted);
-      text-decoration: none;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      transition: color 0.2s;
-    }
+.page-header{
+  position:relative;z-index:1;max-width:var(--wide);margin:0 auto;
+  padding:clamp(56px,9vw,88px) 24px clamp(40px,6vw,56px);
+  border-bottom:1px solid var(--line);
+}
+.eyebrow{
+  font-family:var(--mono);font-size:11px;letter-spacing:.22em;text-transform:uppercase;
+  color:var(--gold);display:inline-flex;align-items:center;gap:8px;margin-bottom:20px;
+}
+.eyebrow::before{content:'◈';font-size:11px;color:var(--gold);}
+.page-header h1{
+  font-family:var(--syne);font-weight:800;color:var(--paper);
+  font-size:clamp(30px,5.6vw,48px);line-height:1.08;letter-spacing:-0.022em;
+  margin-bottom:16px;text-wrap:balance;
+}
+.page-header .sub{font-size:clamp(15px,1.8vw,17px);color:var(--muted);max-width:60ch;line-height:1.6;}
 
-    .topbar__back:hover { color: var(--gold-light); }
+.posts-grid{
+  position:relative;z-index:1;max-width:var(--wide);margin:0 auto;
+  padding:clamp(40px,6vw,56px) 24px clamp(72px,10vw,100px);
+  display:grid;grid-template-columns:1fr 1fr;gap:20px;
+}
+@media (max-width:760px){
+  .posts-grid{grid-template-columns:1fr;}
+}
 
-    /* ── Page header ── */
-    .page-header {
-      max-width: 860px;
-      margin: 0 auto;
-      padding: 72px 40px 48px;
-      border-bottom: 1px solid var(--border);
-    }
+.post-card{
+  background:var(--ink-800);border:1px solid var(--line);border-top:2px solid var(--gold);
+  border-radius:var(--radius-md);padding:28px 26px 22px;
+  display:flex;flex-direction:column;
+  transition:border-color .18s var(--ease), background .18s var(--ease), transform .18s var(--ease);
+}
+.post-card:hover{
+  border-color:var(--gold);background:var(--ink-700);transform:translateY(-2px);
+}
+.post-card .tag{
+  font-family:var(--mono);font-size:10.5px;letter-spacing:.18em;text-transform:uppercase;
+  color:var(--gold);margin-bottom:16px;
+}
+.post-card h2{
+  font-family:var(--syne);font-weight:700;color:var(--paper);
+  font-size:clamp(19px,2.4vw,22px);line-height:1.25;letter-spacing:-0.01em;
+  margin-bottom:14px;text-wrap:balance;
+}
+.post-card h2 em{font-style:italic;color:var(--gold-bright);font-family:var(--syne);}
+.post-card p{
+  font-size:15px;color:var(--muted);line-height:1.65;flex:1;margin-bottom:24px;max-width:none;
+}
+.post-card .footer{
+  display:flex;align-items:center;justify-content:space-between;
+  border-top:1px solid var(--line);padding-top:16px;
+}
+.post-card .read{
+  font-family:var(--syne);font-size:13px;font-weight:700;letter-spacing:.04em;color:var(--gold-bright);
+}
+.post-card .arrow{color:var(--gold);transition:transform .18s var(--ease);}
+.post-card:hover .arrow{transform:translateX(4px);}
 
-    .page-eyebrow {
-      font-family: 'DM Mono', monospace;
-      font-size: 11px;
-      letter-spacing: 0.22em;
-      text-transform: uppercase;
-      color: var(--gold);
-      margin-bottom: 20px;
-    }
-
-    .page-title {
-      font-family: 'Cormorant Garamond', serif;
-      font-size: clamp(2rem, 5vw, 3.2rem);
-      font-weight: 300;
-      color: var(--white);
-      line-height: 1.1;
-      margin-bottom: 16px;
-    }
-
-    .page-sub {
-      font-family: 'Syne', sans-serif;
-      font-size: 0.92rem;
-      color: var(--muted);
-      line-height: 1.6;
-    }
-
-    /* ── Post grid ── */
-    .posts-grid {
-      max-width: 860px;
-      margin: 0 auto;
-      padding: 56px 40px 100px;
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 28px;
-    }
-
-    @media (max-width: 640px) {
-      .topbar { padding: 20px 24px; }
-      .page-header { padding: 48px 24px 36px; }
-      .posts-grid {
-        grid-template-columns: 1fr;
-        padding: 40px 24px 80px;
-      }
-    }
-
-    /* ── Post card ── */
-    .post-card {
-      background: var(--navy-mid);
-      border: 1px solid var(--border);
-      border-top: 2px solid var(--gold);
-      padding: 36px 32px 28px;
-      display: flex;
-      flex-direction: column;
-      text-decoration: none;
-      transition: border-color 0.2s, background 0.2s;
-      position: relative;
-    }
-
-    .post-card:hover {
-      border-color: var(--gold-light);
-      background: var(--navy-light);
-    }
-
-    .post-card__tag {
-      font-family: 'DM Mono', monospace;
-      font-size: 10px;
-      letter-spacing: 0.2em;
-      text-transform: uppercase;
-      color: var(--gold);
-      margin-bottom: 18px;
-    }
-
-    .post-card__title {
-      font-family: 'Cormorant Garamond', serif;
-      font-size: clamp(1.35rem, 2.5vw, 1.7rem);
-      font-weight: 400;
-      color: var(--white);
-      line-height: 1.22;
-      margin-bottom: 16px;
-    }
-
-    .post-card__title em {
-      font-style: italic;
-      color: var(--gold-light);
-    }
-
-    .post-card__excerpt {
-      font-size: 0.93rem;
-      color: var(--muted);
-      line-height: 1.7;
-      flex: 1;
-      margin-bottom: 28px;
-    }
-
-    .post-card__footer {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      border-top: 1px solid var(--border);
-      padding-top: 18px;
-    }
-
-    .post-card__read {
-      font-family: 'Syne', sans-serif;
-      font-size: 0.75rem;
-      font-weight: 600;
-      letter-spacing: 0.16em;
-      text-transform: uppercase;
-      color: var(--gold-light);
-    }
-
-    .post-card__arrow {
-      font-size: 1rem;
-      color: var(--gold);
-      transition: transform 0.2s;
-    }
-
-    .post-card:hover .post-card__arrow {
-      transform: translateX(4px);
-    }
-
-    /* ── Bottom bar ── */
-    .bottom-bar {
-      text-align: center;
-      padding: 0 0 60px;
-      font-family: 'DM Mono', monospace;
-      font-size: 11px;
-      letter-spacing: 0.12em;
-      color: var(--border);
-    }
-  </style>
+footer.site-footer{
+  position:relative;z-index:1;text-align:center;padding:0 24px 56px;
+  font-family:var(--mono);font-size:11px;letter-spacing:.1em;color:var(--dim);
+}
+footer.site-footer a{color:var(--dim);}
+footer.site-footer a:hover{color:var(--gold-bright);}
+</style>
 </head>
 <body>
 
-  <!-- Top bar -->
-  <nav class="topbar">
-    <a class="topbar__logo" href="/">Neural<span>Fusion</span>™</a>
-    <a class="topbar__back" href="/">← Back to Platform</a>
-  </nav>
+<div class="atmosphere" aria-hidden="true"></div>
 
-  <!-- Page header -->
-  <header class="page-header">
-    <p class="page-eyebrow">NeuralFusion™ Insights</p>
-    <h1 class="page-title">The Blog</h1>
-    <p class="page-sub">Science-informed writing on cognitive performance, fragmentation, and the architecture of clear thinking.</p>
-  </header>
+<header class="site-header">
+<nav class="site-nav">
+<a class="logo" href="https://tryneuralfusion.com/"><span class="sigil">◈</span> Neural<em>Fusion</em>™</a>
+<div class="navlinks">
+<a class="cta" href="https://tryneuralfusion.com/">Start Free →</a>
+</div>
+</nav>
+</header>
 
-  <!-- Posts -->
-  <main class="posts-grid">
+<main>
 
-    <!-- Post 1 — existing -->
-    <a class="post-card" href="/blog/why-your-brain-cant-think-clearly">
-      <p class="post-card__tag">Cognitive Performance</p>
-      <h2 class="post-card__title">Why Your Brain<br>Can't Think Clearly</h2>
-      <p class="post-card__excerpt">The overlooked cognitive patterns that silently drain your capacity for clear, effective thinking, and what to do about them.</p>
-      <div class="post-card__footer">
-        <span class="post-card__read">Read Article</span>
-        <span class="post-card__arrow">→</span>
-      </div>
-    </a>
+<header class="page-header">
+<p class="eyebrow">NeuralFusion™ Insights</p>
+<h1>The Blog</h1>
+<p class="sub">Science-informed writing on cognitive performance, fragmentation, and the architecture of clear thinking.</p>
+</header>
 
-    <!-- Post 2 -->
-    <a class="post-card" href="/blog/your-brain-isnt-broken-its-fragmented">
-      <p class="post-card__tag">Four Modes Framework</p>
-      <h2 class="post-card__title">Your Brain Isn't Broken.<br><em>It's Fragmented.</em></h2>
-      <p class="post-card__excerpt">The real reason high performers feel stuck, scattered, and quietly exhausted, and the cognitive framework built to fix it.</p>
-      <div class="post-card__footer">
-        <span class="post-card__read">Read Article</span>
-        <span class="post-card__arrow">→</span>
-      </div>
-    </a>
+<section class="posts-grid">
 
-    <!-- Post 3 — new -->
-    <a class="post-card" href="/blog/cognitive-performance-operating-system">
-      <p class="post-card__tag">Cognitive Performance OS</p>
-      <h2 class="post-card__title">The Cognitive Performance<br><em>Operating System</em></h2>
-      <p class="post-card__excerpt">Your mind is the only operating system you never upgrade. How NeuralFusion™ measures, trains, and optimizes the way you think.</p>
-      <div class="post-card__footer">
-        <span class="post-card__read">Read Article</span>
-        <span class="post-card__arrow">→</span>
-      </div>
-    </a>
+<a class="post-card" href="/blog/why-your-brain-cant-think-clearly">
+<p class="tag">Cognitive Performance</p>
+<h2>Why Your Brain Can't Think Clearly</h2>
+<p>The overlooked cognitive patterns that silently drain your capacity for clear, effective thinking, and what to do about them.</p>
+<div class="footer">
+<span class="read">Read Article</span>
+<span class="arrow">→</span>
+</div>
+</a>
 
-  </main>
+<a class="post-card" href="/blog/your-brain-isnt-broken-its-fragmented">
+<p class="tag">Four Modes Framework</p>
+<h2>Your Brain Isn't Broken. <em>It's Fragmented.</em></h2>
+<p>The real reason high performers feel stuck, scattered, and quietly exhausted, and the cognitive framework built to fix it.</p>
+<div class="footer">
+<span class="read">Read Article</span>
+<span class="arrow">→</span>
+</div>
+</a>
 
-  <p class="bottom-bar">© NeuralFusion™ | TryNeuralFusion.com</p>
+<a class="post-card" href="/blog/cognitive-performance-operating-system">
+<p class="tag">Cognitive Performance OS</p>
+<h2>The Cognitive Performance <em>Operating System</em></h2>
+<p>Your mind is the only operating system you never upgrade. How NeuralFusion™ measures, trains, and optimizes the way you think.</p>
+<div class="footer">
+<span class="read">Read Article</span>
+<span class="arrow">→</span>
+</div>
+</a>
+
+</section>
+
+</main>
+
+<footer class="site-footer">
+<p>◈ NEURALFUSION™ · <a href="https://tryneuralfusion.com/">tryneuralfusion.com</a></p>
+</footer>
 
 </body>
 </html>
