@@ -215,8 +215,9 @@ nav.site-nav{
   font-size:clamp(1.6rem,6vw,2.75rem);
   line-height:1.15;letter-spacing:-0.012em;
   margin:12px auto 12px;color:var(--paper);
-  max-width:100%;
+  max-width:22ch;
   text-align:center;
+  text-wrap:balance;
   overflow-wrap:break-word;
   word-break:normal;
 }
@@ -390,7 +391,7 @@ footer.site-footer a{color:var(--gold);}
    ============================================================ */
 @media (max-width:640px){
   .hero{padding:52px 20px 36px;}
-  .hero h1{}
+  .hero h1{font-size:clamp(1.5rem,8vw,1.9rem);text-wrap:balance;max-width:19ch;margin-left:auto;margin-right:auto;}
   .hero .sub{font-size:14px;}
   .hero .intro{margin-bottom:28px;}
   .modes-grid{grid-template-columns:1fr;}
@@ -433,7 +434,7 @@ footer.site-footer a{color:var(--gold);}
   </div>
   <div class="hero-content">
     <span class="eyebrow">Cognitive Performance Operating System</span>
-    <h1>Your Mind Is the Only Operating System<br/>You Never Upgrade</h1>
+    <h1>Your Mind Is the Only Operating System You Never Upgrade</h1>
     <p class="sub">NeuralFusion™ is the world's first Cognitive Performance Operating System: a structured way to measure, train, and optimize how you think.</p>
     <p class="intro">Information is no longer scarce. Thinking clearly still is. NeuralFusion™ helps individuals, teams, and organizations close that gap, not by thinking for you, but by training you to think better.</p>
     <div class="cta-row">
