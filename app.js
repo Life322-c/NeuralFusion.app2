@@ -101,43 +101,764 @@ const { useState, useEffect, useCallback, useRef, useMemo } = React;
 
     // ── Lesson Data ───────────────────────────────────────────────────
     const LESSONS = [
-      { id:1, title:'Foundation of Integrated Cognition', sub:'Understand the Four Brains. Begin control.', level:'Foundation', free:true, duration:'12 min', brain:'all' },
-      { id:2, title:'Brain Mode Activation & Switching', sub:'Enter and exit thinking modes deliberately.', level:'Intermediate', free:false, duration:'15 min', brain:'analytical' },
-      { id:3, title:'Synthesis & Decision Architecture', sub:'Convert cognitive fragmentation into unified decisions.', level:'Intermediate', free:false, duration:'18 min', brain:'associative' },
-      { id:4, title:'Cognitive Stabilization Under Pressure', sub:'Maintain mental clarity when urgency strikes.', level:'Advanced', free:false, duration:'20 min', brain:'reflective' },
-      { id:5, title:'Cognitive Fluency Installation', sub:'From deliberate effort to automatic integration.', level:'Mastery', free:false, duration:'16 min', brain:'intuitive' },
+      { id:1, title:'Foundation of Integrated Cognition', sub:'Understand the Four Brains. Begin control.', level:'Foundation', free:true, duration:'25 min', brain:'all' },
+      { id:2, title:'Brain Mode Activation & Switching', sub:'Enter and exit thinking modes deliberately.', level:'Intermediate', free:false, duration:'28 min', brain:'analytical' },
+      { id:3, title:'Synthesis & Decision Architecture', sub:'Convert cognitive fragmentation into unified decisions.', level:'Intermediate', free:false, duration:'32 min', brain:'associative' },
+      { id:4, title:'Cognitive Stabilization Under Pressure', sub:'Maintain mental clarity when urgency strikes.', level:'Advanced', free:false, duration:'32 min', brain:'reflective' },
+      { id:5, title:'Cognitive Fluency Installation', sub:'From deliberate effort to automatic integration.', level:'Mastery', free:false, duration:'26 min', brain:'intuitive' },
+      { id:6, title:'Field Reference & Certification', sub:'Glossary, templates, scorecard, and the Final Assessment.', level:'Reference', free:true, duration:'30 min', brain:'all' },
     ];
 
     const LESSON_CONTENT = {
       1: { pages: [
-        { title: 'What is NeuralFusion™?', body: 'NeuralFusion™ is a cognitive performance operating system: not a productivity tool, not a wellness app, not a personality framework.\n\nIt is a structured system for training how you think.\n\nMost people have never been taught the mechanics of thinking itself. They have been taught what to think. They have been taught facts, beliefs, and behaviors. But not the cognitive architecture that produces them.\n\nNeuralFusion™ changes that.' },
-        { title: 'The Four Brains Framework', body: 'Every human being operates through four fundamental thinking modes. These are not personality types; they are cognitive instruments:\n\n◰ ANALYTICAL BRAIN: Logic, structure, evidence, precision\n◱ INTUITIVE BRAIN: Pattern recognition, signal, gut intelligence\n◲ ASSOCIATIVE BRAIN: Creative connection, synthesis, lateral expansion\n◳ REFLECTIVE BRAIN: Meta-cognition, meaning, self-awareness\n\nMost people are dominated by one or two modes and barely activate the others. This is cognitive fragmentation, and it is the source of most poor thinking.' },
-        { title: 'The Integration Protocol', body: 'NeuralFusion™ trains you to deliberately activate all four brains in sequence:\n\n1. DECOMPOSE: Analytical Brain activates. Break the problem into precise parts.\n2. SENSE: Intuitive Brain activates. Read the signal beneath the data.\n3. EXPAND: Associative Brain activates. Generate connections and alternatives.\n4. REFLECT: Reflective Brain activates. Evaluate and synthesize.\n5. FUSE: All four outputs integrate into a unified cognitive position.\n\nThis is the Core Loop. With training, it completes in under 90 seconds.' },
-        { title: 'First Activation Exercise', body: 'Select a real situation you are currently navigating.\n\nActivate each brain deliberately:\n\n◰ ANALYTICAL: State the situation as pure fact. No interpretation. No emotion. Just structure.\n◱ INTUITIVE: Pause. What does your gut signal? What feels true before analysis arrives?\n◲ ASSOCIATIVE: What else is this connected to? What pattern have you seen before? What alternative frame exists?\n◳ REFLECTIVE: What does this reveal about your thinking? What assumption is operating below the surface?\n\nWrite one sentence for each brain. Observe what emerges when all four speak.' },
+        { title: `Learning Objectives`, body: `By the end of Lesson One, you will be able to:
+
+1. Explain what NeuralFusion™ is and the specific problem it is designed to solve.
+2. Identify each of the Four Brains by name and function.
+3. Walk through the four stages of the NeuralFusion™ Core Loop from memory.
+4. Complete a first conscious NeuralFusion™ cycle on a real issue from your own life.
+5. Begin noticing, in real time, which brain is currently active.
+
+WHY THIS LESSON MATTERS
+
+Every advanced skill in this curriculum (synthesis, stabilization, automatic fluency) is built on the foundation established here. If you rush Lesson One, later lessons will feel abstract, because you will be trying to switch and integrate brains you have not yet learned to recognize.
+
+Think of this lesson as installing the map before you learn to navigate. Once you can name what is happening in your own mind, "this is Analytical," "this is Intuitive," you gain the first form of control: the ability to observe your thinking instead of simply being carried by it.` },
+        { title: `Cognitive Principles`, body: `Two principles anchor this lesson, and both recur throughout the curriculum.
+
+PRINCIPLE 1: FRAGMENTATION IS THE DEFAULT, NOT THE EXCEPTION
+
+Left untrained, the mind moves between logic, emotion, memory, and impulse in an unstructured way. This is not a personal failing. It is simply what happens when thinking has no deliberate structure applied to it. NeuralFusion™ calls this cognitive fragmentation: the experience of thinking in disconnected pieces rather than as one coordinated process.
+
+PRINCIPLE 2: INTEGRATION IS TRAINABLE
+
+The Four Brains are not new; every person already uses all four. What NeuralFusion™ adds is a trainable method for engaging them on purpose, in sequence, so their outputs combine into a single, usable conclusion instead of competing with each other.` },
+        { title: `What Is NeuralFusion™?`, body: `NeuralFusion™ is a structured mental skill that trains the brain to combine multiple thinking modes intentionally, instead of relying on only one at a time.
+
+Most untrained thinking happens in fragments:
+
+· Logic without intuition: decisions that are technically correct but feel wrong, and are later abandoned.
+· Creativity without structure: good ideas that never convert into a workable plan.
+· Emotion without reflection: reactive choices made under pressure, regretted once the pressure passes.
+
+NeuralFusion™ teaches you how to fuse these modes into one coordinated thinking loop, so their strengths combine instead of colliding.
+
+KEY TAKEAWAY: NeuralFusion™ is not intelligence. It is control over intelligence. You already have every raw thinking capacity you need. This system trains you to direct it.` },
+        { title: `The Problem NeuralFusion™ Solves`, body: `The modern mind is exposed to more information, more competing demands, and more emotional pressure than at almost any point in human history. Left unmanaged, this produces five recognizable symptoms:
+
+1. Overthinking: circling the same decision without reaching resolution.
+2. Mental confusion: difficulty locating a clear next step, even on familiar problems.
+3. Poor decisions: choices driven by whichever brain is loudest in the moment, not the one best suited to the problem.
+4. Emotional reactivity: responding to pressure instead of to the actual situation.
+5. Inconsistent focus: attention that shifts randomly rather than by intention.
+
+These symptoms share a single root cause: the brain is switching modes randomly, without a structure to organize the switch. NeuralFusion™ introduces that structure.` },
+        { title: `The Four Brains, Revisited`, body: `NeuralFusion™ works by consciously activating and integrating four natural thinking modes that every person already possesses:
+
+▰ ANALYTICAL: Logic, structure, and facts. The mode of breakdown, planning, and precision.
+
+▱ INTUITIVE: Gut feeling, insight, and pattern recognition. The mode of fast judgment and direction.
+
+▲ ASSOCIATIVE: Creativity, connection, and idea generation. The mode of expansion and new options.
+
+△ REFLECTIVE: Self-awareness, evaluation, and meaning. The mode of learning and long-term perspective.
+
+Every human being has access to all four brains. Very few people are ever taught to coordinate them on purpose; most simply default to whichever mode habit, mood, or urgency selects for them.` },
+        { title: `The NeuralFusion™ Core Loop`, body: `NeuralFusion™ operates through a simple, repeatable four-stage loop:
+
+1. DECOMPOSITION: Break the problem or thought into clear, separate parts.
+2. MODE SWITCHING: Intentionally activate the brain best suited to each part.
+3. SYNTHESIS: Combine the outputs of each brain into one unified insight.
+4. STABILIZATION: Lock in the resulting clarity and reduce mental noise.
+
+With training, this loop can be completed in under a minute. At the beginner stage, expect it to take several minutes. Speed comes later, in Lesson Five.` },
+        { title: `Real-World Applications`, body: `BUSINESS: A founder is deciding whether to raise external funding. Analytical reviews the numbers. Intuitive surfaces unease about losing independence. Associative generates a middle option: a smaller raise from aligned investors. Reflective asks what kind of company the founder actually wants to build. Synthesis merges these into one direction; stabilization locks it in.
+
+LEADERSHIP: A manager must decide whether to address a team conflict directly or let it resolve on its own. Analytical weighs delivery timelines. Intuitive senses that avoidance will make it worse. Associative considers a facilitated conversation. Reflective asks what kind of leader this decision reflects.
+
+STUDENT: A student is choosing between two elective courses. Analytical compares workload and grading. Intuitive notices genuine excitement about one subject. Associative considers how each connects to future goals. Reflective asks which choice will still feel right in a year.
+
+DAILY LIFE: Someone is deciding how to respond to a frustrating text message. Analytical reviews what was actually said. Intuitive notices the emotional charge. Associative considers alternative interpretations. Reflective asks what response actually serves the relationship.` },
+        { title: `Try It Now`, body: `Pick one of the four examples above that most resembles a situation in your own life right now.
+
+Write one sentence for what each brain, Analytical, Intuitive, Associative, Reflective, would say about it.
+
+Notice which brain you would have defaulted to if you had not paused to check the other three.` },
+        { title: `First Guided Practice: Conscious Thought Control`, body: `This is your first full pass through the NeuralFusion™ Core Loop. Use a real issue: something mildly unresolved in your life right now, not a hypothetical.
+
+WORKSHEET
+
+1. Sit comfortably and relax your body for a few breaths.
+2. Choose a simple issue you are currently facing.
+3. Decomposition: write the issue in one sentence.
+4. Analytical: list facts only, no emotion, no interpretation.
+5. Intuitive: pause, then write your immediate gut response.
+6. Associative: write three ideas or connections related to the issue.
+7. Reflective: ask, "What does this teach me?" and write the answer.
+8. Observe how your sense of clarity has changed compared to when you started.
+
+EXPERT TIP: Write your answers down rather than doing this exercise purely in your head. The act of writing forces true mode separation; without it, brains tend to blur together.` },
+        { title: `Reflection Questions & Practice Exercises`, body: `REFLECTION QUESTIONS
+
+· Which of the four brains did you notice yourself using most often today, before reading this lesson?
+· Which brain do you tend to trust the least, and why?
+· Describe a recent decision that might have gone differently if you had consciously used all four brains.
+· What does "mental leadership" mean to you after completing the first guided practice?
+
+EXERCISE A: MODE NAMING
+Throughout one full day, pause five separate times and silently name which brain is currently active. No action is required beyond naming it; this builds raw awareness, the prerequisite for all later control.
+
+EXERCISE B: THE ONE-SENTENCE DECOMPOSITION
+Take any problem that feels overwhelming and force yourself to write it as a single sentence. Notice how much of the overwhelm was actually the problem itself, versus the absence of decomposition.
+
+DECISION DRILL: LOW-STAKES FUSION
+Choose a low-stakes decision you would normally make instantly. Deliberately run it through all four brains before deciding. The goal is not a better decision; it is building the habit of consulting all four.` },
+        { title: `Common Mistakes & Success Indicators`, body: `COMMON MISTAKES
+
+· Treating this as a one-time exercise rather than a repeatable skill; awareness fades quickly without practice.
+· Skipping the writing step and trying to do the loop entirely in your head, which allows brains to blur together.
+· Judging your gut response (Intuitive) as "wrong" before giving it a fair hearing alongside the other brains.
+· Expecting instant speed; at the beginner stage, a slow, deliberate loop is the goal, not a fast one.
+
+SUCCESS INDICATORS
+
+· You can name, without hesitation, all four brains and their core function.
+· You catch yourself mid-thought and can identify which brain you are currently in.
+· The one-sentence decomposition step feels clarifying rather than reductive.
+· You completed the full guided practice worksheet on a real issue, not a hypothetical one.` },
+        { title: `Key Insight, Recap & Assignment`, body: `KEY INSIGHT: You are not your thoughts. You are the conductor of them. NeuralFusion™ trains mental leadership: the ability to direct thinking rather than be directed by it.
+
+END-OF-LESSON RECAP
+
+· NeuralFusion™ is a trainable skill that fuses four natural brains into one coordinated process.
+· Fragmented thinking produces overthinking, confusion, and poor decisions.
+· The Four Brains are Analytical, Intuitive, Associative, and Reflective.
+· The Core Loop, Decomposition, Mode Switching, Synthesis, Stabilization, is the engine of every later lesson.
+· Awareness of your current brain is the first and most essential form of control.
+
+ASSIGNMENT (Next 24 Hours)
+
+1. Observe when your thinking becomes chaotic or overwhelmed.
+2. Pause and ask: "Which brain am I stuck in?"
+3. Write one short reflection on what you noticed.
+
+No perfection is required at this stage. Awareness itself is progress.` }
       ]},
       2: { pages: [
-        { title: 'The Architecture of Mental Control', body: 'Mental control is not suppression. It is not forced calm. It is not discipline over thought.\n\nMental control is the ability to choose which brain is operating at any given moment.\n\nMost people have no access to this choice. Their brains switch automatically, driven by emotion, habit, urgency, and fear. NeuralFusion™ installs the switch.\n\nYou do not control what happens. You control which cognitive mode processes it.' },
-        { title: 'Brain Mode Entry Signals', body: 'Each brain has a deliberate activation protocol:\n\n◰ ANALYTICAL ENTRY: Ask, "What are the verifiable facts here?"\nThis collapses emotion and engages structural processing.\n\n◱ INTUITIVE ENTRY: Pause for 3 seconds. Ask, "What does my body signal?"\nThis quiets logic noise and allows pattern data to surface.\n\n◲ ASSOCIATIVE ENTRY: Ask, "What does this remind me of? What else is this?"\nThis triggers lateral thinking and cross-domain connection.\n\n◳ REFLECTIVE ENTRY: Ask, "What does this reveal about my thinking?"\nThis activates meta-cognition and recursive self-evaluation.' },
-        { title: 'The Mode Switching Drill', body: 'Exercise: Deliberate Mode Cycling (8 minutes)\n\nChoose a current challenge.\n\nSet a 90-second timer for each brain:\n◰ 90 sec → List only facts. No judgment.\n◱ 90 sec → Write your gut signal. No editing.\n◲ 90 sec → Write 3 unexpected connections or alternatives.\n◳ 90 sec → Write one honest observation about your own thinking.\n\nThen synthesize: write one sentence that integrates all four outputs.\n\nThis is cognitive mode training. Repeat daily for 14 days.' },
-        { title: 'Emergency Cognitive Reset', body: 'When mental state becomes overwhelmed:\n\n1. IDENTIFY: Which brain is currently dominating? (Usually Intuitive under fear, or Analytical under stress)\n2. NAME IT: "I am in Analytical overdrive."\n3. SWITCH: Deliberately activate Reflective Brain: "What is one thing I can observe about this moment?"\n4. RETURN: From Reflective, you can consciously choose the next mode.\n\nThe reset protocol takes under 60 seconds.\n\nKey insight: The goal is not to eliminate any brain mode. Every mode has intelligence. The goal is to choose, not react.' },
+        { title: `Learning Objectives`, body: `By the end of Lesson Two, you will be able to:
+
+1. Recognize your dominant, default brain without conscious effort.
+2. Enter and exit any of the Four Brains on command, using a specific activation question.
+3. Identify the risk of overusing any single brain and correct for it.
+4. Apply the Emergency Reset protocol to interrupt mental overload within a minute.
+
+WHY THIS LESSON MATTERS
+
+Lesson One taught you to notice which brain is active. Lesson Two teaches you to choose it. This is the difference between observing your weather and being able to change it. Without this skill, awareness alone can become a passive habit: you notice you are overthinking, but you stay stuck in it. Mode activation gives you the lever to move.` },
+        { title: `Cognitive Principles & The Core Truth`, body: `PRINCIPLE 1: REACTION IS THE DEFAULT STATE
+
+Most people do not think; they react. Thoughts appear automatically because the brain defaults to habit, emotion, or urgency rather than deliberate selection. This is efficient for survival, but poorly suited to complex modern decisions.
+
+PRINCIPLE 2: CONTROL BEGINS AT THE POINT OF CHOICE
+
+NeuralFusion™ replaces reaction with activation. Control does not begin when a decision is made; it begins the moment you choose how to think about the situation in the first place.
+
+KEY TAKEAWAY: Reaction is automatic. Activation is chosen. Every time you pause before a default thought pattern takes over, you are practicing NeuralFusion™.` },
+        { title: `Each Brain: Best Use & Overuse Risk`, body: `Lesson One introduced the four brains by function. Lesson Two adds a second dimension: what each brain is best used for, and the specific risk that appears when it is overused.
+
+▰ ANALYTICAL (Precision): Best for decisions, planning, and problem breakdown. Overused, it produces rigidity and overthinking.
+
+▱ INTUITIVE (Insight): Best for fast judgment, pattern sensing, and direction. Overused, it produces impulsiveness.
+
+▲ ASSOCIATIVE (Expansion): Best for creativity, new ideas, and connections. Overused, it produces distraction.
+
+△ REFLECTIVE (Meaning): Best for self-awareness, evaluation, and learning. Overused, it produces rumination.
+
+NeuralFusion™ is not about staying in one brain. It is about moving between all four deliberately, spending only as much time in each as the situation actually requires.` },
+        { title: `Mode Activation Signals`, body: `Each brain has a mental entry signal: a specific question that reliably switches your brain into that mode. Learning these signals is what gives you control.
+
+▰ ANALYTICAL: "What are the facts?"
+
+▱ INTUITIVE: Pause, then ask, "What feels correct?"
+
+▲ ASSOCIATIVE: "What else is this connected to?"
+
+△ REFLECTIVE: "What does this mean for me?"
+
+Questions are switches. Asking the right question is often enough, on its own, to shift which part of your mind is doing the work.` },
+        { title: `Real-World Applications`, body: `BUSINESS: A sales lead has gone quiet after weeks of promising conversation. The default reaction is anxious rumination, Reflective overused, spiraling. Applying the Analytical activation question interrupts the spiral: the facts are that the deal is delayed, not dead.
+
+LEADERSHIP: A manager receives a sharply worded email from a senior stakeholder. The default reaction is Intuitive alarm. Deliberately activating Analytical mode reveals the email is blunt in tone but not actually escalatory in content.
+
+STUDENT: A student receives a lower grade than expected and drops into Reflective rumination about their ability. Activating Associative mode surfaces a more useful angle: a fixable skill gap, not a fixed trait.
+
+DAILY LIFE: Someone feels a sudden urge to buy something impulsively while browsing online, Intuitive running unchecked. Activating Reflective mode creates enough of a pause to notice the impulse is about boredom, not need.` },
+        { title: `Try It Now`, body: `Recall the last time you felt "stuck" in a thought loop.
+
+Identify which brain you were likely overusing, using the risk list above.
+
+Say the activation question for a different brain out loud, right now, and notice the shift.` },
+        { title: `The NeuralFusion™ Switching Drill`, body: `This drill builds mode awareness by deliberately spending time in each of the four brains, back to back, on the same neutral topic.
+
+WORKSHEET: 7 MINUTES
+
+1. Sit upright and breathe slowly for a few seconds.
+2. Choose a neutral topic, for example, your day so far.
+3. Spend 60 seconds in Analytical mode: facts only.
+4. Spend 60 seconds in Intuitive mode: your gut response.
+5. Spend 60 seconds in Associative mode: ideas and connections.
+6. Spend 60 seconds in Reflective mode: meaning or lesson.
+7. Spend the remaining time noticing the distinct mental "texture" of each mode.
+
+EXPERT TIP: The goal is not the content you produce; it is building a felt sense of what each brain is like from the inside, so you can recognize it instantly in real situations.` },
+        { title: `Stopping Mental Overload: The Emergency Reset`, body: `When thoughts feel overwhelming, use this four-step protocol:
+
+1. Pause.
+2. Name the brain you are stuck in.
+3. Switch deliberately to Reflective mode.
+4. Ask: "What is one thing I can control right now?"
+
+This collapses noise into clarity by forcing a single, small, actionable focus, Reflective mode's natural function.
+
+KEY TAKEAWAY: Mental freedom is the ability to switch your thoughts, not escape them. NeuralFusion™ gives you that freedom through the Emergency Reset.` },
+        { title: `Reflection Questions & Practice Exercises`, body: `REFLECTION QUESTIONS
+
+· What is your default brain, and in which situations does it serve you least well?
+· Which activation question was hardest for you to use naturally? What made it difficult?
+· Describe a moment this week when the Emergency Reset would have helped, in hindsight.
+· How did the "texture" of each brain feel different during the Switching Drill?
+
+EXERCISE A: FORCED MODE ENTRY
+Three times today, deliberately activate a brain you are not currently in, using its activation question, regardless of the situation.
+
+DECISION DRILL: OVERUSE DETECTION
+Look back at a recent decision that did not go well. Identify which brain was likely overused. Name what the opposite, underused brain would have contributed.
+
+MENTAL TRAINING ACTIVITY: THE RESET REHEARSAL
+Even when not overwhelmed, rehearse the Emergency Reset once per day so it is already familiar when you actually need it under pressure.` },
+        { title: `Common Mistakes & Success Indicators`, body: `COMMON MISTAKES
+
+· Waiting until overload is severe before attempting the Emergency Reset; it works best used early.
+· Treating one brain as "better" than the others rather than situational.
+· Skipping the naming step in the Emergency Reset; naming the brain is what creates the separation needed to switch out of it.
+· Practicing the Switching Drill only once instead of repeating it until transitions feel distinct.
+
+SUCCESS INDICATORS
+
+· You can identify your default brain without needing to think hard about it.
+· You have used at least one activation question in a real, unplanned situation this week.
+· You can recite the Emergency Reset from memory.
+· You notice mode dominance, your own or observed in others, more often in daily life.` },
+        { title: `Recap & Assignment`, body: `END-OF-LESSON RECAP
+
+· Mental control begins at the point of choice, not after a thought has already run its course.
+· Each brain has a best use and a risk when overused: rigidity, impulsiveness, distraction, or rumination.
+· Each brain has a specific activation question that reliably switches you into it.
+· The Emergency Reset, Pause, Name, Switch to Reflective, Ask what you can control, interrupts overload in under a minute.
+
+ASSIGNMENT (Next 48 Hours)
+
+1. Identify your default brain in three separate situations.
+2. Practice switching brain deliberately at least once per day.
+3. Write one sentence on what changed as a result.
+
+Consistency builds mastery. A single successful switch matters less than repeating the practice across multiple days.` }
       ]},
       3: { pages: [
-        { title: 'Why Decisions Fragment', body: 'Most people make poor decisions not because they lack intelligence, but because their four brains are arguing.\n\nAnalytical says: "The data is unclear. Wait."\nIntuitive says: "Something feels wrong. Do not commit."\nAssociative says: "There is another option. Keep exploring."\nReflective says: "This does not align with your values."\n\nFour brains. Zero synthesis. No decision.\n\nNeuralFusion™ does not ask you to silence any brain. It trains you to integrate them into a single, unified cognitive position.' },
-        { title: 'The Synthesis Framework', body: 'After running all four brain modes, synthesis follows a precise sequence:\n\n1. EXTRACT: Identify the primary output from each brain. One sentence per mode.\n2. IDENTIFY CONFLICT: Where do the outputs contradict? Name it explicitly.\n3. RESOLVE CONFLICT: Which brain has the most relevant information for THIS decision? Grant it temporary authority.\n4. COMPRESS: Reduce all four outputs into one unified position. This is your synthesis.\n5. LOCK: Commit mentally to the synthesis. Stop reprocessing.\n\nThis is the Commitment Lock. Once activated, re-analysis requires new data, not old doubt.' },
-        { title: 'Recognizing Cognitive Loops', body: 'A cognitive loop occurs when you revisit a decision repeatedly without new information.\n\nSymptoms:\n· Returning to the same question multiple times\n· Feeling "something is off" without identifying what\n· Inability to commit despite having sufficient data\n· Mental exhaustion from circular thinking\n\nLoop Interruption Protocol:\n1. Name the loop: "I am in a decision loop about X"\n2. Identify the dominant brain: Which mode is generating the re-analysis?\n3. Perform a Reflective check: Is there actually new information? If no, lock the synthesis.\n4. Take one concrete action in the direction of the decision.' },
-        { title: 'The Unified Decision Protocol', body: 'Practice:\n\nChoose one decision you have been circling.\n\nRun each brain:\n◰ Facts only: what do I know for certain?\n◱ Gut signal: what does my instinct say, independent of logic?\n◲ Connections: what alternative frame or option have I not fully considered?\n◳ Reflection: what does my hesitation reveal about my values or assumptions?\n\nWrite one synthesis sentence: "Based on the integration of all four cognitive inputs, my position is: ____"\n\nActivate the Commitment Lock. Take one action within 10 minutes. Clarity becomes real through action, not more thinking.' },
+        { title: `Learning Objectives`, body: `By the end of Lesson Three, you will be able to:
+
+1. Explain why most decisions fail, in NeuralFusion™ terms.
+2. Define synthesis as integration rather than compromise.
+3. Apply the four-step Synthesis Framework: Extract, Align, Compress, Decide.
+4. Use the Commitment Lock to convert a decision into stable action.
+5. Respond to post-decision doubt without breaking a completed synthesis.
+
+WHY THIS LESSON MATTERS
+
+Lessons One and Two built awareness and control of individual brains. Lesson Three is where those separate skills become useful: converting multiple, sometimes contradictory, streams of thought into one decision you can actually act on. This is the core power of NeuralFusion™: most people are not short on information or ideas; they are short on a reliable method for integrating them.` },
+        { title: `Cognitive Principles`, body: `PRINCIPLE 1: FRAGMENTATION, NOT EFFORT, CAUSES DECISION FAILURE
+
+Decisions fail not because of a lack of intelligence but because of internal fragmentation: logic arguing with emotion, intuition contradicting the facts, creativity overwhelming focus. NeuralFusion™ ends this internal conflict by unifying the outputs of all four brains rather than letting one silence the others.
+
+PRINCIPLE 2: A FUSED MIND DOES NOT HESITATE
+
+Hesitation is frequently a symptom of unresolved fragmentation, not of an inherently difficult decision. Once brains are genuinely synthesized, the felt experience of the decision changes from uncertain to settled.
+
+KEY TAKEAWAY: NeuralFusion™ ends internal conflict by unifying outputs. A fused mind does not hesitate.` },
+        { title: `What Synthesis Really Means`, body: `Synthesis is not compromise. Synthesis is integration. Three conditions define real synthesis:
+
+· Each brain contributes something to the final conclusion.
+· No single brain dominates or silences the others.
+· One clear conclusion emerges from the combination.
+
+NeuralFusion™ treats the four brains as advisors, not rulers. Their role is to inform the decision, not to individually control it.` },
+        { title: `The NeuralFusion™ Synthesis Framework`, body: `After activating all four brains on a given decision, synthesis follows a strict, repeatable order:
+
+1. EXTRACT: Identify the single strongest output from each of the four brains.
+2. ALIGN: Check the four outputs for overlap and for direct contradiction.
+3. COMPRESS: Reduce the aligned outputs into one core insight.
+4. DECIDE: Commit mentally to a single direction based on that insight.
+
+KEY TAKEAWAY: Clarity is compression. The Synthesis Framework works because it forces multiple valid inputs down into one usable conclusion.` },
+        { title: `Real-World Applications`, body: `BUSINESS: A founder is deciding whether to enter a new market. Extract: Analytical surfaces strong demand data; Intuitive surfaces hesitation about timing; Associative surfaces a phased-entry option; Reflective surfaces a concern about spreading focus too thin. Align: the hesitation and the focus concern point the same direction. Compress: "enter, but only through the phased option." Decide: a limited pilot rather than a full launch.
+
+LEADERSHIP: A manager must decide whether to promote from within or hire externally. The four outputs converge on a hybrid path: promote internally, hire externally into a different open role. Decide: both moves happen together.
+
+STUDENT: A student choosing a thesis topic finds the two candidate topics can be partially combined into one integrated question that serves long-term interests.
+
+DAILY LIFE: Someone deciding whether to move to a new city finds all four brains align. The decision is made, and the Commitment Lock is applied so it is not relitigated every time nerves appear.` },
+        { title: `Try It Now`, body: `Think of a decision you are currently sitting on.
+
+Write one line of output for each brain: Analytical, Intuitive, Associative, Reflective.
+
+Underline where they already agree; that overlap is the seed of your synthesis.` },
+        { title: `Guided Practice: Full NeuralFusion™ Cycle`, body: `WORKSHEET: 10 MINUTES, ONE DECISION, ONE DIRECTION
+
+1. Choose a real decision you are currently facing.
+2. Write the Analytical output: facts and constraints.
+3. Write the Intuitive output: your strongest gut signal.
+4. Write the Associative output: your best idea or option.
+5. Write the Reflective output: the lesson or value at stake.
+6. Underline the common theme across all four.
+7. Write your decision as a single sentence.
+8. Read that sentence aloud, slowly.
+
+Most people notice a measurable reduction in mental tension once the one-sentence decision is written and read aloud; this is the felt signature of synthesis.` },
+        { title: `The Commitment Lock & Handling Doubt`, body: `THE COMMITMENT LOCK
+
+Most people can think clearly but still fail to commit. Once synthesis is complete, re-analysis stops. Action begins immediately, even if only a small first step.
+
+Revisiting a decision without new information breaks fusion. The Commitment Lock exists specifically to prevent this: it trains decisiveness, not stubbornness.
+
+HANDLING DOUBT AFTER A DECISION
+
+Doubt after a completed synthesis usually means a brain is reactivating unnecessarily, not that the decision itself was wrong.
+
+1. Identify which brain has reactivated.
+2. Acknowledge it without immediately acting on it.
+3. Return deliberately to the fused conclusion you already reached.
+
+EXPERT TIP: Doubt is data about a brain, not necessarily about the decision. Separating the two is what preserves stability after synthesis.` },
+        { title: `Reflection Questions & Practice Exercises`, body: `REFLECTION QUESTIONS
+
+· Describe a past decision where one brain clearly dominated the others. What was the outcome?
+· What did the moment of "compression" feel like during your guided practice?
+· Where in your life do you tend to break the Commitment Lock by re-analyzing after deciding?
+· What is one decision currently waiting on you that could benefit from the Synthesis Framework?
+
+EXERCISE A: THE OVERLAP HUNT
+For any decision, write all four brain outputs before looking for agreement. Most people jump to compression too early; forcing full extraction first produces a more honest synthesis.
+
+DECISION DRILL: 24-HOUR COMMITMENT
+Apply the full Synthesis Framework to a real decision, then commit to taking no further analysis on it for 24 hours, regardless of doubt that surfaces.` },
+        { title: `Common Mistakes & Success Indicators`, body: `COMMON MISTAKES
+
+· Compressing before genuinely extracting all four brain outputs.
+· Treating disagreement between brains as a problem to eliminate rather than information to align.
+· Breaking the Commitment Lock the first time doubt appears, rather than running the doubt-handling protocol.
+· Skipping the step of reading the decision sentence aloud, which measurably reinforces the felt sense of closure.
+
+SUCCESS INDICATORS
+
+· You can produce four distinct brain outputs for a real decision without effort.
+· You can identify the common theme across those outputs without forcing it.
+· You have applied the Commitment Lock at least once and held it despite doubt.
+· Your decisions increasingly feel settled rather than merely made.` },
+        { title: `Key Insight, Recap & Assignment`, body: `KEY INSIGHT: Clarity is not finding the right answer; it is unifying the mind. NeuralFusion™ makes clarity repeatable.
+
+END-OF-LESSON RECAP
+
+· Decisions fail from fragmentation, brains arguing with each other, not from a lack of intelligence.
+· Synthesis is integration: every brain contributes, none dominates, one conclusion emerges.
+· The Synthesis Framework runs Extract → Align → Compress → Decide.
+· The Commitment Lock stops re-analysis once synthesis is complete.
+· Post-decision doubt is handled by identifying, acknowledging, and returning to the fused conclusion.
+
+ASSIGNMENT (Next 72 Hours)
+
+1. Apply the full Synthesis Framework to one real decision.
+2. Act on it.
+3. Record what changed, emotionally and mentally, after acting.
+
+Action completes the loop. Synthesis that is never acted on remains theoretical rather than trained.` }
       ]},
       4: { pages: [
-        { title: 'Why Cognition Collapses Under Pressure', body: 'Pressure activates the threat-detection system of the brain, which prioritizes speed over accuracy, emotion over analysis, and habit over deliberation.\n\nThe cognitive result:\n· One brain dominates completely (usually Intuitive under fear)\n· All other modes go offline\n· Fragmented output masquerades as decision-making\n· Regret follows\n\nNeuralFusion™ does not remove pressure. It trains the nervous system to maintain multi-brain integration while under it. Pressure is not the enemy. Fragmentation is.' },
-        { title: 'The Three Cognitive Stabilizers', body: '1. COGNITIVE ANCHOR\nA short internal declaration that grounds the synthesis.\nExamples: "I have already processed this." / "My analysis is complete."\nThis prevents the Analytical Brain from reopening resolved questions.\n\n2. TEMPORAL COMPRESSION\nPressure distorts time perception. Reduce the frame: "What matters in the next 10 minutes?"\nThis collapses decision space to what is actionable and immediate.\n\n3. DOMINANT MODE REGULATION\nIdentify which brain has hijacked the process. Name it. Consciously reduce its influence. This is not suppression; it is recalibration.\n\nAll three can be deployed in under 30 seconds.' },
-        { title: 'High-Pressure Stabilization Drill', body: 'Exercise: Pressure Integration Training (10 minutes)\n\n1. Recall a recent high-pressure moment where your thinking fragmented\n2. Identify the dominant brain at the time\n3. Replay the situation, this time deploying all four brains:\n   · What were the verifiable facts? (Analytical)\n   · What was your gut signaling that you may have overridden? (Intuitive)\n   · What alternative response existed? (Associative)\n   · What did the moment reveal about your default patterns? (Reflective)\n4. Write a one-sentence stabilized synthesis\n5. Notice: the pressure does not change; only the integration quality does\n\nRepeat this drill with increasing pressure scenarios weekly.' },
-        { title: 'Long-Term Pressure Immunity', body: 'Cognitive pressure immunity is not built through motivation. It is built through repetition.\n\nThe stabilization protocol must become reflexive, deployed automatically before conscious choice is required.\n\nSigns of developing immunity:\n· Noticing brain fragmentation as it begins rather than after it happens\n· Deploying anchors automatically in conflict\n· Feeling the pressure but maintaining integrated cognition\n· Recovering to synthesis 40-60% faster than baseline\n\nThis is the training objective of Lesson Four. It is not a mindset shift; it is a neurological upgrade through structured practice.\n\nYou cannot think your way to pressure immunity. You must practice your way there.' },
+        { title: `Learning Objectives`, body: `By the end of Lesson Four, you will be able to:
+
+1. Explain why clarity collapses under pressure, in NeuralFusion™ terms.
+2. Distinguish stabilization from suppression.
+3. Apply the three NeuralFusion™ Stabilizers: Cognitive Anchor, Temporal Compression, and Mode Containment.
+4. Complete the Pressure Simulation guided practice.
+5. Recognize and interrupt the early signs of mental relapse after a decision.
+
+WHY THIS LESSON MATTERS
+
+Lessons One through Three build clarity under calm conditions: a seated practice, a quiet moment to write, time to think. Real decisions rarely happen that way. Pressure, urgency, and emotion are exactly the conditions under which fused thinking is most needed and most likely to collapse. Lesson Four closes that gap: it trains clarity that survives contact with stress, rather than clarity that only works in ideal conditions.` },
+        { title: `Cognitive Principles`, body: `PRINCIPLE 1: PRESSURE IS NOT THE ENEMY, INSTABILITY IS
+
+NeuralFusion™ does not treat pressure as something to eliminate or avoid. Pressure is a normal feature of meaningful decisions. The actual problem is instability: the tendency for a fused conclusion to collapse back into fragmentation the moment stress rises.
+
+PRINCIPLE 2: STABILIZATION IS CONTAINMENT, NOT SUPPRESSION
+
+Stabilizing a brain does not mean silencing it. It means preventing any one brain, usually emotion or urgency-driven analysis, from seizing full control of the decision. The other brains remain present; they are simply prevented from being overridden.` },
+        { title: `Why Clarity Collapses Under Pressure`, body: `Pressure reliably triggers three responses in an untrained mind:
+
+1. Emotional hijacking: feeling takes over before reasoning has a chance to contribute.
+2. Narrow attention: the mind fixates on the most urgent-seeming detail and loses the wider picture.
+3. Mode dominance: usually emotion or rushed analysis takes over completely, silencing the other brains.
+
+Under real pressure, the brain shifts into survival prioritization rather than deliberate reasoning. This is a normal biological response, not a personal failure, but it is exactly the state NeuralFusion™ trains you to recognize and work with.
+
+KEY TAKEAWAY: NeuralFusion™ does not fight pressure. It absorbs and stabilizes it. Pressure is not the enemy; instability is.` },
+        { title: `The Stabilization Principle`, body: `Stabilization means holding one fused conclusion while emotion or urgency is present, without letting either take over the decision. This is containment, not suppression.
+
+A stabilized mind under pressure feels distinctly different from either panic or forced calm:
+
+· Calm but alert: not numb, not frozen.
+· Focused but flexible: able to hold a direction while still noticing new information.
+· Certain without aggression: decisive without needing to force the outcome.` },
+        { title: `The Three NeuralFusion™ Stabilizers`, body: `1. COGNITIVE ANCHOR
+A short internal statement that locks in a completed synthesis, preventing re-fragmentation. Examples: "This is my decision" or "I have already fused this." The anchor is a specific, repeatable interruption of the impulse to re-open a decision under stress.
+
+2. TEMPORAL COMPRESSION
+Pressure distorts time, making distant consequences feel as urgent as immediate ones. NeuralFusion™ compresses time deliberately by asking: "What matters in the next 10 minutes?" This narrows the decision space to what is actually actionable right now.
+
+3. MODE CONTAINMENT
+When one brain flares up under pressure, most often emotion, the response is not to eliminate it. It is to identify it, reduce its influence on the current decision, and return authority to the already-completed synthesis. No brain is removed; it is simply regulated back to its appropriate role as one advisor among four.` },
+        { title: `Real-World Applications`, body: `BUSINESS: A founder receives an unexpectedly aggressive counteroffer minutes before a call. Anchor: "I already know my walk-away terms." Compression: "What matters in the next 10 minutes is staying calm on this call." Containment: the flare of anxious urgency is named and set aside.
+
+LEADERSHIP: A manager is blindsided by a public complaint during a meeting. Anchor: "I lead by listening first, deciding later." Compression: focus only on responding calmly in the room, deferring resolution to a scheduled follow-up.
+
+STUDENT: A student opens an exam and blanks on the first question. Anchor: "I know this material; the block is temporary." Compression: start with a question they do know.
+
+DAILY LIFE: Someone receives a tense text while driving. Anchor: "I don't need to resolve this right now." Compression narrows focus to driving safely.` },
+        { title: `Try It Now`, body: `Recall a recent moment of real pressure, not hypothetical, something that actually happened.
+
+Write one Cognitive Anchor statement you could have used in that exact moment.
+
+Write the one thing that genuinely mattered in the next 10 minutes of that situation.` },
+        { title: `Guided Practice: Pressure Simulation`, body: `WORKSHEET: 8 MINUTES, STABILIZED THINKING DRILL
+
+1. Recall a recent stressful moment in specific detail.
+2. Identify which brain was dominant at the time.
+3. Re-run the situation mentally using one Cognitive Anchor.
+4. Apply Temporal Compression: name what actually mattered in the next 10 minutes.
+5. Notice how the level of tension changes compared to your memory of the original moment.
+
+EXPERT TIP: Rehearsing a stabilizer on a past event trains the same neural pathway as using it live, with none of the real-time cost of getting it wrong. Repeat this drill on different memories to generalize the skill.` },
+        { title: `Preventing Mental Relapse`, body: `Relapse is the return of fragmented thinking after a decision has already been stabilized. It typically happens through two mechanisms:
+
+· Decisions are revisited emotionally rather than because of genuinely new information.
+· Old habitual patterns of reaction regain control once the pressure of the moment has passed.
+
+Relapse is not a sign that stabilization failed permanently; it is a normal part of the training process, best treated as information rather than as failure.
+
+RELAPSE PREVENTION PROTOCOL
+
+1. Recognize the trigger that caused the relapse.
+2. Re-state the fused conclusion you had already reached.
+3. Take one action aligned with that conclusion, however small.
+
+Action stabilizes thought. The fastest way out of a relapse is a small aligned action, not further analysis of why the relapse happened.` },
+        { title: `Reflection, Mistakes & Success Indicators`, body: `REFLECTION QUESTIONS
+
+· What is your default pressure response: emotional hijacking, narrow attention, or mode dominance?
+· Which of the three Stabilizers feels most natural to you? Which feels hardest?
+· Describe a recent relapse into fragmented thinking after a decision felt settled.
+
+COMMON MISTAKES
+
+· Trying to eliminate pressure or emotion entirely, rather than stabilizing while it is present.
+· Using a Cognitive Anchor as empty positive self-talk rather than a specific reference to a completed synthesis.
+· Skipping Temporal Compression and trying to resolve the entire situation at once under pressure.
+
+SUCCESS INDICATORS
+
+· You can name your own default pressure response.
+· You have used a Cognitive Anchor in an actual moment of pressure, not just in rehearsal.
+· You can apply Temporal Compression to a live situation within a few seconds.` },
+        { title: `Key Insight, Recap & Assignment`, body: `KEY INSIGHT: Mental mastery is not calm thinking; it is stable thinking. NeuralFusion™ creates stability that survives pressure, rather than clarity that only works when conditions are ideal.
+
+END-OF-LESSON RECAP
+
+· Pressure triggers emotional hijacking, narrow attention, and mode dominance in an untrained mind.
+· Stabilization is containment, not suppression: no brain is eliminated, only regulated.
+· The three Stabilizers are the Cognitive Anchor, Temporal Compression, and Mode Containment.
+· Relapse is normal and reversible through recognition, re-statement, and one aligned action.
+
+ASSIGNMENT (Next 72 Hours)
+
+1. Apply stabilization during one real stressful event.
+2. Use at least one of the three Stabilizers deliberately.
+3. Record the outcome, including what worked and what didn't.
+
+Stability strengthens with use. The first application under real pressure is rarely smooth; that is expected, not a sign of failure.` }
       ]},
       5: { pages: [
-        { title: 'The Definition of Cognitive Fluency', body: 'Cognitive Fluency is the state in which integrated four-brain thinking becomes automatic.\n\nIt is not about thinking harder. It is not about thinking faster. It is about thinking without friction, where the Core Loop activates below conscious awareness, where synthesis happens before deliberate effort begins.\n\nElite performers in every domain share one cognitive signature: they do not appear to think. They appear to know. This is not magic. It is fluency: the end state of structured cognitive training.\n\nNeuralFusion™ Lesson Five initiates the installation of this state.' },
-        { title: 'From Deliberate to Automatic', body: 'All cognitive skills pass through the same developmental arc:\n\nSTAGE 1: CONSCIOUS INCOMPETENCE\nYou do not know that your thinking is fragmented.\n\nSTAGE 2: CONSCIOUS COMPETENCE\nYou deliberately apply the four-brain protocol.\n\nSTAGE 3: AUTOMATIC COMPETENCE\nThe integration happens without deliberate activation.\n\nSTAGE 4: COGNITIVE FLUENCY\nThe system runs so smoothly you forget it was ever trained.\n\nLessons 1–4 built Stage 2. This lesson initiates Stage 3–4.' },
-        { title: 'The One-Word Activation Protocol', body: 'Cognitive fluency is anchored by a single internal trigger word: FUSE\n\nThis word, when used consistently, becomes a neural shortcut that activates:\n· Automatic decomposition\n· Relevant brain mode activation\n· Rapid synthesis\n· Instant stabilization\n\nInstallation process:\n1. Use the word internally before every decision, conversation, or challenge, regardless of size\n2. The first 21 days are deliberate (Stage 2)\n3. By day 28–35, activation begins to precede the conscious choice\n4. By day 42–60, fluency installs\n\nOne word. Consistent application. Permanent upgrade.' },
-        { title: 'Cognitive Fluency Maintenance', body: 'You have completed NeuralFusion™ Core Training.\n\nWhat you now have:\n· Conceptual knowledge of the Four Brains Framework\n· Deliberate activation ability for all four cognitive modes\n· Integration and synthesis protocols\n· Pressure stabilization tools\n· The FUSE trigger for automatic deployment\n\nWhat maintenance looks like:\n· Daily FUSE activation on at least three real situations\n· Weekly CFI self-assessment to monitor fragmentation levels\n· Monthly reflection on cognitive growth patterns\n· Ongoing engagement with Cognitive Labs for advanced training\n\nThe platform continues to evolve. So should you.' },
+        { title: `Learning Objectives`, body: `By the end of Lesson Five, you will be able to:
+
+1. Define cognitive fluency and distinguish it from effortful thinking.
+2. Explain the three stages every trained skill passes through, and identify which stage you are in.
+3. Use the Automatic Fusion Trigger to initiate the Core Loop instinctively.
+4. Recognize the practical signs that NeuralFusion™ is becoming automatic in daily life.
+5. Commit to a lifetime maintenance protocol for the skill.
+
+WHY THIS LESSON MATTERS
+
+Every lesson so far has required deliberate effort: naming a brain, asking an activation question, running the Synthesis Framework step by step, applying a Stabilizer under pressure. This is appropriate for early training, but it is not the end state. Lesson Five completes the arc by training NeuralFusion™ to operate without conscious effort, the same way an experienced driver no longer thinks through each step of using a clutch.` },
+        { title: `Cognitive Principles & Cognitive Fluency`, body: `PRINCIPLE 1: ELITE PERFORMANCE IS INTEGRATED, NOT EFFORTFUL
+
+High performers across disciplines are rarely distinguished by thinking harder than others in the moment of performance. They are distinguished by thinking in a more integrated way, built through extensive prior deliberate practice.
+
+PRINCIPLE 2: MASTERY IS EFFORT DISAPPEARING, NOT EFFORT INCREASING
+
+A common misconception is that mastery means working harder at a skill indefinitely. In NeuralFusion™, mastery is marked by the opposite: the loop that once took ten minutes of deliberate writing now runs in seconds, unnoticed.
+
+COGNITIVE FLUENCY has three defining qualities: fast (the Core Loop completes in seconds), stable (clarity holds under pressure without conscious stabilization steps), and adaptive (the loop applies itself automatically to whatever is in front of you).` },
+        { title: `From Skill to Instinct`, body: `Every trainable skill, physical or cognitive, passes through the same three stages:
+
+STAGE 1, CONSCIOUS CONTROL: Slow and effortful. Every step of the Core Loop must be deliberately walked through, usually in writing.
+
+STAGE 2, STRUCTURED PRACTICE: Consistent and deliberate. The steps are familiar but still require attention to execute correctly.
+
+STAGE 3, AUTOMATIC EXECUTION: Fast and natural. The Core Loop runs without conscious step-by-step effort.
+
+Lessons One through Four operate primarily in Stages One and Two. Lesson Five initiates Stage Three.` },
+        { title: `The Automatic Fusion Trigger`, body: `NeuralFusion™ automation begins with a single internal cue: the word "Fuse."
+
+This single word, used consistently, signals the brain to run the full loop without conscious step-by-step direction:
+
+1. Decompose the situation automatically.
+2. Activate the relevant brains.
+3. Synthesize rapidly.
+4. Stabilize instantly.
+
+With repetition, this becomes reflexive, the same way a practiced athlete no longer consciously thinks through the individual components of a well-trained movement.` },
+        { title: `Living NeuralFusion™: Daily Integration`, body: `As automatic integration develops, it shows up as specific, observable changes in daily life rather than as an abstract feeling of "mastery":
+
+· Faster decisions, without a corresponding drop in decision quality.
+· Reduced overthinking, particularly on familiar categories of decision.
+· Calm confidence that does not depend on external validation.
+· Clearer prioritization, especially under competing demands.
+
+The shift in identity is simple but significant: you stop managing your thoughts, and start leading them.
+
+EXAMPLE: An experienced founder is asked a difficult question in an investor meeting with no time to prepare. The word "Fuse" runs silently, and a clear, integrated answer arrives in seconds, the same process from Lesson One, now compressed and unconscious.` },
+        { title: `Guided Practice: Fluency Installation`, body: `EXERCISE: ONE-WORD FUSION (6 MINUTES)
+
+1. Sit calmly for a moment.
+2. Think of a current, real situation you are facing.
+3. Say internally, "Fuse."
+4. Allow the mind to organize itself without forcing a specific structure.
+5. Notice the clarity that emerges, without straining for it.
+
+EXPERT TIP: Repeat this exercise daily. The word itself is not magic; it works because of the extensive practice from Lessons One through Four that it now triggers automatically.` },
+        { title: `Signs of Completion, Mistakes & Success Indicators`, body: `SIGNS OF COMPLETION
+
+· You pause naturally before reacting, without consciously deciding to pause.
+· Decisions feel settled rather than merely made.
+· Mental noise reduces on its own, without needing to run a formal exercise.
+· Confidence feels quiet rather than loud: certain without needing to be forceful.
+
+COMMON MISTAKES
+
+· Expecting fluency to arrive without having genuinely practiced Lessons One through Four.
+· Treating the word "Fuse" as a standalone technique rather than a trigger built on prior training.
+· Abandoning daily practice once fluency begins to appear, causing the skill to fade.
+
+SUCCESS INDICATORS
+
+· You can run a compressed version of the Core Loop in under a minute on a real decision.
+· The word "Fuse" reliably produces a shift toward clarity when used.` },
+        { title: `Final Insight & Lifetime Protocol`, body: `FINAL INSIGHT: You do not control the mind by force; you train it by structure. NeuralFusion™ is now part of you.
+
+END-OF-LESSON RECAP
+
+· Cognitive fluency is fast, stable, and adaptive thinking that requires no deliberate effort.
+· Every skill passes through Conscious Control, Structured Practice, and Automatic Execution.
+· The word "Fuse" is the trigger that activates the full Core Loop automatically, once trained.
+· Daily integration shows up as faster decisions, reduced overthinking, calm confidence, and clearer priorities.
+
+FINAL ASSIGNMENT: LIFETIME PROTOCOL
+
+1. Use NeuralFusion™ daily, through the automatic trigger and the underlying loop it activates.
+2. Teach it through behavior, not words; let others notice the change rather than announcing it.
+3. Return to conscious structure whenever clarity fades, rather than assuming fluency is permanent.
+
+This completes the core system of NeuralFusion™ Level One. "You do not control the mind by force; you train it by structure."` }
+      ]},
+      6: { pages: [
+        { title: `Glossary, Part 1`, body: `NEURALFUSION™: The overall trainable cognitive skill system that coordinates the Four Brains into one controlled process.
+
+COGNITIVE FRAGMENTATION: The default, untrained state of thinking in disconnected pieces (logic without intuition, emotion without reflection) rather than as one coordinated process.
+
+THE FOUR BRAINS: Analytical, Intuitive, Associative, and Reflective, the four natural modes of thought that NeuralFusion™ trains you to activate and coordinate deliberately.
+
+ANALYTICAL BRAIN: Governs logic, structure, and facts. Best used for decisions, planning, and problem breakdown.
+
+INTUITIVE BRAIN: Governs gut feeling, insight, and pattern recognition. Best used for fast judgment and direction.
+
+ASSOCIATIVE BRAIN: Governs creativity, connection, and idea generation. Best used for expansion and new options.
+
+REFLECTIVE BRAIN: Governs self-awareness, evaluation, and meaning. Best used for learning and long-term perspective.
+
+MODE ACTIVATION SIGNAL: A short internal question used to deliberately switch into a specific brain.` },
+        { title: `Glossary, Part 2`, body: `THE CORE LOOP: The four-stage process, Decomposition, Mode Switching, Synthesis, Stabilization, that structures every application of NeuralFusion™.
+
+SYNTHESIS: Combining the outputs of all four brains into one unified insight. Integration, not compromise.
+
+THE SYNTHESIS FRAMEWORK: The four-step method for synthesis, Extract, Align, Compress, Decide.
+
+STABILIZATION: Locking in a fused conclusion and reducing mental noise, especially under pressure.
+
+THE COMMITMENT LOCK: The discipline of stopping re-analysis once synthesis is complete, converting a decision into stable action.
+
+COGNITIVE ANCHOR: A short internal statement used to lock in synthesis and prevent re-fragmentation under pressure.
+
+TEMPORAL COMPRESSION: A stabilizer that narrows focus to what matters in the next short window of time.
+
+MODE CONTAINMENT: A stabilizer that reduces the influence of an overactive brain without eliminating it.
+
+MENTAL RELAPSE: The return of fragmented thinking after a decision has already been stabilized.
+
+COGNITIVE FLUENCY: The advanced state in which the Core Loop runs quickly, stably, and adaptively without deliberate effort.
+
+THE AUTOMATIC FUSION TRIGGER: The single-word cue ("Fuse") used to activate the full Core Loop automatically, once trained.
+
+MENTAL LEADERSHIP: The core identity shift NeuralFusion™ aims to produce, from being carried by one's thoughts to consciously directing them.` },
+        { title: `Quick-Reference: The Core Loop & Synthesis Framework`, body: `THE CORE LOOP
+
+1. Decomposition: break it into parts.
+2. Mode Switching: activate the right brain for each part.
+3. Synthesis: combine outputs into one insight.
+4. Stabilization: lock in clarity, reduce noise.
+
+THE SYNTHESIS FRAMEWORK
+
+1. Extract: strongest output from each brain.
+2. Align: check overlaps and contradictions.
+3. Compress: reduce to one core insight.
+4. Decide: commit to a single direction.
+
+THE THREE STABILIZERS
+
+· Cognitive Anchor: a short statement that locks synthesis in place.
+· Temporal Compression: "What matters in the next 10 minutes?"
+· Mode Containment: identify, reduce influence, return authority to synthesis.
+
+THE EMERGENCY RESET
+
+1. Pause. 2. Name the brain you are stuck in. 3. Switch to Reflective. 4. Ask: "What is one thing I can control right now?"` },
+        { title: `Progress Tracker & Weekly Practice Schedule`, body: `Use this tracker to record your completion of each lesson's core components: Guided Practice completed, Assignment completed, date, and a personal confidence rating from 1 to 5.
+
+· Lesson 1, Foundation of Integrated Cognition
+· Lesson 2, Brain Mode Activation & Switching
+· Lesson 3, Synthesis & Decision Architecture
+· Lesson 4, Cognitive Stabilization Under Pressure
+· Lesson 5, Cognitive Fluency Installation
+
+SUGGESTED FOUR-WEEK SCHEDULE
+
+WEEK 1: Lesson One. Daily mode-naming practice. Complete the First Guided Practice and 24-hour assignment.
+
+WEEK 2: Lesson Two. Daily Switching Drill or a single deliberate mode switch. Rehearse the Emergency Reset once per day.
+
+WEEK 3: Lesson Three. Apply the Full NeuralFusion™ Cycle to one real decision. Practice the Commitment Lock on smaller daily decisions.
+
+WEEK 4: Lesson Four. Run the Pressure Simulation on a past event. Apply at least one Stabilizer to a real pressure moment.
+
+WEEK 5+: Lesson Five. Begin using the Automatic Fusion Trigger daily. Shift from written exercises to in-the-moment application.
+
+This schedule is a starting structure, not a fixed rule. If a lesson has not yet produced its Success Indicators, it is more effective to repeat that week than to advance on schedule.` },
+        { title: `Decision Journal & Reflection Journal Templates`, body: `DECISION JOURNAL TEMPLATE
+
+Use this each time you apply the Full NeuralFusion™ Cycle or the Synthesis Framework to a real decision.
+
+· Date
+· The Decision (one sentence)
+· Analytical Output: facts and constraints
+· Intuitive Output: strongest gut signal
+· Associative Output: best idea or option
+· Reflective Output: lesson or value at stake
+· Common Theme
+· Final Decision Sentence
+· Commitment Lock Applied? Yes / Not yet
+· Outcome (add later)
+
+REFLECTION JOURNAL TEMPLATE
+
+Use one entry per lesson, or more frequently if useful.
+
+· Lesson / Date
+· What I noticed about my thinking today
+· Which brain I relied on most
+· Which brain I underused
+· One moment I would handle differently now
+· What I want to practice next
+
+Short, honest entries written consistently are more valuable than long, polished entries written occasionally. The Reflection Journal is a training log, not a performance.` },
+        { title: `Cognitive Performance Scorecard`, body: `Use this scorecard monthly to track your own sense of progress across the five core NeuralFusion™ capacities. Rate each from 1 (Rarely) to 5 (Consistently). This is a self-assessment tool for personal tracking, not a diagnostic or clinical instrument.
+
+· I can name my current brain on request.
+· I can switch deliberately into a specific brain using an activation signal.
+· I can complete a full synthesis and produce a one-sentence decision.
+· I can apply at least one Stabilizer during a real pressure moment.
+· I notice NeuralFusion™ operating automatically, without deliberate effort.
+
+This scorecard measures your own subjective sense of skill, consistent with how NeuralFusion™ is designed to be practiced. It is not a psychological assessment and does not diagnose any condition.` },
+        { title: `Mastery Checklist: Level One`, body: `Complete this checklist honestly before considering Level One finished. Every item should reflect something you have actually done, not something you understand conceptually.
+
+· I completed all five lessons in order, including every guided practice.
+· I can name the Four Brains and describe the risk of overusing each.
+· I can state the four stages of the Core Loop from memory.
+· I can state the four steps of the Synthesis Framework from memory.
+· I have applied the Commitment Lock to a real decision.
+· I can name the three Stabilizers and have used at least one under real pressure.
+· I have used the Automatic Fusion Trigger ("Fuse") in a real, unplanned situation.
+· I have completed at least one full Decision Journal entry.
+· I have completed at least three Reflection Journal entries.
+· I can explain, in my own words, why NeuralFusion™ is described as a trainable skill rather than a personality trait.` },
+        { title: `Final Level One Assessment`, body: `This assessment is self-graded and reflective by design: NeuralFusion™ measures applied skill, not memorized theory.
+
+PART A: CONCEPTUAL UNDERSTANDING
+1. In your own words, define cognitive fragmentation and explain how NeuralFusion™ addresses it.
+2. Name the Four Brains and describe one overuse risk for each.
+3. Explain the difference between synthesis and compromise.
+4. Explain the difference between stabilization and suppression.
+5. Define cognitive fluency and describe what it feels like in practice.
+
+PART B: APPLIED SKILL
+1. Walk through a real decision using the full Synthesis Framework, and record the resulting one-sentence decision.
+2. Describe a real instance where you used a Stabilizer under genuine pressure, and what happened.
+3. Describe a real instance where the Automatic Fusion Trigger produced clarity without deliberate step-by-step effort.
+
+PART C: SELF-EVALUATION
+1. Which lesson required the most repetition for you, and why?
+2. Which Success Indicators do you meet most confidently? Least confidently?
+3. What is your personal plan for continuing to practice NeuralFusion™ after completing this curriculum?
+
+There is no passing score. Completion of this assessment in full, honest written form is what qualifies you to proceed toward certification.` },
+        { title: `Certification, Daily Practice & FAQ`, body: `LEVEL ONE CERTIFICATION REQUIREMENTS
+
+1. Completion of all five lessons, including every guided practice and assignment.
+2. A fully completed Mastery Checklist.
+3. A fully completed Final Level One Assessment, in writing.
+4. At least five completed Decision Journal entries, drawn from real decisions.
+5. At least one documented, real-world application of a Stabilizer under genuine pressure.
+
+RECOMMENDED DAILY PRACTICE ROUTINE
+
+· Morning (2–3 min): One deliberate pass through the Core Loop on the day's first meaningful decision.
+· Midday (1 min): A single mode check; pause and name whatever brain is currently active.
+· As needed: Use the Automatic Fusion Trigger ("Fuse") whenever a decision or reaction arises.
+· Under pressure: Apply a Stabilizer as the situation requires.
+· Evening (3–5 min): One Reflection Journal entry, focused on what was noticed rather than what was achieved.
+
+IS NEURALFUSION™ A FORM OF THERAPY?
+No. NeuralFusion™ is a cognitive skill training system. It is not a medical, psychological, psychiatric, or therapeutic treatment, and it does not replace professional care. If you are working through a mental health concern, please consult a licensed professional.
+
+HOW LONG DOES LEVEL ONE TAKE?
+Most learners take four to six weeks working through the lessons at the suggested pace. The timeline matters far less than whether each lesson's Success Indicators have genuinely been met before moving on.` }
       ]},
     };
 
@@ -1192,7 +1913,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress, sessi
         }).catch(() => { setPaystackLoading(false); alert('Could not load payment system. Check your connection and try again.'); });
       };
 
-      const levelColors = { Foundation:C.cyan, Intermediate:'#E2BE78', Advanced:'#C4A050', Mastery:'#7AAFCF' };
+      const levelColors = { Foundation:C.cyan, Intermediate:'#E2BE78', Advanced:'#C4A050', Mastery:'#7AAFCF', Reference:'#4CF7C0' };
 
       if (activeLesson) {
         const lesson = LESSONS.find(l=>l.id===activeLesson);
@@ -1215,6 +1936,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress, sessi
                       lineHeight:1.9, marginBottom:i<pageData.body.split('\n\n').length-1?20:0,
                       fontFamily: para.startsWith('◰')||para.startsWith('◱')||para.startsWith('◲')||para.startsWith('◳') ? "'Space Mono'" : "'DM Sans'",
                       fontSize: para.startsWith('◰')||para.startsWith('◱')||para.startsWith('◲')||para.startsWith('◳') ? 13 : 15,
+                      whiteSpace:'pre-line', overflowWrap:'break-word',
                     }}, para)
                   ))), React.createElement("div", {style: { display:'flex', justifyContent:'space-between', marginTop:32, alignItems:'center' }}, React.createElement("button", {className: "btn-ghost", disabled: page===0, onClick: ()=>setPage(p=>p-1), style: { opacity:page===0?0.3:1 }}, '← Previous'), isLast ? (
                     React.createElement("button", {className: "btn-primary", style: { background:col }, onClick: handleComplete}, 'Complete ✓')
