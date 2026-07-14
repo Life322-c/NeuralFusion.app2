@@ -102,13 +102,13 @@ const { useState, useEffect, useCallback, useRef, useMemo } = React;
     // ── CFI Section Intros ──────────────────────────────────────────────
     const CFI_SECTIONS = {
       A: { title:'Clear, Logical Thinking', icon:'◰', color:'#C4A050',
-           blurb:"These questions look at how you think through problems using facts and logic — like weighing pros and cons before a big purchase." },
+           blurb:"These questions look at how you think through problems using facts and logic, like weighing pros and cons before a big purchase." },
       I: { title:'Gut Instinct', icon:'◱', color:'#E2BE78',
-           blurb:"These questions look at how much you trust your first instinct — the quick read you get before you've thought it through." },
+           blurb:"These questions look at how much you trust your first instinct: the quick read you get before you've thought it through." },
       S: { title:'Creative Connections', icon:'◲', color:'#7AAFCF',
            blurb:"These questions look at how you come up with new ideas and connect things that don't seem related at first." },
       R: { title:'Self-Awareness', icon:'◳', color:'#D4AF6A',
-           blurb:"These questions look at how you learn from your own thinking — noticing patterns instead of repeating the same mistakes." },
+           blurb:"These questions look at how you learn from your own thinking: noticing patterns instead of repeating the same mistakes." },
       E: { title:'Staying Steady Under Pressure', icon:'◈', color:'#F5EDD8',
            blurb:"Last section. These questions look at how your thinking holds up when you're busy, stressed, or pulled in many directions." },
     };
@@ -139,7 +139,7 @@ const { useState, useEffect, useCallback, useRef, useMemo } = React;
         },
         improvements: [
           'Before a decision, write down the 3 facts that matter most.',
-          'Set a timer for planning — decide once it goes off, ready or not.',
+          'Set a timer for planning. Decide once it goes off, ready or not.',
           'Practice making one small decision daily without waiting for full certainty.',
         ],
       },
@@ -164,7 +164,7 @@ const { useState, useEffect, useCallback, useRef, useMemo } = React;
         },
         improvements: [
           'Write down your first gut answer before you analyze anything.',
-          'After a decision, check back — was your gut right?',
+          'After a decision, check back: was your gut right?',
           'When your gut and logic disagree, pause and name both out loud.',
         ],
       },
@@ -183,7 +183,7 @@ const { useState, useEffect, useCallback, useRef, useMemo } = React;
           low: 'You tend to stick with the first idea because new ones feel hard to reach.',
         },
         underPressure: {
-          high: "Pressure doesn't slow your creativity — new ideas keep coming.",
+          high: "Pressure doesn't slow your creativity. New ideas keep coming.",
           moderate: 'Your ideas dry up a bit when you feel rushed or watched.',
           low: 'Pressure or judgment can shut your creative thinking down almost completely.',
         },
@@ -284,13 +284,13 @@ const { useState, useEffect, useCallback, useRef, useMemo } = React;
       };
     }
 
-    // Generic explainer for any score, independent of dimension — never show a bare number
+    // Generic explainer for any score, independent of dimension; never show a bare number
     function cfiScoreMeaning(score) {
       if (score >= 90) return "90%+ means this way of thinking is extremely clear and consistent for you, even in tough moments.";
       if (score >= 75) return "75–89% means this is a real strength. It holds up well most of the time, with occasional slips.";
-      if (score >= 50) return "50–74% is a balanced, in-progress zone — this works for you sometimes, and needs support other times.";
+      if (score >= 50) return "50–74% is a balanced, in-progress zone: this works for you sometimes and needs support other times.";
       if (score >= 25) return "25–49% means this is a current growth area. It tends to break down under pressure or uncertainty.";
-      return "Below 25% means this is your biggest opportunity right now — small, consistent practice here will move the needle fast.";
+      return "Below 25% means this is your biggest opportunity right now: small, consistent practice here will move the needle fast.";
     }
 
     function buildCognitiveProfile(dimReports, integrationScore, band) {
@@ -318,7 +318,7 @@ const { useState, useEffect, useCallback, useRef, useMemo } = React;
         biggestOpportunity: `${CFI_DIMENSION_META[weakestDim].improvements[0]}`,
         summary: `Your thinking is currently ${band.toLowerCase()}, with an overall integration score of ${integrationScore}/100. `
           + `You naturally lead with ${CFI_DIM_LABELS[primaryDim].toLowerCase()}, supported by ${CFI_DIM_LABELS[secondaryDim].toLowerCase()}. `
-          + `Your biggest opportunity right now is ${CFI_DIM_LABELS[weakestDim].toLowerCase()} — strengthening it is the fastest way to raise your overall clarity.`,
+          + `Your biggest opportunity right now is ${CFI_DIM_LABELS[weakestDim].toLowerCase()}. Strengthening it is the fastest way to raise your overall clarity.`,
       };
     }
 
@@ -2015,7 +2015,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress, sessi
               React.createElement("div", {style: { display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(min(240px,100%),1fr))', gap:12 }},
                 [90,75,50,25].map(s => (
                   React.createElement("div", {key: s, style: { fontSize:12.5, color:C.muted, lineHeight:1.6 }},
-                    React.createElement("span", {style: { color:C.cyanBright, fontWeight:700 }}, s===90?'90%+':`${s}%+`), ' — ', cfiScoreMeaning(s)
+                    React.createElement("span", {style: { color:C.cyanBright, fontWeight:700 }}, s===90?'90%+':`${s}%+`), ': ', cfiScoreMeaning(s)
                   )
                 ))
               )
@@ -2100,7 +2100,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress, sessi
       const estMinutes = Math.max(1, Math.ceil((remainingQ * 12) / 60));
       const motivation = () => {
         if (answeredCount === 0) return "There are no wrong answers here. Go with your first instinct.";
-        if (percent < 50) return "Good start — you're building an accurate picture.";
+        if (percent < 50) return "Good start. You're building an accurate picture.";
         if (percent < 100) return "Over halfway there. Keep going.";
         return "Nice work.";
       };
@@ -2160,7 +2160,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress, sessi
                 'Discover how you think', React.createElement("br", null), React.createElement("span", {style: {color:C.cyan}}, 'and where it gets stuck')
               ),
               React.createElement("p", {style: { fontSize:15.5, color:C.muted, lineHeight:1.8, marginBottom:16, maxWidth:540, margin:'0 auto 16px' }},
-                "You'll answer 15 short, everyday questions — no jargon, nothing tricky. It takes about 3–4 minutes."
+                "You'll answer 15 short, everyday questions. No jargon, nothing tricky. It takes about 3–4 minutes."
               ),
               React.createElement("div", {style: { fontSize:12.5, color:C.dim, lineHeight:1.7, marginBottom:36, maxWidth:540, margin:'0 auto 36px', padding:'14px 18px', background:C.deep, border:`1px solid ${C.border}`, borderRadius:2 }},
                 'The CFI™ measures how you process information, make decisions, and combine different ways of thinking. It is not a personality test, a mental health screening, or a diagnosis of any kind.'
