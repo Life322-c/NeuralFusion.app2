@@ -80,24 +80,278 @@ const { useState, useEffect, useCallback, useRef, useMemo } = React;
       },
     };
 
-    // ── CFI Assessment Items ──────────────────────────────────────────
+    // ── CFI Assessment Items (plain-English, Grade 6–8 reading level) ──
     const CFI_ITEMS = [
-      { id:1, dim:'A', brain:'analytical', text:'I struggle to organize thoughts into clear logical sequences under pressure.' },
-      { id:2, dim:'A', brain:'analytical', text:'I find it difficult to isolate key facts before making complex decisions.' },
-      { id:3, dim:'A', brain:'analytical', text:'My structured planning breaks down in ambiguous or high-stakes situations.' },
-      { id:4, dim:'I', brain:'intuitive', text:'I frequently override gut instinct with logic, only to regret it later.' },
-      { id:5, dim:'I', brain:'intuitive', text:'I distrust my pattern recognition in fast-moving, high-uncertainty situations.' },
-      { id:6, dim:'I', brain:'intuitive', text:'My intuitive responses conflict with my conscious reasoning more often than not.' },
-      { id:7, dim:'S', brain:'associative', text:'I struggle to generate creative alternatives when my primary approach fails.' },
-      { id:8, dim:'S', brain:'associative', text:'I find it difficult to connect ideas across different domains of my life.' },
-      { id:9, dim:'S', brain:'associative', text:'My creative thinking shuts down under time pressure or external judgment.' },
-      { id:10, dim:'R', brain:'reflective', text:'I rarely evaluate my own thinking process after completing important tasks.' },
-      { id:11, dim:'R', brain:'reflective', text:'Deep self-reflection tends to lead me into rumination rather than clarity.' },
-      { id:12, dim:'R', brain:'reflective', text:'I find it hard to identify which thinking pattern caused a poor outcome.' },
-      { id:13, dim:'E', brain:'analytical', text:'Under pressure, my thinking modes feel fragmented and hard to coordinate.' },
-      { id:14, dim:'E', brain:'intuitive', text:'I experience cognitive fatigue when managing multiple competing priorities.' },
-      { id:15, dim:'E', brain:'reflective', text:'I know what I should think, but rarely how to deliberately shift thinking modes.' },
+      { id:1,  dim:'A', brain:'analytical',  text:"When I'm stressed, my thoughts get jumbled and hard to organize." },
+      { id:2,  dim:'A', brain:'analytical',  text:"Before a big decision, I struggle to tell which facts actually matter." },
+      { id:3,  dim:'A', brain:'analytical',  text:"My plans fall apart when a situation is unclear or high-stakes." },
+      { id:4,  dim:'I', brain:'intuitive',   text:"I often ignore my gut feeling, then wish I had listened to it." },
+      { id:5,  dim:'I', brain:'intuitive',   text:"When things move fast, I don't trust what my instincts are telling me." },
+      { id:6,  dim:'I', brain:'intuitive',   text:"My first instinct and my logical thinking usually point different ways." },
+      { id:7,  dim:'S', brain:'associative', text:"When my first idea doesn't work, I struggle to think of a new one." },
+      { id:8,  dim:'S', brain:'associative', text:"I have trouble connecting a lesson from one part of my life to another." },
+      { id:9,  dim:'S', brain:'associative', text:"My creative ideas dry up when I'm rushed or worried what others think." },
+      { id:10, dim:'R', brain:'reflective',  text:"After finishing something big, I rarely stop to think about how I did it." },
+      { id:11, dim:'R', brain:'reflective',  text:"When I reflect on things, I end up overthinking instead of feeling clear." },
+      { id:12, dim:'R', brain:'reflective',  text:"When something goes wrong, I struggle to see what caused it." },
+      { id:13, dim:'E', brain:'analytical',  text:"Under pressure, my thoughts feel scattered and hard to bring together." },
+      { id:14, dim:'E', brain:'intuitive',   text:"Juggling several priorities at once leaves my mind feeling drained." },
+      { id:15, dim:'E', brain:'reflective',  text:"I know how I should be thinking, but not how to switch gears on purpose." },
     ];
+
+    // ── CFI Section Intros ──────────────────────────────────────────────
+    const CFI_SECTIONS = {
+      A: { title:'Clear, Logical Thinking', icon:'◰', color:'#C4A050',
+           blurb:"These questions look at how you think through problems using facts and logic — like weighing pros and cons before a big purchase." },
+      I: { title:'Gut Instinct', icon:'◱', color:'#E2BE78',
+           blurb:"These questions look at how much you trust your first instinct — the quick read you get before you've thought it through." },
+      S: { title:'Creative Connections', icon:'◲', color:'#7AAFCF',
+           blurb:"These questions look at how you come up with new ideas and connect things that don't seem related at first." },
+      R: { title:'Self-Awareness', icon:'◳', color:'#D4AF6A',
+           blurb:"These questions look at how you learn from your own thinking — noticing patterns instead of repeating the same mistakes." },
+      E: { title:'Staying Steady Under Pressure', icon:'◈', color:'#F5EDD8',
+           blurb:"Last section. These questions look at how your thinking holds up when you're busy, stressed, or pulled in many directions." },
+    };
+    const CFI_SECTION_ORDER = ['A','I','S','R','E'];
+
+    // ── CFI Dimension Content Library ───────────────────────────────────
+    // Every dimension score is paired with plain-language meaning, strengths,
+    // blind spots, decision style, behaviour under pressure, and 3 practical actions.
+    const CFI_DIMENSION_META = {
+      A: {
+        name: 'Clear, Logical Thinking', brainKey:'analytical',
+        strengths: ['Breaking big problems into smaller steps', 'Spotting the facts that matter most, quickly', 'Building plans you can actually follow'],
+        blindSpots: ['Can freeze up when a situation has no clear structure', 'May over-plan and delay taking action', 'Can miss the human, emotional side of a decision'],
+        meaning: {
+          high: "You think clearly and logically, even when things get complicated. You can break big problems into simple steps most of the time.",
+          moderate: "You think logically when things are calm, but pressure or unclear situations can scramble your thought process sometimes.",
+          low: "Right now, pressure and unclear situations often scramble your logical thinking. This is common, and very trainable.",
+        },
+        decisionStyle: {
+          high: 'You gather the key facts, weigh them, then decide with confidence.',
+          moderate: 'You like facts before deciding, but you can get stuck if the picture is fuzzy.',
+          low: 'You want certainty before deciding, which can stall you when the facts are limited.',
+        },
+        underPressure: {
+          high: 'You stay organized and keep your thinking on track.',
+          moderate: 'Your thinking gets a little scattered, but you usually pull it back together.',
+          low: 'Your thoughts can spiral, and it becomes hard to think in a straight line.',
+        },
+        improvements: [
+          'Before a decision, write down the 3 facts that matter most.',
+          'Set a timer for planning — decide once it goes off, ready or not.',
+          'Practice making one small decision daily without waiting for full certainty.',
+        ],
+      },
+      I: {
+        name: 'Gut Instinct', brainKey:'intuitive',
+        strengths: ['Reading a room or situation fast', "Sensing when something feels off, before you can explain why", 'Making quick calls under uncertainty'],
+        blindSpots: ['Can struggle to explain why you feel a certain way', 'May mistake a bias for a gut feeling', 'Can be inconsistent when logic and instinct disagree'],
+        meaning: {
+          high: "You trust your gut, and it usually serves you well. You read situations quickly and act on that read.",
+          moderate: "You have good instincts, but you sometimes second-guess them or let logic overrule a signal that was right.",
+          low: "Right now you tend to override or distrust your first instinct, even when it's telling you something useful.",
+        },
+        decisionStyle: {
+          high: 'You know the answer almost before you finish thinking about it.',
+          moderate: 'You feel the right answer, but you often talk yourself out of it.',
+          low: 'You override your first instinct with logic, then regret it later.',
+        },
+        underPressure: {
+          high: 'Your instincts get sharper, not shakier, when the pressure is on.',
+          moderate: 'You still sense the right move, but doubt creeps in fast.',
+          low: 'Pressure makes you distrust your gut exactly when you need it most.',
+        },
+        improvements: [
+          'Write down your first gut answer before you analyze anything.',
+          'After a decision, check back — was your gut right?',
+          'When your gut and logic disagree, pause and name both out loud.',
+        ],
+      },
+      S: {
+        name: 'Creative Connections', brainKey:'associative',
+        strengths: ['Spotting connections other people miss', 'Coming up with more than one solution to a problem', 'Reframing a problem in a new way'],
+        blindSpots: ['Can generate lots of ideas but struggle to finish one', 'May lose focus jumping between possibilities', 'Can freeze creatively when being watched or judged'],
+        meaning: {
+          high: "You naturally connect ideas from different parts of life and come up with fresh options.",
+          moderate: "You can be creative, but new ideas don't always come easily, especially when you're rushed.",
+          low: "Right now, coming up with new ideas or connections feels hard, especially under pressure or judgment.",
+        },
+        decisionStyle: {
+          high: 'You generate several options quickly, then pick the most interesting one.',
+          moderate: 'You can brainstorm, but narrowing down to one choice is hard.',
+          low: 'You tend to stick with the first idea because new ones feel hard to reach.',
+        },
+        underPressure: {
+          high: "Pressure doesn't slow your creativity — new ideas keep coming.",
+          moderate: 'Your ideas dry up a bit when you feel rushed or watched.',
+          low: 'Pressure or judgment can shut your creative thinking down almost completely.',
+        },
+        improvements: [
+          'Set a 2-minute timer and list 5 ideas, no matter how odd.',
+          'When stuck, ask: what would this look like in a different field?',
+          'Give yourself permission to share a rough, unfinished idea out loud.',
+        ],
+      },
+      R: {
+        name: 'Self-Awareness', brainKey:'reflective',
+        strengths: ['Learning from past mistakes', 'Noticing your own patterns over time', 'Staying aligned with what matters to you'],
+        blindSpots: ['Can overthink instead of act', 'May delay decisions while still "processing"', 'Can be hard on yourself during reflection'],
+        meaning: {
+          high: "You regularly reflect on how you think, and that reflection leads to real insight and change.",
+          moderate: "You reflect sometimes, but it doesn't always turn into a clear lesson you can use.",
+          low: "Right now, reflection tends to turn into overthinking rather than clarity, or you skip it altogether.",
+        },
+        decisionStyle: {
+          high: 'You weigh decisions against your values and the long-term picture.',
+          moderate: 'You think about the bigger picture, but it can slow you down.',
+          low: 'You often skip reflection, or it spirals into worry instead of a decision.',
+        },
+        underPressure: {
+          high: 'You stay grounded because you already know your values and priorities.',
+          moderate: 'You can lose your footing briefly, then reflect your way back to calm.',
+          low: 'Pressure sends you into your head, replaying things instead of moving forward.',
+        },
+        improvements: [
+          'End each day by writing one sentence: what did I learn today?',
+          'Set a 10-minute limit on reflecting before you must decide or act.',
+          'Ask: what would I tell a friend in this exact situation?',
+        ],
+      },
+      E: {
+        name: 'Staying Steady Under Pressure', brainKey:null,
+        strengths: ['Keeping perspective when things get intense', 'Switching between thinking styles when needed', 'Recovering quickly after a stressful moment'],
+        blindSpots: ['Can burn out from constantly juggling priorities', "May not notice you're overloaded until you're already there", 'Can default to one thinking style instead of the one the moment needs'],
+        meaning: {
+          high: "Even under pressure, your different ways of thinking work together instead of against each other.",
+          moderate: "You usually hold it together under pressure, but juggling too much at once wears you down.",
+          low: "Right now, pressure makes your thinking feel scattered and hard to pull back together.",
+        },
+        decisionStyle: {
+          high: 'You pull the right thinking style forward exactly when the moment calls for it.',
+          moderate: 'You usually manage, but juggling several priorities can wear you thin.',
+          low: 'Under load, you default to a single mode of thinking, whether or not it fits the moment.',
+        },
+        underPressure: {
+          high: 'Pressure barely rattles you; your thinking modes stay coordinated.',
+          moderate: 'Pressure adds friction, but you can usually reset with a short break.',
+          low: 'Pressure quickly overwhelms you, and coordinating your thinking becomes difficult.',
+        },
+        improvements: [
+          'Build in a 5-minute reset between demanding tasks.',
+          'Name out loud which "brain" the next task actually needs.',
+          'Protect one buffer hour a day for nothing but recovery.',
+        ],
+      },
+    };
+
+    const CFI_DIM_LABELS = { A:'Clear, Logical Thinking', I:'Gut Instinct', S:'Creative Connections', R:'Self-Awareness', E:'Staying Steady Under Pressure' };
+
+    // Communication / leadership / learning style, keyed by brain
+    const CFI_STYLE_TABLE = {
+      analytical:  { communication:'Direct, structured, and fact-based.', leadership:'Leads with clear plans and measurable standards.', learning:'Learns best through step-by-step instruction and structured practice.' },
+      intuitive:   { communication:'Concise and confident, sometimes short on detailed explanation.', leadership:'Leads by reading people and situations quickly, adjusting on the fly.', learning:'Learns best through hands-on experience and repeated exposure.' },
+      associative: { communication:'Story-driven, uses analogies and big-picture framing.', leadership:'Leads by connecting people and ideas toward a shared vision.', learning:'Learns best by exploring, experimenting, and making unexpected connections.' },
+      reflective:  { communication:'Thoughtful and measured, prefers to consider before responding.', leadership:'Leads through consistency, values, and long-term thinking.', learning:'Learns best through reflection, journaling, and reviewing past experience.' },
+    };
+
+    // Score → plain-language bucket (0 = perfectly integrated dimension, 100 = fully fragmented)
+    function cfiLevel(fragScore) {
+      const integ = 100 - fragScore;
+      if (integ >= 70) return 'high';
+      if (integ >= 40) return 'moderate';
+      return 'low';
+    }
+
+    function cfiIntegrationScore(total) {
+      // total ranges 15 (best) to 75 (worst) across 15 five-point items
+      const pct = ((total - 15) / 60) * 100;
+      return Math.max(0, Math.min(100, Math.round(100 - pct)));
+    }
+
+    function buildDimensionReport(dim, fragScore) {
+      const meta = CFI_DIMENSION_META[dim];
+      const level = cfiLevel(fragScore);
+      const integrationScore = Math.max(0, Math.min(100, 100 - fragScore));
+      return {
+        dim, name: meta.name, brainKey: meta.brainKey, level, integrationScore, fragScore,
+        meaning: meta.meaning[level],
+        strengths: meta.strengths,
+        blindSpots: meta.blindSpots,
+        decisionStyle: meta.decisionStyle[level],
+        underPressure: meta.underPressure[level],
+        improvements: meta.improvements,
+      };
+    }
+
+    // Generic explainer for any score, independent of dimension — never show a bare number
+    function cfiScoreMeaning(score) {
+      if (score >= 90) return "90%+ means this way of thinking is extremely clear and consistent for you, even in tough moments.";
+      if (score >= 75) return "75–89% means this is a real strength. It holds up well most of the time, with occasional slips.";
+      if (score >= 50) return "50–74% is a balanced, in-progress zone — this works for you sometimes, and needs support other times.";
+      if (score >= 25) return "25–49% means this is a current growth area. It tends to break down under pressure or uncertainty.";
+      return "Below 25% means this is your biggest opportunity right now — small, consistent practice here will move the needle fast.";
+    }
+
+    function buildCognitiveProfile(dimReports, integrationScore, band) {
+      const core = ['A','I','S','R']; // exclude E (integration), it isn't a standalone "brain"
+      const sorted = [...core].sort((a,b)=> dimReports[a].fragScore - dimReports[b].fragScore); // best (lowest fragmentation) first
+      const primaryDim = sorted[0], secondaryDim = sorted[1], weakestDim = sorted[sorted.length-1];
+      const primaryBrain = CFI_DIMENSION_META[primaryDim].brainKey;
+      const secondaryBrain = CFI_DIMENSION_META[secondaryDim].brainKey;
+      const weakestBrain = CFI_DIMENSION_META[weakestDim].brainKey;
+      const pStyle = CFI_STYLE_TABLE[primaryBrain] || CFI_STYLE_TABLE.analytical;
+
+      return {
+        integrationScore,
+        fragmentationLevel: band,
+        primaryDim, secondaryDim, weakestDim,
+        primaryBrain, secondaryBrain, weakestBrain,
+        primaryStyle: CFI_DIM_LABELS[primaryDim],
+        secondaryStyle: CFI_DIM_LABELS[secondaryDim],
+        decisionProfile: `You lead with ${CFI_DIM_LABELS[primaryDim]}, backed up by ${CFI_DIM_LABELS[secondaryDim]}. ${dimReports[primaryDim].decisionStyle}`,
+        communicationStyle: pStyle.communication,
+        leadershipStyle: pStyle.leadership,
+        learningStyle: pStyle.learning,
+        biggestStrength: `${CFI_DIM_LABELS[primaryDim]}: ${CFI_DIMENSION_META[primaryDim].strengths[0]}`,
+        biggestBlindSpot: `${CFI_DIM_LABELS[weakestDim]}: ${CFI_DIMENSION_META[weakestDim].blindSpots[0]}`,
+        biggestOpportunity: `${CFI_DIMENSION_META[weakestDim].improvements[0]}`,
+        summary: `Your thinking is currently ${band.toLowerCase()}, with an overall integration score of ${integrationScore}/100. `
+          + `You naturally lead with ${CFI_DIM_LABELS[primaryDim].toLowerCase()}, supported by ${CFI_DIM_LABELS[secondaryDim].toLowerCase()}. `
+          + `Your biggest opportunity right now is ${CFI_DIM_LABELS[weakestDim].toLowerCase()} — strengthening it is the fastest way to raise your overall clarity.`,
+      };
+    }
+
+    function buildImprovementPlan(dimReports, band) {
+      const dims = CFI_SECTION_ORDER;
+      const byStrength = [...dims].sort((a,b)=> dimReports[a].fragScore - dimReports[b].fragScore);
+      const strong = byStrength.slice(0,3);
+      const weak = [...byStrength].reverse().slice(0,3);
+
+      const brainToLesson = { analytical:2, intuitive:5, associative:3, reflective:4 };
+      const weakestBrain = CFI_DIMENSION_META[weak[0]].brainKey;
+      const recommendedLessonIds = Array.from(new Set([1, brainToLesson[weakestBrain] || 2]));
+
+      const timeByBand = {
+        'Integrated': '2–3 weeks to sharpen further',
+        'Moderate fragmentation': '3–4 weeks of consistent practice',
+        'High fragmentation': '5–6 weeks with daily practice',
+        'Critical fragmentation': '6–8 weeks, starting from Lesson 1',
+      };
+      const weeksByBand = { 'Integrated':14, 'Moderate fragmentation':21, 'High fragmentation':21, 'Critical fragmentation':14 };
+      const nextDate = new Date(Date.now() + (weeksByBand[band] || 21) * 24 * 60 * 60 * 1000);
+
+      return {
+        topStrengths: strong.map(d => ({ dim:d, name: CFI_DIM_LABELS[d], text: CFI_DIMENSION_META[d].strengths[0] })),
+        topGrowthAreas: weak.map(d => ({ dim:d, name: CFI_DIM_LABELS[d], text: CFI_DIMENSION_META[d].improvements[0] })),
+        recommendedLessonIds,
+        dailyExercise: CFI_DIMENSION_META[weak[0]].improvements[0],
+        weeklyRoutine: `Three times this week, run the Core Loop training module (8 min), paying extra attention to your ${CFI_DIM_LABELS[weak[0]].toLowerCase()}.`,
+        estimatedTime: timeByBand[band] || '3–4 weeks of consistent practice',
+        nextAssessmentDate: nextDate.toLocaleDateString('en-US', { month:'long', day:'numeric', year:'numeric' }),
+      };
+    }
+
 
     // ── Lesson Data ───────────────────────────────────────────────────
     const LESSONS = [
@@ -1614,6 +1868,214 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress, sessi
     // ═══════════════════════════════════════════════════════════════════
     //  CFI ASSESSMENT VIEW
     // ═══════════════════════════════════════════════════════════════════
+    //  CFI ASSESSMENT VIEW
+    // ═══════════════════════════════════════════════════════════════════
+    function CFIScoreRing({ value, size=180, stroke=14, color='#C4A050', label }) {
+      const r = (size - stroke) / 2;
+      const circumference = 2 * Math.PI * r;
+      const offset = circumference * (1 - Math.max(0, Math.min(100, value)) / 100);
+      return (
+        React.createElement("div", {style: { position:'relative', width:size, height:size, display:'inline-flex', alignItems:'center', justifyContent:'center', flexShrink:0 }},
+          React.createElement("svg", {width: size, height: size, style: { transform:'rotate(-90deg)' }},
+            React.createElement("circle", {cx: size/2, cy: size/2, r, fill:'none', stroke:'rgba(196,160,80,0.12)', strokeWidth:stroke}),
+            React.createElement("circle", {cx: size/2, cy: size/2, r, fill:'none', stroke:color, strokeWidth:stroke, strokeLinecap:'round', strokeDasharray:circumference, strokeDashoffset:offset, style:{transition:'stroke-dashoffset 0.9s ease'}})
+          ),
+          React.createElement("div", {style: { position:'absolute', textAlign:'center', padding:'0 8px' }},
+            React.createElement("div", {style: { ...syne, fontSize:'clamp(26px,7vw,36px)', fontWeight:800, color, lineHeight:1 }}, value),
+            label && React.createElement("div", {style: { ...mono, fontSize:9, letterSpacing:1, color:C.muted, marginTop:6, maxWidth:size-40 }}, label)
+          )
+        )
+      );
+    }
+
+    function CFIRadar({ dimensionReports, size=260 }) {
+      const dims = ['A','I','S','R'];
+      const angles = { A:-90, I:0, S:90, R:180 };
+      const cx = size/2, cy = size/2, maxR = size/2 - 50;
+      const pt = (angle, frac) => { const rad = angle*Math.PI/180; return [cx + maxR*frac*Math.cos(rad), cy + maxR*frac*Math.sin(rad)]; };
+      const dataPoints = dims.map(d => pt(angles[d], dimensionReports[d].integrationScore/100));
+      const dataPath = dataPoints.map(p=>p.join(',')).join(' ');
+      const rings = [0.25,0.5,0.75,1];
+      return (
+        React.createElement("svg", {width: size, height: size, viewBox:`0 0 ${size} ${size}`, style:{maxWidth:'100%', height:'auto'}},
+          rings.map((f,i)=> React.createElement("polygon", {key: 'ring'+i, points: dims.map(d=>pt(angles[d],f).join(',')).join(' '), fill:'none', stroke:'rgba(196,160,80,0.14)', strokeWidth:1})),
+          dims.map(d => { const [x,y]=pt(angles[d],1); return React.createElement("line", {key: 'axis'+d, x1:cx, y1:cy, x2:x, y2:y, stroke:'rgba(196,160,80,0.16)', strokeWidth:1}); }),
+          React.createElement("polygon", {points: dataPath, fill:'rgba(196,160,80,0.20)', stroke:'#C4A050', strokeWidth:2}),
+          dataPoints.map((p,i)=> React.createElement("circle", {key: 'pt'+i, cx:p[0], cy:p[1], r:4, fill:'#E2BE78'})),
+          dims.map(d => { const [x,y]=pt(angles[d],1.28); return React.createElement("text", {key: 'lbl'+d, x, y, fill:C.muted, fontSize:10, fontFamily:"'Space Mono', monospace", textAnchor:'middle', dominantBaseline:'middle'}, CFI_DIM_LABELS[d].split(',')[0]); })
+        )
+      );
+    }
+
+    function CFIDimensionCard({ report }) {
+      const meta = CFI_SECTIONS[report.dim];
+      const col = meta.color;
+      return (
+        React.createElement("div", {className: "card", style: { padding:'28px', marginBottom:16 }},
+          React.createElement("div", {style: { display:'flex', alignItems:'center', gap:12, marginBottom:16, flexWrap:'wrap' }},
+            React.createElement("div", {style: { ...mono, fontSize:16, color:col }}, meta.icon),
+            React.createElement("div", {style: { ...syne, fontSize:15, fontWeight:800, color:C.text, flex:1, minWidth:120 }}, report.name),
+            React.createElement("div", {style: { ...syne, fontSize:16, fontWeight:800, color:col }}, report.integrationScore, React.createElement("span", {style:{fontSize:11, color:C.muted, fontWeight:400}}, '/100')),
+          ),
+          React.createElement("div", {style: { height:6, background:C.panel, borderRadius:3, marginBottom:16, overflow:'hidden' }},
+            React.createElement("div", {style: { width:`${report.integrationScore}%`, height:'100%', background:col, borderRadius:3, transition:'width 0.6s ease' }})
+          ),
+          React.createElement("div", {style: { fontSize:14, color:C.text, lineHeight:1.7, marginBottom:20 }}, report.meaning),
+          React.createElement("div", {style: { display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(min(220px,100%),1fr))', gap:16, marginBottom:16 }},
+            React.createElement("div", null,
+              React.createElement("div", {style: { ...mono, fontSize:10, letterSpacing:1, color:col, marginBottom:8 }}, 'STRENGTHS'),
+              report.strengths.map((s,i)=> React.createElement("div", {key: i, style: { fontSize:13, color:C.muted, lineHeight:1.7, marginBottom:4 }}, '· ', s))
+            ),
+            React.createElement("div", null,
+              React.createElement("div", {style: { ...mono, fontSize:10, letterSpacing:1, color:C.muted, marginBottom:8 }}, 'BLIND SPOTS'),
+              report.blindSpots.map((s,i)=> React.createElement("div", {key: i, style: { fontSize:13, color:C.muted, lineHeight:1.7, marginBottom:4 }}, '· ', s))
+            ),
+          ),
+          React.createElement("div", {style: { display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(min(220px,100%),1fr))', gap:16, marginBottom:16, padding:'16px', background:C.deep, borderRadius:2, border:`1px solid ${C.border}` }},
+            React.createElement("div", null,
+              React.createElement("div", {style: { ...mono, fontSize:10, letterSpacing:1, color:C.cyan, marginBottom:6 }}, 'DECISION STYLE'),
+              React.createElement("div", {style: { fontSize:13, color:C.muted, lineHeight:1.6 }}, report.decisionStyle)
+            ),
+            React.createElement("div", null,
+              React.createElement("div", {style: { ...mono, fontSize:10, letterSpacing:1, color:C.cyan, marginBottom:6 }}, 'UNDER PRESSURE'),
+              React.createElement("div", {style: { fontSize:13, color:C.muted, lineHeight:1.6 }}, report.underPressure)
+            ),
+          ),
+          React.createElement("div", null,
+            React.createElement("div", {style: { ...mono, fontSize:10, letterSpacing:1, color:col, marginBottom:8 }}, 'SUGGESTED IMPROVEMENT'),
+            report.improvements.map((s,i)=> React.createElement("div", {key: i, style: { fontSize:13, color:C.text, lineHeight:1.7, marginBottom:4 }}, `${i+1}. `, s))
+          )
+        )
+      );
+    }
+
+    function CFIResults({ cfiResult, setView, user, setShowAuth, onRetake }) {
+      const bandColors = { 'Integrated':'#7AAFCF', 'Moderate fragmentation':'#C4A050', 'High fragmentation':'#FB8C00', 'Critical fragmentation':'#F87171' };
+      const bandColor = bandColors[cfiResult.band] || C.cyan;
+      const bandFriendly = { 'Integrated':'Well Integrated', 'Moderate fragmentation':'Building Integration', 'High fragmentation':'Fragmented, With Clear Fixes', 'Critical fragmentation':'Highly Fragmented' }[cfiResult.band] || cfiResult.band;
+      const dimensionReports = cfiResult.dimensionReports || {};
+      const profile = cfiResult.profile;
+      const plan = cfiResult.plan;
+      const hasEnrichedData = !!(profile && plan && dimensionReports.A);
+
+      return (
+        React.createElement("div", {style: { paddingTop:80, paddingBottom:60 }, id:'cfi-report'},
+          React.createElement("div", {style: { maxWidth:920, margin:'0 auto', padding:'24px 20px' }},
+
+            React.createElement("div", {style: { ...mono, fontSize:11, letterSpacing:1.5, color:C.cyan, marginBottom:8 }}, 'CFI™ · Your Results'),
+            React.createElement("div", {style: { fontSize:12, color:C.muted, lineHeight:1.6, marginBottom:28, maxWidth:640 }},
+              'The CFI™ measures thinking clarity and how well your thinking modes work together. It is not a personality test, mental health screening, or medical evaluation.'
+            ),
+
+            // ── Hero: score ring + band + radar ──
+            React.createElement("div", {className: "card", style: { padding:'32px 24px', marginBottom:24, position:'relative', overflow:'hidden' }},
+              React.createElement(ScanLine, null),
+              React.createElement("div", {style: { display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(min(260px,100%),1fr))', gap:32, alignItems:'center' }},
+                React.createElement("div", {style: { display:'flex', flexDirection:'column', alignItems:'center', textAlign:'center', gap:16 }},
+                  React.createElement(CFIScoreRing, {value: cfiResult.integrationScore ?? Math.max(0,100-cfiResult.total*2), color: bandColor, label:'Cognitive Integration Score'}),
+                  React.createElement("div", {style: { display:'inline-block', padding:'8px 18px', background:`${bandColor}15`, border:`1px solid ${bandColor}33`, borderRadius:2 }},
+                    React.createElement("div", {style: { ...syne, fontSize:13, fontWeight:800, color:bandColor }}, bandFriendly)
+                  ),
+                  React.createElement("div", {style: { fontSize:13, color:C.muted, lineHeight:1.7, maxWidth:340 }}, cfiResult.desc)
+                ),
+                hasEnrichedData && React.createElement("div", {style: { display:'flex', flexDirection:'column', alignItems:'center' }},
+                  React.createElement("div", {style: { ...mono, fontSize:10, letterSpacing:1, color:C.muted, marginBottom:12 }}, 'FOUR THINKING MODES'),
+                  React.createElement(CFIRadar, {dimensionReports})
+                )
+              )
+            ),
+
+            // ── Overall Cognitive Profile ──
+            hasEnrichedData && React.createElement("div", {className: "card", style: { padding:'32px 24px', marginBottom:24 }},
+              React.createElement("div", {style: { ...mono, fontSize:11, letterSpacing:1, color:C.cyan, marginBottom:20 }}, 'Overall Cognitive Profile'),
+              React.createElement("div", {style: { fontSize:14, color:C.text, lineHeight:1.8, marginBottom:24, padding:'18px 20px', background:C.deep, borderRadius:2, border:`1px solid ${C.border}` }}, profile.summary),
+              React.createElement("div", {style: { display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(min(220px,100%),1fr))', gap:20 }},
+                [
+                  ['Primary thinking style', profile.primaryStyle],
+                  ['Secondary thinking style', profile.secondaryStyle],
+                  ['Decision profile', profile.decisionProfile],
+                  ['Communication style', profile.communicationStyle],
+                  ['Leadership style', profile.leadershipStyle],
+                  ['Learning style', profile.learningStyle],
+                  ['Biggest strength', profile.biggestStrength],
+                  ['Biggest blind spot', profile.biggestBlindSpot],
+                  ['Biggest opportunity', profile.biggestOpportunity],
+                ].map(([label, value], i) => (
+                  React.createElement("div", {key: i},
+                    React.createElement("div", {style: { ...mono, fontSize:10, letterSpacing:1, color:C.muted, marginBottom:6 }}, label.toUpperCase()),
+                    React.createElement("div", {style: { fontSize:13, color:C.text, lineHeight:1.6 }}, value)
+                  )
+                ))
+              )
+            ),
+
+            // ── Understanding your scores ──
+            React.createElement("div", {className: "card", style: { padding:'24px', marginBottom:24 }},
+              React.createElement("div", {style: { ...mono, fontSize:11, letterSpacing:1, color:C.cyan, marginBottom:14 }}, 'How to read your scores'),
+              React.createElement("div", {style: { display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(min(240px,100%),1fr))', gap:12 }},
+                [90,75,50,25].map(s => (
+                  React.createElement("div", {key: s, style: { fontSize:12.5, color:C.muted, lineHeight:1.6 }},
+                    React.createElement("span", {style: { color:C.cyanBright, fontWeight:700 }}, s===90?'90%+':`${s}%+`), ' — ', cfiScoreMeaning(s)
+                  )
+                ))
+              )
+            ),
+
+            // ── Dimensional deep dive ──
+            hasEnrichedData && React.createElement("div", {style: { marginBottom:8 }},
+              React.createElement("div", {style: { ...mono, fontSize:11, letterSpacing:1, color:C.cyan, marginBottom:20 }}, 'Your Four Brains, Explained'),
+              CFI_SECTION_ORDER.map(d => React.createElement(CFIDimensionCard, {key: d, report: dimensionReports[d]}))
+            ),
+
+            // ── Improvement plan ──
+            hasEnrichedData && React.createElement("div", {className: "card", style: { padding:'32px 24px', marginBottom:24, borderColor:`${C.cyan}33` }},
+              React.createElement("div", {style: { ...mono, fontSize:11, letterSpacing:1, color:C.cyan, marginBottom:20 }}, 'Your Personalized Improvement Plan'),
+              React.createElement("div", {style: { display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(min(260px,100%),1fr))', gap:24, marginBottom:24 }},
+                React.createElement("div", null,
+                  React.createElement("div", {style: { ...mono, fontSize:10, letterSpacing:1, color:'#7AAFCF', marginBottom:10 }}, 'TOP 3 STRENGTHS'),
+                  plan.topStrengths.map((s,i)=> React.createElement("div", {key: i, style: { fontSize:13, color:C.text, lineHeight:1.7, marginBottom:8 }}, React.createElement("strong", {style:{color:C.text}}, s.name), ': ', s.text))
+                ),
+                React.createElement("div", null,
+                  React.createElement("div", {style: { ...mono, fontSize:10, letterSpacing:1, color:'#FB8C00', marginBottom:10 }}, 'TOP 3 AREAS TO DEVELOP'),
+                  plan.topGrowthAreas.map((s,i)=> React.createElement("div", {key: i, style: { fontSize:13, color:C.text, lineHeight:1.7, marginBottom:8 }}, React.createElement("strong", {style:{color:C.text}}, s.name), ': ', s.text))
+                ),
+              ),
+              React.createElement("div", {style: { display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(min(260px,100%),1fr))', gap:20, marginBottom:24, padding:'20px', background:C.deep, borderRadius:2, border:`1px solid ${C.border}` }},
+                React.createElement("div", null, React.createElement("div", {style: { ...mono, fontSize:10, letterSpacing:1, color:C.muted, marginBottom:6 }}, 'DAILY EXERCISE'), React.createElement("div", {style: { fontSize:13, color:C.text, lineHeight:1.6 }}, plan.dailyExercise)),
+                React.createElement("div", null, React.createElement("div", {style: { ...mono, fontSize:10, letterSpacing:1, color:C.muted, marginBottom:6 }}, 'THIS WEEK'), React.createElement("div", {style: { fontSize:13, color:C.text, lineHeight:1.6 }}, plan.weeklyRoutine)),
+                React.createElement("div", null, React.createElement("div", {style: { ...mono, fontSize:10, letterSpacing:1, color:C.muted, marginBottom:6 }}, 'TIME TO IMPROVE'), React.createElement("div", {style: { fontSize:13, color:C.text, lineHeight:1.6 }}, plan.estimatedTime)),
+                React.createElement("div", null, React.createElement("div", {style: { ...mono, fontSize:10, letterSpacing:1, color:C.muted, marginBottom:6 }}, 'RETAKE ON'), React.createElement("div", {style: { fontSize:13, color:C.text, lineHeight:1.6 }}, plan.nextAssessmentDate)),
+              ),
+              React.createElement("div", {style: { ...mono, fontSize:10, letterSpacing:1, color:C.cyan, marginBottom:12 }}, 'RECOMMENDED LESSONS'),
+              React.createElement("div", {style: { display:'flex', flexWrap:'wrap', gap:10 }},
+                plan.recommendedLessonIds.map(id => {
+                  const lesson = LESSONS.find(l=>l.id===id);
+                  if (!lesson) return null;
+                  return React.createElement("button", {key: id, className: "btn-outline", style:{fontSize:12, padding:'10px 16px'}, onClick: ()=>setView('lessons')}, lesson.title, ' →');
+                })
+              )
+            ),
+
+            // ── Conversion / actions ──
+            React.createElement("div", {className: "card", style: { padding:'28px 24px', marginBottom:24, textAlign:'center' }},
+              React.createElement("div", {style: { ...syne, fontSize:14, fontWeight:800, color:C.text, marginBottom:8 }}, user ? 'Your progress is saved.' : 'Save your results and track your growth'),
+              React.createElement("div", {style: { fontSize:13, color:C.muted, marginBottom:20, maxWidth:440, margin:'0 auto 20px', lineHeight:1.7 }},
+                user ? 'Retake the CFI™ over time to watch your Clarity Delta™ grow.' : 'Create a free account to save this report, track your Clarity Delta™ over time, and unlock your personalized learning path.'
+              ),
+              !user && React.createElement("button", {className: "btn-primary", style: { marginRight:12, marginBottom:10 }, onClick: ()=>setShowAuth(true)}, 'Create free account')
+            ),
+
+            React.createElement("div", {style: { display:'flex', gap:12, flexWrap:'wrap', justifyContent:'center' }},
+              React.createElement("button", {className: "btn-primary", onClick: ()=>setView('training')}, 'Begin training →'),
+              React.createElement("button", {className: "btn-outline", onClick: ()=>setView('lessons')}, 'Open lesson manuals'),
+              React.createElement("button", {className: "btn-outline", onClick: ()=>window.print()}, 'Download PDF report'),
+              React.createElement("button", {className: "btn-ghost", onClick: onRetake}, 'Retake assessment'),
+            )
+          )
+        )
+      );
+    }
+
     function CFIView({ setView, user, setShowAuth, cfiResult, setCfiResult }) {
       const [started, setStarted] = useState(false);
       const [step, setStep] = useState(0);
@@ -1621,116 +2083,169 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress, sessi
       const [showResult, setShowResult] = useState(!!cfiResult);
 
       const labels = ['Never','Rarely','Sometimes','Often','Always'];
-      const progress = started ? (step/CFI_ITEMS.length)*100 : 0;
 
-      const calculateCFI = () => {
-        const vals = Object.values(answers);
-        if (vals.length < CFI_ITEMS.length) return null;
+      const flow = useMemo(() => {
+        const f = [];
+        let lastDim = null;
+        CFI_ITEMS.forEach(item => {
+          if (item.dim !== lastDim) { f.push({ type:'section', dim: item.dim }); lastDim = item.dim; }
+          f.push({ type:'question', item });
+        });
+        return f;
+      }, []);
+
+      const answeredCount = Object.keys(answers).length;
+      const percent = Math.round((answeredCount / CFI_ITEMS.length) * 100);
+      const remainingQ = CFI_ITEMS.length - answeredCount;
+      const estMinutes = Math.max(1, Math.ceil((remainingQ * 12) / 60));
+      const motivation = () => {
+        if (answeredCount === 0) return "There are no wrong answers here. Go with your first instinct.";
+        if (percent < 50) return "Good start — you're building an accurate picture.";
+        if (percent < 100) return "Over halfway there. Keep going.";
+        return "Nice work.";
+      };
+
+      const finalize = (finalAnswers) => {
+        const vals = Object.values(finalAnswers);
         const total = vals.reduce((a,b)=>a+b,0);
         let band, desc, recommendation;
-        if (total<=20) {
-          band='Integrated'; desc='Low fragmentation. Your thinking modes are well-coordinated.';
-          recommendation='Maintain your daily integration protocol. Advance to Lessons 4–5 for fluency installation.';
-        } else if (total<=33) {
-          band='Moderate fragmentation'; desc='Some fragmentation detected. Specific modes need targeted training.';
-          recommendation='Focus on mode activation (Lesson 2). Daily mode-switching drills for 14 days.';
-        } else if (total<=46) {
-          band='High fragmentation'; desc='Significant fragmentation. Integration is inconsistent under pressure.';
-          recommendation='Begin from Lesson 1. Run the Core Loop daily.';
-        } else {
-          band='Critical fragmentation'; desc='Severe fragmentation. Decision-making and clarity are compromised.';
-          recommendation='Start Lesson 1 immediately and track your CFI weekly.';
-        }
-        const dims={A:[],I:[],S:[],R:[],E:[]};
-        CFI_ITEMS.forEach(item=>{ if(answers[item.id]) dims[item.dim].push(answers[item.id]); });
-        const dimScores={};
-        Object.keys(dims).forEach(d=>{ dimScores[d]=dims[d].length ? Math.round(dims[d].reduce((a,b)=>a+b,0)/dims[d].length*20) : 0; });
+        if (total<=20) { band='Integrated'; desc='Low fragmentation. Your thinking modes are well-coordinated.'; recommendation='Maintain your daily integration protocol. Advance to Lessons 4–5 for fluency installation.'; }
+        else if (total<=33) { band='Moderate fragmentation'; desc='Some fragmentation detected. Specific modes need targeted training.'; recommendation='Focus on mode activation (Lesson 2). Daily mode-switching drills for 14 days.'; }
+        else if (total<=46) { band='High fragmentation'; desc='Significant fragmentation. Integration is inconsistent under pressure.'; recommendation='Begin from Lesson 1. Run the Core Loop daily.'; }
+        else { band='Critical fragmentation'; desc='Severe fragmentation. Decision-making and clarity are compromised.'; recommendation='Start Lesson 1 immediately and track your CFI weekly.'; }
 
-        // Determine dominant brain from highest dim score (meaning highest fragmentation)
+        const dims = { A:[], I:[], S:[], R:[], E:[] };
+        CFI_ITEMS.forEach(item => { if (finalAnswers[item.id]) dims[item.dim].push(finalAnswers[item.id]); });
+        const dimScores = {};
+        Object.keys(dims).forEach(d => { dimScores[d] = dims[d].length ? Math.round(dims[d].reduce((a,b)=>a+b,0)/dims[d].length*20) : 0; });
+
         const brainMap = { A:'analytical', I:'intuitive', S:'associative', R:'reflective', E:'analytical' };
         const sortedDims = Object.entries(dimScores).sort((a,b)=>b[1]-a[1]);
         const dominantBrain = brainMap[sortedDims[0][0]] || 'analytical';
 
-        return { total, band, desc, recommendation, dimScores, dominantBrain };
+        const integrationScore = cfiIntegrationScore(total);
+        const dimensionReports = {};
+        Object.keys(dimScores).forEach(d => { dimensionReports[d] = buildDimensionReport(d, dimScores[d]); });
+        const profile = buildCognitiveProfile(dimensionReports, integrationScore, band);
+        const plan = buildImprovementPlan(dimensionReports, band);
+
+        const result = { total, band, desc, recommendation, dimScores, dominantBrain, integrationScore, dimensionReports, profile, plan };
+        setCfiResult(result);
+        setShowResult(true);
+        if (user) saveCFIResult(user.id, result, finalAnswers);
       };
 
-      const handleAnswer = (val) => {
-        const newAnswers = {...answers, [CFI_ITEMS[step].id]: val};
+      const handleAnswer = (item, val) => {
+        const newAnswers = { ...answers, [item.id]: val };
         setAnswers(newAnswers);
-        if (step < CFI_ITEMS.length-1) {
-          setStep(s=>s+1);
-        } else {
-          // Calculate result
-          const tempAnswers = newAnswers;
-          const vals = Object.values(tempAnswers);
-          const total = vals.reduce((a,b)=>a+b,0);
-          let band, desc, recommendation;
-          if (total<=20) { band='Integrated'; desc='Low fragmentation. Your thinking modes are well-coordinated.'; recommendation='Maintain your daily integration protocol. Advance to Lessons 4–5 for fluency installation.'; }
-          else if (total<=33) { band='Moderate fragmentation'; desc='Some fragmentation detected. Specific modes need targeted training.'; recommendation='Focus on mode activation (Lesson 2). Daily mode-switching drills for 14 days.'; }
-          else if (total<=46) { band='High fragmentation'; desc='Significant fragmentation. Integration is inconsistent under pressure.'; recommendation='Begin from Lesson 1. Run the Core Loop daily.'; }
-          else { band='Critical fragmentation'; desc='Severe fragmentation. Decision-making and clarity are compromised.'; recommendation='Start Lesson 1 immediately and track your CFI weekly.'; }
-          const dims={A:[],I:[],S:[],R:[],E:[]};
-          CFI_ITEMS.forEach(item=>{ if(tempAnswers[item.id]) dims[item.dim].push(tempAnswers[item.id]); });
-          const dimScores={};
-          Object.keys(dims).forEach(d=>{ dimScores[d]=dims[d].length ? Math.round(dims[d].reduce((a,b)=>a+b,0)/dims[d].length*20) : 0; });
-          const brainMap = { A:'analytical', I:'intuitive', S:'associative', R:'reflective', E:'analytical' };
-          const sortedDims = Object.entries(dimScores).sort((a,b)=>b[1]-a[1]);
-          const dominantBrain = brainMap[sortedDims[0][0]] || 'analytical';
-          const result = { total, band, desc, recommendation, dimScores, dominantBrain };
-          setCfiResult(result);
-          setShowResult(true);
-          if (user) saveCFIResult(user.id, result, tempAnswers);
-        }
+        const isLastQuestion = item.id === CFI_ITEMS[CFI_ITEMS.length-1].id;
+        if (isLastQuestion) { finalize(newAnswers); }
+        else { setStep(s => s+1); }
       };
 
-      if (showResult && cfiResult) {
-        const bandColors = {
-          'Integrated':'#7AAFCF',
-          'Moderate fragmentation':'#C4A050',
-          'High fragmentation':'#FB8C00',
-          'Critical fragmentation':'#F87171',
-        };
-        const bandColor = bandColors[cfiResult.band] || C.cyan;
-        const dimLabels = {A:'Analytical coherence',I:'Intuitive alignment',S:'Associative flexibility',R:'Reflective depth',E:'Integration stability'};
+      const handleRetake = () => { setStarted(false); setStep(0); setAnswers({}); setShowResult(false); };
 
-        return (
-          React.createElement("div", {style: { paddingTop:80, paddingBottom:40 }}, React.createElement("div", {style: { maxWidth:900, margin:'0 auto', padding:'24px 24px' }}, React.createElement("div", {style: { ...mono, fontSize:11, letterSpacing:1.5, color:C.cyan, marginBottom:16 }}, 'CFI · Results'), React.createElement("div", {className: "card", style: { padding:'40px', marginBottom:32, position:'relative', overflow:'hidden', borderColor:`${bandColor}22` }}, React.createElement(ScanLine, null), React.createElement("div", {style: { display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(min(200px, 100%), 1fr))', gap:32, alignItems:'center' }}, React.createElement("div", null, React.createElement("div", {style: { ...mono, fontSize:11, letterSpacing:1, color:C.muted, marginBottom:12 }}, 'Cognitive Fragmentation Index'), React.createElement("div", {style: { ...syne, fontSize:17, fontWeight:800, color:bandColor, lineHeight:1.2, overflowWrap:'break-word', minWidth:0}}, cfiResult.total), React.createElement("div", {style: { ...mono, fontSize:11, letterSpacing:1, color:C.muted, marginTop:8, marginBottom:16 }}, 'Total fragmentation score'), React.createElement("div", {style: { display:'inline-block', padding:'8px 16px', background:`${bandColor}15`, border:`1px solid ${bandColor}33`, borderRadius:2 }}, React.createElement("div", {style: { ...syne, fontSize:14, fontWeight:800, color:bandColor, overflowWrap:'break-word', minWidth:0}}, cfiResult.band))), React.createElement("div", null, React.createElement("div", {style: { ...mono, fontSize:11, letterSpacing:1, color:C.muted, marginBottom:16 }}, 'Dominant cognitive pattern'), React.createElement(BrainCard, {brainKey: cfiResult.dominantBrain, compact: true}))), React.createElement("div", {style: { marginTop:32, padding:'20px', background:C.deep, borderRadius:2, border:`1px solid ${C.border}` }}, React.createElement("div", {style: { ...mono, fontSize:11, letterSpacing:1, color:C.muted, marginBottom:8 }}, 'Diagnostic summary'), React.createElement("div", {style: { fontSize:14, color:C.text, lineHeight:1.7, marginBottom:12 }}, cfiResult.desc), React.createElement("div", {style: { ...mono, fontSize:11, letterSpacing:1, color:C.cyan, marginBottom:8 }}, 'Training recommendation'), React.createElement("div", {style: { fontSize:13, color:C.muted, lineHeight:1.7 }}, cfiResult.recommendation))), React.createElement("div", {style: { ...mono, fontSize:11, letterSpacing:1, color:C.cyan, marginBottom:20 }}, 'Dimensional analysis'), React.createElement("div", {style: { display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(min(250px, 100%), 1fr))', gap:16, marginBottom:32 }}, Object.entries(cfiResult.dimScores).map(([dim,score])=>{
-                  const col = score>=70?'#F87171':score>=50?'#C4A050':'#7AAFCF';
-                  return (
-                    React.createElement("div", {key: dim, className: "card", style: { padding:'24px' }}, React.createElement("div", {style: { ...mono, fontSize:11, letterSpacing:1, color:C.muted, marginBottom:12 }}, dimLabels[dim]), React.createElement("div", {style: { display:'flex', alignItems:'center', gap:16, marginBottom:12 }}, React.createElement("div", {style: { ...syne, fontSize:14, fontWeight:800, color:col, overflowWrap:'break-word', minWidth:0}}, score), React.createElement("div", {style: { fontSize:11, color:C.muted }}, 'fragmentation', React.createElement("br", null), 'score')), React.createElement("div", {style: { height:3, background:C.panel, borderRadius:2 }}, React.createElement("div", {style: { width:`${score}%`, height:'100%', background:col, borderRadius:2 }})))
-                  );
-                })), React.createElement("div", {style: { display:'flex', gap:16, flexWrap:'wrap' }}, React.createElement("button", {className: "btn-primary", onClick: ()=>setView('training')}, 'Begin training →'), React.createElement("button", {className: "btn-outline", onClick: ()=>setView('lessons')}, 'Open lesson manuals'), React.createElement("button", {className: "btn-ghost", onClick: ()=>{ setStarted(false); setStep(0); setAnswers({}); setShowResult(false); }}, 'Retake assessment'))))
-        );
+      // ── Results screen ──
+      if (showResult && cfiResult) {
+        return React.createElement(CFIResults, { cfiResult, setView, user, setShowAuth, onRetake: handleRetake });
       }
 
+      // ── Intro screen ──
       if (!started) {
         return (
-          React.createElement("div", {style: { paddingTop:80, paddingBottom:40 }}, React.createElement("div", {style: { maxWidth:800, margin:'0 auto', padding:'32px 24px', textAlign:'center' }}, React.createElement("div", {style: { ...mono, fontSize:11, letterSpacing:1.5, color:C.cyan, marginBottom:20 }}, 'Cognitive Fragmentation Index™'), React.createElement("h1", {style: { ...syne, fontSize:17, fontWeight:800, color:C.text, marginBottom:20, lineHeight:1.05, overflowWrap:'break-word', minWidth:0}}, 'Measure your cognitive', React.createElement("br", null), React.createElement("span", {style: {color:C.cyan}}, 'fragmentation level')), React.createElement("p", {style: { fontSize:15, color:C.muted, lineHeight:1.8, marginBottom:40, maxWidth:520, margin:'0 auto 40px' }}, 'The CFI™ is a precision diagnostic instrument that measures fragmentation across five cognitive dimensions. The assessment consists of 15 statements. Respond honestly; the accuracy of your profile depends on it.'), React.createElement("div", {style: { display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(min(200px, 100%), 1fr))', gap:16, marginBottom:20, textAlign:'left' }}, ['Five cognitive dimensions measured','Dominant brain mode identified','Fragmentation band assigned','Personalised training recommendation'].map((item,i)=>(
-                  React.createElement("div", {key: i, className: "card", style: { padding:'16px 20px', display:'flex', alignItems:'center', gap:12 }}, React.createElement("div", {style: { ...mono, fontSize:14, color:C.cyan }}, '◈'), React.createElement("div", {style: { fontSize:13, color:C.muted }}, item))
-                ))), React.createElement("button", {className: "btn-primary", style: { fontSize:14 }, onClick: ()=>setStarted(true)}, 'Begin CFI →')))
+          React.createElement("div", {style: { paddingTop:80, paddingBottom:40 }},
+            React.createElement("div", {style: { maxWidth:760, margin:'0 auto', padding:'32px 20px', textAlign:'center' }},
+              React.createElement("div", {style: { ...mono, fontSize:11, letterSpacing:1.5, color:C.cyan, marginBottom:20 }}, 'Cognitive Fragmentation Index™'),
+              React.createElement("h1", {style: { ...syne, fontSize:'clamp(22px,5vw,30px)', fontWeight:800, color:C.text, marginBottom:20, lineHeight:1.15 }},
+                'Discover how you think', React.createElement("br", null), React.createElement("span", {style: {color:C.cyan}}, 'and where it gets stuck')
+              ),
+              React.createElement("p", {style: { fontSize:15.5, color:C.muted, lineHeight:1.8, marginBottom:16, maxWidth:540, margin:'0 auto 16px' }},
+                "You'll answer 15 short, everyday questions — no jargon, nothing tricky. It takes about 3–4 minutes."
+              ),
+              React.createElement("div", {style: { fontSize:12.5, color:C.dim, lineHeight:1.7, marginBottom:36, maxWidth:540, margin:'0 auto 36px', padding:'14px 18px', background:C.deep, border:`1px solid ${C.border}`, borderRadius:2 }},
+                'The CFI™ measures how you process information, make decisions, and combine different ways of thinking. It is not a personality test, a mental health screening, or a diagnosis of any kind.'
+              ),
+              React.createElement("div", {style: { display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(min(220px, 100%), 1fr))', gap:14, marginBottom:32, textAlign:'left' }},
+                ['A score for how clear your thinking is right now', 'Your natural strengths and blind spots, explained plainly', 'A personalized, day-by-day improvement plan', 'A radar chart comparing your four thinking modes'].map((item,i)=>(
+                  React.createElement("div", {key: i, className: "card", style: { padding:'16px 20px', display:'flex', alignItems:'center', gap:12 }},
+                    React.createElement("div", {style: { ...mono, fontSize:14, color:C.cyan }}, '◈'),
+                    React.createElement("div", {style: { fontSize:13.5, color:C.muted, lineHeight:1.5 }}, item)
+                  )
+                ))
+              ),
+              React.createElement("button", {className: "btn-primary", style: { fontSize:15, padding:'16px 36px' }, onClick: ()=>setStarted(true)}, 'Begin CFI →')
+            )
+          )
         );
       }
 
-      const item = CFI_ITEMS[step];
+      const current = flow[step];
+
+      // ── Section intro screen ──
+      if (current.type === 'section') {
+        const meta = CFI_SECTIONS[current.dim];
+        const isFirst = current.dim === 'A';
+        return (
+          React.createElement("div", {style: { paddingTop:80, paddingBottom:40, minHeight:'70vh', display:'flex', alignItems:'center' }},
+            React.createElement("div", {style: { maxWidth:600, margin:'0 auto', padding:'32px 24px', width:'100%', textAlign:'center', animation:'fadeUp 0.4s ease both' }},
+              !isFirst && React.createElement("div", {style: { ...mono, fontSize:11, letterSpacing:1, color:C.cyan, marginBottom:24 }}, motivation(), ' · ', percent, '% done'),
+              React.createElement("div", {style: { ...mono, fontSize:22, color:meta.color, marginBottom:16 }}, meta.icon),
+              React.createElement("h2", {style: { ...syne, fontSize:'clamp(18px,4vw,22px)', fontWeight:800, color:C.text, marginBottom:16 }}, meta.title),
+              React.createElement("p", {style: { fontSize:15, color:C.muted, lineHeight:1.8, marginBottom:36, maxWidth:440, margin:'0 auto 36px' }}, meta.blurb),
+              React.createElement("button", {className: "btn-primary", style: { fontSize:14, padding:'14px 32px' }, onClick: ()=>setStep(s=>s+1)}, isFirst ? 'Start →' : 'Continue →'),
+              step > 0 && React.createElement("div", null,
+                React.createElement("button", {className: "btn-ghost", style: { marginTop:20 }, onClick: ()=>setStep(s=>Math.max(0,s-1))}, '← Back')
+              )
+            )
+          )
+        );
+      }
+
+      // ── Question screen ──
+      const item = current.item;
       const brainInfo = C.brains[item.brain] || C.brains.analytical;
+      const qIndex = CFI_ITEMS.findIndex(q=>q.id===item.id);
 
       return (
-        React.createElement("div", {style: { paddingTop:80, paddingBottom:40 }}, React.createElement("div", {style: { maxWidth:700, margin:'0 auto', padding:'40px 24px', width:'100%' }}, React.createElement("div", {style: { display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:32 }}, React.createElement("div", {style: { ...mono, fontSize:11, letterSpacing:1, color:C.muted }}, 'CFI ·', step+1, '/', CFI_ITEMS.length), React.createElement("div", {style: { ...mono, fontSize:11, letterSpacing:1, color:C.cyan }}, Math.round(progress), '%')), React.createElement("div", {style: { height:2, background:C.panel, borderRadius:2, marginBottom:20, overflow:'hidden' }}, React.createElement("div", {style: { width:`${progress}%`, height:'100%', background:C.cyan, borderRadius:2, transition:'width 0.4s ease' }})), React.createElement("div", {key: step, style: { animation:'fadeUp 0.4s ease both' }}, React.createElement("div", {style: { display:'flex', alignItems:'center', gap:12, marginBottom:24 }}, React.createElement("div", {style: { ...mono, fontSize:15, color:brainInfo.color }}, brainInfo.symbol), React.createElement("div", {style: { ...mono, fontSize:11, letterSpacing:1, color:brainInfo.color }}, FOUR_BRAINS[item.brain]?.label || 'COGNITIVE')), React.createElement("div", {style: { ...syne, fontSize:14, fontWeight:700, color:C.text, lineHeight:1.3, marginBottom:48, overflowWrap:'break-word', minWidth:0}}, '"', item.text, '"'), React.createElement("div", {style: { display:'grid', gridTemplateColumns:'repeat(5, 1fr)', gap:8 }}, labels.map((label,i)=>{
-                  const val = i+1;
-                  const isSelected = answers[item.id]===val;
-                  return (
-                    React.createElement("button", {key: i, onClick: ()=>handleAnswer(val), style: {
-                      padding:'16px 8px', borderRadius:2, border:`1px solid ${isSelected?C.cyan:C.border}`,
-                      background: isSelected ? `${C.cyan}20` : C.surface,
-                      display:'flex', flexDirection:'column', alignItems:'center', gap:8,
-                      transition:'all 0.2s', cursor:'pointer',
-                    }}, React.createElement("div", {style: { ...syne, fontSize:14, fontWeight:800, color:isSelected?C.cyan:C.dim, overflowWrap:'break-word', minWidth:0}}, val), React.createElement("div", {style: { ...mono, fontSize:8, letterSpacing:1, color:isSelected?C.cyan:C.dim, textAlign:'center' }}, label))
-                  );
-                })), React.createElement("div", {style: { display:'flex', justifyContent:'space-between', marginTop:12 }}, React.createElement("div", {style: { ...mono, fontSize:11, letterSpacing:1, color:C.dim }}, 'NEVER'), React.createElement("div", {style: { ...mono, fontSize:11, letterSpacing:1, color:C.dim }}, 'ALWAYS'))), step > 0 && (
-              React.createElement("button", {className: "btn-ghost", style: { marginTop:32 }, onClick: ()=>setStep(s=>s-1)}, '← Previous')
-            )))
+        React.createElement("div", {style: { paddingTop:80, paddingBottom:40 }},
+          React.createElement("div", {style: { maxWidth:640, margin:'0 auto', padding:'32px 20px', width:'100%' }},
+            React.createElement("div", {style: { display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:16, flexWrap:'wrap', gap:8 }},
+              React.createElement("div", {style: { ...mono, fontSize:11, letterSpacing:1, color:C.muted }}, 'Question ', qIndex+1, ' of ', CFI_ITEMS.length),
+              React.createElement("div", {style: { ...mono, fontSize:11, letterSpacing:1, color:C.cyan }}, '~', estMinutes, ' min left')
+            ),
+            React.createElement("div", {style: { height:6, background:C.panel, borderRadius:3, marginBottom:12, overflow:'hidden' }},
+              React.createElement("div", {style: { width:`${percent}%`, height:'100%', background:C.cyan, borderRadius:3, transition:'width 0.4s ease' }})
+            ),
+            React.createElement("div", {style: { ...mono, fontSize:10.5, letterSpacing:0.5, color:C.dim, marginBottom:36 }}, motivation()),
+            React.createElement("div", {key: item.id, style: { animation:'fadeUp 0.35s ease both' }},
+              React.createElement("div", {style: { display:'flex', alignItems:'center', gap:10, marginBottom:20 }},
+                React.createElement("div", {style: { ...mono, fontSize:15, color:brainInfo.color }}, brainInfo.symbol),
+                React.createElement("div", {style: { ...mono, fontSize:11, letterSpacing:1, color:brainInfo.color }}, CFI_SECTIONS[item.dim]?.title.toUpperCase())
+              ),
+              React.createElement("div", {style: { ...syne, fontSize:'clamp(19px,4.5vw,24px)', fontWeight:700, color:C.text, lineHeight:1.4, marginBottom:44 }}, item.text),
+              React.createElement("div", {style: { display:'grid', gridTemplateColumns:'repeat(5, 1fr)', gap:8 }}, labels.map((label,i)=>{
+                const val = i+1;
+                const isSelected = answers[item.id]===val;
+                return (
+                  React.createElement("button", {key: i, onClick: ()=>handleAnswer(item, val), style: {
+                    padding:'18px 6px', borderRadius:4, border:`1px solid ${isSelected?C.cyan:C.border}`,
+                    background: isSelected ? `${C.cyan}20` : C.surface,
+                    display:'flex', flexDirection:'column', alignItems:'center', gap:8,
+                    transition:'all 0.2s', cursor:'pointer', minHeight:64,
+                  }}, React.createElement("div", {style: { ...syne, fontSize:15, fontWeight:800, color:isSelected?C.cyan:C.dim }}, val), React.createElement("div", {style: { ...mono, fontSize:8, letterSpacing:0.5, color:isSelected?C.cyan:C.dim, textAlign:'center' }}, label))
+                );
+              })),
+              React.createElement("div", {style: { display:'flex', justifyContent:'space-between', marginTop:12 }},
+                React.createElement("div", {style: { ...mono, fontSize:10, letterSpacing:1, color:C.dim }}, 'NEVER'),
+                React.createElement("div", {style: { ...mono, fontSize:10, letterSpacing:1, color:C.dim }}, 'ALWAYS')
+              )
+            ),
+            React.createElement("button", {className: "btn-ghost", style: { marginTop:36 }, onClick: ()=>setStep(s=>Math.max(0,s-1))}, '← Previous')
+          )
+        )
       );
     }
+
 
     // ═══════════════════════════════════════════════════════════════════
     //  TRAINING VIEW
