@@ -1514,3 +1514,12 @@ h1, h2, h3, h4, h5, h6,
   -webkit-text-size-adjust: none;
   text-size-adjust: none;
 }
+
+/* ── CFI™ report print styles (Download PDF report button) ────────── */
+@media print {
+  body * { visibility: hidden; }
+  #cfi-report, #cfi-report * { visibility: visible; }
+  #cfi-report { position: absolute; left: 0; top: 0; width: 100%; padding-top: 0 !important; }
+  #cfi-report button, #cfi-report .btn-primary, #cfi-report .btn-outline, #cfi-report .btn-ghost { display: none !important; }
+  #cfi-report .card { border: 1px solid #ccc !important; break-inside: avoid; }
+}
