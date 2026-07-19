@@ -408,7 +408,7 @@ const { useState, useEffect, useCallback, useRef, useMemo } = React;
       { id:3, title:'Synthesis & Decision Architecture', sub:'Convert cognitive fragmentation into unified decisions.', level:'Intermediate', free:false, duration:'32 min', brain:'associative' },
       { id:4, title:'Cognitive Stabilization Under Pressure', sub:'Maintain mental clarity when urgency strikes.', level:'Advanced', free:false, duration:'32 min', brain:'reflective' },
       { id:5, title:'Cognitive Fluency Installation', sub:'From deliberate effort to automatic integration.', level:'Mastery', free:false, duration:'26 min', brain:'intuitive' },
-      { id:6, title:'Field Reference & Certification', sub:'Glossary, templates, scorecard, and the Final Assessment.', level:'Reference', free:true, duration:'30 min', brain:'all' },
+      { id:6, title:'Field Reference & Certification', sub:'Glossary, templates, scorecard, and the Final Assessment.', level:'Reference', free:false, duration:'30 min', brain:'all' },
     ];
 
     const LESSON_CONTENT = {
