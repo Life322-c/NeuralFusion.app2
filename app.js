@@ -20,6 +20,54 @@ const { useState, useEffect, useCallback, useRef, useMemo } = React;
       }
     };
 
+    // ── Brand Identity: NF Monogram ─────────────────────────────────────
+    // Primary brand mark. Geometric N + F sharing a single stem - the
+    // visual metaphor for "fusion": multiple thinking systems integrated
+    // into one operating mark. Sharp edges, no gradients, no glow.
+    const NF_GOLD = '#C8A24D';
+    const NF_INK  = '#0B0B0D';
+    function NFMark({ size = 32, color = NF_GOLD, title = 'NeuralFusion' }) {
+      return React.createElement(
+        "svg",
+        { width: size, height: size, viewBox: "0 0 100 100", role: "img", "aria-label": title, style: { flexShrink: 0, display: 'block' } },
+        React.createElement("rect", { x: 13, y: 13, width: 14, height: 74, fill: color }),
+        React.createElement("polygon", { points: "27,13 41,13 71,87 57,87", fill: color }),
+        React.createElement("rect", { x: 57, y: 13, width: 14, height: 74, fill: color }),
+        React.createElement("rect", { x: 57, y: 13, width: 30, height: 14, fill: color }),
+        React.createElement("rect", { x: 57, y: 44, width: 24, height: 14, fill: color })
+      );
+    }
+    // Icon on a dark square badge - for contexts needing a self-contained
+    // mark (cards, loading states, standalone app-icon-style usage).
+    function NFBadge({ size = 40, radius = 8, gold = NF_GOLD, ink = NF_INK }) {
+      return React.createElement(
+        "svg",
+        { width: size, height: size, viewBox: "0 0 100 100", role: "img", "aria-label": "NeuralFusion", style: { flexShrink: 0, display: 'block' } },
+        React.createElement("rect", { x: 0, y: 0, width: 100, height: 100, rx: radius, fill: ink }),
+        React.createElement("rect", { x: 22, y: 22, width: 10.5, height: 56, fill: gold }),
+        React.createElement("polygon", { points: "32.5,22 43,22 67.5,78 57,78", fill: gold }),
+        React.createElement("rect", { x: 57, y: 22, width: 10.5, height: 56, fill: gold }),
+        React.createElement("rect", { x: 57, y: 22, width: 21, height: 10.5, fill: gold }),
+        React.createElement("rect", { x: 57, y: 45.75, width: 17, height: 10.5, fill: gold })
+      );
+    }
+    // Horizontal lockup: icon + wordmark, vertically centered, consistent
+    // gap. Used in the primary nav. Collapses to icon-only via CSS below
+    // a set breakpoint (see .nf-lockup-text in style.css).
+    function NFLogoLockup({ iconSize = 30, gap = 12, wordmarkColor = '#F5EDD8', tagline, taglineColor = '#9A8A6A' }) {
+      return React.createElement(
+        "div",
+        { className: "nf-lockup", style: { display: 'flex', alignItems: 'center', gap } },
+        React.createElement(NFMark, { size: iconSize }),
+        React.createElement(
+          "div",
+          { className: "nf-lockup-text", style: { display: 'flex', flexDirection: 'column', justifyContent: 'center', minWidth: 0 } },
+          React.createElement("div", { style: { fontFamily: "'Syne', sans-serif", fontSize: 15, fontWeight: 700, letterSpacing: '0.06em', color: wordmarkColor, lineHeight: 1.15, whiteSpace: 'nowrap' } }, 'NEURALFUSION', React.createElement("sup", { style: { fontSize: '0.5em', marginLeft: 1 } }, '™')),
+          tagline && React.createElement("div", { style: { fontFamily: "'Space Mono', monospace", fontSize: 10.5, letterSpacing: '0.08em', color: taglineColor, marginTop: 2, whiteSpace: 'nowrap' } }, tagline)
+        )
+      );
+    }
+
     // ── Admin Config ──────────────────────────────────────────────────
     // Admin access is enforced server-side via profiles.is_admin (Supabase RLS).
     // No credentials are stored in the client bundle.
@@ -1398,12 +1446,7 @@ Most learners take four to six weeks working through the lessons at the suggeste
             position:'fixed', top:0, left:0, right:0, zIndex:100,
             background:'rgba(5,12,26,0.85)', backdropFilter:'blur(20px)',
             borderBottom:`1px solid ${C.border}`,
-          }}, React.createElement("div", {style: { maxWidth:1280, margin:'0 auto', padding:'0 24px', height:60, display:'flex', alignItems:'center', justifyContent:'space-between' }}, React.createElement("button", {onClick: ()=>setView('home'), style: { background:'none', border:'none', display:'flex', alignItems:'center', gap:12, cursor:'pointer' }}, React.createElement("div", {style: {
-                  width:32, height:32, borderRadius:'50%', border:`1px solid ${C.cyan}44`,
-                  display:'flex', alignItems:'center', justifyContent:'center',
-                  background:`radial-gradient(circle, ${C.cyan}15, transparent)`,
-                  ...mono, fontSize:14, color:C.cyan,
-                }}, '◈'), React.createElement("div", null, React.createElement("div", {style: { ...syne, fontSize:14, fontWeight:800, color:C.text, letterSpacing:1, overflowWrap:'break-word', minWidth:0}}, 'NeuralFusion™'), React.createElement("div", {style: { ...mono, fontSize:11, letterSpacing:1, color:C.muted }}, 'Cognitive OS'))), React.createElement("div", {className: "desktop-nav"}, navItems.map(item => (
+          }}, React.createElement("div", {style: { maxWidth:1280, margin:'0 auto', padding:'0 24px', height:60, display:'flex', alignItems:'center', justifyContent:'space-between' }}, React.createElement("button", {className: "nf-logo-btn", onClick: ()=>setView('home'), style: { background:'none', border:'none', display:'flex', alignItems:'center', cursor:'pointer' }}, React.createElement(NFLogoLockup, {iconSize: 30, gap: 12, wordmarkColor: C.text, tagline: 'Cognitive OS', taglineColor: C.muted})), React.createElement("div", {className: "desktop-nav"}, navItems.map(item => (
                   React.createElement("button", {key: item.v, onClick: ()=>setView(item.v), style: {
                     background:'none', border:'none', padding:'8px 12px',
                     color: view===item.v ? C.cyan : C.muted,
@@ -2782,7 +2825,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress, sessi
         { label:'Data Protection', v:'legal', tab:'data' },
       ];
       return (
-        React.createElement("footer", {style: { borderTop:`1px solid ${C.border}`, padding:'48px 24px 32px', textAlign:'center' }}, React.createElement("div", {style: { maxWidth:1200, margin:'0 auto' }}, React.createElement("div", {style: { display:'flex', alignItems:'center', justifyContent:'center', gap:12, marginBottom:32 }}, React.createElement("div", {style: { ...mono, fontSize:15, color:C.cyan }}, '◈'), React.createElement("div", {style: { ...syne, fontSize:14, fontWeight:800, color:C.text, letterSpacing:2, overflowWrap:'break-word', minWidth:0}}, 'NeuralFusion™')), React.createElement("div", {style: { display:'flex', justifyContent:'center', flexWrap:'wrap', gap:24, marginBottom:20 }}, links.map(l=>(
+        React.createElement("footer", {style: { borderTop:`1px solid ${C.border}`, padding:'48px 24px 32px', textAlign:'center' }}, React.createElement("div", {style: { maxWidth:1200, margin:'0 auto' }}, React.createElement("div", {style: { display:'flex', alignItems:'center', justifyContent:'center', marginBottom:32 }}, React.createElement(NFLogoLockup, {iconSize: 26, gap: 10, wordmarkColor: C.text})), React.createElement("div", {style: { display:'flex', justifyContent:'center', flexWrap:'wrap', gap:24, marginBottom:20 }}, links.map(l=>(
                 React.createElement("button", {key: l.v, onClick: ()=>setView(l.v), style: { background:'none', border:'none', color:C.muted, fontSize:12, cursor:'pointer' }}, l.label)
               ))), React.createElement("div", {style: { display:'flex', justifyContent:'center', flexWrap:'wrap', gap:20, marginBottom:32, paddingTop:16, borderTop:`1px solid ${C.border}` }}, legalLinks.map(l=>(
                 React.createElement("button", {key: l.label, onClick: ()=>setView(l.v), style: { background:'none', border:'none', color:C.dim, fontSize:10, cursor:'pointer', fontFamily:"'Space Mono', monospace", letterSpacing:1 }}, l.label)
@@ -3550,7 +3593,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress, sessi
         ? [['dashboard','Dashboard'],['lessons','Lessons'],['cfi','CFI Data'],['results','Results']]
         : [['assessment','Assessment'],['programme','Programme']];
       return (
-        React.createElement("nav", {style: { position:'fixed', top:0, left:0, right:0, zIndex:200, display:'flex', alignItems:'center', justifyContent:'space-between', padding:'1rem 2rem', background:'rgba(5,12,26,0.95)', backdropFilter:'blur(20px)', borderBottom:`1px solid ${EC.border}` }}, React.createElement("div", {style: { ...ES.mono({ color:EC.accent }), letterSpacing:'0.2em' }}, '◈ NeuralFusion™', React.createElement("span", {style: { color:EC.muted }}, '/ Enterprise')), React.createElement("div", {style: { display:'flex', gap:'0.25rem' }}, tabs.map(([id,label]) => (
+        React.createElement("nav", {style: { position:'fixed', top:0, left:0, right:0, zIndex:200, display:'flex', alignItems:'center', justifyContent:'space-between', padding:'1rem 2rem', background:'rgba(5,12,26,0.95)', backdropFilter:'blur(20px)', borderBottom:`1px solid ${EC.border}` }}, React.createElement("div", {style: { display:'flex', alignItems:'center', gap:10 }}, React.createElement(NFMark, {size: 20}), React.createElement("div", {style: { ...ES.mono({ color:EC.accent }), letterSpacing:'0.2em' }}, 'NEURALFUSION™', React.createElement("span", {style: { color:EC.muted }}, ' / Enterprise'))), React.createElement("div", {style: { display:'flex', gap:'0.25rem' }}, tabs.map(([id,label]) => (
               React.createElement("button", {key: id, style: ES.navTab(view===id), onClick: ()=>setView(id)}, label)
             ))), React.createElement("button", {style: { ...ES.mono({ color:EC.muted }), background:'none', border:`1px solid ${EC.border}`, padding:'0.4rem 0.9rem', cursor:'pointer' }, onClick: onExit}, '← Exit'))
       );
