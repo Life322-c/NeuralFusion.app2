@@ -1,4 +1,4 @@
-# NeuralFusion™ — robots.txt
+# NeuralFusion™ - robots.txt
 # https://tryneuralfusion.com/
 
 User-agent: *
