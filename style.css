@@ -68,14 +68,14 @@
   --text-ghost: rgba(240,232,208,0.4);
 
   /* ── Typography Fonts ─────────────────────────────────────────── */
-  /* HERO DISPLAY — Clash Display: geometric, editorial, bold authority */
+  /* HERO DISPLAY - Clash Display: geometric, editorial, bold authority */
   --font-display: 'Clash Display', 'Syne', 'DM Sans', sans-serif;
-  /* BODY — Satoshi: clean modern grotesque, medium contrast, readable */
+  /* BODY - Satoshi: clean modern grotesque, medium contrast, readable */
   --font-body:    'Satoshi', 'DM Sans', sans-serif;
-  /* SYSTEM MONO — Space Mono: structured, futuristic metadata labels */
+  /* SYSTEM MONO - Space Mono: structured, futuristic metadata labels */
   --font-mono:    'Space Mono', 'Courier New', monospace;
 
-  /* ── Type Scale — Tight Editorial System ─────────────────────── */
+  /* ── Type Scale - Tight Editorial System ─────────────────────── */
   --text-xxs:  9px;
   --text-xs:  11px;
   --text-sm:  13px;
@@ -313,7 +313,7 @@ p strong, .body-highlight {
   color: var(--text) !important;
 }
 
-/* Section title — compact, weighted */
+/* Section title - compact, weighted */
 .type-section-title {
   font-family: var(--font-display) !important;
   font-size: clamp(13px, 1.2vw, 17px) !important;
@@ -969,6 +969,18 @@ input::placeholder, textarea::placeholder { color: var(--text-dim); }
 .hamburger-btn  { display: flex !important; }
 .nav-user-label { display: none !important; }
 
+/* ── LOGO LOCKUP ─────────────────────────────────────────────
+   Desktop/tablet: icon + wordmark. Below 360px, drop the
+   wordmark entirely and show the NF monogram alone so the
+   header never crowds or clips on very small devices.       */
+.nf-logo-btn .nf-lockup { gap: 12px; }
+@media (max-width: 899px) {
+  .nf-logo-btn .nf-lockup { gap: 9px; }
+}
+@media (max-width: 359px) {
+  .nf-logo-btn .nf-lockup-text { display: none !important; }
+}
+
 /* ── BOTTOM NAV ──────────────────────────────────────────── */
 .bottom-nav {
   display: flex;
@@ -1023,7 +1035,7 @@ input::placeholder, textarea::placeholder { color: var(--text-dim); }
 }
 
 /* ═══════════════════════════════════════════════════════════════
-   BENTO REVEAL ANIMATIONS — staggered entrance
+   BENTO REVEAL ANIMATIONS - staggered entrance
 ═══════════════════════════════════════════════════════════════ */
 .bento-card {
   animation: bentoReveal 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
@@ -1065,13 +1077,13 @@ input::placeholder, textarea::placeholder { color: var(--text-dim); }
 }
 
 /* ═══════════════════════════════════════════════════════════════
-   GLOBAL TYPOGRAPHY OVERRIDES — Cognitive OS System v5.0
+   GLOBAL TYPOGRAPHY OVERRIDES - Cognitive OS System v5.0
    Covers inline React styles and all component text patterns.
    Clash Display → hero/display | Satoshi → body | Space Mono → labels
 ═══════════════════════════════════════════════════════════════ */
 
 /* ── Force display font onto all Syne-assigned inline styles ── */
-/* The JS injects fontFamily: "'Syne', sans-serif" — we cascade
+/* The JS injects fontFamily: "'Syne', sans-serif" - we cascade
    Clash Display in front via the CSS variable, so any element
    rendering with var(--font-display) automatically upgrades. */
 
@@ -1259,10 +1271,10 @@ blockquote {
 }
 
 /* ═══════════════════════════════════════════════════════════════
-   UTILITY TYPOGRAPHY CLASSES — apply to any element
+   UTILITY TYPOGRAPHY CLASSES - apply to any element
 ═══════════════════════════════════════════════════════════════ */
 
-/* Hero display — largest format */
+/* Hero display - largest format */
 .t-hero {
   font-family: var(--font-display) !important;
   font-size: var(--hero-size) !important;
@@ -1355,7 +1367,7 @@ h1, h2, h3, h4, h5, h6 {
   text-wrap: balance;
 }
 
-/* h5 / h6 — smallest semantic headings */
+/* h5 / h6 - smallest semantic headings */
 h5 {
   font-size: clamp(11px, 0.8vw, 13px);
   font-weight: 600;
@@ -1452,7 +1464,7 @@ h6 {
   h3 { font-size: clamp(13px, 1.7vw, 16px) !important; line-height: 1.2 !important; }
 }
 
-/* ── Desktop heading caps — prevent inflation on large monitors ── */
+/* ── Desktop heading caps - prevent inflation on large monitors ── */
 @media (min-width: 900px) {
   h1 { font-size: clamp(18px, 1.6vw, 24px) !important; }
   h2 { font-size: clamp(15px, 1.35vw, 20px) !important; }
