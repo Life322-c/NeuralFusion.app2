@@ -157,6 +157,29 @@
     }
 
     /* ── Layout ── */
+    .brand-bar {
+      display: flex;
+      align-items: center;
+      padding: 18px 32px;
+      border-bottom: 1px solid var(--border);
+      background: var(--navy-deep);
+      position: sticky;
+      top: 0;
+      z-index: 50;
+    }
+    .brand-bar__logo {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--gold-light);
+      text-decoration: none;
+      font-family: 'Cormorant Garamond', Georgia, serif;
+      font-weight: 600;
+      font-size: 17px;
+      letter-spacing: 0.04em;
+    }
+    .brand-bar__logo svg { flex-shrink: 0; }
+    .brand-bar__logo sup { font-size: 0.6em; }
     .article-wrap {
       max-width: 780px;
       margin: 0 auto;
@@ -583,6 +606,10 @@
 </head>
 <body>
 
+<header class="brand-bar">
+  <a class="brand-bar__logo" href="https://tryneuralfusion.com/"><svg width="18" height="18" viewBox="0 0 100 100" aria-hidden="true"><rect x="13" y="13" width="14" height="74" fill="currentColor"/><polygon points="27,13 41,13 71,87 57,87" fill="currentColor"/><rect x="57" y="13" width="14" height="74" fill="currentColor"/><rect x="57" y="13" width="30" height="14" fill="currentColor"/><rect x="57" y="44" width="24" height="14" fill="currentColor"/></svg>NeuralFusion<sup>™</sup></a>
+</header>
+
 <article class="article-wrap" itemscope itemtype="https://schema.org/Article">
 
   <header class="article-header">
@@ -661,7 +688,7 @@
         </defs>
       </svg>
     </div>
-    <figcaption><span class="fig-kicker">Figure 1</span>Four cognitive signals, scattered and in conflict on the left, become one coordinated system on the right — the shift NeuralFusion™'s Four Modes Framework™ is built to produce.</figcaption>
+    <figcaption><span class="fig-kicker">Figure 1</span>Four cognitive signals, scattered and in conflict on the left, become one coordinated system on the right - the shift NeuralFusion™'s Four Modes Framework™ is built to produce.</figcaption>
   </figure>
 
 
@@ -721,7 +748,7 @@
         </g>
       </svg>
     </div>
-    <figcaption><span class="fig-kicker">Figure 2</span>When Analytical, Intuitive, Associative, and Reflective modes pull outward instead of coordinating, the friction is felt as fatigue, stalling, and self-doubt — even though nothing is actually broken.</figcaption>
+    <figcaption><span class="fig-kicker">Figure 2</span>When Analytical, Intuitive, Associative, and Reflective modes pull outward instead of coordinating, the friction is felt as fatigue, stalling, and self-doubt - even though nothing is actually broken.</figcaption>
   </figure>
 
 
@@ -822,7 +849,7 @@
     <div class="fig-frame">
       <svg viewBox="0 0 500 320" role="img" aria-labelledby="fig-wheel-title fig-wheel-desc" loading="lazy" decoding="async">
         <title id="fig-wheel-title">The Four Modes integration wheel</title>
-        <desc id="fig-wheel-desc">A circular diagram with four quadrants — Analytical, Intuitive, Associative, and Reflective — arranged around a central hub labeled Integration, showing each mode's core question.</desc>
+        <desc id="fig-wheel-desc">A circular diagram with four quadrants - Analytical, Intuitive, Associative, and Reflective - arranged around a central hub labeled Integration, showing each mode's core question.</desc>
         <circle cx="250" cy="150" r="105" fill="none" stroke="#C8962E" stroke-opacity="0.35" stroke-width="1"/>
         <line x1="145" y1="150" x2="355" y2="150" stroke="#C8962E" stroke-opacity="0.25" stroke-width="1"/>
         <line x1="250" y1="45" x2="250" y2="255" stroke="#C8962E" stroke-opacity="0.25" stroke-width="1"/>
@@ -1012,7 +1039,7 @@
     <div class="fig-frame">
       <svg viewBox="0 0 400 340" role="img" aria-labelledby="fig-radar-title fig-radar-desc" loading="lazy" decoding="async">
         <title id="fig-radar-title">Four-axis radar chart of the NeuralFusion performance metrics</title>
-        <desc id="fig-radar-desc">A radar chart with four axes — Clarity Delta, Decision Pressure Index, Commitment Lock, and Executive Compression — plotting an example uneven profile where one axis is significantly weaker than the others.</desc>
+        <desc id="fig-radar-desc">A radar chart with four axes - Clarity Delta, Decision Pressure Index, Commitment Lock, and Executive Compression - plotting an example uneven profile where one axis is significantly weaker than the others.</desc>
         <g stroke="#C8962E" stroke-opacity="0.3" fill="none" stroke-width="1">
           <polygon points="200,40 340,150 290,300 110,300 60,150"/>
           <polygon points="200,80 305,157 267,270 133,270 95,157"/>
