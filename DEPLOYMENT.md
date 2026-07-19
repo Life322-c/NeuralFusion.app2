@@ -1,4 +1,4 @@
-# NeuralFusion™ — Post-Fix Deployment Guide
+# NeuralFusion™ - Post-Fix Deployment Guide
 
 ## What Was Fixed
 
@@ -14,7 +14,7 @@ Added two schema.org blocks:
 
 ### 3. SEO Content Layer (index.html)
 Added a visually-hidden `<div id="seo-layer">` with real HTML content:
-h1, h2, paragraph text, and a nav — so Google's crawler can index the site
+h1, h2, paragraph text, and a nav - so Google's crawler can index the site
 even when JavaScript rendering is slow or fails. This is critical for a
 React SPA with no SSR.
 
