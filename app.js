@@ -138,14 +138,18 @@ const { useState, useEffect, useCallback, useRef, useMemo } = React;
       { id:6,  dim:'I', brain:'intuitive',   text:"My first instinct and my logical thinking usually point different ways." },
       { id:7,  dim:'S', brain:'associative', text:"When my first idea doesn't work, I struggle to think of a new one." },
       { id:8,  dim:'S', brain:'associative', text:"I have trouble connecting a lesson from one part of my life to another." },
-      { id:9,  dim:'S', brain:'associative', text:"My creative ideas dry up when I'm rushed or worried what others think." },
-      { id:10, dim:'R', brain:'reflective',  text:"After finishing something big, I rarely stop to think about how I did it." },
-      { id:11, dim:'R', brain:'reflective',  text:"When I reflect on things, I end up overthinking instead of feeling clear." },
-      { id:12, dim:'R', brain:'reflective',  text:"When something goes wrong, I struggle to see what caused it." },
-      { id:13, dim:'E', brain:'analytical',  text:"Under pressure, my thoughts feel scattered and hard to bring together." },
-      { id:14, dim:'E', brain:'intuitive',   text:"Juggling several priorities at once leaves my mind feeling drained." },
-      { id:15, dim:'E', brain:'reflective',  text:"I know how I should be thinking, but not how to switch gears on purpose." },
+      { id:9,  dim:'S', brain:'associative', text:"I often worry about how other people will judge the quality of my work." },
+      { id:10, dim:'S', brain:'associative', text:"I tend to become more focused and productive when working close to a deadline.", reversed:true },
+      { id:11, dim:'R', brain:'reflective',  text:"After finishing something big, I rarely stop to think about how I did it." },
+      { id:12, dim:'R', brain:'reflective',  text:"When I reflect on things, I end up overthinking instead of feeling clear." },
+      { id:13, dim:'R', brain:'reflective',  text:"When something goes wrong, I struggle to see what caused it." },
+      { id:14, dim:'E', brain:'analytical',  text:"Under pressure, my thoughts feel scattered and hard to bring together." },
+      { id:15, dim:'E', brain:'intuitive',   text:"Juggling several priorities at once leaves my mind feeling drained." },
+      { id:16, dim:'E', brain:'reflective',  text:"I know how I should be thinking, but not how to switch gears on purpose." },
     ];
+    // NOTE: 16 items total now (was 15). Item 10 is reverse-scored (`reversed:true`) —
+    // performing well under deadline pressure is a *strength*, not fragmentation, so its
+    // raw 1–5 answer is inverted (6 - value) everywhere fragmentation totals are computed.
 
     // ── CFI Section Intros ──────────────────────────────────────────────
     const CFI_SECTIONS = {
@@ -2125,7 +2129,55 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress, sessi
       const [answers, setAnswers] = useState({});
       const [showResult, setShowResult] = useState(!!cfiResult);
 
-      const labels = ['Never','Rarely','Sometimes','Often','Always'];
+      // ── Accessible response scale: each option carries a short, concrete
+      // subtitle so the label isn't the only cue (helps with ambiguity that
+      // trips up literal/ADHD/autistic readers), and equal visual weight
+      // across all five so no option "looks" like the right answer.
+      const SCALE_OPTIONS = [
+        { value:1, label:'Never',     subtitle:"This doesn't happen for me" },
+        { value:2, label:'Rarely',    subtitle:'Happens once in a while' },
+        { value:3, label:'Sometimes', subtitle:'Happens about half the time' },
+        { value:4, label:'Often',     subtitle:'Happens most of the time' },
+        { value:5, label:'Always',    subtitle:'This is true almost every time' },
+      ];
+
+      // ── Accessible design tokens (WCAG AA, dyslexia-friendly) ──────────
+      // Scoped to the assessment screens only, distinct from the app's
+      // global dark navy/gold theme used elsewhere.
+      const AC = {
+        bg: '#FFFFFF', surface: '#FFFFFF', surfaceAlt: '#F9FAFB',
+        text: '#111827', muted: '#4B5563', border: '#D1D5DB',
+        gold: '#C8A95A', goldDark: '#8A6D2F', goldTint: '#FBF3E3',
+        focus: '#8A6D2F',
+        font: "'Atkinson Hyperlegible', 'Inter', -apple-system, sans-serif",
+      };
+
+      // Inject the dyslexia-friendly font + visible keyboard focus states once.
+      useEffect(() => {
+        if (!document.getElementById('nf-a11y-font')) {
+          const link = document.createElement('link');
+          link.id = 'nf-a11y-font';
+          link.rel = 'stylesheet';
+          link.href = 'https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Inter:wght@400;600;700;800&display=swap';
+          document.head.appendChild(link);
+        }
+        if (!document.getElementById('nf-a11y-styles')) {
+          const style = document.createElement('style');
+          style.id = 'nf-a11y-styles';
+          style.textContent = `
+            .nf-a11y-scale-btn:focus-visible,
+            .nf-a11y-btn:focus-visible {
+              outline: 3px solid ${AC.focus};
+              outline-offset: 3px;
+            }
+            .nf-a11y-scale-btn:hover { border-color: ${AC.gold} !important; background: ${AC.goldTint} !important; }
+            @media (prefers-reduced-motion: reduce) {
+              .nf-a11y-fade { animation: none !important; }
+            }
+          `;
+          document.head.appendChild(style);
+        }
+      }, []);
 
       const flow = useMemo(() => {
         const f = [];
@@ -2149,16 +2201,21 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress, sessi
       };
 
       const finalize = (finalAnswers) => {
-        const vals = Object.values(finalAnswers);
-        const total = vals.reduce((a,b)=>a+b,0);
+        // Reverse-scored items (e.g. "focused under deadline pressure") are inverted
+        // before summing, since a high raw answer there means LESS fragmentation.
+        const effective = (item) => {
+          const v = finalAnswers[item.id];
+          return item.reversed ? (6 - v) : v;
+        };
+        const total = CFI_ITEMS.reduce((sum, item) => sum + effective(item), 0);
         let band, desc, recommendation;
-        if (total<=20) { band='Integrated'; desc='Low fragmentation. Your thinking modes are well-coordinated.'; recommendation='Maintain your daily integration protocol. Advance to Lessons 4–5 for fluency installation.'; }
-        else if (total<=33) { band='Moderate fragmentation'; desc='Some fragmentation detected. Specific modes need targeted training.'; recommendation='Focus on mode activation (Lesson 2). Daily mode-switching drills for 14 days.'; }
-        else if (total<=46) { band='High fragmentation'; desc='Significant fragmentation. Integration is inconsistent under pressure.'; recommendation='Begin from Lesson 1. Run the Core Loop daily.'; }
+        if (total<=21) { band='Integrated'; desc='Low fragmentation. Your thinking modes are well-coordinated.'; recommendation='Maintain your daily integration protocol. Advance to Lessons 4–5 for fluency installation.'; }
+        else if (total<=35) { band='Moderate fragmentation'; desc='Some fragmentation detected. Specific modes need targeted training.'; recommendation='Focus on mode activation (Lesson 2). Daily mode-switching drills for 14 days.'; }
+        else if (total<=49) { band='High fragmentation'; desc='Significant fragmentation. Integration is inconsistent under pressure.'; recommendation='Begin from Lesson 1. Run the Core Loop daily.'; }
         else { band='Critical fragmentation'; desc='Severe fragmentation. Decision-making and clarity are compromised.'; recommendation='Start Lesson 1 immediately and track your CFI weekly.'; }
 
         const dims = { A:[], I:[], S:[], R:[], E:[] };
-        CFI_ITEMS.forEach(item => { if (finalAnswers[item.id]) dims[item.dim].push(finalAnswers[item.id]); });
+        CFI_ITEMS.forEach(item => { if (finalAnswers[item.id]) dims[item.dim].push(effective(item)); });
         const dimScores = {};
         Object.keys(dims).forEach(d => { dimScores[d] = dims[d].length ? Math.round(dims[d].reduce((a,b)=>a+b,0)/dims[d].length*20) : 0; });
 
@@ -2193,30 +2250,38 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress, sessi
         return React.createElement(CFIResults, { cfiResult, setView, user, setShowAuth, onRetake: handleRetake });
       }
 
-      // ── Intro screen ──
+      // ── Intro screen (accessible) ──
       if (!started) {
         return (
-          React.createElement("div", {style: { paddingTop:80, paddingBottom:40 }},
-            React.createElement("div", {style: { maxWidth:760, margin:'0 auto', padding:'32px 20px', textAlign:'center' }},
-              React.createElement("div", {style: { ...mono, fontSize:11, letterSpacing:1.5, color:C.cyan, marginBottom:20 }}, 'Cognitive Fragmentation Index™'),
-              React.createElement("h1", {style: { ...syne, fontSize:'clamp(22px,5vw,30px)', fontWeight:800, color:C.text, marginBottom:20, lineHeight:1.15 }},
-                'Discover how you think', React.createElement("br", null), React.createElement("span", {style: {color:C.cyan}}, 'and where it gets stuck')
+          React.createElement("div", {style: { paddingTop:80, paddingBottom:60, background:AC.bg, minHeight:'100vh', fontFamily:AC.font }},
+            React.createElement("div", {style: { maxWidth:720, margin:'0 auto', padding:'32px 20px', textAlign:'center' }},
+              React.createElement("div", {style: { fontFamily:AC.font, fontSize:14, fontWeight:700, letterSpacing:'0.06em', color:AC.goldDark, marginBottom:20, textTransform:'uppercase' }}, 'Cognitive Fragmentation Index™'),
+              React.createElement("h1", {style: { fontFamily:AC.font, fontSize:'clamp(26px,5vw,34px)', fontWeight:800, color:AC.text, marginBottom:20, lineHeight:1.3 }},
+                'Discover how you think', React.createElement("br", null), React.createElement("span", {style: {color:AC.goldDark}}, 'and where it gets stuck')
               ),
-              React.createElement("p", {style: { fontSize:15.5, color:C.muted, lineHeight:1.8, marginBottom:16, maxWidth:540, margin:'0 auto 16px' }},
-                "You'll answer 15 short, everyday questions. No jargon, nothing tricky. It takes about 3–4 minutes."
+              React.createElement("p", {style: { fontSize:19, color:AC.text, lineHeight:1.7, marginBottom:20, maxWidth:560, margin:'0 auto 20px' }},
+                "You'll answer 16 short, everyday questions. No jargon, nothing tricky. It takes about 3–4 minutes."
               ),
-              React.createElement("div", {style: { fontSize:12.5, color:C.dim, lineHeight:1.7, marginBottom:36, maxWidth:540, margin:'0 auto 36px', padding:'14px 18px', background:C.deep, border:`1px solid ${C.border}`, borderRadius:2 }},
+              // Neurodivergent-support note
+              React.createElement("div", {role:'note', style: { fontSize:18, color:AC.text, lineHeight:1.7, marginBottom:20, maxWidth:560, margin:'0 auto 20px', padding:'20px 22px', background:AC.goldTint, border:`1px solid ${AC.gold}`, borderRadius:16, textAlign:'left' }},
+                'This assessment is designed to support a wide range of thinking styles, including ADHD, dyslexia, autism, and other neurodivergent profiles. There are no right or wrong answers. Respond based on your typical experience, not how you think you should perform.'
+              ),
+              React.createElement("div", {style: { fontSize:16, color:AC.muted, lineHeight:1.7, marginBottom:36, maxWidth:560, margin:'0 auto 36px', padding:'16px 20px', background:AC.surfaceAlt, border:`1px solid ${AC.border}`, borderRadius:16, textAlign:'left' }},
                 'The CFI™ measures how you process information, make decisions, and combine different ways of thinking. It is not a personality test, a mental health screening, or a diagnosis of any kind.'
               ),
-              React.createElement("div", {style: { display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(min(220px, 100%), 1fr))', gap:14, marginBottom:32, textAlign:'left' }},
+              React.createElement("div", {style: { display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(min(240px, 100%), 1fr))', gap:16, marginBottom:36, textAlign:'left' }},
                 ['A score for how clear your thinking is right now', 'Your natural strengths and blind spots, explained plainly', 'A personalized, day-by-day improvement plan', 'A radar chart comparing your four thinking modes'].map((item,i)=>(
-                  React.createElement("div", {key: i, className: "card", style: { padding:'16px 20px', display:'flex', alignItems:'center', gap:12 }},
-                    React.createElement("div", {style: { ...mono, fontSize:14, color:C.cyan }}, '◈'),
-                    React.createElement("div", {style: { fontSize:13.5, color:C.muted, lineHeight:1.5 }}, item)
+                  React.createElement("div", {key: i, style: { padding:'18px 20px', display:'flex', alignItems:'center', gap:14, background:AC.surface, border:`1px solid ${AC.border}`, borderRadius:16, boxShadow:'0 1px 3px rgba(17,24,39,0.06)' }},
+                    React.createElement("div", {style: { fontSize:20, color:AC.goldDark, flexShrink:0 }}, '◈'),
+                    React.createElement("div", {style: { fontSize:16, color:AC.text, lineHeight:1.6 }}, item)
                   )
                 ))
               ),
-              React.createElement("button", {className: "btn-primary", style: { fontSize:15, padding:'16px 36px' }, onClick: ()=>setStarted(true)}, 'Begin CFI →')
+              React.createElement("button", {className: "nf-a11y-btn", onClick: ()=>setStarted(true), style: {
+                fontFamily:AC.font, fontSize:18, fontWeight:700, padding:'18px 40px', minHeight:56,
+                background:AC.goldDark, color:'#FFFFFF', border:'none', borderRadius:16, cursor:'pointer',
+                boxShadow:'0 2px 8px rgba(138,109,47,0.35)',
+              }}, 'Begin CFI →')
             )
           )
         );
@@ -2224,66 +2289,93 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress, sessi
 
       const current = flow[step];
 
-      // ── Section intro screen ──
+      // ── Section intro screen (accessible) ──
       if (current.type === 'section') {
         const meta = CFI_SECTIONS[current.dim];
         const isFirst = current.dim === 'A';
         return (
-          React.createElement("div", {style: { paddingTop:80, paddingBottom:40, minHeight:'70vh', display:'flex', alignItems:'center' }},
-            React.createElement("div", {style: { maxWidth:600, margin:'0 auto', padding:'32px 24px', width:'100%', textAlign:'center', animation:'fadeUp 0.4s ease both' }},
-              !isFirst && React.createElement("div", {style: { ...mono, fontSize:11, letterSpacing:1, color:C.cyan, marginBottom:24 }}, motivation(), ' · ', percent, '% done'),
-              React.createElement("div", {style: { ...mono, fontSize:22, color:meta.color, marginBottom:16 }}, meta.icon),
-              React.createElement("h2", {style: { ...syne, fontSize:'clamp(18px,4vw,22px)', fontWeight:800, color:C.text, marginBottom:16 }}, meta.title),
-              React.createElement("p", {style: { fontSize:15, color:C.muted, lineHeight:1.8, marginBottom:36, maxWidth:440, margin:'0 auto 36px' }}, meta.blurb),
-              React.createElement("button", {className: "btn-primary", style: { fontSize:14, padding:'14px 32px' }, onClick: ()=>setStep(s=>s+1)}, isFirst ? 'Start →' : 'Continue →'),
+          React.createElement("div", {style: { paddingTop:80, paddingBottom:40, minHeight:'70vh', display:'flex', alignItems:'center', background:AC.bg, fontFamily:AC.font }},
+            React.createElement("div", {className: "nf-a11y-fade", style: { maxWidth:620, margin:'0 auto', padding:'32px 24px', width:'100%', textAlign:'center' }},
+              !isFirst && React.createElement("div", {style: { fontFamily:AC.font, fontSize:15, fontWeight:700, letterSpacing:'0.02em', color:AC.goldDark, marginBottom:24 }}, motivation(), ' · ', percent, '% done'),
+              React.createElement("div", {style: { fontSize:30, color:meta.color, marginBottom:16 }}, meta.icon),
+              React.createElement("h2", {style: { fontFamily:AC.font, fontSize:'clamp(22px,4vw,26px)', fontWeight:800, color:AC.text, marginBottom:16, lineHeight:1.3 }}, meta.title),
+              React.createElement("p", {style: { fontSize:18, color:AC.text, lineHeight:1.7, marginBottom:36, maxWidth:460, margin:'0 auto 36px' }}, meta.blurb),
+              React.createElement("button", {className: "nf-a11y-btn", onClick: ()=>setStep(s=>s+1), style: {
+                fontFamily:AC.font, fontSize:17, fontWeight:700, padding:'16px 36px', minHeight:56,
+                background:AC.goldDark, color:'#FFFFFF', border:'none', borderRadius:16, cursor:'pointer',
+                boxShadow:'0 2px 8px rgba(138,109,47,0.35)',
+              }}, isFirst ? 'Start →' : 'Continue →'),
               step > 0 && React.createElement("div", null,
-                React.createElement("button", {className: "btn-ghost", style: { marginTop:20 }, onClick: ()=>setStep(s=>Math.max(0,s-1))}, '← Back')
+                React.createElement("button", {className: "nf-a11y-btn", onClick: ()=>setStep(s=>Math.max(0,s-1)), style: {
+                  fontFamily:AC.font, fontSize:16, fontWeight:600, marginTop:20, padding:'12px 20px', minHeight:48,
+                  background:'transparent', color:AC.muted, border:'none', cursor:'pointer', borderRadius:12,
+                }}, '← Back')
               )
             )
           )
         );
       }
 
-      // ── Question screen ──
+      // ── Question screen (accessible) ──
       const item = current.item;
       const brainInfo = C.brains[item.brain] || C.brains.analytical;
       const qIndex = CFI_ITEMS.findIndex(q=>q.id===item.id);
 
       return (
-        React.createElement("div", {style: { paddingTop:80, paddingBottom:40 }},
-          React.createElement("div", {style: { maxWidth:640, margin:'0 auto', padding:'32px 20px', width:'100%' }},
-            React.createElement("div", {style: { display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:16, flexWrap:'wrap', gap:8 }},
-              React.createElement("div", {style: { ...mono, fontSize:11, letterSpacing:1, color:C.muted }}, 'Question ', qIndex+1, ' of ', CFI_ITEMS.length),
-              React.createElement("div", {style: { ...mono, fontSize:11, letterSpacing:1, color:C.cyan }}, '~', estMinutes, ' min left')
+        React.createElement("div", {style: { paddingTop:80, paddingBottom:60, background:AC.bg, minHeight:'100vh', fontFamily:AC.font }},
+          React.createElement("div", {style: { maxWidth:680, margin:'0 auto', padding:'32px 20px', width:'100%' }},
+            // Progress indicator
+            React.createElement("div", {style: { display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:14, flexWrap:'wrap', gap:8 }},
+              React.createElement("div", {style: { fontFamily:AC.font, fontSize:15, fontWeight:700, color:AC.text }}, 'Question ', qIndex+1, ' of ', CFI_ITEMS.length),
+              React.createElement("div", {style: { fontFamily:AC.font, fontSize:15, fontWeight:600, color:AC.goldDark }}, '~', estMinutes, ' min left')
             ),
-            React.createElement("div", {style: { height:6, background:C.panel, borderRadius:3, marginBottom:12, overflow:'hidden' }},
-              React.createElement("div", {style: { width:`${percent}%`, height:'100%', background:C.cyan, borderRadius:3, transition:'width 0.4s ease' }})
+            React.createElement("div", {role:'progressbar', 'aria-valuenow':percent, 'aria-valuemin':0, 'aria-valuemax':100, style: { height:10, background:AC.surfaceAlt, border:`1px solid ${AC.border}`, borderRadius:6, marginBottom:14, overflow:'hidden' }},
+              React.createElement("div", {style: { width:`${percent}%`, height:'100%', background:AC.gold, borderRadius:6, transition:'width 0.4s ease' }})
             ),
-            React.createElement("div", {style: { ...mono, fontSize:10.5, letterSpacing:0.5, color:C.dim, marginBottom:36 }}, motivation()),
-            React.createElement("div", {key: item.id, style: { animation:'fadeUp 0.35s ease both' }},
-              React.createElement("div", {style: { display:'flex', alignItems:'center', gap:10, marginBottom:20 }},
-                React.createElement("div", {style: { ...mono, fontSize:15, color:brainInfo.color }}, brainInfo.symbol),
-                React.createElement("div", {style: { ...mono, fontSize:11, letterSpacing:1, color:brainInfo.color }}, CFI_SECTIONS[item.dim]?.title.toUpperCase())
+            React.createElement("div", {style: { fontFamily:AC.font, fontSize:15, color:AC.muted, marginBottom:36 }}, motivation()),
+            React.createElement("div", {key: item.id, className: "nf-a11y-fade"},
+              React.createElement("div", {style: { display:'flex', alignItems:'center', gap:10, marginBottom:16 }},
+                React.createElement("div", {style: { fontSize:18, color:brainInfo.color }}, brainInfo.symbol),
+                React.createElement("div", {style: { fontFamily:AC.font, fontSize:14, fontWeight:700, letterSpacing:'0.04em', color:AC.goldDark, textTransform:'uppercase' }}, CFI_SECTIONS[item.dim]?.title)
               ),
-              React.createElement("div", {style: { ...syne, fontSize:'clamp(19px,4.5vw,24px)', fontWeight:700, color:C.text, lineHeight:1.4, marginBottom:44 }}, item.text),
-              React.createElement("div", {style: { display:'grid', gridTemplateColumns:'repeat(5, 1fr)', gap:8 }}, labels.map((label,i)=>{
-                const val = i+1;
-                const isSelected = answers[item.id]===val;
+              React.createElement("div", {style: { fontFamily:AC.font, fontSize:'clamp(20px,4.5vw,26px)', fontWeight:700, color:AC.text, lineHeight:1.5, marginBottom:36 }}, item.text),
+              // Card-style response scale
+              React.createElement("div", {role:'radiogroup', 'aria-label':'Response', style: { display:'flex', flexDirection:'column', gap:12 }}, SCALE_OPTIONS.map((opt)=>{
+                const isSelected = answers[item.id]===opt.value;
                 return (
-                  React.createElement("button", {key: i, onClick: ()=>handleAnswer(item, val), style: {
-                    padding:'18px 6px', borderRadius:4, border:`1px solid ${isSelected?C.cyan:C.border}`,
-                    background: isSelected ? `${C.cyan}20` : C.surface,
-                    display:'flex', flexDirection:'column', alignItems:'center', gap:8,
-                    transition:'all 0.2s', cursor:'pointer', minHeight:64,
-                  }}, React.createElement("div", {style: { ...syne, fontSize:15, fontWeight:800, color:isSelected?C.cyan:C.dim }}, val), React.createElement("div", {style: { ...mono, fontSize:8, letterSpacing:0.5, color:isSelected?C.cyan:C.dim, textAlign:'center' }}, label))
+                  React.createElement("button", {
+                    key: opt.value,
+                    className: "nf-a11y-scale-btn",
+                    role:'radio',
+                    'aria-checked': isSelected,
+                    onClick: ()=>handleAnswer(item, opt.value),
+                    style: {
+                      width:'100%', textAlign:'left', padding:'20px 22px', minHeight:72,
+                      borderRadius:16, border:`2px solid ${isSelected?AC.goldDark:AC.border}`,
+                      background: isSelected ? AC.goldTint : AC.surface,
+                      display:'flex', alignItems:'center', justifyContent:'space-between', gap:16,
+                      cursor:'pointer', boxShadow: isSelected ? '0 2px 8px rgba(138,109,47,0.25)' : '0 1px 2px rgba(17,24,39,0.05)',
+                      fontFamily:AC.font,
+                    }
+                  },
+                    React.createElement("div", null,
+                      React.createElement("div", {style: { fontSize:19, fontWeight:700, color:AC.text, marginBottom:4 }}, opt.label),
+                      React.createElement("div", {style: { fontSize:15, color:AC.muted, lineHeight:1.5 }}, opt.subtitle)
+                    ),
+                    React.createElement("div", {"aria-hidden":"true", style: {
+                      width:26, height:26, borderRadius:'50%', flexShrink:0,
+                      border:`2px solid ${isSelected?AC.goldDark:AC.border}`,
+                      background: isSelected ? AC.goldDark : 'transparent',
+                      display:'flex', alignItems:'center', justifyContent:'center',
+                    }}, isSelected && React.createElement("div", {style: { width:10, height:10, borderRadius:'50%', background:'#FFFFFF' }}))
+                  )
                 );
-              })),
-              React.createElement("div", {style: { display:'flex', justifyContent:'space-between', marginTop:12 }},
-                React.createElement("div", {style: { ...mono, fontSize:10, letterSpacing:1, color:C.dim }}, 'NEVER'),
-                React.createElement("div", {style: { ...mono, fontSize:10, letterSpacing:1, color:C.dim }}, 'ALWAYS')
-              )
+              }))
             ),
-            React.createElement("button", {className: "btn-ghost", style: { marginTop:36 }, onClick: ()=>setStep(s=>Math.max(0,s-1))}, '← Previous')
+            React.createElement("button", {className: "nf-a11y-btn", onClick: ()=>setStep(s=>Math.max(0,s-1)), style: {
+              fontFamily:AC.font, fontSize:16, fontWeight:600, marginTop:32, padding:'12px 18px', minHeight:48,
+              background:'transparent', color:AC.muted, border:`1px solid ${AC.border}`, cursor:'pointer', borderRadius:12,
+            }}, '← Previous')
           )
         )
       );
@@ -2389,7 +2481,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress, sessi
               React.createElement("div", {className: "card", style: { padding:'60px', textAlign:'center' }}, React.createElement("div", {style: { ...mono, fontSize:14, color:C.dim, marginBottom:24 }}, '◎'), React.createElement("div", {style: { ...syne, fontSize:17, fontWeight:700, color:C.text, marginBottom:12, overflowWrap:'break-word', minWidth:0}}, 'No data yet'), React.createElement("div", {style: { fontSize:14, color:C.muted, marginBottom:32, maxWidth:400, margin:'0 auto 32px' }}, 'Complete the CFI assessment to generate your profile and unlock analytics.'), React.createElement("button", {className: "btn-primary", onClick: ()=>setView('cfi')}, 'Take CFI assessment →'))
             ) : (
               React.createElement(React.Fragment, null, React.createElement("div", {style: { display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(min(180px, 100%), 1fr))', gap:16, marginBottom:40 }}, [
-                    { label:'CFI score', value:cfiResult.total, unit:'/75', color:cfiResult.total<=20?'#7AAFCF':cfiResult.total<=33?'#C4A050':'#F87171' },
+                    { label:'CFI score', value:cfiResult.total, unit:'/80', color:cfiResult.total<=21?'#7AAFCF':cfiResult.total<=35?'#C4A050':'#F87171' },
                     { label:'Sessions', value:sessions.length, unit:'', color:C.cyan },
                     { label:'Lessons', value:completedLessons, unit:`/${LESSONS.length}`, color:'#E2BE78' },
                     { label:'Band', value:cfiResult.band.split(' ')[0], unit:'', color:'#C4A050', small:true },
@@ -4006,9 +4098,9 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress, sessi
             const dominantBrain = brainMap[sortedDims[0]?.[0]] || 'analytical';
             const total = r.total_score;
             let desc, recommendation;
-            if (total<=20) { desc='Low fragmentation. Your thinking modes are well-coordinated.'; recommendation='Maintain your daily integration protocol. Advance to Lessons 4–5 for fluency installation.'; }
-            else if (total<=33) { desc='Some fragmentation detected. Specific modes need targeted training.'; recommendation='Focus on mode activation (Lesson 2). Daily mode-switching drills for 14 days.'; }
-            else if (total<=46) { desc='Significant fragmentation. Integration is inconsistent under pressure.'; recommendation='Begin from Lesson 1. Run the Core Loop daily.'; }
+            if (total<=21) { desc='Low fragmentation. Your thinking modes are well-coordinated.'; recommendation='Maintain your daily integration protocol. Advance to Lessons 4–5 for fluency installation.'; }
+            else if (total<=35) { desc='Some fragmentation detected. Specific modes need targeted training.'; recommendation='Focus on mode activation (Lesson 2). Daily mode-switching drills for 14 days.'; }
+            else if (total<=49) { desc='Significant fragmentation. Integration is inconsistent under pressure.'; recommendation='Begin from Lesson 1. Run the Core Loop daily.'; }
             else { desc='Severe fragmentation. Decision-making and clarity are compromised.'; recommendation='Start Lesson 1 immediately and track your CFI weekly.'; }
             setCfiResult({ total, band: r.band, desc, recommendation, dimScores, dominantBrain });
           }
