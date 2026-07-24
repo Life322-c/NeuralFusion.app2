@@ -62,6 +62,8 @@
 
   * { margin: 0; padding: 0; box-sizing: border-box; }
 
+  html { overflow-x: hidden; }
+
   body {
     background-color: var(--navy);
     color: var(--ivory);
@@ -69,6 +71,8 @@
     font-size: 17px;
     line-height: 1.7;
     -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
+    width: 100%;
   }
 
   .grid-texture {
@@ -103,6 +107,7 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
+    gap: 12px;
   }
 
   .logo {
@@ -112,6 +117,8 @@
     letter-spacing: 0.02em;
     color: var(--ivory);
     text-decoration: none;
+    white-space: nowrap;
+    flex-shrink: 0;
   }
 
   .logo span { color: var(--gold); }
@@ -122,6 +129,7 @@
     color: var(--grey);
     text-decoration: none;
     letter-spacing: 0.04em;
+    white-space: nowrap;
   }
 
   .back-link:hover { color: var(--gold-bright); }
@@ -148,17 +156,22 @@
 
   h1 {
     font-family: 'Syne', sans-serif;
-    font-weight: 800;
-    font-size: clamp(32px, 5vw, 46px);
-    line-height: 1.12;
-    letter-spacing: -0.01em;
-    margin-top: 18px;
+    font-weight: 700;
+    font-size: clamp(24px, 5.2vw, 38px);
+    line-height: 1.18;
+    letter-spacing: -0.02em;
+    margin-top: 16px;
     color: var(--ivory);
+    overflow-wrap: break-word;
+    word-break: break-word;
+    text-wrap: balance;
   }
 
   .meta {
     display: flex;
-    gap: 18px;
+    flex-wrap: wrap;
+    row-gap: 8px;
+    gap: 12px 18px;
     align-items: center;
     margin-top: 22px;
     padding-bottom: 32px;
@@ -328,11 +341,19 @@
     font-family: 'Space Mono', monospace;
     font-size: 12px;
     color: var(--grey);
+    word-break: break-word;
   }
 
   @media (max-width: 600px) {
     body { font-size: 16px; }
     .bracket-panel, .cta-block { padding: 26px 20px; }
+    .header-inner { padding: 18px 16px; }
+    .logo { font-size: 16px; }
+    .back-link { font-size: 11px; }
+    .wrap { padding: 0 18px; }
+    h1 { font-size: clamp(22px, 6.5vw, 30px); letter-spacing: -0.015em; margin-top: 12px; }
+    .eyebrow { margin-top: 40px; }
+    .cta-block h3 { font-size: 22px; }
   }
 
   @media (prefers-reduced-motion: reduce) {
