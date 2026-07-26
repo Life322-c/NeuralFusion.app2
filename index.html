@@ -8,6 +8,16 @@
     function gtag(){dataLayer.push(arguments);}
     gtag('js', new Date());
 
+    // Default consent state: grant analytics storage since this site has no
+    // cookie/consent banner. Without this, GA4 Consent Mode treats visits as
+    // "unknown consent" and silently drops hits.
+    gtag('consent', 'default', {
+      'ad_storage': 'denied',
+      'ad_user_data': 'denied',
+      'ad_personalization': 'denied',
+      'analytics_storage': 'granted'
+    });
+
     gtag('config', 'G-NDF78SMJJ5');
   </script>
 
