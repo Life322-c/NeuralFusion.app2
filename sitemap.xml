@@ -5,36 +5,44 @@
   <!-- Homepage -->
   <url>
     <loc>https://tryneuralfusion.com/</loc>
-    <lastmod>2026-06-07</lastmod>
+    <lastmod>2026-07-30</lastmod>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
   </url>
 
-  <!-- Blog -->
+  <!-- Blog index -->
+  <url>
+    <loc>https://tryneuralfusion.com/blog</loc>
+    <lastmod>2026-07-30</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+
+  <!-- Blog posts -->
   <url>
     <loc>https://tryneuralfusion.com/blog/why-your-brain-cant-think-clearly</loc>
-    <lastmod>2026-06-07</lastmod>
+    <lastmod>2026-07-30</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
 
   <url>
     <loc>https://tryneuralfusion.com/blog/your-brain-isnt-broken-its-fragmented</loc>
-    <lastmod>2026-06-10</lastmod>
+    <lastmod>2026-07-30</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
 
   <url>
     <loc>https://tryneuralfusion.com/blog/cognitive-performance-operating-system</loc>
-    <lastmod>2026-07-11</lastmod>
+    <lastmod>2026-07-30</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
 
   <url>
     <loc>https://tryneuralfusion.com/blog/level-one-core-manual</loc>
-    <lastmod>2026-07-24</lastmod>
+    <lastmod>2026-07-30</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
