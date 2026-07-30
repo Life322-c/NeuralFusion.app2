@@ -1,25 +1,28 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <!-- Google tag (gtag.js) -->
-  <script async src="https://www.googletagmanager.com/gtag/js?id=G-NDF78SMJJ5"></script>
+  <!-- Consent Mode defaults (must be set before GTM/gtag loads).
+       Site has no cookie/consent banner, so analytics_storage is granted by
+       default; ad storage stays denied. Without this, Consent Mode treats
+       visits as "unknown consent" and can silently drop hits. -->
   <script>
     window.dataLayer = window.dataLayer || [];
     function gtag(){dataLayer.push(arguments);}
-    gtag('js', new Date());
-
-    // Default consent state: grant analytics storage since this site has no
-    // cookie/consent banner. Without this, GA4 Consent Mode treats visits as
-    // "unknown consent" and silently drops hits.
     gtag('consent', 'default', {
       'ad_storage': 'denied',
       'ad_user_data': 'denied',
       'ad_personalization': 'denied',
       'analytics_storage': 'granted'
     });
-
-    gtag('config', 'G-NDF78SMJJ5');
   </script>
+
+<!-- Google Tag Manager -->
+<script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+})(window,document,'script','dataLayer','GTM-P47TD9MS');</script>
+<!-- End Google Tag Manager -->
 
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
@@ -257,6 +260,11 @@
   <script async src="https://js.paystack.co/v1/inline.js"></script>
 </head>
 <body>
+<!-- Google Tag Manager (noscript) -->
+<noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-P47TD9MS"
+height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+<!-- End Google Tag Manager (noscript) -->
+
 
   <!-- ══════════════════════════════════════════════════════════════
        SEO CONTENT LAYER - visible to search engines & screen readers
