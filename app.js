@@ -336,41 +336,83 @@ const { useState, useEffect, useCallback, useRef, useMemo } = React;
       };
     }
 
-    // Generic explainer for any score, independent of dimension; never show a bare number
+    // Generic explainer for any score, independent of dimension; never show a bare number.
+    // Framed around how OFTEN / how RELIABLY a mode contributes to decisions. Never
+    // implies a "broken" brain, and never implies 100% is the goal for every mode.
     function cfiScoreMeaning(score) {
-      if (score >= 90) return "90%+ means this way of thinking is extremely clear and consistent for you, even in tough moments.";
-      if (score >= 75) return "75–89% means this is a real strength. It holds up well most of the time, with occasional slips.";
-      if (score >= 50) return "50–74% is a balanced, in-progress zone: this works for you sometimes and needs support other times.";
-      if (score >= 25) return "25–49% means this is a current growth area. It tends to break down under pressure or uncertainty.";
-      return "Below 25% means this is your biggest opportunity right now: small, consistent practice here will move the needle fast.";
+      if (score >= 90) return "90%+ means this thinking mode contributes clearly and reliably, even in tough moments.";
+      if (score >= 75) return "75–89% means this mode is a dependable contributor. It shows up well most of the time, with occasional slips.";
+      if (score >= 50) return "50–74% means this mode contributes inconsistently: present when things are calm, harder to access under pressure.";
+      if (score >= 25) return "25–49% means this mode is currently underutilized in your decision process. It tends to go quiet under pressure or uncertainty.";
+      return "Below 25% means this is a coordination opportunity right now: small, consistent practice will help this mode contribute more often.";
+    }
+
+    // Band (internal value, unchanged) → coordination-framed label + one-line description.
+    // The underlying `band` string itself (e.g. 'Critical fragmentation') is left exactly
+    // as-is everywhere it drives logic (DB writes, admin filters, lesson gating); this
+    // mapping only controls what the person actually reads on the results page.
+    const CFI_COORDINATION_LABEL = {
+      'Integrated':             'Strongly Coordinated',
+      'Moderate fragmentation': 'Developing Coordination',
+      'High fragmentation':     'Building Coordination',
+      'Critical fragmentation': 'Early-Stage Coordination',
+    };
+    function cfiCoordinationLabel(band) {
+      return CFI_COORDINATION_LABEL[band] || band;
     }
 
     function buildCognitiveProfile(dimReports, integrationScore, band) {
-      const core = ['A','I','S','R']; // exclude E (integration), it isn't a standalone "brain"
-      const sorted = [...core].sort((a,b)=> dimReports[a].fragScore - dimReports[b].fragScore); // best (lowest fragmentation) first
-      const primaryDim = sorted[0], secondaryDim = sorted[1], weakestDim = sorted[sorted.length-1];
+      const core = ['A','I','S','R']; // exclude E (integration), it isn't a standalone thinking mode
+      // Best-to-least-frequently-activated, NOT "best brain to worst brain." With four
+      // modes: the top mode is Dominant, the middle two are Supporting, and the last is
+      // currently Underutilized. Everyone has this shape, by definition.
+      const sorted = [...core].sort((a,b)=> dimReports[a].fragScore - dimReports[b].fragScore);
+      const primaryDim = sorted[0], secondaryDim = sorted[1], tertiaryDim = sorted[2], weakestDim = sorted[sorted.length-1];
       const primaryBrain = CFI_DIMENSION_META[primaryDim].brainKey;
       const secondaryBrain = CFI_DIMENSION_META[secondaryDim].brainKey;
       const weakestBrain = CFI_DIMENSION_META[weakestDim].brainKey;
       const pStyle = CFI_STYLE_TABLE[primaryBrain] || CFI_STYLE_TABLE.analytical;
+      const coordinationLevel = cfiCoordinationLabel(band);
+
+      const dominantModes = [primaryDim];
+      const supportingModes = [secondaryDim, tertiaryDim];
+      const underutilizedModes = [weakestDim];
+      const modeNames = arr => arr.map(d => CFI_DIM_LABELS[d]).join(' and ');
 
       return {
         integrationScore,
-        fragmentationLevel: band,
-        primaryDim, secondaryDim, weakestDim,
+        fragmentationLevel: band, // kept for backward compatibility; raw band value, unchanged
+        coordinationLevel,        // new: display-facing label for the same band
+
+        primaryDim, secondaryDim, tertiaryDim, weakestDim,
         primaryBrain, secondaryBrain, weakestBrain,
         primaryStyle: CFI_DIM_LABELS[primaryDim],
         secondaryStyle: CFI_DIM_LABELS[secondaryDim],
-        decisionProfile: `You lead with ${CFI_DIM_LABELS[primaryDim]}, backed up by ${CFI_DIM_LABELS[secondaryDim]}. ${dimReports[primaryDim].decisionStyle}`,
+
+        // ── Cognitive Coordination Profile™ fields ──
+        dominantModes: dominantModes.map(d => CFI_DIM_LABELS[d]),
+        supportingModes: supportingModes.map(d => CFI_DIM_LABELS[d]),
+        underutilizedModes: underutilizedModes.map(d => CFI_DIM_LABELS[d]),
+        decisionCoordinationStyle: `You typically lead with ${CFI_DIM_LABELS[primaryDim]}, coordinated with ${modeNames(supportingModes)}. ${dimReports[primaryDim].decisionStyle}`,
+        coordinationUnderPressure: dimReports[primaryDim].underPressure,
+        decisionBlindSpots: `${CFI_DIM_LABELS[weakestDim]} currently contributes less often than your other modes, so watch for: ${CFI_DIMENSION_META[weakestDim].blindSpots[0].toLowerCase()}`,
+        naturalStrengths: `${CFI_DIM_LABELS[primaryDim]}: ${CFI_DIMENSION_META[primaryDim].strengths[0]}`,
+        suggestedCoordinationExercise: `${CFI_DIMENSION_META[weakestDim].improvements[0]} This helps ${CFI_DIM_LABELS[weakestDim].toLowerCase()} activate more often, alongside (not instead of) your dominant modes.`,
+
+        // ── Legacy fields (kept for backward compatibility with any existing consumers) ──
         communicationStyle: pStyle.communication,
         leadershipStyle: pStyle.leadership,
         learningStyle: pStyle.learning,
+        decisionProfile: `You lead with ${CFI_DIM_LABELS[primaryDim]}, backed up by ${CFI_DIM_LABELS[secondaryDim]}. ${dimReports[primaryDim].decisionStyle}`,
         biggestStrength: `${CFI_DIM_LABELS[primaryDim]}: ${CFI_DIMENSION_META[primaryDim].strengths[0]}`,
         biggestBlindSpot: `${CFI_DIM_LABELS[weakestDim]}: ${CFI_DIMENSION_META[weakestDim].blindSpots[0]}`,
         biggestOpportunity: `${CFI_DIMENSION_META[weakestDim].improvements[0]}`,
-        summary: `Your thinking is currently ${band.toLowerCase()}, with an overall integration score of ${integrationScore}/100. `
-          + `You naturally lead with ${CFI_DIM_LABELS[primaryDim].toLowerCase()}, supported by ${CFI_DIM_LABELS[secondaryDim].toLowerCase()}. `
-          + `Your biggest opportunity right now is ${CFI_DIM_LABELS[weakestDim].toLowerCase()}. Strengthening it is the fastest way to raise your overall clarity.`,
+
+        summary: `Your thinking modes are currently ${coordinationLevel.toLowerCase()}, with an overall coordination score of ${integrationScore}/100. `
+          + `This is not a measure of intelligence. It reflects how well your natural thinking modes work together right now. `
+          + `You naturally lead with ${CFI_DIM_LABELS[primaryDim].toLowerCase()}, supported by ${modeNames(supportingModes).toLowerCase()}. `
+          + `${CFI_DIM_LABELS[weakestDim]} is currently underutilized in your decision process. The goal isn't to make it equal to your dominant mode, `
+          + `it's to bring it in deliberately when a decision calls for it.`,
       };
     }
 
@@ -1935,6 +1977,9 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress, sessi
       );
     }
 
+    // Legacy radar chart. No longer used on the CFI results page (a four-way polygon
+    // visually reads as "four scores competing" rather than "one coordinated system"),
+    // but left in place in case anything else references it.
     function CFIRadar({ dimensionReports, size=260 }) {
       const dims = ['A','I','S','R'];
       const angles = { A:-90, I:0, S:90, R:180 };
@@ -1950,6 +1995,53 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress, sessi
           React.createElement("polygon", {points: dataPath, fill:'rgba(196,160,80,0.20)', stroke:'#C4A050', strokeWidth:2}),
           dataPoints.map((p,i)=> React.createElement("circle", {key: 'pt'+i, cx:p[0], cy:p[1], r:4, fill:'#E2BE78'})),
           dims.map(d => { const [x,y]=pt(angles[d],1.28); return React.createElement("text", {key: 'lbl'+d, x, y, fill:C.muted, fontSize:10, fontFamily:"'Space Mono', monospace", textAnchor:'middle', dominantBaseline:'middle'}, CFI_DIM_LABELS[d].split(',')[0]); })
+        )
+      );
+    }
+
+    // ── Coordination Wheel ──────────────────────────────────────────────
+    // Replaces the four-way radar. Visual language: ONE coordinated system (a central
+    // Decision Hub) with FOUR thinking modes feeding into it, not four bars racing
+    // each other to 100. Node size/glow reflects how often that mode currently
+    // contributes, never "how good" the mode is. The hub always sits at full strength:
+    // coordination, not any single mode, is the thing being measured.
+    function CoordinationWheel({ dimensionReports, size=260 }) {
+      const dims = ['A','I','S','R'];
+      const angles = { A:-90, I:0, S:90, R:180 };
+      const cx = size/2, cy = size/2, orbitR = size/2 - 56;
+      const pos = angle => { const rad = angle*Math.PI/180; return [cx + orbitR*Math.cos(rad), cy + orbitR*Math.sin(rad)]; };
+      const brainColors = { analytical:'#C4A050', intuitive:'#E2BE78', associative:'#7AAFCF', reflective:'#D4AF6A' };
+
+      return (
+        React.createElement("svg", {width: size, height: size, viewBox:`0 0 ${size} ${size}`, style:{maxWidth:'100%', height:'auto'}},
+          // faint orbit ring, showing the four modes share one system
+          React.createElement("circle", {cx, cy, r:orbitR, fill:'none', stroke:'rgba(196,160,80,0.14)', strokeWidth:1}),
+          // connections: hub → each mode, thickness/opacity reflects current contribution level
+          dims.map(d => {
+            const report = dimensionReports[d];
+            const [x,y] = pos(angles[d]);
+            const color = brainColors[report.brainKey] || C.cyan;
+            const strength = Math.max(0.15, report.integrationScore/100);
+            return React.createElement("line", {key: 'conn'+d, x1:cx, y1:cy, x2:x, y2:y, stroke:color, strokeWidth: 1.5 + strength*3, strokeOpacity: 0.25 + strength*0.5, strokeLinecap:'round'});
+          }),
+          // central Decision Hub, the coordinated system itself
+          React.createElement("circle", {cx, cy, r:22, fill:C.deep, stroke:C.cyanBright, strokeWidth:2}),
+          React.createElement("text", {x:cx, y:cy-2, fill:C.cyanBright, fontSize:8.5, fontFamily:"'Space Mono', monospace", letterSpacing:0.5, textAnchor:'middle'}, 'DECISION'),
+          React.createElement("text", {x:cx, y:cy+9, fill:C.cyanBright, fontSize:8.5, fontFamily:"'Space Mono', monospace", letterSpacing:0.5, textAnchor:'middle'}, 'HUB'),
+          // four thinking-mode nodes
+          dims.map(d => {
+            const report = dimensionReports[d];
+            const [x,y] = pos(angles[d]);
+            const color = brainColors[report.brainKey] || C.cyan;
+            const r = 14 + (report.integrationScore/100)*10;
+            return (
+              React.createElement("g", {key: 'node'+d},
+                React.createElement("circle", {cx:x, cy:y, r, fill:`${color}22`, stroke:color, strokeWidth:2}),
+                React.createElement("text", {x, y:y+4, fill:color, fontSize:13, fontFamily:"'Syne', sans-serif", fontWeight:800, textAnchor:'middle'}, d)
+              )
+            );
+          }),
+          dims.map(d => { const [x,y]=pos(angles[d]); const ly = y > cy ? y + 34 : y - 26; return React.createElement("text", {key: 'lbl'+d, x, y:ly, fill:C.muted, fontSize:10, fontFamily:"'Space Mono', monospace", textAnchor:'middle'}, CFI_DIM_LABELS[d].split(',')[0]); })
         )
       );
     }
@@ -1974,7 +2066,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress, sessi
               report.strengths.map((s,i)=> React.createElement("div", {key: i, style: { fontSize:13, color:C.muted, lineHeight:1.7, marginBottom:4 }}, '· ', s))
             ),
             React.createElement("div", null,
-              React.createElement("div", {style: { ...mono, fontSize:10, letterSpacing:1, color:C.muted, marginBottom:8 }}, 'BLIND SPOTS'),
+              React.createElement("div", {style: { ...mono, fontSize:10, letterSpacing:1, color:C.muted, marginBottom:8 }}, 'WATCH FOR'),
               report.blindSpots.map((s,i)=> React.createElement("div", {key: i, style: { fontSize:13, color:C.muted, lineHeight:1.7, marginBottom:4 }}, '· ', s))
             ),
           ),
@@ -1989,7 +2081,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress, sessi
             ),
           ),
           React.createElement("div", null,
-            React.createElement("div", {style: { ...mono, fontSize:10, letterSpacing:1, color:col, marginBottom:8 }}, 'SUGGESTED IMPROVEMENT'),
+            React.createElement("div", {style: { ...mono, fontSize:10, letterSpacing:1, color:col, marginBottom:8 }}, 'COORDINATION PRACTICE'),
             report.improvements.map((s,i)=> React.createElement("div", {key: i, style: { fontSize:13, color:C.text, lineHeight:1.7, marginBottom:4 }}, `${i+1}. `, s))
           )
         )
@@ -1999,7 +2091,9 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress, sessi
     function CFIResults({ cfiResult, setView, user, setShowAuth, onRetake }) {
       const bandColors = { 'Integrated':'#7AAFCF', 'Moderate fragmentation':'#C4A050', 'High fragmentation':'#FB8C00', 'Critical fragmentation':'#F87171' };
       const bandColor = bandColors[cfiResult.band] || C.cyan;
-      const bandFriendly = { 'Integrated':'Well Integrated', 'Moderate fragmentation':'Building Integration', 'High fragmentation':'Fragmented, With Clear Fixes', 'Critical fragmentation':'Highly Fragmented' }[cfiResult.band] || cfiResult.band;
+      // Display-only label. cfiResult.band itself (the raw value written to the
+      // database and used for admin filters / lesson gating) is never changed.
+      const bandFriendly = cfiCoordinationLabel(cfiResult.band);
       const dimensionReports = cfiResult.dimensionReports || {};
       const profile = cfiResult.profile;
       const plan = cfiResult.plan;
@@ -2009,44 +2103,51 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress, sessi
         React.createElement("div", {style: { paddingTop:80, paddingBottom:60 }, id:'cfi-report'},
           React.createElement("div", {style: { maxWidth:920, margin:'0 auto', padding:'24px 20px' }},
 
-            React.createElement("div", {style: { ...mono, fontSize:11, letterSpacing:1.5, color:C.cyan, marginBottom:8 }}, 'CFI™ · Your Results'),
-            React.createElement("div", {style: { fontSize:12, color:C.muted, lineHeight:1.6, marginBottom:28, maxWidth:640 }},
+            React.createElement("div", {style: { ...mono, fontSize:11, letterSpacing:1.5, color:C.cyan, marginBottom:8 }}, 'CFI™ · Your Cognitive Coordination Profile™'),
+            React.createElement("div", {style: { fontSize:12, color:C.muted, lineHeight:1.6, marginBottom:16, maxWidth:640 }},
               'The CFI™ measures thinking clarity and how well your thinking modes work together. It is not a personality test, mental health screening, or medical evaluation.'
             ),
 
-            // ── Hero: score ring + band + radar ──
+            // ── Coordination philosophy explainer: sets the frame before any scores appear ──
+            React.createElement("div", {style: { fontSize:13, color:C.text, lineHeight:1.8, marginBottom:28, maxWidth:680, padding:'16px 18px', background:C.deep, borderRadius:2, border:`1px solid ${C.border}` }},
+              'NeuralFusion™ recognizes that every person has a unique cognitive architecture. Different thinking modes naturally vary in strength. ',
+              React.createElement("strong", {style:{color:C.cyanBright}}, 'The goal is not to equalize them.'),
+              ' The goal is to coordinate them, so the right thinking mode contributes when a decision actually calls for it.'
+            ),
+
+            // ── Hero: coordination score ring + coordination level + coordination wheel ──
             React.createElement("div", {className: "card", style: { padding:'32px 24px', marginBottom:24, position:'relative', overflow:'hidden' }},
               React.createElement(ScanLine, null),
               React.createElement("div", {style: { display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(min(260px,100%),1fr))', gap:32, alignItems:'center' }},
                 React.createElement("div", {style: { display:'flex', flexDirection:'column', alignItems:'center', textAlign:'center', gap:16 }},
-                  React.createElement(CFIScoreRing, {value: cfiResult.integrationScore ?? Math.max(0,100-cfiResult.total*2), color: bandColor, label:'Cognitive Integration Score'}),
+                  React.createElement(CFIScoreRing, {value: cfiResult.integrationScore ?? Math.max(0,100-cfiResult.total*2), color: bandColor, label:'Overall Coordination Level'}),
                   React.createElement("div", {style: { display:'inline-block', padding:'8px 18px', background:`${bandColor}15`, border:`1px solid ${bandColor}33`, borderRadius:2 }},
                     React.createElement("div", {style: { ...syne, fontSize:13, fontWeight:800, color:bandColor }}, bandFriendly)
                   ),
                   React.createElement("div", {style: { fontSize:13, color:C.muted, lineHeight:1.7, maxWidth:340 }}, cfiResult.desc)
                 ),
                 hasEnrichedData && React.createElement("div", {style: { display:'flex', flexDirection:'column', alignItems:'center' }},
-                  React.createElement("div", {style: { ...mono, fontSize:10, letterSpacing:1, color:C.muted, marginBottom:12 }}, 'FOUR THINKING MODES'),
-                  React.createElement(CFIRadar, {dimensionReports})
+                  React.createElement("div", {style: { ...mono, fontSize:10, letterSpacing:1, color:C.muted, marginBottom:12 }}, 'YOUR COORDINATION WHEEL'),
+                  React.createElement(CoordinationWheel, {dimensionReports})
                 )
               )
             ),
 
-            // ── Overall Cognitive Profile ──
+            // ── Cognitive Coordination Profile™ ──
             hasEnrichedData && React.createElement("div", {className: "card", style: { padding:'32px 24px', marginBottom:24 }},
-              React.createElement("div", {style: { ...mono, fontSize:11, letterSpacing:1, color:C.cyan, marginBottom:20 }}, 'Overall Cognitive Profile'),
+              React.createElement("div", {style: { ...mono, fontSize:11, letterSpacing:1, color:C.cyan, marginBottom:20 }}, 'Cognitive Coordination Profile™'),
               React.createElement("div", {style: { fontSize:14, color:C.text, lineHeight:1.8, marginBottom:24, padding:'18px 20px', background:C.deep, borderRadius:2, border:`1px solid ${C.border}` }}, profile.summary),
               React.createElement("div", {style: { display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(min(220px,100%),1fr))', gap:20 }},
                 [
-                  ['Primary thinking style', profile.primaryStyle],
-                  ['Secondary thinking style', profile.secondaryStyle],
-                  ['Decision profile', profile.decisionProfile],
-                  ['Communication style', profile.communicationStyle],
-                  ['Leadership style', profile.leadershipStyle],
-                  ['Learning style', profile.learningStyle],
-                  ['Biggest strength', profile.biggestStrength],
-                  ['Biggest blind spot', profile.biggestBlindSpot],
-                  ['Biggest opportunity', profile.biggestOpportunity],
+                  ['Overall coordination level', bandFriendly],
+                  ['Dominant thinking modes', profile.dominantModes.join(', ')],
+                  ['Supporting thinking modes', profile.supportingModes.join(', ')],
+                  ['Underutilized thinking modes', profile.underutilizedModes.join(', ')],
+                  ['Decision coordination style', profile.decisionCoordinationStyle],
+                  ['Coordination under pressure', profile.coordinationUnderPressure],
+                  ['Typical decision blind spots', profile.decisionBlindSpots],
+                  ['Natural strengths', profile.naturalStrengths],
+                  ['Suggested coordination exercise', profile.suggestedCoordinationExercise],
                 ].map(([label, value], i) => (
                   React.createElement("div", {key: i},
                     React.createElement("div", {style: { ...mono, fontSize:10, letterSpacing:1, color:C.muted, marginBottom:6 }}, label.toUpperCase()),
@@ -2070,20 +2171,20 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress, sessi
 
             // ── Dimensional deep dive ──
             hasEnrichedData && React.createElement("div", {style: { marginBottom:8 }},
-              React.createElement("div", {style: { ...mono, fontSize:11, letterSpacing:1, color:C.cyan, marginBottom:20 }}, 'Your Four Brains, Explained'),
+              React.createElement("div", {style: { ...mono, fontSize:11, letterSpacing:1, color:C.cyan, marginBottom:20 }}, 'Your Thinking Architecture'),
               CFI_SECTION_ORDER.map(d => React.createElement(CFIDimensionCard, {key: d, report: dimensionReports[d]}))
             ),
 
-            // ── Improvement plan ──
+            // ── Coordination plan ──
             hasEnrichedData && React.createElement("div", {className: "card", style: { padding:'32px 24px', marginBottom:24, borderColor:`${C.cyan}33` }},
-              React.createElement("div", {style: { ...mono, fontSize:11, letterSpacing:1, color:C.cyan, marginBottom:20 }}, 'Your Personalized Improvement Plan'),
+              React.createElement("div", {style: { ...mono, fontSize:11, letterSpacing:1, color:C.cyan, marginBottom:20 }}, 'Your Personalized Coordination Plan'),
               React.createElement("div", {style: { display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(min(260px,100%),1fr))', gap:24, marginBottom:24 }},
                 React.createElement("div", null,
-                  React.createElement("div", {style: { ...mono, fontSize:10, letterSpacing:1, color:'#7AAFCF', marginBottom:10 }}, 'TOP 3 STRENGTHS'),
+                  React.createElement("div", {style: { ...mono, fontSize:10, letterSpacing:1, color:'#7AAFCF', marginBottom:10 }}, 'DOMINANT & SUPPORTING MODES'),
                   plan.topStrengths.map((s,i)=> React.createElement("div", {key: i, style: { fontSize:13, color:C.text, lineHeight:1.7, marginBottom:8 }}, React.createElement("strong", {style:{color:C.text}}, s.name), ': ', s.text))
                 ),
                 React.createElement("div", null,
-                  React.createElement("div", {style: { ...mono, fontSize:10, letterSpacing:1, color:'#FB8C00', marginBottom:10 }}, 'TOP 3 AREAS TO DEVELOP'),
+                  React.createElement("div", {style: { ...mono, fontSize:10, letterSpacing:1, color:'#FB8C00', marginBottom:10 }}, 'COORDINATION OPPORTUNITIES'),
                   plan.topGrowthAreas.map((s,i)=> React.createElement("div", {key: i, style: { fontSize:13, color:C.text, lineHeight:1.7, marginBottom:8 }}, React.createElement("strong", {style:{color:C.text}}, s.name), ': ', s.text))
                 ),
               ),
@@ -2208,11 +2309,15 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress, sessi
           return item.reversed ? (6 - v) : v;
         };
         const total = CFI_ITEMS.reduce((sum, item) => sum + effective(item), 0);
+        // NOTE: band thresholds and internal band values are unchanged (scoring logic).
+        // Only the `desc` / `recommendation` copy shown to the person is reframed around
+        // coordination (how well their thinking modes currently work together) rather
+        // than framing lower scores as damage or deficiency.
         let band, desc, recommendation;
-        if (total<=21) { band='Integrated'; desc='Low fragmentation. Your thinking modes are well-coordinated.'; recommendation='Maintain your daily integration protocol. Advance to Lessons 4–5 for fluency installation.'; }
-        else if (total<=35) { band='Moderate fragmentation'; desc='Some fragmentation detected. Specific modes need targeted training.'; recommendation='Focus on mode activation (Lesson 2). Daily mode-switching drills for 14 days.'; }
-        else if (total<=49) { band='High fragmentation'; desc='Significant fragmentation. Integration is inconsistent under pressure.'; recommendation='Begin from Lesson 1. Run the Core Loop daily.'; }
-        else { band='Critical fragmentation'; desc='Severe fragmentation. Decision-making and clarity are compromised.'; recommendation='Start Lesson 1 immediately and track your CFI weekly.'; }
+        if (total<=21) { band='Integrated'; desc='Your thinking modes are already coordinating well together.'; recommendation='Maintain your daily coordination practice. Advance to Lessons 4–5 to sharpen fluency between modes.'; }
+        else if (total<=35) { band='Moderate fragmentation'; desc='Your thinking modes coordinate well some of the time. A couple of modes are underutilized in your decision process.'; recommendation='Focus on mode activation (Lesson 2). Daily mode-switching drills for 14 days to bring your underutilized modes online more often.'; }
+        else if (total<=49) { band='High fragmentation'; desc='Coordination between your thinking modes is inconsistent, especially under pressure.'; recommendation='Begin from Lesson 1. Run the Core Loop daily to build the habit of switching modes deliberately.'; }
+        else { band='Critical fragmentation'; desc='Right now your thinking modes rarely coordinate. One mode tends to dominate every decision, regardless of fit.'; recommendation='Start Lesson 1 immediately and track your CFI weekly as you build coordination.'; }
 
         const dims = { A:[], I:[], S:[], R:[], E:[] };
         CFI_ITEMS.forEach(item => { if (finalAnswers[item.id]) dims[item.dim].push(effective(item)); });
