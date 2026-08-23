@@ -147,7 +147,7 @@ const { useState, useEffect, useCallback, useRef, useMemo } = React;
       { id:15, dim:'E', brain:'intuitive',   text:"Juggling several priorities at once leaves my mind feeling drained." },
       { id:16, dim:'E', brain:'reflective',  text:"I know how I should be thinking, but not how to switch gears on purpose." },
     ];
-    // NOTE: 16 items total now (was 15). Item 10 is reverse-scored (`reversed:true`) —
+    // NOTE: 16 items total now (was 15). Item 10 is reverse-scored (`reversed:true`),
     // performing well under deadline pressure is a *strength*, not fragmentation, so its
     // raw 1–5 answer is inverted (6 - value) everywhere fragmentation totals are computed.
 
@@ -1829,7 +1829,29 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress, sessi
               React.createElement("div", {style: { fontFamily:"'Space Mono', monospace", fontSize:11, letterSpacing:1, color:'#8A7A5A', marginBottom:6 }}, 'Fragmented → integrated'),
               React.createElement("div", {style: { fontFamily:"'Syne', sans-serif", fontSize:14, fontWeight:800, color:'#F0E8D0', marginBottom:6, letterSpacing:'-0.01em', overflowWrap:'break-word', minWidth:0 }}, 'The core loop'),
               React.createElement("div", {style: { fontFamily:"'DM Sans', sans-serif", fontSize:11, color:'#8A7A5A', lineHeight:1.6, maxWidth:'26ch', margin:'0 auto 16px' }}, 'Decompose → Sense → Expand → Reflect → Fuse. Under 90 seconds with training.'),
-              React.createElement("button", {className: "btn-outline", style: { fontSize:10 }, onClick: () => user ? setView('training') : setShowAuth(true)}, user ? 'Enter training →' : 'Create account →')
+              React.createElement("button", {className: "btn-outline", style: { fontSize:10 }, onClick: () => setView('protocol')}, 'Run the Protocol →')
+            )
+          )
+        ),
+
+        // ── INTEGRATION PROTOCOL: interactive entry ───────────────
+        React.createElement("div", {className: "bento-grid", style: { marginBottom:'var(--bento-gap-lg)' }},
+          React.createElement("div", {className: "bento-card bento-card-deep bento-p-xl bento-col-12 bento-tab-2", style: {
+            position:'relative', overflow:'hidden', textAlign:'center', padding:'48px 24px',
+          }},
+            React.createElement("div", {className: "bento-grid-lines"}),
+            React.createElement("div", {style: { ...mono, fontSize:11, letterSpacing:1.5, color:C.cyan, marginBottom:16 }}, 'The Integration Protocol'),
+            React.createElement("h2", {style: {
+              fontFamily:"'Syne', sans-serif", fontSize:'clamp(18px,3vw,26px)', fontWeight:800, color:'#F0E8D0',
+              lineHeight:1.25, marginBottom:16, maxWidth:'22ch', margin:'0 auto 16px', overflowWrap:'break-word',
+            }}, 'Think Through the Problem. Don\u2019t Just Think About It.'),
+            React.createElement("p", {style: {
+              fontFamily:"'DM Sans', sans-serif", fontSize:14, color:'#8A7A5A', lineHeight:1.8,
+              maxWidth:520, margin:'0 auto 28px',
+            }}, 'Bring a real decision, challenge, or situation. NeuralFusion™ will guide you through five stages designed to help you examine the problem from multiple thinking modes before bringing the perspectives together.'),
+            React.createElement("div", {style: { display:'flex', gap:12, flexWrap:'wrap', justifyContent:'center' }},
+              React.createElement("button", {className: "btn-primary", onClick: () => setView('protocol')}, 'Run the Protocol →'),
+              React.createElement("button", {className: "btn-outline", onClick: () => setView('four-brains')}, 'See How It Works')
             )
           )
         ),
@@ -1953,6 +1975,369 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress, sessi
                 ))))))
       );
     }
+
+    // ═══════════════════════════════════════════════════════════════════
+    //  INTEGRATION PROTOCOL: interactive experience
+    //  Decompose → Sense → Expand → Reflect → Fuse
+    //
+    //  Philosophy: NeuralFusion™ does not think for the visitor. It
+    //  organizes and reflects the visitor's own thinking back to them.
+    //  Every line of "synthesis" below is derived from words the visitor
+    //  typed themselves, never a generated recommendation or decision.
+    // ═══════════════════════════════════════════════════════════════════
+
+    const PROTOCOL_STOPWORDS = new Set(['this','that','these','those','with','from','have','will','been','were','they','them','their','what','when','where','which','while','about','because','would','could','should','there','here','than','then','also','just','into','over','under','some','more','most','very','really','feel','feels','feeling','think','thinking','know','like','want','need','sure','maybe','things','thing','something','someone','anything','everything','being','doing','going','still','right','wrong']);
+
+    function protocolTokenize(text) {
+      if (!text) return [];
+      return (text.toLowerCase().match(/[a-z']+/g) || [])
+        .filter(w => w.length > 3 && !PROTOCOL_STOPWORDS.has(w));
+    }
+
+    function protocolWordFreq(words) {
+      const freq = {};
+      words.forEach(w => { freq[w] = (freq[w] || 0) + 1; });
+      return freq;
+    }
+
+    function protocolTopWords(freq, exclude, n = 3) {
+      return Object.entries(freq)
+        .filter(([w]) => !exclude.has(w))
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, n)
+        .map(([w]) => w);
+    }
+
+    const PROTOCOL_UNCERTAINTY_RE = /\b(not sure|don'?t know|unsure|unclear|maybe|confused|torn|conflicted|undecided|can'?t tell|no idea)\b/i;
+
+    // Reads the visitor's own four answers and reflects patterns back to
+    // them in their own language. Hedged, non-directive phrasing throughout,
+    // NeuralFusion™ never tells the visitor what to decide.
+    function synthesizeProtocol(answers) {
+      const logicalWords = [...protocolTokenize(answers.decompose), ...protocolTokenize(answers.expand)];
+      const signalWords  = [...protocolTokenize(answers.sense), ...protocolTokenize(answers.reflect)];
+      const logicalFreq = protocolWordFreq(logicalWords);
+      const signalFreq  = protocolWordFreq(signalWords);
+      const logicalSet = new Set(Object.keys(logicalFreq));
+      const signalSet  = new Set(Object.keys(signalFreq));
+
+      const convergence = [...logicalSet].filter(w => signalSet.has(w))
+        .sort((a, b) => (logicalFreq[b] + signalFreq[b]) - (logicalFreq[a] + signalFreq[a]))
+        .slice(0, 5);
+
+      const divergentLogical = protocolTopWords(logicalFreq, signalSet, 3);
+      const divergentSignal  = protocolTopWords(signalFreq, logicalSet, 3);
+      const hasTension = divergentLogical.length > 0 && divergentSignal.length > 0;
+      const uncertain = [answers.decompose, answers.sense, answers.expand, answers.reflect]
+        .some(a => PROTOCOL_UNCERTAINTY_RE.test(a || ''));
+
+      const topLogical = divergentLogical[0];
+      const topSignal = divergentSignal[0];
+
+      let insight;
+      if (hasTension) {
+        insight = `Your reasoning keeps returning to "${topLogical}," while your instincts and values keep raising "${topSignal}." That gap between what you can argue and what you're sensing may be worth investigating before you decide.`;
+      } else if (convergence.length >= 2) {
+        insight = `"${convergence[0]}" and "${convergence[1]}" show up in both your reasoning and your instincts. When your logic and your gut are naming the same thing, that convergence is usually worth paying attention to.`;
+      } else if (convergence.length === 1) {
+        insight = `"${convergence[0]}" is the one thread running through both your reasoning and your instincts. Everything else may still be unsettled, and that's useful to know before you decide.`;
+      } else {
+        insight = "Your four responses don't share much common language yet. That isn't a failure, it may simply mean this decision needs more time, more information, or a different question before it comes into focus.";
+      }
+
+      const gapQuestions = [
+        topSignal ? `What evidence would explain why "${topSignal}" keeps coming up for you?` : "What evidence would explain what your intuition is picking up on?",
+        topLogical ? `What might your intuition be detecting that "${topLogical}" doesn't fully capture?` : "What might your intuition be detecting that your analysis doesn't fully capture?",
+        "What information would make the gap between your reasoning and your instincts clearer?",
+      ];
+
+      return { convergence, divergentLogical, divergentSignal, hasTension, uncertain, insight, gapQuestions };
+    }
+
+    const PROTOCOL_STEPS = [
+      {
+        key: 'decompose', num: '01', title: 'DECOMPOSE', brain: 'analytical',
+        subtitle: 'Separate the problem from the noise.',
+        intro: 'No interpretation, no emotion, no judgment yet, just the verifiable structure of what is actually happening.',
+        questions: ['What do you know for certain?', 'What are you assuming?', 'What constraints are you dealing with?', 'What remains unclear?'],
+        placeholder: 'What do you know for certain? What are you assuming? What constraints are you working with? What remains unclear?',
+        cta: 'Continue to Sense',
+      },
+      {
+        key: 'sense', num: '02', title: 'SENSE', brain: 'intuitive',
+        subtitle: 'What is your intuition noticing?',
+        intro: "Not every useful signal arrives as a fully formed argument. Examine what your instincts and internal signals are telling you.",
+        questions: ['What is your gut telling you?', 'What feels right?', 'What feels wrong or concerning?', "Is there something you're noticing that you can't fully explain yet?"],
+        placeholder: "What does your gut tell you? What feels right, what feels off, what can't you quite explain?",
+        cta: 'Continue to Expand',
+      },
+      {
+        key: 'expand', num: '03', title: 'EXPAND', brain: 'associative',
+        subtitle: 'Open the problem before narrowing it.',
+        intro: 'Before choosing an answer, explore what else might be possible.',
+        questions: ['What other options exist?', "What are you not considering?", 'What would you do if the obvious option disappeared?', 'Can the problem be reframed?'],
+        placeholder: 'What other options exist? What are you not considering? How else could this be framed?',
+        cta: 'Continue to Reflect',
+      },
+      {
+        key: 'reflect', num: '04', title: 'REFLECT', brain: 'reflective',
+        subtitle: 'Step back and examine the decision itself.',
+        intro: 'Examine what actually matters here, beneath the pressure of the moment.',
+        questions: ['What matters most to you here?', 'What are you trying to protect or achieve?', 'What might you regret?', 'Are fear, pressure, ego, or expectations influencing your thinking?'],
+        placeholder: 'What matters most here? What are you protecting or trying to achieve? What might you regret? Would your answer change without outside expectations?',
+        cta: 'Fuse the Thinking',
+      },
+    ];
+
+    function ProtocolStepper({ activeIndex }) {
+      const labels = ['Decompose', 'Sense', 'Expand', 'Reflect', 'Fuse'];
+      return (
+        React.createElement("div", {style: { display:'flex', alignItems:'center', justifyContent:'center', flexWrap:'wrap', gap:4, marginBottom:36 }},
+          labels.map((label, i) => {
+            const isActive = i === activeIndex;
+            const isDone = i < activeIndex;
+            return (
+              React.createElement(React.Fragment, {key: label},
+                React.createElement("div", {style: {
+                  display:'flex', alignItems:'center', gap:6,
+                  padding:'6px 10px', borderRadius:20,
+                  background: isActive ? 'rgba(196,160,80,0.14)' : 'transparent',
+                  border: `1px solid ${isActive ? C.borderBright : 'transparent'}`,
+                }},
+                  React.createElement("span", {style: { ...mono, fontSize:10, letterSpacing:1, color: isActive ? C.cyanBright : (isDone ? C.cyan : C.dim) }}, String(i+1).padStart(2,'0')),
+                  React.createElement("span", {style: { ...mono, fontSize:10, letterSpacing:1, color: isActive ? C.text : (isDone ? C.muted : C.dim), textTransform:'uppercase' }}, label)
+                ),
+                i < labels.length-1 && React.createElement("span", {style: { color:C.dim, fontSize:11 }}, '→')
+              )
+            );
+          })
+        )
+      );
+    }
+
+    // ── Fuse / Result screen ────────────────────────────────────────────
+    function ProtocolResult({ problem, answers, setView, user, setShowAuth, onRestart }) {
+      const synthesis = useMemo(() => synthesizeProtocol(answers), [answers]);
+      const modes = [
+        { key:'decompose', brain:'analytical', title:'Analytical', tag:'Facts · Logic · Evidence' },
+        { key:'sense', brain:'intuitive', title:'Intuitive', tag:'Signals · Instinct · Patterns' },
+        { key:'expand', brain:'associative', title:'Associative', tag:'Connections · Possibilities · Creativity' },
+        { key:'reflect', brain:'reflective', title:'Reflective', tag:'Perspective · Meaning · Self-awareness' },
+      ];
+
+      return (
+        React.createElement("div", {style: { paddingTop:80, paddingBottom:100 }},
+          React.createElement("div", {style: { maxWidth:820, margin:'0 auto', padding:'40px 20px' }},
+            React.createElement(ProtocolStepper, {activeIndex: 4}),
+
+            React.createElement("div", {style: { textAlign:'center', marginBottom:40 }},
+              React.createElement("div", {style: { ...mono, fontSize:11, letterSpacing:1.5, color:C.cyan, marginBottom:14 }}, 'FUSE · Bring the perspectives together'),
+              React.createElement("h1", {style: { ...syne, fontSize:'clamp(20px,4vw,28px)', fontWeight:800, color:C.text, marginBottom:14, lineHeight:1.2 }}, 'Your Thinking, Integrated.'),
+              React.createElement("p", {style: { fontSize:14, color:C.muted, lineHeight:1.7, maxWidth:520, margin:'0 auto' }}, "NeuralFusion™ doesn't think for you. It helps you see how you are thinking. Everything below is drawn from your own words.")
+            ),
+
+            // Your Problem
+            React.createElement("div", {className: "card", style: { padding:'24px', marginBottom:24 }},
+              React.createElement("div", {style: { ...mono, fontSize:10, letterSpacing:1, color:C.muted, marginBottom:10 }}, 'YOUR PROBLEM'),
+              React.createElement("div", {style: { fontSize:14, color:C.text, lineHeight:1.7 }}, problem || 'No problem entered.')
+            ),
+
+            // Four thinking modes
+            React.createElement("div", {style: { ...mono, fontSize:11, letterSpacing:1, color:C.cyan, marginBottom:14 }}, 'Your Four Thinking Modes'),
+            React.createElement("div", {style: { display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(min(240px,100%),1fr))', gap:14, marginBottom:32 }},
+              modes.map(m => {
+                const b = C.brains[m.brain];
+                return (
+                  React.createElement("div", {key: m.key, className: "card", style: { padding:'20px', borderColor:`${b.color}30` }},
+                    React.createElement("div", {style: { display:'flex', alignItems:'center', gap:10, marginBottom:10 }},
+                      React.createElement("span", {style: { ...mono, fontSize:15, color:b.color }}, b.symbol),
+                      React.createElement("div", null,
+                        React.createElement("div", {style: { ...syne, fontSize:13, fontWeight:800, color:C.text }}, m.title),
+                        React.createElement("div", {style: { ...mono, fontSize:9.5, letterSpacing:0.5, color:b.color }}, m.tag)
+                      )
+                    ),
+                    React.createElement("div", {style: { fontSize:12.5, color:C.muted, lineHeight:1.7, whiteSpace:'pre-wrap' }}, answers[m.key] || 'No response given.')
+                  )
+                );
+              })
+            ),
+
+            // Convergence
+            React.createElement("div", {className: "card", style: { padding:'24px', marginBottom:16, borderColor:'rgba(122,175,207,0.3)' }},
+              React.createElement("div", {style: { ...mono, fontSize:11, letterSpacing:1, color:'#7AAFCF', marginBottom:12 }}, 'Where Your Thinking Converged'),
+              React.createElement("div", {style: { fontSize:13, color:C.text, lineHeight:1.8 }},
+                synthesis.convergence.length
+                  ? React.createElement("span", null, 'Across your reasoning and your instincts, these ideas kept resurfacing: ',
+                      synthesis.convergence.map((w,i) => React.createElement("span", {key: w}, i>0 ? ', ' : '', React.createElement("strong", {style:{color:'#7AAFCF'}}, w))),
+                      '. Your responses appear to converge around these themes.'
+                    )
+                  : "Your reasoning and your instincts didn't share much common language this time. That's fine, it may simply mean this is early-stage thinking."
+              )
+            ),
+
+            // Divergence
+            React.createElement("div", {className: "card", style: { padding:'24px', marginBottom:32, borderColor:'rgba(196,160,80,0.3)' }},
+              React.createElement("div", {style: { ...mono, fontSize:11, letterSpacing:1, color:C.cyan, marginBottom:12 }}, 'Where Your Thinking Diverged'),
+              React.createElement("div", {style: { fontSize:13, color:C.text, lineHeight:1.8, marginBottom: synthesis.hasTension ? 14 : 0 }},
+                synthesis.hasTension
+                  ? React.createElement("span", null,
+                      'Your Decompose and Expand answers lean toward ', React.createElement("strong", {style:{color:C.cyan}}, synthesis.divergentLogical.join(', ')),
+                      ', while your Sense and Reflect answers keep raising ', React.createElement("strong", {style:{color:C.cyanBright}}, synthesis.divergentSignal.join(', ')), ". A tension appears between what you can argue and what you're sensing."
+                    )
+                  : "No strong tension surfaced between your reasoning and your instincts this time."
+              ),
+              React.createElement("div", {style: { fontSize:12.5, color:C.muted, lineHeight:1.7, fontStyle:'italic' }}, 'Disagreement is information. A conflict between thinking modes can reveal uncertainty, missing information, hidden assumptions, competing priorities, or an unresolved value, not failure.')
+            ),
+
+            // Integrated picture / fusion insight
+            React.createElement("div", {className: "card", style: { padding:'28px 24px', marginBottom:24, position:'relative', overflow:'hidden' }},
+              React.createElement("div", {style: { ...mono, fontSize:11, letterSpacing:1, color:C.cyan, marginBottom:16 }}, 'The Integrated Picture'),
+              React.createElement("div", {style: { fontSize:15, color:C.text, lineHeight:1.8, marginBottom:20, padding:'18px 20px', background:C.deep, borderRadius:2, border:`1px solid ${C.border}` }}, synthesis.insight),
+              synthesis.uncertain && React.createElement("div", {style: { fontSize:12.5, color:C.muted, lineHeight:1.7, marginBottom:8 }}, "This may be worth investigating further: parts of your own answers suggest you're still uncertain, and that uncertainty is worth sitting with rather than rushing past."),
+              React.createElement("div", {style: { fontSize:12, color:C.dim, lineHeight:1.6, marginTop:12 }}, "NeuralFusion™ is not an AI decision-maker. You remain the intelligence. This is your thinking, organized and reflected back to you.")
+            ),
+
+            // Investigate the gap
+            React.createElement("div", {className: "card", style: { padding:'24px', marginBottom:40 }},
+              React.createElement("div", {style: { ...mono, fontSize:11, letterSpacing:1, color:C.cyan, marginBottom:14 }}, 'Investigate the Gap'),
+              synthesis.gapQuestions.map((q,i) => (
+                React.createElement("div", {key: i, style: { display:'flex', gap:10, marginBottom:10 }},
+                  React.createElement("span", {style: { ...mono, fontSize:12, color:C.cyan, flexShrink:0 }}, `0${i+1}`),
+                  React.createElement("span", {style: { fontSize:13, color:C.text, lineHeight:1.7 }}, q)
+                )
+              ))
+            ),
+
+            // CTA after experience
+            React.createElement("div", {className: "card", style: { padding:'32px 24px', marginBottom:24, textAlign:'center', borderColor:C.borderBright }},
+              React.createElement("div", {style: { ...syne, fontSize:16, fontWeight:800, color:C.text, marginBottom:10, lineHeight:1.3 }}, 'Want to strengthen how you think, not just solve one problem?'),
+              React.createElement("p", {style: { fontSize:13, color:C.muted, lineHeight:1.7, maxWidth:480, margin:'0 auto 22px' }}, 'The Integration Protocol gives you a structured way to examine a single problem. NeuralFusion™ is designed to help you develop this way of thinking across decisions, challenges, and complex situations.'),
+              React.createElement("div", {style: { display:'flex', gap:12, flexWrap:'wrap', justifyContent:'center' }},
+                React.createElement("button", {className: "btn-primary", onClick: () => user ? setView('training') : setShowAuth(true)}, 'Explore NeuralFusion™ →'),
+                React.createElement("button", {className: "btn-outline", onClick: () => setView('four-brains')}, 'Learn the Four-Brain Framework')
+              )
+            ),
+
+            // Optional lead capture: reuses existing account creation, never forced
+            !user && React.createElement("div", {style: { textAlign:'center', marginBottom:24 }},
+              React.createElement("button", {className: "btn-ghost", style: {fontSize:12.5}, onClick: () => setShowAuth(true)}, 'Save your thinking map →')
+            ),
+
+            React.createElement("div", {style: { textAlign:'center' }},
+              React.createElement("button", {className: "btn-ghost", style: {fontSize:12.5}, onClick: onRestart}, 'Run the Protocol again')
+            )
+          )
+        )
+      );
+    }
+
+    function ProtocolView({ setView, user, setShowAuth }) {
+      const [phase, setPhase] = useState('intro'); // intro | steps | result
+      const [stepIndex, setStepIndex] = useState(0);
+      const [problem, setProblem] = useState('');
+      const [answers, setAnswers] = useState({ decompose:'', sense:'', expand:'', reflect:'' });
+
+      useEffect(() => { window.scrollTo(0, 0); }, [phase, stepIndex]);
+
+      const restart = () => {
+        setPhase('intro'); setStepIndex(0); setProblem(''); setAnswers({ decompose:'', sense:'', expand:'', reflect:'' });
+      };
+
+      // ── Intro ──────────────────────────────────────────────────────
+      if (phase === 'intro') {
+        return (
+          React.createElement("div", {style: { paddingTop:80, paddingBottom:100, minHeight:'70vh', display:'flex', alignItems:'center' }},
+            React.createElement("div", {style: { maxWidth:680, margin:'0 auto', padding:'40px 24px', textAlign:'center' }},
+              React.createElement("div", {style: { ...mono, fontSize:11, letterSpacing:1.5, color:C.cyan, marginBottom:18 }}, 'The Integration Protocol'),
+              React.createElement("h1", {style: { ...syne, fontSize:'clamp(22px,4.5vw,30px)', fontWeight:800, color:C.text, marginBottom:20, lineHeight:1.25 }}, 'Think Through the Problem.', React.createElement("br", null), "Don't Just Think About It."),
+              React.createElement("p", {style: { fontSize:15, color:C.muted, lineHeight:1.8, maxWidth:520, margin:'0 auto 36px' }}, 'Bring a real decision, challenge, or situation. NeuralFusion™ will guide you through five stages designed to help you examine the problem from multiple thinking modes before bringing the perspectives together.'),
+              React.createElement("div", {style: { display:'flex', gap:12, flexWrap:'wrap', justifyContent:'center', marginBottom:28 }},
+                React.createElement("button", {className: "btn-primary", onClick: () => setPhase('steps')}, 'Run the Protocol →'),
+                React.createElement("button", {className: "btn-outline", onClick: () => setView('four-brains')}, 'See How It Works')
+              ),
+              React.createElement("div", {style: { ...mono, fontSize:10.5, letterSpacing:1, color:C.dim }}, 'Decompose → Sense → Expand → Reflect → Fuse · About 5 minutes')
+            )
+          )
+        );
+      }
+
+      // ── Result / Fuse ──────────────────────────────────────────────
+      if (phase === 'result') {
+        return React.createElement(ProtocolResult, { problem, answers, setView, user, setShowAuth, onRestart: restart });
+      }
+
+      // ── Steps 1–4 ──────────────────────────────────────────────────
+      const step = PROTOCOL_STEPS[stepIndex];
+      const b = C.brains[step.brain];
+      const isDecompose = step.key === 'decompose';
+      const answerValue = answers[step.key];
+      const canContinue = isDecompose
+        ? problem.trim().length > 3 && answerValue.trim().length > 3
+        : answerValue.trim().length > 3;
+
+      const goNext = () => {
+        if (stepIndex < PROTOCOL_STEPS.length - 1) setStepIndex(i => i + 1);
+        else setPhase('result');
+      };
+      const goBack = () => {
+        if (stepIndex > 0) setStepIndex(i => i - 1);
+        else setPhase('intro');
+      };
+
+      return (
+        React.createElement("div", {style: { paddingTop:80, paddingBottom:100 }},
+          React.createElement("div", {style: { maxWidth:640, margin:'0 auto', padding:'40px 20px' }},
+            React.createElement(ProtocolStepper, {activeIndex: stepIndex}),
+            React.createElement("div", {key: step.key, style: { animation:'fadeUp 0.35s ease both' }},
+              React.createElement("div", {style: { display:'flex', alignItems:'center', gap:12, marginBottom:16 }},
+                React.createElement("div", {style: {
+                  width:44, height:44, borderRadius:'50%', flexShrink:0,
+                  background:`radial-gradient(circle, ${b.color}22, transparent)`, border:`1px solid ${b.color}44`,
+                  display:'flex', alignItems:'center', justifyContent:'center', ...mono, fontSize:16, color:b.color,
+                }}, b.symbol),
+                React.createElement("div", null,
+                  React.createElement("div", {style: { ...mono, fontSize:10, letterSpacing:1, color:b.color }}, `STAGE ${step.num}`),
+                  React.createElement("h2", {style: { ...syne, fontSize:18, fontWeight:800, color:C.text }}, step.title)
+                )
+              ),
+              React.createElement("p", {style: { fontSize:14, color:C.cyanBright, marginBottom:10, fontWeight:600 }}, step.subtitle),
+              React.createElement("p", {style: { fontSize:13.5, color:C.muted, lineHeight:1.75, marginBottom:22 }}, step.intro),
+
+              isDecompose && React.createElement("div", {style: { marginBottom:22 }},
+                React.createElement("label", {style: { display:'block', ...mono, fontSize:10.5, letterSpacing:1, color:C.muted, marginBottom:8 }}, 'WHAT ARE YOU TRYING TO UNDERSTAND?'),
+                React.createElement("textarea", {
+                  value: problem, onChange: e => setProblem(e.target.value),
+                  placeholder: 'Describe the situation in your own words...',
+                  rows: 3, style: { minHeight:90 },
+                })
+              ),
+
+              React.createElement("div", {style: { display:'flex', flexDirection:'column', gap:8, marginBottom:14, padding:'14px 16px', background:C.deep, borderRadius:2, border:`1px solid ${C.border}` }},
+                step.questions.map((q,i) => (
+                  React.createElement("div", {key: i, style: { fontSize:12.5, color:C.muted, lineHeight:1.6, display:'flex', gap:8 }},
+                    React.createElement("span", {style:{color:b.color}}, '·'), q
+                  )
+                ))
+              ),
+
+              React.createElement("textarea", {
+                value: answerValue, onChange: e => setAnswers(prev => ({ ...prev, [step.key]: e.target.value })),
+                placeholder: step.placeholder, rows: 5, style: { minHeight:130, marginBottom:28 },
+              }),
+
+              React.createElement("div", {style: { display:'flex', gap:12, flexWrap:'wrap' }},
+                React.createElement("button", {className: "btn-ghost", onClick: goBack, style: {fontSize:12.5}}, '← Back'),
+                React.createElement("button", {
+                  className: "btn-primary", onClick: goNext, disabled: !canContinue,
+                  style: { opacity: canContinue ? 1 : 0.4, cursor: canContinue ? 'pointer' : 'not-allowed', marginLeft:'auto' },
+                }, step.cta, ' →')
+              )
+            )
+          )
+        )
+      );
+    }
+
 
     // ═══════════════════════════════════════════════════════════════════
     //  CFI ASSESSMENT VIEW
@@ -4222,7 +4607,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress, sessi
       const viewProps = { setView, user, session, paystackKey, setShowAuth, isPro, setIsPro, isEnterprise, setIsEnterprise, cfiResult, setCfiResult, lessonProgress, setLessonProgress, sessions, setSessions, proPrice };
 
       return (
-        React.createElement("div", {style: { background:C.void, minHeight:'100vh', color:C.text }}, showAuth && React.createElement(AuthModal, {initialTab: authInitialTab, onClose: ()=>{ setShowAuth(false); setAuthInitialTab('login'); }, onSuccess: ()=>{ setShowAuth(false); setAuthInitialTab('login'); }}), React.createElement(Navbar, {view: view, setView: setView, user: user, profile: profile, setShowAuth: setShowAuth, onSignOut: handleSignOut, authLoading: authLoading}), React.createElement("main", null, view==='home'        && React.createElement(HomeView, viewProps), view==='four-brains' && React.createElement(FourBrainsView, viewProps), view==='cfi'         && React.createElement(CFIView, viewProps), view==='training'    && React.createElement(TrainingView, viewProps), view==='analytics'   && React.createElement(AnalyticsView, viewProps), view==='lessons'     && React.createElement(LessonsView, viewProps), view==='about'       && React.createElement(AboutView, viewProps), view==='resources'   && React.createElement(ResourcesView, viewProps), view==='legal'       && React.createElement(LegalView, {setView: setView}), view==='enterprise'  && React.createElement(EnterpriseView, {user: user, session: session, paystackKey: paystackKey, setShowAuth: setShowAuth, isEnterprise: isEnterprise, setIsEnterprise: setIsEnterprise, proPrice: proPrice, setView: setView}), view==='admin'       && profile?.is_admin === true && React.createElement(AdminView, {user: user, setView: setView, onPriceChange: setProPrice})), React.createElement(Footer, {setView: setView}), view !== 'enterprise' && React.createElement(BottomNav, {view: view, setView: setView}))
+        React.createElement("div", {style: { background:C.void, minHeight:'100vh', color:C.text }}, showAuth && React.createElement(AuthModal, {initialTab: authInitialTab, onClose: ()=>{ setShowAuth(false); setAuthInitialTab('login'); }, onSuccess: ()=>{ setShowAuth(false); setAuthInitialTab('login'); }}), React.createElement(Navbar, {view: view, setView: setView, user: user, profile: profile, setShowAuth: setShowAuth, onSignOut: handleSignOut, authLoading: authLoading}), React.createElement("main", null, view==='home'        && React.createElement(HomeView, viewProps), view==='four-brains' && React.createElement(FourBrainsView, viewProps), view==='cfi'         && React.createElement(CFIView, viewProps), view==='protocol'    && React.createElement(ProtocolView, viewProps), view==='training'    && React.createElement(TrainingView, viewProps), view==='analytics'   && React.createElement(AnalyticsView, viewProps), view==='lessons'     && React.createElement(LessonsView, viewProps), view==='about'       && React.createElement(AboutView, viewProps), view==='resources'   && React.createElement(ResourcesView, viewProps), view==='legal'       && React.createElement(LegalView, {setView: setView}), view==='enterprise'  && React.createElement(EnterpriseView, {user: user, session: session, paystackKey: paystackKey, setShowAuth: setShowAuth, isEnterprise: isEnterprise, setIsEnterprise: setIsEnterprise, proPrice: proPrice, setView: setView}), view==='admin'       && profile?.is_admin === true && React.createElement(AdminView, {user: user, setView: setView, onPriceChange: setProPrice})), React.createElement(Footer, {setView: setView}), view !== 'enterprise' && React.createElement(BottomNav, {view: view, setView: setView}))
       );
     }
 
