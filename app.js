@@ -1475,13 +1475,13 @@ Most learners take four to six weeks working through the lessons at the suggeste
     function Navbar({ view, setView, user, profile, setShowAuth, onSignOut, authLoading }) {
       const [menuOpen, setMenuOpen] = useState(false);
       const navItems = [
-        { v:'four-brains', label:'Architecture' },
-        { v:'lessons', label:'Academy' },
-        { v:'training', label:'Protocols' },
         { v:'cfi', label:'Assess' },
+        { v:'four-brains', label:'Architecture' },
         { v:'analytics', label:'Analytics' },
-        { v:'enterprise', label:'Enterprise' },
+        { v:'training', label:'Protocols' },
+        { v:'lessons', label:'Academy' },
         { v:'resources', label:'Resources' },
+        { v:'enterprise', label:'Enterprise' },
         { v:'about', label:'About' },
         ...(profile?.is_admin === true ? [{ v:'admin', label:'⚙ Admin' }] : []),
       ];
@@ -1555,8 +1555,8 @@ Most learners take four to six weeks working through the lessons at the suggeste
     function BottomNav({ view, setView }) {
       const items = [
         { v:'home', symbol:'⌂', label:'Home' },
-        { v:'four-brains', symbol:'◈', label:'Brains' },
         { v:'cfi', symbol:'◎', label:'CFI' },
+        { v:'four-brains', symbol:'◈', label:'Brains' },
         { v:'training', symbol:'▲', label:'Protocols' },
         { v:'enterprise', symbol:'⬡', label:'Enterprise' },
       ];
@@ -2089,35 +2089,80 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress, sessi
       },
     ];
 
-    function ProtocolStepper({ activeIndex }) {
-      const labels = ['Decompose', 'Sense', 'Expand', 'Reflect', 'Fuse'];
+    // ── Accessible design tokens (WCAG AA, dyslexia-friendly) ──────────
+    // Shared with the CFI™ assessment (CFIView) so the Integration Protocol
+    // reads as one continuous experience with the CFI, not a separate style.
+    const PROTOCOL_AC = {
+      bg: '#FFFFFF', surface: '#FFFFFF', surfaceAlt: '#F9FAFB',
+      text: '#111827', muted: '#4B5563', border: '#D1D5DB',
+      gold: '#C8A95A', goldDark: '#8A6D2F', goldTint: '#FBF3E3',
+      focus: '#8A6D2F',
+      font: "'Atkinson Hyperlegible', 'Inter', -apple-system, sans-serif",
+    };
+
+    // Injects the same dyslexia-friendly font + focus-visible styles CFIView
+    // uses. Guarded by id so it's a no-op if CFIView already added them.
+    function useProtocolA11yStyles() {
+      useEffect(() => {
+        if (!document.getElementById('nf-a11y-font')) {
+          const link = document.createElement('link');
+          link.id = 'nf-a11y-font';
+          link.rel = 'stylesheet';
+          link.href = 'https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Inter:wght@400;600;700;800&display=swap';
+          document.head.appendChild(link);
+        }
+        if (!document.getElementById('nf-a11y-styles')) {
+          const style = document.createElement('style');
+          style.id = 'nf-a11y-styles';
+          style.textContent = `
+            .nf-a11y-scale-btn:focus-visible,
+            .nf-a11y-btn:focus-visible {
+              outline: 3px solid ${PROTOCOL_AC.focus};
+              outline-offset: 3px;
+            }
+            .nf-a11y-scale-btn:hover { border-color: ${PROTOCOL_AC.gold} !important; background: ${PROTOCOL_AC.goldTint} !important; }
+            .nf-a11y-textarea:focus { border-color: ${PROTOCOL_AC.goldDark} !important; box-shadow: 0 0 0 3px rgba(138,109,47,0.12) !important; }
+            @media (prefers-reduced-motion: reduce) {
+              .nf-a11y-fade { animation: none !important; }
+            }
+          `;
+          document.head.appendChild(style);
+        }
+      }, []);
+    }
+
+    function ProtocolTextarea({ value, onChange, placeholder, minHeight = 130 }) {
+      return React.createElement("textarea", {
+        className: "nf-a11y-textarea",
+        value, onChange, placeholder, rows: 5,
+        style: {
+          width:'100%', minHeight, resize:'vertical',
+          background:'#FFFFFF', border:`2px solid ${PROTOCOL_AC.border}`, borderRadius:16,
+          color:PROTOCOL_AC.text, fontFamily:PROTOCOL_AC.font, fontSize:17, lineHeight:1.6,
+          padding:'16px 18px', outline:'none', transition:'border-color 0.2s, box-shadow 0.2s',
+        },
+      });
+    }
+
+    function ProtocolProgress({ percent, label }) {
       return (
-        React.createElement("div", {style: { display:'flex', alignItems:'center', justifyContent:'center', flexWrap:'wrap', gap:4, marginBottom:36 }},
-          labels.map((label, i) => {
-            const isActive = i === activeIndex;
-            const isDone = i < activeIndex;
-            return (
-              React.createElement(React.Fragment, {key: label},
-                React.createElement("div", {style: {
-                  display:'flex', alignItems:'center', gap:6,
-                  padding:'6px 10px', borderRadius:20,
-                  background: isActive ? 'rgba(196,160,80,0.14)' : 'transparent',
-                  border: `1px solid ${isActive ? C.borderBright : 'transparent'}`,
-                }},
-                  React.createElement("span", {style: { ...mono, fontSize:10, letterSpacing:1, color: isActive ? C.cyanBright : (isDone ? C.cyan : C.dim) }}, String(i+1).padStart(2,'0')),
-                  React.createElement("span", {style: { ...mono, fontSize:10, letterSpacing:1, color: isActive ? C.text : (isDone ? C.muted : C.dim), textTransform:'uppercase' }}, label)
-                ),
-                i < labels.length-1 && React.createElement("span", {style: { color:C.dim, fontSize:11 }}, '→')
-              )
-            );
-          })
+        React.createElement("div", null,
+          React.createElement("div", {style: { display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:14, flexWrap:'wrap', gap:8 }},
+            React.createElement("div", {style: { fontFamily:PROTOCOL_AC.font, fontSize:15, fontWeight:700, color:PROTOCOL_AC.text }}, label),
+            React.createElement("div", {style: { fontFamily:PROTOCOL_AC.font, fontSize:15, fontWeight:600, color:PROTOCOL_AC.goldDark }}, percent, '% through the protocol')
+          ),
+          React.createElement("div", {role:'progressbar', 'aria-valuenow':percent, 'aria-valuemin':0, 'aria-valuemax':100, style: { height:10, background:PROTOCOL_AC.surfaceAlt, border:`1px solid ${PROTOCOL_AC.border}`, borderRadius:6, marginBottom:14, overflow:'hidden' }},
+            React.createElement("div", {style: { width:`${percent}%`, height:'100%', background:PROTOCOL_AC.gold, borderRadius:6, transition:'width 0.4s ease' }})
+          )
         )
       );
     }
 
     // ── Fuse / Result screen ────────────────────────────────────────────
     function ProtocolResult({ problem, answers, setView, user, setShowAuth, onRestart }) {
+      useProtocolA11yStyles();
       const synthesis = useMemo(() => synthesizeProtocol(answers), [answers]);
+      const AC = PROTOCOL_AC;
       const modes = [
         { key:'decompose', brain:'analytical', title:'Analytical', tag:'Facts · Logic · Evidence' },
         { key:'sense', brain:'intuitive', title:'Intuitive', tag:'Signals · Instinct · Patterns' },
@@ -2126,49 +2171,52 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress, sessi
       ];
 
       return (
-        React.createElement("div", {style: { paddingTop:80, paddingBottom:100 }},
-          React.createElement("div", {style: { maxWidth:820, margin:'0 auto', padding:'40px 20px' }},
-            React.createElement(ProtocolStepper, {activeIndex: 4}),
+        React.createElement("div", {style: { paddingTop:80, paddingBottom:60, background:AC.bg, minHeight:'100vh', fontFamily:AC.font }},
+          React.createElement("div", {style: { maxWidth:920, margin:'0 auto', padding:'24px 20px' }},
 
-            React.createElement("div", {style: { textAlign:'center', marginBottom:40 }},
-              React.createElement("div", {style: { ...mono, fontSize:11, letterSpacing:1.5, color:C.cyan, marginBottom:14 }}, 'FUSE · Bring the perspectives together'),
-              React.createElement("h1", {style: { ...syne, fontSize:'clamp(20px,4vw,28px)', fontWeight:800, color:C.text, marginBottom:14, lineHeight:1.2 }}, 'Your Thinking, Integrated.'),
-              React.createElement("p", {style: { fontSize:14, color:C.muted, lineHeight:1.7, maxWidth:520, margin:'0 auto' }}, "NeuralFusion™ doesn't think for you. It helps you see how you are thinking. Everything below is drawn from your own words.")
+            React.createElement("div", {style: { fontFamily:AC.font, fontSize:14, fontWeight:700, letterSpacing:'0.06em', color:AC.goldDark, marginBottom:8, textTransform:'uppercase' }}, 'The Integration Protocol · Fuse'),
+            React.createElement("div", {style: { fontSize:14, color:AC.muted, lineHeight:1.6, marginBottom:20, maxWidth:640 }},
+              'NeuralFusion™ does not think for you. It helps you see how you are thinking. Everything below is drawn from your own words, not a decision, diagnosis, or recommendation.'
             ),
 
+            React.createElement("h1", {style: { fontFamily:AC.font, fontSize:'clamp(24px,4.5vw,30px)', fontWeight:800, color:AC.text, marginBottom:20, lineHeight:1.3 }}, 'Your Thinking, Integrated.'),
+
             // Your Problem
-            React.createElement("div", {className: "card", style: { padding:'24px', marginBottom:24 }},
-              React.createElement("div", {style: { ...mono, fontSize:10, letterSpacing:1, color:C.muted, marginBottom:10 }}, 'YOUR PROBLEM'),
-              React.createElement("div", {style: { fontSize:14, color:C.text, lineHeight:1.7 }}, problem || 'No problem entered.')
+            React.createElement("div", {style: { padding:'20px 22px', background:AC.surface, border:`1px solid ${AC.border}`, borderRadius:16, boxShadow:'0 1px 3px rgba(17,24,39,0.06)', marginBottom:28 }},
+              React.createElement("div", {style: { fontFamily:AC.font, fontSize:13, fontWeight:700, letterSpacing:'0.04em', color:AC.goldDark, marginBottom:10, textTransform:'uppercase' }}, 'Your Problem'),
+              React.createElement("div", {style: { fontSize:16, color:AC.text, lineHeight:1.7 }}, problem || 'No problem entered.')
             ),
 
             // Four thinking modes
-            React.createElement("div", {style: { ...mono, fontSize:11, letterSpacing:1, color:C.cyan, marginBottom:14 }}, 'Your Four Thinking Modes'),
-            React.createElement("div", {style: { display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(min(240px,100%),1fr))', gap:14, marginBottom:32 }},
+            React.createElement("div", {style: { fontFamily:AC.font, fontSize:14, fontWeight:700, letterSpacing:'0.04em', color:AC.goldDark, marginBottom:14, textTransform:'uppercase' }}, 'Your Four Thinking Modes'),
+            React.createElement("div", {style: { display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(min(240px,100%),1fr))', gap:16, marginBottom:32 }},
               modes.map(m => {
                 const b = C.brains[m.brain];
                 return (
-                  React.createElement("div", {key: m.key, className: "card", style: { padding:'20px', borderColor:`${b.color}30` }},
+                  React.createElement("div", {key: m.key, style: {
+                    padding:'20px 22px', background:AC.surface, border:`1px solid ${AC.border}`, borderLeft:`4px solid ${b.color}`,
+                    borderRadius:16, boxShadow:'0 1px 3px rgba(17,24,39,0.06)',
+                  }},
                     React.createElement("div", {style: { display:'flex', alignItems:'center', gap:10, marginBottom:10 }},
-                      React.createElement("span", {style: { ...mono, fontSize:15, color:b.color }}, b.symbol),
+                      React.createElement("span", {style: { fontSize:17, color:b.color }}, b.symbol),
                       React.createElement("div", null,
-                        React.createElement("div", {style: { ...syne, fontSize:13, fontWeight:800, color:C.text }}, m.title),
-                        React.createElement("div", {style: { ...mono, fontSize:9.5, letterSpacing:0.5, color:b.color }}, m.tag)
+                        React.createElement("div", {style: { fontFamily:AC.font, fontSize:15, fontWeight:700, color:AC.text }}, m.title),
+                        React.createElement("div", {style: { fontSize:11.5, letterSpacing:'0.03em', color:b.color, fontWeight:600 }}, m.tag)
                       )
                     ),
-                    React.createElement("div", {style: { fontSize:12.5, color:C.muted, lineHeight:1.7, whiteSpace:'pre-wrap' }}, answers[m.key] || 'No response given.')
+                    React.createElement("div", {style: { fontSize:14, color:AC.muted, lineHeight:1.7, whiteSpace:'pre-wrap' }}, answers[m.key] || 'No response given.')
                   )
                 );
               })
             ),
 
             // Convergence
-            React.createElement("div", {className: "card", style: { padding:'24px', marginBottom:16, borderColor:'rgba(122,175,207,0.3)' }},
-              React.createElement("div", {style: { ...mono, fontSize:11, letterSpacing:1, color:'#7AAFCF', marginBottom:12 }}, 'Where Your Thinking Converged'),
-              React.createElement("div", {style: { fontSize:13, color:C.text, lineHeight:1.8 }},
+            React.createElement("div", {style: { padding:'22px', background:AC.surfaceAlt, border:`1px solid ${AC.border}`, borderRadius:16, marginBottom:16 }},
+              React.createElement("div", {style: { fontFamily:AC.font, fontSize:13, fontWeight:700, letterSpacing:'0.04em', color:AC.goldDark, marginBottom:10, textTransform:'uppercase' }}, 'Where Your Thinking Converged'),
+              React.createElement("div", {style: { fontSize:14, color:AC.text, lineHeight:1.8 }},
                 synthesis.convergence.length
                   ? React.createElement("span", null, 'Across your reasoning and your instincts, these ideas kept resurfacing: ',
-                      synthesis.convergence.map((w,i) => React.createElement("span", {key: w}, i>0 ? ', ' : '', React.createElement("strong", {style:{color:'#7AAFCF'}}, w))),
+                      synthesis.convergence.map((w,i) => React.createElement("span", {key: w}, i>0 ? ', ' : '', React.createElement("strong", {style:{color:AC.goldDark}}, w))),
                       '. Your responses appear to converge around these themes.'
                     )
                   : "Your reasoning and your instincts didn't share much common language this time. That's fine, it may simply mean this is early-stage thinking."
@@ -2176,55 +2224,68 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress, sessi
             ),
 
             // Divergence
-            React.createElement("div", {className: "card", style: { padding:'24px', marginBottom:32, borderColor:'rgba(196,160,80,0.3)' }},
-              React.createElement("div", {style: { ...mono, fontSize:11, letterSpacing:1, color:C.cyan, marginBottom:12 }}, 'Where Your Thinking Diverged'),
-              React.createElement("div", {style: { fontSize:13, color:C.text, lineHeight:1.8, marginBottom: synthesis.hasTension ? 14 : 0 }},
+            React.createElement("div", {style: { padding:'22px', background:AC.goldTint, border:`1px solid ${AC.gold}`, borderRadius:16, marginBottom:32 }},
+              React.createElement("div", {style: { fontFamily:AC.font, fontSize:13, fontWeight:700, letterSpacing:'0.04em', color:AC.goldDark, marginBottom:10, textTransform:'uppercase' }}, 'Where Your Thinking Diverged'),
+              React.createElement("div", {style: { fontSize:14, color:AC.text, lineHeight:1.8, marginBottom: synthesis.hasTension ? 14 : 0 }},
                 synthesis.hasTension
                   ? React.createElement("span", null,
-                      'Your Decompose and Expand answers lean toward ', React.createElement("strong", {style:{color:C.cyan}}, synthesis.divergentLogical.join(', ')),
-                      ', while your Sense and Reflect answers keep raising ', React.createElement("strong", {style:{color:C.cyanBright}}, synthesis.divergentSignal.join(', ')), ". A tension appears between what you can argue and what you're sensing."
+                      'Your Decompose and Expand answers lean toward ', React.createElement("strong", {style:{color:AC.goldDark}}, synthesis.divergentLogical.join(', ')),
+                      ', while your Sense and Reflect answers keep raising ', React.createElement("strong", {style:{color:AC.goldDark}}, synthesis.divergentSignal.join(', ')), ". A tension appears between what you can argue and what you're sensing."
                     )
                   : "No strong tension surfaced between your reasoning and your instincts this time."
               ),
-              React.createElement("div", {style: { fontSize:12.5, color:C.muted, lineHeight:1.7, fontStyle:'italic' }}, 'Disagreement is information. A conflict between thinking modes can reveal uncertainty, missing information, hidden assumptions, competing priorities, or an unresolved value, not failure.')
+              React.createElement("div", {style: { fontSize:13, color:AC.muted, lineHeight:1.7, fontStyle:'italic' }}, 'Disagreement is information. A conflict between thinking modes can reveal uncertainty, missing information, hidden assumptions, competing priorities, or an unresolved value, not failure.')
             ),
 
             // Integrated picture / fusion insight
-            React.createElement("div", {className: "card", style: { padding:'28px 24px', marginBottom:24, position:'relative', overflow:'hidden' }},
-              React.createElement("div", {style: { ...mono, fontSize:11, letterSpacing:1, color:C.cyan, marginBottom:16 }}, 'The Integrated Picture'),
-              React.createElement("div", {style: { fontSize:15, color:C.text, lineHeight:1.8, marginBottom:20, padding:'18px 20px', background:C.deep, borderRadius:2, border:`1px solid ${C.border}` }}, synthesis.insight),
-              synthesis.uncertain && React.createElement("div", {style: { fontSize:12.5, color:C.muted, lineHeight:1.7, marginBottom:8 }}, "This may be worth investigating further: parts of your own answers suggest you're still uncertain, and that uncertainty is worth sitting with rather than rushing past."),
-              React.createElement("div", {style: { fontSize:12, color:C.dim, lineHeight:1.6, marginTop:12 }}, "NeuralFusion™ is not an AI decision-maker. You remain the intelligence. This is your thinking, organized and reflected back to you.")
+            React.createElement("div", {style: { padding:'28px 24px', background:AC.surface, border:`2px solid ${AC.goldDark}`, borderRadius:16, boxShadow:'0 2px 8px rgba(138,109,47,0.12)', marginBottom:24 }},
+              React.createElement("div", {style: { fontFamily:AC.font, fontSize:13, fontWeight:700, letterSpacing:'0.04em', color:AC.goldDark, marginBottom:16, textTransform:'uppercase' }}, 'The Integrated Picture'),
+              React.createElement("div", {style: { fontSize:17, color:AC.text, lineHeight:1.8, marginBottom:20, padding:'18px 20px', background:AC.surfaceAlt, borderRadius:12, border:`1px solid ${AC.border}` }}, synthesis.insight),
+              synthesis.uncertain && React.createElement("div", {style: { fontSize:13.5, color:AC.muted, lineHeight:1.7, marginBottom:8 }}, "This may be worth investigating further: parts of your own answers suggest you're still uncertain, and that uncertainty is worth sitting with rather than rushing past."),
+              React.createElement("div", {style: { fontSize:13, color:AC.muted, lineHeight:1.6, marginTop:12 }}, "NeuralFusion™ is not an AI decision-maker. You remain the intelligence. This is your thinking, organized and reflected back to you.")
             ),
 
             // Investigate the gap
-            React.createElement("div", {className: "card", style: { padding:'24px', marginBottom:40 }},
-              React.createElement("div", {style: { ...mono, fontSize:11, letterSpacing:1, color:C.cyan, marginBottom:14 }}, 'Investigate the Gap'),
+            React.createElement("div", {style: { padding:'22px', background:AC.surface, border:`1px solid ${AC.border}`, borderRadius:16, boxShadow:'0 1px 3px rgba(17,24,39,0.06)', marginBottom:40 }},
+              React.createElement("div", {style: { fontFamily:AC.font, fontSize:13, fontWeight:700, letterSpacing:'0.04em', color:AC.goldDark, marginBottom:14, textTransform:'uppercase' }}, 'Investigate the Gap'),
               synthesis.gapQuestions.map((q,i) => (
                 React.createElement("div", {key: i, style: { display:'flex', gap:10, marginBottom:10 }},
-                  React.createElement("span", {style: { ...mono, fontSize:12, color:C.cyan, flexShrink:0 }}, `0${i+1}`),
-                  React.createElement("span", {style: { fontSize:13, color:C.text, lineHeight:1.7 }}, q)
+                  React.createElement("span", {style: { fontFamily:AC.font, fontSize:13, fontWeight:700, color:AC.goldDark, flexShrink:0 }}, `0${i+1}`),
+                  React.createElement("span", {style: { fontSize:14, color:AC.text, lineHeight:1.7 }}, q)
                 )
               ))
             ),
 
             // CTA after experience
-            React.createElement("div", {className: "card", style: { padding:'32px 24px', marginBottom:24, textAlign:'center', borderColor:C.borderBright }},
-              React.createElement("div", {style: { ...syne, fontSize:16, fontWeight:800, color:C.text, marginBottom:10, lineHeight:1.3 }}, 'Want to strengthen how you think, not just solve one problem?'),
-              React.createElement("p", {style: { fontSize:13, color:C.muted, lineHeight:1.7, maxWidth:480, margin:'0 auto 22px' }}, 'The Integration Protocol gives you a structured way to examine a single problem. NeuralFusion™ is designed to help you develop this way of thinking across decisions, challenges, and complex situations.'),
+            React.createElement("div", {style: { padding:'32px 24px', background:AC.goldTint, border:`1px solid ${AC.gold}`, borderRadius:16, marginBottom:24, textAlign:'center' }},
+              React.createElement("div", {style: { fontFamily:AC.font, fontSize:18, fontWeight:800, color:AC.text, marginBottom:10, lineHeight:1.3 }}, 'Want to strengthen how you think, not just solve one problem?'),
+              React.createElement("p", {style: { fontSize:14, color:AC.muted, lineHeight:1.7, maxWidth:480, margin:'0 auto 22px' }}, 'The Integration Protocol gives you a structured way to examine a single problem. NeuralFusion™ is designed to help you develop this way of thinking across decisions, challenges, and complex situations.'),
               React.createElement("div", {style: { display:'flex', gap:12, flexWrap:'wrap', justifyContent:'center' }},
-                React.createElement("button", {className: "btn-primary", onClick: () => user ? setView('training') : setShowAuth(true)}, 'Explore NeuralFusion™ →'),
-                React.createElement("button", {className: "btn-outline", onClick: () => setView('four-brains')}, 'Learn the Four-Brain Framework')
+                React.createElement("button", {className: "nf-a11y-btn", onClick: () => user ? setView('training') : setShowAuth(true), style: {
+                  fontFamily:AC.font, fontSize:16, fontWeight:700, padding:'16px 32px', minHeight:52,
+                  background:AC.goldDark, color:'#FFFFFF', border:'none', borderRadius:16, cursor:'pointer',
+                  boxShadow:'0 2px 8px rgba(138,109,47,0.35)',
+                }}, 'Explore NeuralFusion™ →'),
+                React.createElement("button", {className: "nf-a11y-btn", onClick: () => setView('four-brains'), style: {
+                  fontFamily:AC.font, fontSize:16, fontWeight:700, padding:'14px 28px', minHeight:52,
+                  background:'transparent', color:AC.goldDark, border:`2px solid ${AC.goldDark}`, borderRadius:16, cursor:'pointer',
+                }}, 'Learn the Four-Brain Framework')
               )
             ),
 
             // Optional lead capture: reuses existing account creation, never forced
-            !user && React.createElement("div", {style: { textAlign:'center', marginBottom:24 }},
-              React.createElement("button", {className: "btn-ghost", style: {fontSize:12.5}, onClick: () => setShowAuth(true)}, 'Save your thinking map →')
+            !user && React.createElement("div", {style: { textAlign:'center', marginBottom:20 }},
+              React.createElement("button", {className: "nf-a11y-btn", onClick: () => setShowAuth(true), style: {
+                fontFamily:AC.font, fontSize:15, fontWeight:600, padding:'10px 16px', minHeight:44,
+                background:'transparent', color:AC.muted, border:'none', cursor:'pointer', borderRadius:12,
+              }}, 'Save your thinking map →')
             ),
 
             React.createElement("div", {style: { textAlign:'center' }},
-              React.createElement("button", {className: "btn-ghost", style: {fontSize:12.5}, onClick: onRestart}, 'Run the Protocol again')
+              React.createElement("button", {className: "nf-a11y-btn", onClick: onRestart, style: {
+                fontFamily:AC.font, fontSize:15, fontWeight:600, padding:'10px 16px', minHeight:44,
+                background:'transparent', color:AC.muted, border:'none', cursor:'pointer', borderRadius:12,
+              }}, 'Run the Protocol again')
             )
           )
         )
@@ -2232,6 +2293,8 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress, sessi
     }
 
     function ProtocolView({ setView, user, setShowAuth }) {
+      useProtocolA11yStyles();
+      const AC = PROTOCOL_AC;
       const [phase, setPhase] = useState('intro'); // intro | steps | result
       const [stepIndex, setStepIndex] = useState(0);
       const [problem, setProblem] = useState('');
@@ -2243,19 +2306,51 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress, sessi
         setPhase('intro'); setStepIndex(0); setProblem(''); setAnswers({ decompose:'', sense:'', expand:'', reflect:'' });
       };
 
-      // ── Intro ──────────────────────────────────────────────────────
+      // ── Intro (mirrors the CFI™ intro screen) ───────────────────────
       if (phase === 'intro') {
         return (
-          React.createElement("div", {style: { paddingTop:80, paddingBottom:100, minHeight:'70vh', display:'flex', alignItems:'center' }},
-            React.createElement("div", {style: { maxWidth:680, margin:'0 auto', padding:'40px 24px', textAlign:'center' }},
-              React.createElement("div", {style: { ...mono, fontSize:11, letterSpacing:1.5, color:C.cyan, marginBottom:18 }}, 'The Integration Protocol'),
-              React.createElement("h1", {style: { ...syne, fontSize:'clamp(22px,4.5vw,30px)', fontWeight:800, color:C.text, marginBottom:20, lineHeight:1.25 }}, 'Think Through the Problem.', React.createElement("br", null), "Don't Just Think About It."),
-              React.createElement("p", {style: { fontSize:15, color:C.muted, lineHeight:1.8, maxWidth:520, margin:'0 auto 36px' }}, 'Bring a real decision, challenge, or situation. NeuralFusion™ will guide you through five stages designed to help you examine the problem from multiple thinking modes before bringing the perspectives together.'),
-              React.createElement("div", {style: { display:'flex', gap:12, flexWrap:'wrap', justifyContent:'center', marginBottom:28 }},
-                React.createElement("button", {className: "btn-primary", onClick: () => setPhase('steps')}, 'Run the Protocol →'),
-                React.createElement("button", {className: "btn-outline", onClick: () => setView('four-brains')}, 'See How It Works')
+          React.createElement("div", {style: { paddingTop:80, paddingBottom:60, background:AC.bg, minHeight:'100vh', fontFamily:AC.font }},
+            React.createElement("div", {style: { maxWidth:720, margin:'0 auto', padding:'32px 20px', textAlign:'center' }},
+              React.createElement("div", {style: { fontFamily:AC.font, fontSize:14, fontWeight:700, letterSpacing:'0.06em', color:AC.goldDark, marginBottom:20, textTransform:'uppercase' }}, 'The Integration Protocol'),
+              React.createElement("h1", {style: { fontFamily:AC.font, fontSize:'clamp(26px,5vw,34px)', fontWeight:800, color:AC.text, marginBottom:20, lineHeight:1.3 }},
+                'Think Through the Problem.', React.createElement("br", null), React.createElement("span", {style: {color:AC.goldDark}}, "Don't just think about it.")
               ),
-              React.createElement("div", {style: { ...mono, fontSize:10.5, letterSpacing:1, color:C.dim }}, 'Decompose → Sense → Expand → Reflect → Fuse · About 5 minutes')
+              React.createElement("p", {style: { fontSize:19, color:AC.text, lineHeight:1.7, marginBottom:20, maxWidth:560, margin:'0 auto 20px' }},
+                'Bring a real decision, challenge, or situation. Five short stages, about five minutes.'
+              ),
+              React.createElement("div", {role:'note', style: { fontSize:18, color:AC.text, lineHeight:1.7, marginBottom:20, maxWidth:560, margin:'0 auto 20px', padding:'20px 22px', background:AC.goldTint, border:`1px solid ${AC.gold}`, borderRadius:16, textAlign:'left' }},
+                "NeuralFusion™ does not think for you. It helps you see how you are thinking. There are no wrong answers, and you'll see your own responses reflected back to you at the end, not a decision made for you."
+              ),
+              React.createElement("div", {style: { display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(min(200px, 100%), 1fr))', gap:12, marginBottom:36, textAlign:'left' }},
+                [
+                  { brain:'analytical', label:'Decompose', text:'Separate the problem from the noise' },
+                  { brain:'intuitive', label:'Sense', text:'Notice what your instincts are telling you' },
+                  { brain:'associative', label:'Expand', text:'Open the problem before narrowing it' },
+                  { brain:'reflective', label:'Reflect', text:'Examine what actually matters here' },
+                ].map((s,i) => {
+                  const b = C.brains[s.brain];
+                  return (
+                    React.createElement("div", {key: i, style: { padding:'16px 18px', display:'flex', alignItems:'flex-start', gap:12, background:AC.surface, border:`1px solid ${AC.border}`, borderRadius:16, boxShadow:'0 1px 3px rgba(17,24,39,0.06)' }},
+                      React.createElement("div", {style: { fontSize:18, color:b.color, flexShrink:0 }}, b.symbol),
+                      React.createElement("div", null,
+                        React.createElement("div", {style: { fontSize:15, fontWeight:700, color:AC.text }}, s.label),
+                        React.createElement("div", {style: { fontSize:13, color:AC.muted, lineHeight:1.5 }}, s.text)
+                      )
+                    )
+                  );
+                })
+              ),
+              React.createElement("button", {className: "nf-a11y-btn", onClick: ()=>setPhase('steps'), style: {
+                fontFamily:AC.font, fontSize:18, fontWeight:700, padding:'18px 40px', minHeight:56,
+                background:AC.goldDark, color:'#FFFFFF', border:'none', borderRadius:16, cursor:'pointer',
+                boxShadow:'0 2px 8px rgba(138,109,47,0.35)', marginBottom:16,
+              }}, 'Run the Protocol →'),
+              React.createElement("div", null,
+                React.createElement("button", {className: "nf-a11y-btn", onClick: ()=>setView('four-brains'), style: {
+                  fontFamily:AC.font, fontSize:16, fontWeight:600, padding:'12px 20px', minHeight:48,
+                  background:'transparent', color:AC.muted, border:'none', cursor:'pointer', borderRadius:12,
+                }}, 'See how it works')
+              )
             )
           )
         );
@@ -2266,7 +2361,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress, sessi
         return React.createElement(ProtocolResult, { problem, answers, setView, user, setShowAuth, onRestart: restart });
       }
 
-      // ── Steps 1–4 ──────────────────────────────────────────────────
+      // ── Steps 1–4 (mirrors the CFI™ question screen) ────────────────
       const step = PROTOCOL_STEPS[stepIndex];
       const b = C.brains[step.brain];
       const isDecompose = step.key === 'decompose';
@@ -2274,6 +2369,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress, sessi
       const canContinue = isDecompose
         ? problem.trim().length > 3 && answerValue.trim().length > 3
         : answerValue.trim().length > 3;
+      const percent = Math.round(((stepIndex) / PROTOCOL_STEPS.length) * 100);
 
       const goNext = () => {
         if (stepIndex < PROTOCOL_STEPS.length - 1) setStepIndex(i => i + 1);
@@ -2285,51 +2381,54 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress, sessi
       };
 
       return (
-        React.createElement("div", {style: { paddingTop:80, paddingBottom:100 }},
-          React.createElement("div", {style: { maxWidth:640, margin:'0 auto', padding:'40px 20px' }},
-            React.createElement(ProtocolStepper, {activeIndex: stepIndex}),
-            React.createElement("div", {key: step.key, style: { animation:'fadeUp 0.35s ease both' }},
-              React.createElement("div", {style: { display:'flex', alignItems:'center', gap:12, marginBottom:16 }},
-                React.createElement("div", {style: {
-                  width:44, height:44, borderRadius:'50%', flexShrink:0,
-                  background:`radial-gradient(circle, ${b.color}22, transparent)`, border:`1px solid ${b.color}44`,
-                  display:'flex', alignItems:'center', justifyContent:'center', ...mono, fontSize:16, color:b.color,
-                }}, b.symbol),
-                React.createElement("div", null,
-                  React.createElement("div", {style: { ...mono, fontSize:10, letterSpacing:1, color:b.color }}, `STAGE ${step.num}`),
-                  React.createElement("h2", {style: { ...syne, fontSize:18, fontWeight:800, color:C.text }}, step.title)
-                )
+        React.createElement("div", {style: { paddingTop:80, paddingBottom:60, background:AC.bg, minHeight:'100vh', fontFamily:AC.font }},
+          React.createElement("div", {style: { maxWidth:680, margin:'0 auto', padding:'32px 20px', width:'100%' }},
+            React.createElement(ProtocolProgress, {percent, label: `Stage ${stepIndex+1} of ${PROTOCOL_STEPS.length}`}),
+
+            React.createElement("div", {key: step.key, className: "nf-a11y-fade"},
+              React.createElement("div", {style: { display:'flex', alignItems:'center', gap:10, marginBottom:16 }},
+                React.createElement("div", {style: { fontSize:20, color:b.color }}, b.symbol),
+                React.createElement("div", {style: { fontFamily:AC.font, fontSize:14, fontWeight:700, letterSpacing:'0.04em', color:AC.goldDark, textTransform:'uppercase' }}, step.title)
               ),
-              React.createElement("p", {style: { fontSize:14, color:C.cyanBright, marginBottom:10, fontWeight:600 }}, step.subtitle),
-              React.createElement("p", {style: { fontSize:13.5, color:C.muted, lineHeight:1.75, marginBottom:22 }}, step.intro),
+              React.createElement("div", {style: { fontFamily:AC.font, fontSize:'clamp(20px,4.5vw,26px)', fontWeight:700, color:AC.text, lineHeight:1.5, marginBottom:14 }}, step.subtitle),
+              React.createElement("p", {style: { fontSize:16, color:AC.muted, lineHeight:1.7, marginBottom:24 }}, step.intro),
 
               isDecompose && React.createElement("div", {style: { marginBottom:22 }},
-                React.createElement("label", {style: { display:'block', ...mono, fontSize:10.5, letterSpacing:1, color:C.muted, marginBottom:8 }}, 'WHAT ARE YOU TRYING TO UNDERSTAND?'),
-                React.createElement("textarea", {
+                React.createElement("label", {style: { display:'block', fontFamily:AC.font, fontSize:14, fontWeight:700, color:AC.text, marginBottom:8 }}, 'What are you trying to understand?'),
+                React.createElement(ProtocolTextarea, {
                   value: problem, onChange: e => setProblem(e.target.value),
-                  placeholder: 'Describe the situation in your own words...',
-                  rows: 3, style: { minHeight:90 },
+                  placeholder: 'Describe the situation in your own words...', minHeight: 100,
                 })
               ),
 
-              React.createElement("div", {style: { display:'flex', flexDirection:'column', gap:8, marginBottom:14, padding:'14px 16px', background:C.deep, borderRadius:2, border:`1px solid ${C.border}` }},
+              React.createElement("div", {role:'note', style: { display:'flex', flexDirection:'column', gap:8, marginBottom:16, padding:'18px 20px', background:AC.goldTint, border:`1px solid ${AC.gold}`, borderRadius:16 }},
                 step.questions.map((q,i) => (
-                  React.createElement("div", {key: i, style: { fontSize:12.5, color:C.muted, lineHeight:1.6, display:'flex', gap:8 }},
-                    React.createElement("span", {style:{color:b.color}}, '·'), q
+                  React.createElement("div", {key: i, style: { fontSize:15, color:AC.text, lineHeight:1.6, display:'flex', gap:10 }},
+                    React.createElement("span", {style:{color:AC.goldDark, fontWeight:700}}, '·'), q
                   )
                 ))
               ),
 
-              React.createElement("textarea", {
-                value: answerValue, onChange: e => setAnswers(prev => ({ ...prev, [step.key]: e.target.value })),
-                placeholder: step.placeholder, rows: 5, style: { minHeight:130, marginBottom:28 },
-              }),
+              React.createElement("div", {style: { marginBottom:28 }},
+                React.createElement(ProtocolTextarea, {
+                  value: answerValue, onChange: e => setAnswers(prev => ({ ...prev, [step.key]: e.target.value })),
+                  placeholder: step.placeholder, minHeight: 140,
+                })
+              ),
 
-              React.createElement("div", {style: { display:'flex', gap:12, flexWrap:'wrap' }},
-                React.createElement("button", {className: "btn-ghost", onClick: goBack, style: {fontSize:12.5}}, '← Back'),
+              React.createElement("div", {style: { display:'flex', gap:12, flexWrap:'wrap', alignItems:'center' }},
+                React.createElement("button", {className: "nf-a11y-btn", onClick: goBack, style: {
+                  fontFamily:AC.font, fontSize:16, fontWeight:600, padding:'12px 18px', minHeight:48,
+                  background:'transparent', color:AC.muted, border:`1px solid ${AC.border}`, cursor:'pointer', borderRadius:12,
+                }}, '← Back'),
                 React.createElement("button", {
-                  className: "btn-primary", onClick: goNext, disabled: !canContinue,
-                  style: { opacity: canContinue ? 1 : 0.4, cursor: canContinue ? 'pointer' : 'not-allowed', marginLeft:'auto' },
+                  className: "nf-a11y-btn", onClick: goNext, disabled: !canContinue,
+                  style: {
+                    fontFamily:AC.font, fontSize:17, fontWeight:700, padding:'16px 32px', minHeight:52,
+                    background:AC.goldDark, color:'#FFFFFF', border:'none', borderRadius:16,
+                    opacity: canContinue ? 1 : 0.4, cursor: canContinue ? 'pointer' : 'not-allowed',
+                    boxShadow: canContinue ? '0 2px 8px rgba(138,109,47,0.35)' : 'none', marginLeft:'auto',
+                  },
                 }, step.cta, ' →')
               )
             )
@@ -3396,10 +3495,11 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress, sessi
     // ═══════════════════════════════════════════════════════════════════
     function Footer({ setView }) {
       const links = [
-        { label:'Home', v:'home' },{ label:'Architecture', v:'four-brains' },
-        { label:'Assess', v:'cfi' },{ label:'Protocols', v:'training' },
-        { label:'Analytics', v:'analytics' },{ label:'Academy', v:'lessons' },
-        { label:'About', v:'about' },
+        { label:'Home', v:'home' },
+        { label:'Assess', v:'cfi' },{ label:'Architecture', v:'four-brains' },
+        { label:'Analytics', v:'analytics' },{ label:'Protocols', v:'training' },
+        { label:'Academy', v:'lessons' },{ label:'Resources', v:'resources' },
+        { label:'Enterprise', v:'enterprise' },{ label:'About', v:'about' },
       ];
       const legalLinks = [
         { label:'Privacy policy', v:'legal', tab:'privacy' },
