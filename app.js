@@ -1478,7 +1478,7 @@ Most learners take four to six weeks working through the lessons at the suggeste
         { v:'cfi', label:'Assess' },
         { v:'four-brains', label:'Architecture' },
         { v:'analytics', label:'Analytics' },
-        { v:'training', label:'Protocols' },
+        { v:'protocol', label:'Integration Protocol' },
         { v:'lessons', label:'Academy' },
         { v:'resources', label:'Resources' },
         { v:'enterprise', label:'Enterprise' },
@@ -1557,7 +1557,7 @@ Most learners take four to six weeks working through the lessons at the suggeste
         { v:'home', symbol:'⌂', label:'Home' },
         { v:'cfi', symbol:'◎', label:'CFI' },
         { v:'four-brains', symbol:'◈', label:'Brains' },
-        { v:'training', symbol:'▲', label:'Protocols' },
+        { v:'protocol', symbol:'▲', label:'Protocol' },
         { v:'enterprise', symbol:'⬡', label:'Enterprise' },
       ];
       return (
@@ -1966,7 +1966,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress, sessi
                   { label:'Training focus', value:brain.trainingFocus, icon:'◲' },
                 ].map((item,i)=>(
                   React.createElement("div", {key: i, className: "card", style: { padding:'24px' }}, React.createElement("div", {style: { ...mono, fontSize:11, letterSpacing:1, color:C.muted, marginBottom:12 }}, item.label), React.createElement("div", {style: { ...mono, fontSize:14, color:b.color, marginBottom:10 }}, item.icon), React.createElement("div", {style: { fontSize:13, color:C.text, lineHeight:1.7 }}, item.value))
-                )), React.createElement("div", {className: "card", style: { padding:'24px', display:'flex', flexDirection:'column', justifyContent:'space-between' }}, React.createElement("div", {style: { ...mono, fontSize:11, letterSpacing:1, color:C.muted, marginBottom:12 }}, 'Begin training'), React.createElement("div", {style: { ...syne, fontSize:15, fontWeight:700, color:C.text, marginBottom:16, lineHeight:1.3, overflowWrap:'break-word', minWidth:0}}, 'Train your', brain.label.split(' ')[0], 'mode today'), React.createElement("button", {className: "btn-primary", onClick: ()=>setView('training')}, 'Enter training →')))), React.createElement("div", {style: { marginTop:64, padding:'48px 0', borderTop:`1px solid ${C.border}` }}, React.createElement("div", {style: { textAlign:'center', marginBottom:48 }}, React.createElement("div", {style: { ...mono, fontSize:11, letterSpacing:1, color:C.cyan, marginBottom:16 }}, 'The integration principle'), React.createElement("h2", {style: { ...syne, fontSize:17, fontWeight:800, color:C.text, overflowWrap:'break-word', minWidth:0}}, 'No brain is superior. All four must integrate.')), React.createElement("div", {style: { display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(min(250px, 100%), 1fr))', gap:24 }}, [
+                )), React.createElement("div", {className: "card", style: { padding:'24px', display:'flex', flexDirection:'column', justifyContent:'space-between' }}, React.createElement("div", {style: { ...mono, fontSize:11, letterSpacing:1, color:C.muted, marginBottom:12 }}, 'Begin training'), React.createElement("div", {style: { ...syne, fontSize:15, fontWeight:700, color:C.text, marginBottom:16, lineHeight:1.3, overflowWrap:'break-word', minWidth:0}}, 'Train your', brain.label.split(' ')[0], 'mode today'), React.createElement("button", {className: "btn-primary", onClick: ()=>setView('protocol')}, 'Enter training →')))), React.createElement("div", {style: { marginTop:64, padding:'48px 0', borderTop:`1px solid ${C.border}` }}, React.createElement("div", {style: { textAlign:'center', marginBottom:48 }}, React.createElement("div", {style: { ...mono, fontSize:11, letterSpacing:1, color:C.cyan, marginBottom:16 }}, 'The integration principle'), React.createElement("h2", {style: { ...syne, fontSize:17, fontWeight:800, color:C.text, overflowWrap:'break-word', minWidth:0}}, 'No brain is superior. All four must integrate.')), React.createElement("div", {style: { display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(min(250px, 100%), 1fr))', gap:24 }}, [
                   { title:'Single-brain dominance', desc:'When one mode controls all processing: precision without creativity, or intuition without structure.', color:'#F87171', label:'Fragmented' },
                   { title:'Two-brain balance', desc:'Partial integration. Functional, but blind spots remain. Under pressure, one mode takes over.', color:'#C4A050', label:'Partial' },
                   { title:'Four-brain integration', desc:'All four modes active and coordinated. Each informs the others. Precision at every level.', color:'#7AAFCF', label:'Integrated' },
@@ -2261,7 +2261,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress, sessi
               React.createElement("div", {style: { fontFamily:AC.font, fontSize:18, fontWeight:800, color:AC.text, marginBottom:10, lineHeight:1.3 }}, 'Want to strengthen how you think, not just solve one problem?'),
               React.createElement("p", {style: { fontSize:14, color:AC.muted, lineHeight:1.7, maxWidth:480, margin:'0 auto 22px' }}, 'The Integration Protocol gives you a structured way to examine a single problem. NeuralFusion™ is designed to help you develop this way of thinking across decisions, challenges, and complex situations.'),
               React.createElement("div", {style: { display:'flex', gap:12, flexWrap:'wrap', justifyContent:'center' }},
-                React.createElement("button", {className: "nf-a11y-btn", onClick: () => user ? setView('training') : setShowAuth(true), style: {
+                React.createElement("button", {className: "nf-a11y-btn", onClick: () => user ? setView('protocol') : setShowAuth(true), style: {
                   fontFamily:AC.font, fontSize:16, fontWeight:700, padding:'16px 32px', minHeight:52,
                   background:AC.goldDark, color:'#FFFFFF', border:'none', borderRadius:16, cursor:'pointer',
                   boxShadow:'0 2px 8px rgba(138,109,47,0.35)',
@@ -2698,7 +2698,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress, sessi
             ),
 
             React.createElement("div", {style: { display:'flex', gap:12, flexWrap:'wrap', justifyContent:'center' }},
-              React.createElement("button", {className: "btn-primary", onClick: ()=>setView('training')}, 'Begin training →'),
+              React.createElement("button", {className: "btn-primary", onClick: ()=>setView('protocol')}, 'Begin training →'),
               React.createElement("button", {className: "btn-outline", onClick: ()=>setView('lessons')}, 'Open lesson manuals'),
               React.createElement("button", {className: "btn-outline", onClick: ()=>window.print()}, 'Download PDF report'),
               React.createElement("button", {className: "btn-ghost", onClick: onRetake}, 'Retake assessment'),
@@ -2971,93 +2971,6 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress, sessi
     }
 
 
-    // ═══════════════════════════════════════════════════════════════════
-    //  TRAINING VIEW
-    // ═══════════════════════════════════════════════════════════════════
-    function TrainingView({ setView, user, setShowAuth, sessions, setSessions }) {
-      const [activeModule, setActiveModule] = useState(null);
-      const [trainingStep, setTrainingStep] = useState(0);
-      const [inputs, setInputs] = useState({});
-
-      const modules = [
-        {
-          id:'core-loop', title:'Core integration loop', duration:'8 min', difficulty:'Foundation',
-          color:C.cyan, brain:'all', icon:'◈',
-          desc:'Run all four brains in sequence on a real situation.',
-          steps:[
-            { brain:'analytical', label:'◰ Decompose', prompt:'State the situation as pure fact.', detail:'No interpretation, no emotion, no judgment. Just the verifiable structure of what is happening.', placeholder:'What are the concrete facts here? List them.' },
-            { brain:'intuitive', label:'◱ Sense', prompt:'What does your gut signal?', detail:'Before logic arrives, what does your body and instinct know? Trust the first signal; do not edit it.', placeholder:'My gut is telling me...' },
-            { brain:'associative', label:'◲ Expand', prompt:'What connections have you not explored?', detail:'Think laterally. What does this remind you of? What alternative frame exists? What have you not considered?', placeholder:'This connects to... / An alternative view is...' },
-            { brain:'reflective', label:'◳ Reflect', prompt:'What does your thinking reveal?', detail:'What assumption is operating beneath the surface? What pattern are you repeating? What does your hesitation tell you?', placeholder:'My thinking reveals...' },
-            { brain:'synthesis', label:'◈ Fuse', prompt:'Write your integrated position.', detail:'One sentence that synthesizes all four brain outputs into a unified cognitive stance. Activate the Commitment Lock.', placeholder:'My fused position is: ...' },
-          ]
-        },
-        {
-          id:'pressure-drill', title:'Pressure stabilization drill', duration:'10 min', difficulty:'Advanced',
-          color:'#E2BE78', brain:'reflective', icon:'◱',
-          desc:'Train cognitive stability under pressure.',
-          steps:[
-            { brain:'reflective', label:'◳ Identify pressure', prompt:'Name the pressure source precisely.', detail:'What exactly is creating the pressure? Be specific; vague pressure is more destabilizing than named pressure.', placeholder:'The specific pressure is...' },
-            { brain:'analytical', label:'◰ Facts only', prompt:'List only verifiable facts.', detail:'Strip all interpretation. What can you prove? What is objectively true regardless of how it feels?', placeholder:'Facts only:' },
-            { brain:'intuitive', label:'◱ Signal check', prompt:'What is your intuition saying beneath the pressure?', detail:'Separate the fear signal from the intelligence signal. What does your pattern recognition tell you, absent the adrenaline?', placeholder:'My signal, separate from the fear, is...' },
-            { brain:'associative', label:'◲ Alternative response', prompt:'What response have you not yet considered?', detail:'Under pressure, the mind narrows to one option. Force it to generate at least two others.', placeholder:'Alternative responses: 1) ... 2) ... 3)...' },
-            { brain:'synthesis', label:'◈ Stabilize', prompt:'Your stabilized position.', detail:'After running all four brains under simulated pressure, what is your clear, stable position? Name it. Lock it.', placeholder:'Stabilized position:' },
-          ]
-        },
-        {
-          id:'decision-architecture', title:'Decision architecture protocol', duration:'12 min', difficulty:'Intermediate',
-          color:'#7AAFCF', brain:'analytical', icon:'◰',
-          desc:'Build a complete cognitive architecture for any complex decision.',
-          steps:[
-            { brain:'analytical', label:'◰ Define', prompt:'Define the decision precisely.', detail:'What exactly is being decided? What are the specific options? What is the timeline? What resources are involved?', placeholder:'The decision I am making is...' },
-            { brain:'reflective', label:'◳ Values check', prompt:'What do your values say?', detail:'Which option is most aligned with who you are and who you want to become? Values-misaligned decisions fail over time.', placeholder:'My values indicate...' },
-            { brain:'intuitive', label:'◱ Pattern read', prompt:'What does your experience reveal?', detail:'Have you been here before? What happened? What does your accumulated experience (not hope) tell you?', placeholder:'My experience pattern says...' },
-            { brain:'associative', label:'◲ Second-order effects', prompt:'What are the downstream consequences?', detail:'Think two moves ahead. What does each option create? What does it close off? What unexpected connections exist?', placeholder:'Second-order effects:' },
-            { brain:'synthesis', label:'◈ Architectural decision', prompt:'Your structured decision.', detail:'Integrate all inputs. Name the decision. State why. Activate the Commitment Lock.', placeholder:'My decision is: ... because...' },
-          ]
-        },
-      ];
-
-      if (activeModule) {
-        const mod = modules.find(m=>m.id===activeModule);
-        const stepData = mod.steps[trainingStep];
-        const brainInfo = C.brains[stepData.brain] || { color:C.cyan, symbol:'◈' };
-        const isLast = trainingStep === mod.steps.length-1;
-        const canAdvance = inputs[`${activeModule}-${trainingStep}`]?.trim().length > 10;
-
-        const handleComplete = () => {
-          const session = {
-            id: Date.now(),
-            title: mod.title,
-            date: 'Just now',
-            score: Math.min(100, Object.values(inputs).join('').length/5 + 50),
-            module: mod.id,
-          };
-          setSessions(prev=>[session,...prev]);
-          setActiveModule(null);
-          setTrainingStep(0);
-          setInputs({});
-        };
-
-        return (
-          React.createElement("div", {style: { paddingTop:80, paddingBottom:60, minHeight:'100vh' }}, React.createElement("div", {style: { maxWidth:760, margin:'0 auto', padding:'40px 24px' }}, React.createElement("div", {style: { display:'flex', alignItems:'center', gap:16, marginBottom:32 }}, React.createElement("button", {className: "btn-ghost", onClick: ()=>{ setActiveModule(null); setTrainingStep(0); setInputs({}); }}, '← Exit'), React.createElement("div", {style: { flex:1, height:1, background:C.border }}), React.createElement("div", {style: { ...mono, fontSize:11, letterSpacing:1, color:C.muted }}, trainingStep+1, '/', mod.steps.length)), React.createElement("div", {style: { height:2, background:C.panel, borderRadius:2, marginBottom:20, overflow:'hidden' }}, React.createElement("div", {style: { width:`${((trainingStep+1)/mod.steps.length)*100}%`, height:'100%', background:mod.color, borderRadius:2, transition:'width 0.4s ease' }})), React.createElement("div", {key: trainingStep, style: { animation:'fadeUp 0.4s ease both' }}, React.createElement("div", {style: { display:'flex', alignItems:'center', gap:12, marginBottom:20 }}, React.createElement("div", {style: { ...mono, fontSize:14, color:brainInfo.color }}, brainInfo.symbol || '◈'), React.createElement("div", {style: { ...mono, fontSize:11, letterSpacing:1, color:brainInfo.color }}, stepData.label)), React.createElement("h2", {style: { ...syne, fontSize:14, fontWeight:800, color:C.text, marginBottom:12, lineHeight:1.2, overflowWrap:'break-word', minWidth:0}}, stepData.prompt), React.createElement("p", {style: { fontSize:13, color:C.muted, lineHeight:1.7, marginBottom:32 }}, stepData.detail), React.createElement("textarea", {rows: 8, value: inputs[`${activeModule}-${trainingStep}`]||'', onChange: e=>setInputs(p=>({...p, [`${activeModule}-${trainingStep}`]:e.target.value})), placeholder: stepData.placeholder, style: { width:'100%', minHeight:160, padding:'20px', fontSize:14, lineHeight:1.7, borderColor:`${brainInfo.color}33` }}), React.createElement("div", {style: { display:'flex', justifyContent:'space-between', marginTop:24, alignItems:'center' }}, React.createElement("button", {className: "btn-ghost", disabled: trainingStep===0, onClick: ()=>setTrainingStep(s=>s-1), style: { opacity:trainingStep===0?0.3:1 }}, '← Back'), isLast ? (
-                    React.createElement("button", {className: "btn-primary", onClick: handleComplete, disabled: !canAdvance, style: { opacity:canAdvance?1:0.5 }}, 'Complete session ✓')
-                  ) : (
-                    React.createElement("button", {className: "btn-primary", onClick: ()=>setTrainingStep(s=>s+1), disabled: !canAdvance, style: { opacity:canAdvance?1:0.5 }}, 'Next →')
-                  )))))
-        );
-      }
-
-      return (
-        React.createElement("div", {style: { paddingTop:80, paddingBottom:100 }}, React.createElement("div", {style: { maxWidth:1200, margin:'0 auto', padding:'40px 24px' }}, React.createElement("div", {style: { ...mono, fontSize:11, letterSpacing:1.5, color:C.cyan, marginBottom:16 }}, 'Training system'), React.createElement("h1", {style: { ...syne, fontSize:17, fontWeight:800, color:C.text, marginBottom:16, lineHeight:1.05, overflowWrap:'break-word', minWidth:0}}, 'Precision training', React.createElement("br", null), 'Protocols'), React.createElement("p", {style: { fontSize:15, color:C.muted, maxWidth:560, lineHeight:1.8, marginBottom:48 }}, 'Each module is a structured cognitive exercise that activates, challenges, and integrates your four brain modes. Sessions are 8–15 minutes.'), React.createElement("div", {style: { display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(min(300px, 100%), 1fr))', gap:24, marginBottom:64 }}, modules.map((mod,i)=>(
-                React.createElement("div", {key: mod.id, className: "card", style: { padding:'32px', cursor:'pointer', position:'relative', overflow:'hidden' }, onClick: ()=>setActiveModule(mod.id), onMouseEnter: e=>{ e.currentTarget.style.borderColor=mod.color+'44'; }, onMouseLeave: e=>{ e.currentTarget.style.borderColor=C.border; }}, React.createElement("div", {style: { position:'absolute', top:0, left:0, width:2, height:'100%', background:mod.color }}), React.createElement("div", {style: { display:'flex', justifyContent:'space-between', alignItems:'flex-start', marginBottom:20 }}, React.createElement("div", {style: { ...mono, fontSize:14, color:mod.color }}, mod.icon), React.createElement("div", {style: { display:'flex', gap:8 }}, React.createElement("div", {style: { ...mono, fontSize:11, letterSpacing:1, color:C.muted, padding:'4px 8px', border:`1px solid ${C.border}`, borderRadius:2 }}, mod.duration), React.createElement("div", {style: { ...mono, fontSize:11, letterSpacing:1, color:mod.color, padding:'4px 8px', border:`1px solid ${mod.color}33`, borderRadius:2 }}, mod.difficulty))), React.createElement("div", {style: { ...syne, fontSize:14, fontWeight:700, color:C.text, marginBottom:12, overflowWrap:'break-word', minWidth:0}}, mod.title), React.createElement("div", {style: { fontSize:13, color:C.muted, lineHeight:1.7, marginBottom:24 }}, mod.desc), React.createElement("button", {className: "btn-primary", style: { fontSize:11, padding:'10px 20px', background:mod.color }}, 'Begin →'))
-              ))), sessions.length > 0 && (
-              React.createElement("div", null, React.createElement("div", {style: { ...mono, fontSize:11, letterSpacing:1, color:C.cyan, marginBottom:20 }}, 'Recent sessions'), React.createElement("div", {style: { display:'flex', flexDirection:'column', gap:8 }}, sessions.slice(0,5).map((s,i)=>(
-                    React.createElement("div", {key: s.id, className: "card", style: { padding:'16px 24px', display:'flex', justifyContent:'space-between', alignItems:'center' }}, React.createElement("div", null, React.createElement("div", {style: { ...syne, fontSize:14, fontWeight:700, color:C.text, overflowWrap:'break-word', minWidth:0}}, s.title), React.createElement("div", {style: { ...mono, fontSize:9, letterSpacing:1, color:C.muted, marginTop:4 }}, s.date)), React.createElement("div", {style: { ...mono, fontSize:9, letterSpacing:1, color:C.dim }}, 'Done ✓'))
-                  ))))
-            )))
-      );
-    }
 
     // ═══════════════════════════════════════════════════════════════════
     //  ANALYTICS VIEW
@@ -3497,7 +3410,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress, sessi
       const links = [
         { label:'Home', v:'home' },
         { label:'Assess', v:'cfi' },{ label:'Architecture', v:'four-brains' },
-        { label:'Analytics', v:'analytics' },{ label:'Protocols', v:'training' },
+        { label:'Analytics', v:'analytics' },{ label:'Integration Protocol', v:'protocol' },
         { label:'Academy', v:'lessons' },{ label:'Resources', v:'resources' },
         { label:'Enterprise', v:'enterprise' },{ label:'About', v:'about' },
       ];
@@ -4707,7 +4620,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress, sessi
       const viewProps = { setView, user, session, paystackKey, setShowAuth, isPro, setIsPro, isEnterprise, setIsEnterprise, cfiResult, setCfiResult, lessonProgress, setLessonProgress, sessions, setSessions, proPrice };
 
       return (
-        React.createElement("div", {style: { background:C.void, minHeight:'100vh', color:C.text }}, showAuth && React.createElement(AuthModal, {initialTab: authInitialTab, onClose: ()=>{ setShowAuth(false); setAuthInitialTab('login'); }, onSuccess: ()=>{ setShowAuth(false); setAuthInitialTab('login'); }}), React.createElement(Navbar, {view: view, setView: setView, user: user, profile: profile, setShowAuth: setShowAuth, onSignOut: handleSignOut, authLoading: authLoading}), React.createElement("main", null, view==='home'        && React.createElement(HomeView, viewProps), view==='four-brains' && React.createElement(FourBrainsView, viewProps), view==='cfi'         && React.createElement(CFIView, viewProps), view==='protocol'    && React.createElement(ProtocolView, viewProps), view==='training'    && React.createElement(TrainingView, viewProps), view==='analytics'   && React.createElement(AnalyticsView, viewProps), view==='lessons'     && React.createElement(LessonsView, viewProps), view==='about'       && React.createElement(AboutView, viewProps), view==='resources'   && React.createElement(ResourcesView, viewProps), view==='legal'       && React.createElement(LegalView, {setView: setView}), view==='enterprise'  && React.createElement(EnterpriseView, {user: user, session: session, paystackKey: paystackKey, setShowAuth: setShowAuth, isEnterprise: isEnterprise, setIsEnterprise: setIsEnterprise, proPrice: proPrice, setView: setView}), view==='admin'       && profile?.is_admin === true && React.createElement(AdminView, {user: user, setView: setView, onPriceChange: setProPrice})), React.createElement(Footer, {setView: setView}), view !== 'enterprise' && React.createElement(BottomNav, {view: view, setView: setView}))
+        React.createElement("div", {style: { background:C.void, minHeight:'100vh', color:C.text }}, showAuth && React.createElement(AuthModal, {initialTab: authInitialTab, onClose: ()=>{ setShowAuth(false); setAuthInitialTab('login'); }, onSuccess: ()=>{ setShowAuth(false); setAuthInitialTab('login'); }}), React.createElement(Navbar, {view: view, setView: setView, user: user, profile: profile, setShowAuth: setShowAuth, onSignOut: handleSignOut, authLoading: authLoading}), React.createElement("main", null, view==='home'        && React.createElement(HomeView, viewProps), view==='four-brains' && React.createElement(FourBrainsView, viewProps), view==='cfi'         && React.createElement(CFIView, viewProps), view==='protocol'    && React.createElement(ProtocolView, viewProps), view==='analytics'   && React.createElement(AnalyticsView, viewProps), view==='lessons'     && React.createElement(LessonsView, viewProps), view==='about'       && React.createElement(AboutView, viewProps), view==='resources'   && React.createElement(ResourcesView, viewProps), view==='legal'       && React.createElement(LegalView, {setView: setView}), view==='enterprise'  && React.createElement(EnterpriseView, {user: user, session: session, paystackKey: paystackKey, setShowAuth: setShowAuth, isEnterprise: isEnterprise, setIsEnterprise: setIsEnterprise, proPrice: proPrice, setView: setView}), view==='admin'       && profile?.is_admin === true && React.createElement(AdminView, {user: user, setView: setView, onPriceChange: setProPrice})), React.createElement(Footer, {setView: setView}), view !== 'enterprise' && React.createElement(BottomNav, {view: view, setView: setView}))
       );
     }
 
