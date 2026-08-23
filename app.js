@@ -2975,8 +2975,12 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress, sessi
     // ═══════════════════════════════════════════════════════════════════
     //  ANALYTICS VIEW
     // ═══════════════════════════════════════════════════════════════════
-    function AnalyticsView({ cfiResult, sessions, lessonProgress, setView }) {
+    function AnalyticsView({ cfiResult, sessions, lessonProgress, cfiHistory=[], setView }) {
       const completedLessons = Object.values(lessonProgress).filter(v=>v===100).length;
+      const hasDelta = cfiHistory.length >= 2;
+      const baselineCFI = hasDelta ? cfiHistory[0] : null;
+      const latestCFI = hasDelta ? cfiHistory[cfiHistory.length - 1] : null;
+      const clarityDelta = hasDelta ? (baselineCFI.total_score - latestCFI.total_score) : null; // positive = less fragmentation
 
       return (
         React.createElement("div", {style: { paddingTop:80, paddingBottom:100 }}, React.createElement("div", {style: { maxWidth:1200, margin:'0 auto', padding:'40px 24px' }}, React.createElement("div", {style: { ...mono, fontSize:11, letterSpacing:1.5, color:C.cyan, marginBottom:16 }}, 'Analytics'), React.createElement("h1", {style: { ...syne, fontSize:17, fontWeight:800, color:C.text, marginBottom:16, overflowWrap:'break-word', minWidth:0}}, 'Your cognitive', React.createElement("br", null), 'performance map'), React.createElement("p", {style: { fontSize:15, color:C.muted, maxWidth:560, lineHeight:1.8, marginBottom:48 }}, 'Track your thinking evolution, mode balance, and training effectiveness.'), !cfiResult ? (
@@ -2989,7 +2993,16 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress, sessi
                     { label:'Band', value:cfiResult.band.split(' ')[0], unit:'', color:'#C4A050', small:true },
                   ].map((s,i)=>(
                     React.createElement("div", {key: i, className: "card", style: { padding:'24px' }}, React.createElement("div", {style: { ...mono, fontSize:11, letterSpacing:1, color:C.muted, marginBottom:12 }}, s.label), React.createElement("div", {style: { display:'flex', alignItems:'baseline', gap:4 }}, React.createElement("div", {style: { ...syne, fontSize:s.small?18:32, fontWeight:800, color:s.color, overflowWrap:'break-word', minWidth:0}}, s.value), s.unit && React.createElement("div", {style: { ...mono, fontSize:10, color:C.muted }}, s.unit)))
-                  ))), React.createElement("div", {style: { display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(min(300px, 100%), 1fr))', gap:24, marginBottom:40 }}, React.createElement("div", {className: "card", style: { padding:'32px' }}, React.createElement("div", {style: { ...mono, fontSize:11, letterSpacing:1, color:C.cyan, marginBottom:24 }}, 'Mode fragmentation'), Object.entries(cfiResult.dimScores).map(([dim,score])=>{
+                  ))), React.createElement("div", {className: "card", style: { padding:'32px', marginBottom:40 }}, React.createElement("div", {style: { ...mono, fontSize:11, letterSpacing:1, color:C.cyan, marginBottom:hasDelta?24:12 }}, 'Clarity Delta™'), !hasDelta ? (
+                    React.createElement("div", {style: { fontSize:14, color:C.muted, lineHeight:1.8 }}, 'Retake the CFI™ assessment to start tracking your Clarity Delta™, the change in your fragmentation score over time.', React.createElement("br", null), React.createElement("button", {className: "btn-primary", style: { marginTop:16 }, onClick: ()=>setView('cfi')}, 'Retake CFI assessment →'))
+                  ) : (
+                    React.createElement("div", {style: { display:'flex', alignItems:'center', gap:32, flexWrap:'wrap' }},
+                      React.createElement("div", null, React.createElement("div", {style: { ...mono, fontSize:10, letterSpacing:1, color:C.muted, marginBottom:6 }}, 'Baseline'), React.createElement("div", {style: { ...syne, fontSize:22, fontWeight:800, color:C.muted }}, baselineCFI.total_score), React.createElement("div", {style: { ...mono, fontSize:9, color:C.dim, marginTop:4 }}, new Date(baselineCFI.created_at).toLocaleDateString())),
+                      React.createElement("div", {style: { ...mono, fontSize:16, color:C.dim }}, '→'),
+                      React.createElement("div", null, React.createElement("div", {style: { ...mono, fontSize:10, letterSpacing:1, color:C.muted, marginBottom:6 }}, 'Current'), React.createElement("div", {style: { ...syne, fontSize:22, fontWeight:800, color:C.text }}, latestCFI.total_score), React.createElement("div", {style: { ...mono, fontSize:9, color:C.dim, marginTop:4 }}, new Date(latestCFI.created_at).toLocaleDateString())),
+                      React.createElement("div", {style: { marginLeft:'auto' }}, React.createElement("div", {style: { ...mono, fontSize:10, letterSpacing:1, color:C.muted, marginBottom:6 }}, 'Clarity Delta™'), React.createElement("div", {style: { ...syne, fontSize:32, fontWeight:800, color:clarityDelta>0?'#7AAFCF':clarityDelta<0?'#F87171':C.muted }}, clarityDelta>0?'+':'', clarityDelta))
+                    )
+                  )), React.createElement("div", {style: { display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(min(300px, 100%), 1fr))', gap:24, marginBottom:40 }}, React.createElement("div", {className: "card", style: { padding:'32px' }}, React.createElement("div", {style: { ...mono, fontSize:11, letterSpacing:1, color:C.cyan, marginBottom:24 }}, 'Mode fragmentation'), Object.entries(cfiResult.dimScores).map(([dim,score])=>{
                       const dimNames = {A:'Analytical',I:'Intuitive',S:'Associative',R:'Reflective',E:'Integration'};
                       const brainKey = {A:'analytical',I:'intuitive',S:'associative',R:'reflective',E:'analytical'}[dim];
                       const col = C.brains[brainKey]?.color || C.cyan;
@@ -4526,6 +4539,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress, sessi
       const [isPro, setIsPro] = useState(false);
       const [isEnterprise, setIsEnterprise] = useState(false);
       const [cfiResult, setCfiResult] = useState(null);
+      const [cfiHistory, setCfiHistory] = useState([]);   // full CFI attempt history, oldest→newest, for Clarity Delta™
       const [lessonProgress, setLessonProgress] = useState({});
       const [sessions, setSessions] = useState([]);
       const [proPrice, setProPrice] = useState(() => parseInt(localStorage.getItem('nf_pro_price') || '600000'));
@@ -4591,9 +4605,10 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress, sessi
           const [prof, lp] = await Promise.all([getProfile(u.id), loadLessonProgress(u.id)]);
           if (prof) { setProfile(prof); setIsPro(!!prof.is_pro); setIsEnterprise(!!prof.is_enterprise); }
           setLessonProgress(lp);
-          // Load most recent CFI result from Supabase
-          const { data: cfiRows } = await sb.from('cfi_results').select('*').eq('user_id', u.id).order('created_at', { ascending: false }).limit(1);
+          // Load full CFI history from Supabase (needed for Clarity Delta™, not just the latest result)
+          const { data: cfiRows } = await sb.from('cfi_results').select('*').eq('user_id', u.id).order('created_at', { ascending: false });
           if (cfiRows && cfiRows.length > 0) {
+            setCfiHistory([...cfiRows].reverse()); // oldest → newest
             const r = cfiRows[0];
             const dimScores = r.dim_scores || {};
             const brainMap = { analytical:'analytical', intuitive:'intuitive', associative:'associative', reflective:'reflective', integration:'reflective' };
@@ -4617,7 +4632,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress, sessi
       };
 
 
-      const viewProps = { setView, user, session, paystackKey, setShowAuth, isPro, setIsPro, isEnterprise, setIsEnterprise, cfiResult, setCfiResult, lessonProgress, setLessonProgress, sessions, setSessions, proPrice };
+      const viewProps = { setView, user, session, paystackKey, setShowAuth, isPro, setIsPro, isEnterprise, setIsEnterprise, cfiResult, setCfiResult, cfiHistory, lessonProgress, setLessonProgress, sessions, setSessions, proPrice };
 
       return (
         React.createElement("div", {style: { background:C.void, minHeight:'100vh', color:C.text }}, showAuth && React.createElement(AuthModal, {initialTab: authInitialTab, onClose: ()=>{ setShowAuth(false); setAuthInitialTab('login'); }, onSuccess: ()=>{ setShowAuth(false); setAuthInitialTab('login'); }}), React.createElement(Navbar, {view: view, setView: setView, user: user, profile: profile, setShowAuth: setShowAuth, onSignOut: handleSignOut, authLoading: authLoading}), React.createElement("main", null, view==='home'        && React.createElement(HomeView, viewProps), view==='four-brains' && React.createElement(FourBrainsView, viewProps), view==='cfi'         && React.createElement(CFIView, viewProps), view==='protocol'    && React.createElement(ProtocolView, viewProps), view==='analytics'   && React.createElement(AnalyticsView, viewProps), view==='lessons'     && React.createElement(LessonsView, viewProps), view==='about'       && React.createElement(AboutView, viewProps), view==='resources'   && React.createElement(ResourcesView, viewProps), view==='legal'       && React.createElement(LegalView, {setView: setView}), view==='enterprise'  && React.createElement(EnterpriseView, {user: user, session: session, paystackKey: paystackKey, setShowAuth: setShowAuth, isEnterprise: isEnterprise, setIsEnterprise: setIsEnterprise, proPrice: proPrice, setView: setView}), view==='admin'       && profile?.is_admin === true && React.createElement(AdminView, {user: user, setView: setView, onPriceChange: setProPrice})), React.createElement(Footer, {setView: setView}), view !== 'enterprise' && React.createElement(BottomNav, {view: view, setView: setView}))
