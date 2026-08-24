@@ -1213,7 +1213,37 @@ Most learners take four to six weeks working through the lessons at the suggeste
     // ── Supabase Helpers ──────────────────────────────────────────────
     const getProfile = async (id) => { try { const {data} = await sb.from('profiles').select('*').eq('id',id).maybeSingle(); return data; } catch(_){ return null; } };
     const upsertProfile = async (id, u) => { try { await sb.from('profiles').upsert({id,...u},{onConflict:'id'}); } catch(_){} };
-    const saveCFIResult = async (id, r, a) => await sb.from('cfi_results').insert({user_id:id, total_score:r.total, band:r.band, dim_scores:r.dimScores, answers:a});
+    // saveCFIResult finalizes a completed assessment. If a draftId (an existing
+    // in_progress row created via saveCFIProgress) is passed, it updates that
+    // row in place instead of inserting a new one, so a single attempt never
+    // produces two rows.
+    const saveCFIResult = async (id, r, a, draftId) => {
+      const payload = { user_id:id, total_score:r.total, band:r.band, dim_scores:r.dimScores, answers:a, status:'completed' };
+      if (draftId) return await sb.from('cfi_results').update(payload).eq('id', draftId).eq('user_id', id);
+      return await sb.from('cfi_results').insert(payload);
+    };
+    // Looks up a signed-in user's in-progress CFI attempt, if one exists, so an
+    // interrupted assessment (refresh, lost connection, returning later) can resume
+    // instead of starting over.
+    const getInProgressCFI = async (id) => {
+      try {
+        const { data } = await sb.from('cfi_results').select('*').eq('user_id', id).eq('status', 'in_progress').order('created_at', { ascending:false }).limit(1);
+        return data && data[0] ? data[0] : null;
+      } catch(_) { return null; }
+    };
+    // Persists in-progress answers as the user goes. First call creates the draft
+    // row (status: in_progress); subsequent calls update that same row by id, so
+    // changing an answer never creates a duplicate response.
+    const saveCFIProgress = async (id, answers, draftId) => {
+      try {
+        if (draftId) {
+          await sb.from('cfi_results').update({ answers, status:'in_progress' }).eq('id', draftId).eq('user_id', id);
+          return draftId;
+        }
+        const { data } = await sb.from('cfi_results').insert({ user_id:id, answers, status:'in_progress' }).select('id').maybeSingle();
+        return data?.id || null;
+      } catch(_) { return draftId || null; }
+    };
     const upsertLessonProgress = async (id, lid, p) => await sb.from('lesson_progress').upsert({user_id:id, lesson_id:lid, progress:p, completed:p===100},{onConflict:'user_id,lesson_id'});
     const loadLessonProgress = async (id) => {
       const {data} = await sb.from('lesson_progress').select('*').eq('user_id',id);
@@ -2708,11 +2738,59 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress, sessi
       );
     }
 
-    function CFIView({ setView, user, setShowAuth, cfiResult, setCfiResult }) {
+    function CFIView({ setView, user, setShowAuth, openAuth, cfiResult, setCfiResult }) {
       const [started, setStarted] = useState(false);
       const [step, setStep] = useState(0);
       const [answers, setAnswers] = useState({});
       const [showResult, setShowResult] = useState(!!cfiResult);
+
+      // ── Account-first gate state ────────────────────────────────────
+      // showGate: the account-creation screen shown when a signed-out visitor
+      //   tries to begin the assessment (instead of starting it directly).
+      // awaitingAuth: true once they've tapped "Create Free Account" / "Sign In"
+      //   from the gate, so we know to continue them into the assessment the
+      //   moment auth succeeds, rather than dumping them back on the intro.
+      // justAuthed: the brief "your account is ready" screen shown once, right
+      //   after that succeeds.
+      // draftId: id of this attempt's in-progress cfi_results row, once one
+      //   exists, so subsequent saves update it instead of creating new rows.
+      const [showGate, setShowGate] = useState(false);
+      const [awaitingAuth, setAwaitingAuth] = useState(false);
+      const [justAuthed, setJustAuthed] = useState(false);
+      const [draftId, setDraftId] = useState(null);
+      const openAuthTab = (tab) => { setAwaitingAuth(true); if (openAuth) openAuth(tab); else setShowAuth(true); };
+
+      // Once the user becomes authenticated after being sent through the gate,
+      // close the gate and show the short "ready" transition rather than
+      // silently dropping them back on the un-started intro screen.
+      useEffect(() => {
+        if (user && awaitingAuth) {
+          setAwaitingAuth(false);
+          setShowGate(false);
+          setJustAuthed(true);
+        }
+      }, [user, awaitingAuth]);
+
+      // Resume an interrupted attempt: if a signed-in user has an in-progress
+      // CFI row (refresh, dropped connection, closed browser, came back later),
+      // load its answers and continue from the first unanswered question
+      // instead of making them start over.
+      useEffect(() => {
+        if (!user || started || showResult) return;
+        let cancelled = false;
+        getInProgressCFI(user.id).then(draft => {
+          if (cancelled || !draft) return;
+          const savedAnswers = draft.answers || {};
+          if (Object.keys(savedAnswers).length === 0) return;
+          setAnswers(savedAnswers);
+          setDraftId(draft.id);
+          const firstUnansweredIdx = flow.findIndex(f => f.type==='question' && !(f.item.id in savedAnswers));
+          setStep(firstUnansweredIdx === -1 ? 0 : firstUnansweredIdx);
+          setStarted(true);
+        });
+        return () => { cancelled = true; };
+        // eslint-disable-next-line
+      }, [user]);
 
       // ── Accessible response scale: each option carries a short, concrete
       // subtitle so the label isn't the only cue (helps with ambiguity that
@@ -2821,22 +2899,91 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress, sessi
         const result = { total, band, desc, recommendation, dimScores, dominantBrain, integrationScore, dimensionReports, profile, plan };
         setCfiResult(result);
         setShowResult(true);
-        if (user) saveCFIResult(user.id, result, finalAnswers);
+        // Finalizing updates the same in-progress row (draftId) if one exists,
+        // rather than inserting a second row for this attempt.
+        if (user) { saveCFIResult(user.id, result, finalAnswers, draftId); setDraftId(null); }
       };
 
       const handleAnswer = (item, val) => {
         const newAnswers = { ...answers, [item.id]: val };
         setAnswers(newAnswers);
+        // Persist progress as the user goes (not just at the end), so a refresh,
+        // dropped connection, or closed tab doesn't lose an authenticated attempt.
+        // Changing an earlier answer updates the same draft row rather than
+        // creating a new one.
+        if (user) {
+          saveCFIProgress(user.id, newAnswers, draftId).then(id => { if (id && id !== draftId) setDraftId(id); });
+        }
         const isLastQuestion = item.id === CFI_ITEMS[CFI_ITEMS.length-1].id;
         if (isLastQuestion) { finalize(newAnswers); }
         else { setStep(s => s+1); }
       };
 
-      const handleRetake = () => { setStarted(false); setStep(0); setAnswers({}); setShowResult(false); };
+      const handleRetake = () => { setStarted(false); setStep(0); setAnswers({}); setShowResult(false); setDraftId(null); };
 
       // ── Results screen ──
       if (showResult && cfiResult) {
         return React.createElement(CFIResults, { cfiResult, setView, user, setShowAuth, onRetake: handleRetake });
+      }
+
+      // ── Account gate ──────────────────────────────────────────────────
+      // Shown instead of the questions when a signed-out visitor tries to begin.
+      // An unauthenticated visitor can never reach the question screens below:
+      // this is the only path from the intro into `started`, and it requires
+      // `user` to be set first.
+      if (showGate && !user) {
+        return (
+          React.createElement("div", {style: { paddingTop:80, paddingBottom:60, background:AC.bg, minHeight:'100vh', fontFamily:AC.font, display:'flex', alignItems:'center' }},
+            React.createElement("div", {style: { maxWidth:520, margin:'0 auto', padding:'32px 20px', textAlign:'center' }},
+              React.createElement("div", {style: { fontFamily:AC.font, fontSize:14, fontWeight:700, letterSpacing:'0.06em', color:AC.goldDark, marginBottom:20, textTransform:'uppercase' }}, 'Cognitive Fragmentation Index™'),
+              React.createElement("h1", {style: { fontFamily:AC.font, fontSize:'clamp(24px,5vw,30px)', fontWeight:800, color:AC.text, marginBottom:16, lineHeight:1.3 }}, 'Your CFI™ profile starts here.'),
+              React.createElement("p", {style: { fontSize:17, color:AC.text, lineHeight:1.7, marginBottom:28, maxWidth:440, margin:'0 auto 28px' }},
+                'Create your free NeuralFusion™ account before beginning the assessment.'
+              ),
+              React.createElement("div", {style: { fontSize:15, color:AC.muted, lineHeight:1.7, marginBottom:32, maxWidth:440, margin:'0 auto 32px', padding:'16px 20px', background:AC.surfaceAlt, border:`1px solid ${AC.border}`, borderRadius:16, textAlign:'left' }},
+                'Your account allows your CFI™ assessment and cognitive profile to be securely saved.'
+              ),
+              React.createElement("button", {className: "nf-a11y-btn", onClick: ()=>openAuthTab('signup'), style: {
+                fontFamily:AC.font, fontSize:18, fontWeight:700, padding:'18px 40px', minHeight:56, width:'100%', maxWidth:360,
+                background:AC.goldDark, color:'#FFFFFF', border:'none', borderRadius:16, cursor:'pointer',
+                boxShadow:'0 2px 8px rgba(138,109,47,0.35)', marginBottom:16,
+              }}, 'Create Free Account'),
+              React.createElement("div", {style: { fontSize:15, color:AC.muted }},
+                'Already have an account? ',
+                React.createElement("button", {className: "nf-a11y-btn", onClick: ()=>openAuthTab('login'), style: {
+                  background:'none', border:'none', color:AC.goldDark, fontWeight:700, fontSize:15, cursor:'pointer', textDecoration:'underline',
+                }}, 'Sign In')
+              ),
+              React.createElement("div", {style: { marginTop:28 }},
+                React.createElement("button", {className: "nf-a11y-btn", onClick: ()=>setShowGate(false), style: {
+                  background:'none', border:'none', ...mono, fontSize:12, letterSpacing:1, color:AC.muted, cursor:'pointer',
+                }}, '← Back')
+              )
+            )
+          )
+        );
+      }
+
+      // ── Post-auth transition ────────────────────────────────────────
+      // Shown once, right after signup/login completes for someone who came
+      // through the gate, before they land in the assessment itself.
+      if (justAuthed) {
+        return (
+          React.createElement("div", {style: { paddingTop:80, paddingBottom:60, background:AC.bg, minHeight:'100vh', fontFamily:AC.font, display:'flex', alignItems:'center' }},
+            React.createElement("div", {style: { maxWidth:520, margin:'0 auto', padding:'32px 20px', textAlign:'center' }},
+              React.createElement("div", {style: { fontSize:30, color:AC.goldDark, marginBottom:16 }}, '✓'),
+              React.createElement("h1", {style: { fontFamily:AC.font, fontSize:'clamp(24px,5vw,30px)', fontWeight:800, color:AC.text, marginBottom:16, lineHeight:1.3 }}, 'Your account is ready.'),
+              React.createElement("p", {style: { fontSize:17, color:AC.text, lineHeight:1.7, marginBottom:32, maxWidth:440, margin:'0 auto 32px' }},
+                'Your CFI™ assessment is waiting.'
+              ),
+              React.createElement("button", {className: "nf-a11y-btn", onClick: ()=>{ setJustAuthed(false); setStarted(true); }, style: {
+                fontFamily:AC.font, fontSize:18, fontWeight:700, padding:'18px 40px', minHeight:56,
+                background:AC.goldDark, color:'#FFFFFF', border:'none', borderRadius:16, cursor:'pointer',
+                boxShadow:'0 2px 8px rgba(138,109,47,0.35)',
+              }}, 'Begin Assessment →')
+            )
+          )
+        );
       }
 
       // ── Intro screen (accessible) ──
@@ -2866,7 +3013,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress, sessi
                   )
                 ))
               ),
-              React.createElement("button", {className: "nf-a11y-btn", onClick: ()=>setStarted(true), style: {
+              React.createElement("button", {className: "nf-a11y-btn", onClick: ()=> user ? setStarted(true) : setShowGate(true), style: {
                 fontFamily:AC.font, fontSize:18, fontWeight:700, padding:'18px 40px', minHeight:56,
                 background:AC.goldDark, color:'#FFFFFF', border:'none', borderRadius:16, cursor:'pointer',
                 boxShadow:'0 2px 8px rgba(138,109,47,0.35)',
@@ -3705,8 +3852,18 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress, sessi
         const matchPro = proFilter === 'all' || (proFilter === 'pro' ? u.is_pro : proFilter === 'enterprise' ? u.is_enterprise : !u.is_pro);
         return matchSearch && matchPro;
       });
-      const filteredCFI = cfiData.filter(r => cfiFilter === 'all' || r.band === cfiFilter);
-      const bandCounts  = cfiData.reduce((a,r) => { a[r.band] = (a[r.band]||0)+1; return a; }, {});
+      // completedCFI excludes in-progress drafts (status:'in_progress') so counts
+      // and band distribution only reflect finished, scored assessments.
+      // Historical rows saved before the `status` column existed default to
+      // 'completed' (see migration notes), so they're included here too.
+      const completedCFI     = cfiData.filter(r => r.status !== 'in_progress');
+      const uniqueCFIUserIds = new Set(completedCFI.map(r => r.user_id).filter(Boolean));
+      // NeuralFusion 100 = count of unique authenticated users with at least one
+      // completed CFI assessment, capped for display at the campaign target.
+      // Computed dynamically from cfi_results every load, never hard-coded.
+      const nf100Count = uniqueCFIUserIds.size;
+      const filteredCFI = completedCFI.filter(r => cfiFilter === 'all' || r.band === cfiFilter);
+      const bandCounts  = completedCFI.reduce((a,r) => { a[r.band] = (a[r.band]||0)+1; return a; }, {});
       const bandColors  = { 'Integrated':'#7AAFCF','Moderate fragmentation':'#C4A050','High fragmentation':'#FB8C00','Critical fragmentation':'#F87171' };
       const msgColor = actionType === 'success' ? '#7AAFCF' : actionType === 'error' ? '#F87171' : '#C4A050';
 
@@ -3727,22 +3884,24 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress, sessi
               React.createElement("div", {style: { textAlign:'center', padding:'60px', color:C.muted }}, React.createElement("div", {style: { ...mono, fontSize:17, color:C.cyan, animation:'neuralPulse 2s ease-in-out infinite' }}, '◈'), React.createElement("div", {style: { ...mono, fontSize:11, letterSpacing:1, marginTop:16 }}, 'LOADING DATA...'))
             ), !loading && (
               React.createElement(React.Fragment, null, tab === 'overview' && (
-                  React.createElement("div", null, React.createElement("div", {style: { display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(min(180px,100%),1fr))', gap:16, marginBottom:32 }}, [
+                  React.createElement("div", {className: "card bento-shimmer", style: { padding:'24px 28px', marginBottom:20, borderColor:'rgba(212,175,106,0.3)' }}, React.createElement("div", {style: { display:'flex', justifyContent:'space-between', alignItems:'center', flexWrap:'wrap', gap:12 }}, React.createElement("div", null, React.createElement("div", {style: { ...mono, fontSize:11, letterSpacing:1, color:'#D4AF6A', marginBottom:8 }}, 'NEURALFUSION 100 · unique authenticated participants'), React.createElement("div", {style: { ...syne, fontSize:32, fontWeight:800, color:'#D4AF6A' }}, nf100Count, ' / 100')), React.createElement("div", {style: { textAlign:'right' }}, React.createElement("div", {style: { ...mono, fontSize:10, letterSpacing:1, color:C.muted, marginBottom:4 }}, 'Completed assessments'), React.createElement("div", {style: { ...syne, fontSize:16, fontWeight:700, color:C.text }}, completedCFI.length), React.createElement("div", {style: { ...mono, fontSize:10, letterSpacing:1, color:C.muted, marginTop:8, marginBottom:4 }}, 'Total attempts (incl. drafts)'), React.createElement("div", {style: { ...syne, fontSize:16, fontWeight:700, color:C.muted }}, cfiData.length)))), React.createElement("div", null, React.createElement("div", {style: { display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(min(180px,100%),1fr))', gap:16, marginBottom:32 }}, [
                         { label:'Total users',       value:users.length,         color:'#C4A050', icon:'◱' },
                         { label:'PRO subscribers',   value:proUsers.length,       color:'#E2BE78', icon:'★' },
                         { label:'Enterprise users',  value:entUsers.length,       color:'#7AAFCF', icon:'⊞' },
-                        { label:'CFI assessments',   value:cfiData.length,        color:'#D4AF6A', icon:'◎' },
+                        { label:'Total CFI assessments', value:cfiData.length,   color:'#D4AF6A', icon:'◎' },
+                        { label:'Unique CFI participants', value:uniqueCFIUserIds.size, color:'#D4AF6A', icon:'◈' },
+                        { label:'Completed CFI assessments', value:completedCFI.length, color:'#4CF7C0', icon:'◇' },
                         { label:'Active cohorts',    value:localCohorts.filter(c=>c.status==='active').length, color:'#4CF7C0', icon:'◇' },
                         { label:'FREE users',        value:users.filter(u=>!u.is_pro).length, color:'#9A8A6A', icon:'◰' },
                       ].map((s,i) => (
                         React.createElement("div", {key: i, className: "card bento-shimmer", style: { padding:'24px 20px' }}, React.createElement("div", {style: { display:'flex', justifyContent:'space-between', alignItems:'flex-start', marginBottom:12 }}, React.createElement("div", {style: { ...mono, fontSize:11, letterSpacing:1, color:'#8A7A5A' }}, s.label), React.createElement("div", {style: { ...mono, fontSize:14, color:s.color, textShadow:`0 0 12px ${s.color}66` }}, s.icon)), React.createElement("div", {style: { ...syne, fontSize:15, fontWeight:800, color:s.color, lineHeight:1.2, letterSpacing:'-0.02em', overflowWrap:'break-word', minWidth:0}}, s.value))
                       ))), React.createElement("div", {style: { display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(min(320px,100%),1fr))', gap:24, marginBottom:24 }}, React.createElement("div", {className: "card", style: { padding:'28px' }}, React.createElement("div", {style: { ...mono, fontSize:11, letterSpacing:1, color:C.cyan, marginBottom:20 }}, 'CFI band distribution'), Object.keys(bandColors).map(band => {
                           const count = bandCounts[band] || 0;
-                          const pct   = cfiData.length ? Math.round(count/cfiData.length*100) : 0;
+                          const pct   = completedCFI.length ? Math.round(count/completedCFI.length*100) : 0;
                           return (
                             React.createElement("div", {key: band, style: { marginBottom:16 }}, React.createElement("div", {style: { display:'flex', justifyContent:'space-between', marginBottom:6 }}, React.createElement("div", {style: { fontSize:12, color:C.muted }}, band), React.createElement("div", {style: { ...mono, fontSize:10, color:bandColors[band] }}, count, '(', pct, '%)')), React.createElement("div", {style: { height:4, background:C.panel, borderRadius:2 }}, React.createElement("div", {style: { width:`${pct}%`, height:'100%', background:bandColors[band], borderRadius:2, transition:'width 0.8s ease' }})))
                           );
-                        }), cfiData.length === 0 && React.createElement("div", {style: { color:C.dim, fontSize:13 }}, 'No CFI data yet.')), React.createElement("div", {className: "card", style: { padding:'28px' }}, React.createElement("div", {style: { ...mono, fontSize:11, letterSpacing:1, color:C.cyan, marginBottom:20 }}, 'Recent signups'), users.slice(0,8).map((u,i) => (
+                        }), completedCFI.length === 0 && React.createElement("div", {style: { color:C.dim, fontSize:13 }}, 'No CFI data yet.')), React.createElement("div", {className: "card", style: { padding:'28px' }}, React.createElement("div", {style: { ...mono, fontSize:11, letterSpacing:1, color:C.cyan, marginBottom:20 }}, 'Recent signups'), users.slice(0,8).map((u,i) => (
                           React.createElement("div", {key: u.id, style: { display:'flex', alignItems:'center', gap:12, padding:'10px 0', borderBottom:`1px solid ${C.border}` }}, React.createElement("div", {style: {
                               width:32, height:32, borderRadius:'50%',
                               background:`radial-gradient(circle, ${C.cyan}20, transparent)`,
@@ -3893,13 +4052,13 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress, sessi
                         )))), React.createElement("div", {style: { display:'grid', gridTemplateColumns:'repeat(auto-fit,minmax(160px,1fr))', gap:16, marginBottom:24 }}, [
                         { label:'Enterprise users', value:entUsers.length, color:'#7AAFCF' },
                         { label:'Active cohorts', value:localCohorts.filter(c=>c.status==='active').length, color:'#4CF7C0' },
-                        { label:'Avg CFI score', value: cfiData.length ? Math.round(cfiData.reduce((a,r)=>a+(r.total_score||0),0)/cfiData.length) : 'N/A', color:'#C4A050' },
+                        { label:'Avg CFI score', value: completedCFI.length ? Math.round(completedCFI.reduce((a,r)=>a+(r.total_score||0),0)/completedCFI.length) : 'N/A', color:'#C4A050' },
                       ].map((s,i) => (
                         React.createElement("div", {key: i, className: "card", style: { padding:'20px 24px' }}, React.createElement("div", {style: { ...mono, fontSize:11, letterSpacing:1, color:C.muted, marginBottom:8 }}, s.label), React.createElement("div", {style: { ...syne, fontSize:17, fontWeight:800, color:s.color, overflowWrap:'break-word', minWidth:0}}, s.value))
                       ))), React.createElement("div", {className: "card", style: { padding:'28px' }}, React.createElement("div", {style: { ...mono, fontSize:11, letterSpacing:1, color:C.cyan, marginBottom:20 }}, 'Enterprise users by cohort'), entUsers.length === 0 && (
                         React.createElement("div", {style: { color:C.dim, fontSize:13, textAlign:'center', padding:'40px 0' }}, 'No enterprise users found. Grant enterprise access in the Users tab.')
                       ), entUsers.map((u,i) => {
-                        const userCFI = cfiData.find(r => r.user_id === u.id);
+                        const userCFI = completedCFI.find(r => r.user_id === u.id);
                         const bColor = userCFI ? (bandColors[userCFI.band] || C.cyan) : C.dim;
                         return (
                           React.createElement("div", {key: u.id, style: { display:'flex', alignItems:'center', gap:16, padding:'14px 0', borderBottom:`1px solid ${C.border}` }}, React.createElement("div", {style: { width:36, height:36, borderRadius:'50%', background:'rgba(76,247,192,0.08)', border:'1px solid rgba(76,247,192,0.2)', display:'flex', alignItems:'center', justifyContent:'center', ...mono, fontSize:12, color:'#4CF7C0', flexShrink:0 }}, (u.full_name||u.email||'?')[0].toUpperCase()), React.createElement("div", {style: { flex:1, minWidth:0 }}, React.createElement("div", {style: { fontSize:13, color:C.text, fontWeight:500 }}, u.full_name || 'Unnamed'), React.createElement("div", {style: { ...mono, fontSize:9, color:C.muted }}, u.email || u.id?.slice(0,16))), userCFI ? (
@@ -4631,8 +4790,12 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress, sessi
         setUser(null); setProfile(null); setIsPro(false); setIsEnterprise(false); setLessonProgress({}); setSessions([]);
       };
 
+      // Opens the auth modal on a specific tab (e.g. 'signup' or 'login'). Used by
+      // the CFI™ account gate so "Create Free Account" and "Sign In" land on the
+      // right tab instead of always defaulting to login.
+      const openAuth = (tab='login') => { setAuthInitialTab(tab); setShowAuth(true); };
 
-      const viewProps = { setView, user, session, paystackKey, setShowAuth, isPro, setIsPro, isEnterprise, setIsEnterprise, cfiResult, setCfiResult, cfiHistory, lessonProgress, setLessonProgress, sessions, setSessions, proPrice };
+      const viewProps = { setView, user, session, paystackKey, setShowAuth, openAuth, isPro, setIsPro, isEnterprise, setIsEnterprise, cfiResult, setCfiResult, cfiHistory, lessonProgress, setLessonProgress, sessions, setSessions, proPrice };
 
       return (
         React.createElement("div", {style: { background:C.void, minHeight:'100vh', color:C.text }}, showAuth && React.createElement(AuthModal, {initialTab: authInitialTab, onClose: ()=>{ setShowAuth(false); setAuthInitialTab('login'); }, onSuccess: ()=>{ setShowAuth(false); setAuthInitialTab('login'); }}), React.createElement(Navbar, {view: view, setView: setView, user: user, profile: profile, setShowAuth: setShowAuth, onSignOut: handleSignOut, authLoading: authLoading}), React.createElement("main", null, view==='home'        && React.createElement(HomeView, viewProps), view==='four-brains' && React.createElement(FourBrainsView, viewProps), view==='cfi'         && React.createElement(CFIView, viewProps), view==='protocol'    && React.createElement(ProtocolView, viewProps), view==='analytics'   && React.createElement(AnalyticsView, viewProps), view==='lessons'     && React.createElement(LessonsView, viewProps), view==='about'       && React.createElement(AboutView, viewProps), view==='resources'   && React.createElement(ResourcesView, viewProps), view==='legal'       && React.createElement(LegalView, {setView: setView}), view==='enterprise'  && React.createElement(EnterpriseView, {user: user, session: session, paystackKey: paystackKey, setShowAuth: setShowAuth, isEnterprise: isEnterprise, setIsEnterprise: setIsEnterprise, proPrice: proPrice, setView: setView}), view==='admin'       && profile?.is_admin === true && React.createElement(AdminView, {user: user, setView: setView, onPriceChange: setProPrice})), React.createElement(Footer, {setView: setView}), view !== 'enterprise' && React.createElement(BottomNav, {view: view, setView: setView}))
