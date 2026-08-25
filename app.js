@@ -2961,10 +2961,17 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
         // dropped connection, or closed tab doesn't lose an authenticated attempt.
         // Changing an earlier answer updates the same draft row rather than
         // creating a new one.
-        if (user) {
+        const isLastQuestion = item.id === CFI_ITEMS[CFI_ITEMS.length-1].id;
+        // On the last question, skip the in-progress autosave entirely and go
+        // straight to finalize(). Previously both writes fired at once here,
+        // racing to update the same row - if the in-progress save (which only
+        // touches answers/status) landed on the server AFTER the completed
+        // save, it silently reset status back to 'in_progress' while leaving
+        // total_score/band populated, making a fully scored result vanish
+        // from admin and from the user's own Analytics view.
+        if (user && !isLastQuestion) {
           saveCFIProgress(user.id, newAnswers, draftId).then(id => { if (id && id !== draftId) setDraftId(id); });
         }
-        const isLastQuestion = item.id === CFI_ITEMS[CFI_ITEMS.length-1].id;
         if (isLastQuestion) { finalize(newAnswers); }
         else { setStep(s => s+1); }
       };
@@ -3931,7 +3938,12 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
       // and band distribution only reflect finished, scored assessments.
       // Historical rows saved before the `status` column existed default to
       // 'completed' (see migration notes), so they're included here too.
-      const completedCFI     = cfiData.filter(r => r.status !== 'in_progress');
+      // Treat a row as a real result if it actually has a score, not only if
+      // status says 'completed'. A row can be fully scored client-side but
+      // still carry a stale/incorrect status (e.g. a partial write during
+      // save), which previously made it vanish from this view entirely
+      // even though the data was sitting right there.
+      const completedCFI     = cfiData.filter(r => r.status === 'completed' || (r.status !== 'in_progress' && r.total_score != null));
       const uniqueCFIUserIds = new Set(completedCFI.map(r => r.user_id).filter(Boolean));
       // NeuralFusion 100 = count of unique authenticated users with at least one
       // completed CFI assessment, capped for display at the campaign target.
