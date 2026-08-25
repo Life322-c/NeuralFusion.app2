@@ -1234,7 +1234,7 @@ Most learners take four to six weeks working through the lessons at the suggeste
         // Fall back to a fresh insert so the result is never silently lost,
         // even if the draft row couldn't be updated for some reason.
       }
-      const res = await sb.from('cfi_results').insert(payload);
+      const res = await sb.from('cfi_results').insert(payload).select('id');
       if (res.error) console.error('[CFI SAVE ERROR] insert failed:', res.error);
       return res;
     };
@@ -2785,6 +2785,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress, sessi
       const [justAuthed, setJustAuthed] = useState(false);
       const [draftId, setDraftId] = useState(null);
       const [saveFailed, setSaveFailed] = useState(false);
+      const [saveErrorMsg, setSaveErrorMsg] = useState('');
       // saveState drives the "Your progress is saved" message so it reflects
       // what actually happened in the database, not just whether someone is
       // logged in. 'idle' -> 'saving' -> 'saved' | 'failed'.
@@ -2934,16 +2935,21 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress, sessi
         // rather than inserting a second row for this attempt.
         if (user) {
           setSaveState('saving');
-          saveCFIResult(user.id, result, finalAnswers, draftId).then(({ error }) => {
+          saveCFIResult(user.id, result, finalAnswers, draftId).then(({ data, error }) => {
             if (error) {
               console.error('[CFI SAVE ERROR] final result was NOT saved:', error);
               setSaveFailed(true);
               setSaveState('failed');
+              setSaveErrorMsg(error.message || JSON.stringify(error));
             } else {
               setSaveState('saved');
+              setSaveErrorMsg('row id: ' + (data && data[0] && data[0].id ? data[0].id : '(insert, id not returned)'));
             }
           });
           setDraftId(null);
+        } else {
+          setSaveState('idle');
+          setSaveErrorMsg('not signed in — result was never sent to the database');
         }
       };
 
@@ -2962,7 +2968,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress, sessi
         else { setStep(s => s+1); }
       };
 
-      const handleRetake = () => { setStarted(false); setStep(0); setAnswers({}); setShowResult(false); setDraftId(null); };
+      const handleRetake = () => { setStarted(false); setStep(0); setAnswers({}); setShowResult(false); setDraftId(null); setSaveState('idle'); setSaveErrorMsg(''); };
 
       // ── Results screen ──
       if (showResult && cfiResult) {
@@ -2973,10 +2979,17 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress, sessi
               React.createElement("button", {className:"nf-a11y-btn", onClick: ()=>{
                 setSaveFailed(false);
                 setSaveState('saving');
-                saveCFIResult(user.id, cfiResult, answers, draftId).then(({ error }) => {
-                  if (error) { setSaveFailed(true); setSaveState('failed'); } else { setSaveState('saved'); }
+                saveCFIResult(user.id, cfiResult, answers, draftId).then(({ data, error }) => {
+                  if (error) { setSaveFailed(true); setSaveState('failed'); setSaveErrorMsg(error.message || JSON.stringify(error)); }
+                  else { setSaveState('saved'); setSaveErrorMsg('row id: ' + (data && data[0] && data[0].id ? data[0].id : '(insert, id not returned)')); }
                 });
               }, style: { marginLeft:12, background:'none', border:'1px solid #991B1B', borderRadius:8, color:'#991B1B', padding:'4px 12px', cursor:'pointer', fontSize:13, fontWeight:700 }}, 'Retry')
+            ),
+            // On-screen diagnostic strip — no dev tools needed. Shows exactly what
+            // happened with this save: who it saved as, what state it's in, and
+            // (once it resolves) the real error message or the saved row's id.
+            React.createElement("div", {style: { background:'#0A1628', borderBottom:'1px solid #1E3A5F', color:'#7AAFCF', padding:'8px 16px', fontSize:11, fontFamily:"'Space Mono', monospace", wordBreak:'break-all' }},
+              `DEBUG · user: ${user ? user.id : 'NOT SIGNED IN'} · save: ${saveState}` + (saveErrorMsg ? ` · ${saveErrorMsg}` : '')
             ),
             React.createElement(CFIResults, { cfiResult, setView, user, setShowAuth, onRetake: handleRetake, saveState })
           )
