@@ -1798,7 +1798,7 @@ function BentoStepList({ steps, setView }) {
 // ─────────────────────────────────────────────────────────────
 //  HOME VIEW: BENTO GRID LAYOUT
 // ─────────────────────────────────────────────────────────────
-function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress, sessions }) {
+function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
   const completedLessons = Object.values(lessonProgress).filter(v => v === 100).length;
   const cogScore = cfiResult ? Math.max(0, 100 - cfiResult.total * 2) : null;
 
@@ -1925,7 +1925,6 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress, sessi
             [
               { label:'CFI band', value:cfiResult.band, color:cfiResult.band==='Integrated'?'#7AAFCF':'#C4A050', icon:'◎' },
               { label:'Lessons', value:`${completedLessons}/${5}`, color:'#C4A050', icon:'▦' },
-              { label:'Sessions', value:sessions.length.toString()||'0', color:'#E2BE78', icon:'◱' },
               { label:'Dominant mode', value:cfiResult.dominantBrain?.slice(0,3).toUpperCase()||'N/A',
                 color:({analytical:'#C4A050',intuitive:'#E2BE78',associative:'#7AAFCF',reflective:'#D4AF6A'})[cfiResult.dominantBrain]||'#C4A050',
                 icon:({analytical:'◰',intuitive:'◱',associative:'◲',reflective:'◳'})[cfiResult.dominantBrain]||'◰',
@@ -2937,6 +2936,8 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress, sessi
           setSaveState('saving');
           saveCFIResult(user.id, result, finalAnswers, draftId).then(({ data, error }) => {
             if (error) {
+              // Keep draftId as-is on failure so a "Retry" click still targets
+              // the same row instead of inserting a duplicate.
               console.error('[CFI SAVE ERROR] final result was NOT saved:', error);
               setSaveFailed(true);
               setSaveState('failed');
@@ -2944,9 +2945,9 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress, sessi
             } else {
               setSaveState('saved');
               setSaveErrorMsg('row id: ' + (data && data[0] && data[0].id ? data[0].id : '(insert, id not returned)'));
+              setDraftId(null);
             }
           });
-          setDraftId(null);
         } else {
           setSaveState('idle');
           setSaveErrorMsg('not signed in — result was never sent to the database');
@@ -2981,7 +2982,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress, sessi
                 setSaveState('saving');
                 saveCFIResult(user.id, cfiResult, answers, draftId).then(({ data, error }) => {
                   if (error) { setSaveFailed(true); setSaveState('failed'); setSaveErrorMsg(error.message || JSON.stringify(error)); }
-                  else { setSaveState('saved'); setSaveErrorMsg('row id: ' + (data && data[0] && data[0].id ? data[0].id : '(insert, id not returned)')); }
+                  else { setSaveState('saved'); setSaveErrorMsg('row id: ' + (data && data[0] && data[0].id ? data[0].id : '(insert, id not returned)')); setDraftId(null); }
                 });
               }, style: { marginLeft:12, background:'none', border:'1px solid #991B1B', borderRadius:8, color:'#991B1B', padding:'4px 12px', cursor:'pointer', fontSize:13, fontWeight:700 }}, 'Retry')
             ),
@@ -3186,7 +3187,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress, sessi
     // ═══════════════════════════════════════════════════════════════════
     //  ANALYTICS VIEW
     // ═══════════════════════════════════════════════════════════════════
-    function AnalyticsView({ cfiResult, sessions, lessonProgress, cfiHistory=[], setView }) {
+    function AnalyticsView({ cfiResult, lessonProgress, cfiHistory=[], setView }) {
       const completedLessons = Object.values(lessonProgress).filter(v=>v===100).length;
       const hasDelta = cfiHistory.length >= 2;
       const baselineCFI = hasDelta ? cfiHistory[0] : null;
@@ -3199,7 +3200,6 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress, sessi
             ) : (
               React.createElement(React.Fragment, null, React.createElement("div", {style: { display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(min(180px, 100%), 1fr))', gap:16, marginBottom:40 }}, [
                     { label:'CFI score', value:cfiResult.total, unit:'/80', color:cfiResult.total<=21?'#7AAFCF':cfiResult.total<=35?'#C4A050':'#F87171' },
-                    { label:'Sessions', value:sessions.length, unit:'', color:C.cyan },
                     { label:'Lessons', value:completedLessons, unit:`/${LESSONS.length}`, color:'#E2BE78' },
                     { label:'Band', value:cfiResult.band.split(' ')[0], unit:'', color:'#C4A050', small:true },
                   ].map((s,i)=>(
@@ -3260,7 +3260,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress, sessi
 
       const handleProPayment = () => {
         if (!user) { setShowAuth(true); return; }
-        const PAYSTACK_KEY = 'pk_live_dfa71eca29f942cadc337cb8e41834857e2b129b';
+        const PAYSTACK_KEY = paystackKey || 'pk_live_dfa71eca29f942cadc337cb8e41834857e2b129b';
         setPaystackLoading(true);
         loadPaystackScript().then(() => {
           const handler = PaystackPop.setup({
@@ -3655,7 +3655,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress, sessi
     // ═══════════════════════════════════════════════════════════════════
     //  ADMIN PORTAL: Full Platform Management
     // ═══════════════════════════════════════════════════════════════════
-    function AdminView({ user, setView, onPriceChange }) {
+    function AdminView({ user, setView, onPriceChange, onEntPriceChange }) {
       const [tab, setTab]           = useState('overview');
 
       // Data
@@ -3790,12 +3790,16 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress, sessi
         showMsg('Pro price saved.', 'success');
       };
 
-      const saveEntPrice = () => {
+      const saveEntPrice = async () => {
         const raw = parseFloat(entPriceInput);
         if (isNaN(raw) || raw < 100) { showMsg('Invalid enterprise price.', 'error'); return; }
         const kobo = Math.round(raw * 100);
         localStorage.setItem('nf_ent_price', kobo.toString());
         setEntPrice(kobo);
+        if (onEntPriceChange) onEntPriceChange(kobo);
+        // Persist server-side (platform_settings) so the price actually charged
+        // at checkout - not just this admin's local browser - reflects the change.
+        try { await sb.from('platform_settings').upsert({ key:'enterprise_price', value:kobo }, { onConflict:'key' }); } catch(_) {}
         showMsg('Enterprise price saved.', 'success');
       };
 
@@ -4643,7 +4647,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress, sessi
     }
 
     // ── Enterprise Main View (wraps entire Enterprise system) ──────────
-    function EnterpriseView({ user, session, paystackKey, setShowAuth, isEnterprise, setIsEnterprise, proPrice, setView }) {
+    function EnterpriseView({ user, session, paystackKey, setShowAuth, isEnterprise, setIsEnterprise, proPrice, entPrice, setView }) {
       const [entRole, setEntRole]       = useState(null);
       const [entSession, setEntSession] = useState(null);
       const [entView, setEntView]       = useState(null);
@@ -4681,7 +4685,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress, sessi
           const handler = PaystackPop.setup({
             key: PAYSTACK_KEY,
             email: user.email,
-            amount: ENTERPRISE_PRICE_KOBO,
+            amount: entPrice || ENTERPRISE_PRICE_KOBO,
             currency: 'NGN',
             ref: 'nf_ent_' + Date.now() + '_' + user.id.slice(0, 8),
             metadata: { user_id: user.id, plan: 'enterprise' },
@@ -4736,11 +4740,11 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress, sessi
                 border:'1px solid rgba(76,247,192,0.25)',
                 backdropFilter:'blur(20px)',
                 marginBottom:32,
-              }}, React.createElement("div", {style: { ...mono, fontSize:11, letterSpacing:1.5, color:'#4CF7C0', marginBottom:16 }}, 'ENTERPRISE ACCESS · ONE-TIME'), React.createElement("div", {style: { ...syne, fontSize:52, fontWeight:900, color:'#4CF7C0', marginBottom:8, letterSpacing:'-0.02em' }}, '₦', ENTERPRISE_PRICE_DISPLAY), React.createElement("div", {style: { ...inter, fontSize:14, color:C.muted, marginBottom:40 }}, 'One-time payment · Permanent access · All cohorts · All features'), React.createElement("button", {onClick: handleUnlock, disabled: paystackLoading, style: {
+              }}, React.createElement("div", {style: { ...mono, fontSize:11, letterSpacing:1.5, color:'#4CF7C0', marginBottom:16 }}, 'ENTERPRISE ACCESS · ONE-TIME'), React.createElement("div", {style: { ...syne, fontSize:52, fontWeight:900, color:'#4CF7C0', marginBottom:8, letterSpacing:'-0.02em' }}, '₦', ((entPrice || ENTERPRISE_PRICE_KOBO)/100).toLocaleString()), React.createElement("div", {style: { ...inter, fontSize:14, color:C.muted, marginBottom:40 }}, 'One-time payment · Permanent access · All cohorts · All features'), React.createElement("button", {onClick: handleUnlock, disabled: paystackLoading, style: {
                     ...syne, fontSize:14, fontWeight:700, letterSpacing:'0.05em',
                     padding:'18px 48px', background:'#4CF7C0', color:'#050C1A',
                     border:'none', cursor: paystackLoading ? 'default' : 'pointer', borderRadius:2,
-                    transition:'all 0.2s', boxShadow:'0 0 40px rgba(76,247,192,0.3)', overflowWrap:'break-word', minWidth:0, opacity: paystackLoading ? 0.7 : 1}, onMouseEnter: e=>{ if(!paystackLoading){ e.currentTarget.style.background='#6FFAD0'; e.currentTarget.style.transform='translateY(-2px)'; } }, onMouseLeave: e=>{ e.currentTarget.style.background='#4CF7C0'; e.currentTarget.style.transform='translateY(0)'; }}, paystackLoading ? 'Opening...' : (user ? `Unlock Enterprise: ₦${ENTERPRISE_PRICE_DISPLAY} →` : 'Sign In to Unlock Enterprise →')), !user&&React.createElement("div", {style: { ...mono, fontSize:10, color:C.muted, marginTop:16 }}, 'Create a free account to proceed with payment.')), React.createElement("div", {style: { ...mono, fontSize:9, letterSpacing:1, color:C.dim }}, 'NeuralFusion™ Enterprise · Edition 2.0 · Life Edet · 2026 · Confidential')))
+                    transition:'all 0.2s', boxShadow:'0 0 40px rgba(76,247,192,0.3)', overflowWrap:'break-word', minWidth:0, opacity: paystackLoading ? 0.7 : 1}, onMouseEnter: e=>{ if(!paystackLoading){ e.currentTarget.style.background='#6FFAD0'; e.currentTarget.style.transform='translateY(-2px)'; } }, onMouseLeave: e=>{ e.currentTarget.style.background='#4CF7C0'; e.currentTarget.style.transform='translateY(0)'; }}, paystackLoading ? 'Opening...' : (user ? `Unlock Enterprise: ₦${((entPrice || ENTERPRISE_PRICE_KOBO)/100).toLocaleString()} →` : 'Sign In to Unlock Enterprise →')), !user&&React.createElement("div", {style: { ...mono, fontSize:10, color:C.muted, marginTop:16 }}, 'Create a free account to proceed with payment.')), React.createElement("div", {style: { ...mono, fontSize:9, letterSpacing:1, color:C.dim }}, 'NeuralFusion™ Enterprise · Edition 2.0 · Life Edet · 2026 · Confidential')))
         );
       }
 
@@ -4776,8 +4780,8 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress, sessi
       const [cfiResult, setCfiResult] = useState(null);
       const [cfiHistory, setCfiHistory] = useState([]);   // full CFI attempt history, oldest→newest, for Clarity Delta™
       const [lessonProgress, setLessonProgress] = useState({});
-      const [sessions, setSessions] = useState([]);
       const [proPrice, setProPrice] = useState(() => parseInt(localStorage.getItem('nf_pro_price') || '600000'));
+      const [entPrice, setEntPrice] = useState(() => parseInt(localStorage.getItem('nf_ent_price') || '5000000'));
       const [paystackKey, setPaystackKey] = useState(() => localStorage.getItem('nf_paystack_key') || 'pk_live_dfa71eca29f942cadc337cb8e41834857e2b129b');
 
       // Load platform settings from Supabase on mount
@@ -4790,6 +4794,12 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress, sessi
         });
         getPlatformSetting('paystack_public_key').then(val=>{
           if (val) { setPaystackKey(val); localStorage.setItem('nf_paystack_key', val); }
+        });
+        getPlatformSetting('enterprise_price').then(val=>{
+          if (val) {
+            const p = parseInt(val);
+            if (!isNaN(p)) { setEntPrice(p); localStorage.setItem('nf_ent_price', p); }
+          }
         });
       },[]);
 
@@ -4829,7 +4839,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress, sessi
           setSession(session || null);
           setUser(u);
           if (u) loadUser(u);
-          else { setIsPro(false); setLessonProgress({}); setSessions([]); setAuthLoading(false); }
+          else { setIsPro(false); setLessonProgress({}); setAuthLoading(false); }
         });
         return ()=>subscription.unsubscribe();
       },[]);
@@ -4841,7 +4851,12 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress, sessi
           if (prof) { setProfile(prof); setIsPro(!!prof.is_pro); setIsEnterprise(!!prof.is_enterprise); }
           setLessonProgress(lp);
           // Load full CFI history from Supabase (needed for Clarity Delta™, not just the latest result)
-          const { data: cfiRows } = await sb.from('cfi_results').select('*').eq('user_id', u.id).order('created_at', { ascending: false });
+          // IMPORTANT: only 'completed' rows have total_score/band/dim_scores populated.
+          // 'in_progress' draft rows (auto-saved while taking the assessment) do not,
+          // and including them here was causing Analytics to render blank whenever the
+          // most recent row for a user happened to be an unfinished attempt.
+          const { data: cfiRows, error: cfiErr } = await sb.from('cfi_results').select('*').eq('user_id', u.id).eq('status', 'completed').order('created_at', { ascending: false });
+          if (cfiErr) console.error('[ANALYTICS LOAD ERROR] cfi_results fetch failed:', cfiErr);
           if (cfiRows && cfiRows.length > 0) {
             setCfiHistory([...cfiRows].reverse()); // oldest → newest
             const r = cfiRows[0];
@@ -4857,13 +4872,13 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress, sessi
             else { desc='Severe fragmentation. Decision-making and clarity are compromised.'; recommendation='Start Lesson 1 immediately and track your CFI weekly.'; }
             setCfiResult({ total, band: r.band, desc, recommendation, dimScores, dominantBrain });
           }
-        } catch(e){}
+        } catch(e){ console.error('[LOAD USER ERROR]', e); }
         setAuthLoading(false);
       };
 
       const handleSignOut = async () => {
         await sb.auth.signOut();
-        setUser(null); setProfile(null); setIsPro(false); setIsEnterprise(false); setLessonProgress({}); setSessions([]);
+        setUser(null); setProfile(null); setIsPro(false); setIsEnterprise(false); setLessonProgress({});
       };
 
       // Opens the auth modal on a specific tab (e.g. 'signup' or 'login'). Used by
@@ -4871,10 +4886,10 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress, sessi
       // right tab instead of always defaulting to login.
       const openAuth = (tab='login') => { setAuthInitialTab(tab); setShowAuth(true); };
 
-      const viewProps = { setView, user, session, paystackKey, setShowAuth, openAuth, isPro, setIsPro, isEnterprise, setIsEnterprise, cfiResult, setCfiResult, cfiHistory, lessonProgress, setLessonProgress, sessions, setSessions, proPrice };
+      const viewProps = { setView, user, session, paystackKey, setShowAuth, openAuth, isPro, setIsPro, isEnterprise, setIsEnterprise, cfiResult, setCfiResult, cfiHistory, lessonProgress, setLessonProgress, proPrice };
 
       return (
-        React.createElement("div", {style: { background:C.void, minHeight:'100vh', color:C.text }}, showAuth && React.createElement(AuthModal, {initialTab: authInitialTab, onClose: ()=>{ setShowAuth(false); setAuthInitialTab('login'); }, onSuccess: ()=>{ setShowAuth(false); setAuthInitialTab('login'); }}), React.createElement(Navbar, {view: view, setView: setView, user: user, profile: profile, setShowAuth: setShowAuth, onSignOut: handleSignOut, authLoading: authLoading}), React.createElement("main", null, view==='home'        && React.createElement(HomeView, viewProps), view==='four-brains' && React.createElement(FourBrainsView, viewProps), view==='cfi'         && React.createElement(CFIView, viewProps), view==='protocol'    && React.createElement(ProtocolView, viewProps), view==='analytics'   && React.createElement(AnalyticsView, viewProps), view==='lessons'     && React.createElement(LessonsView, viewProps), view==='about'       && React.createElement(AboutView, viewProps), view==='resources'   && React.createElement(ResourcesView, viewProps), view==='legal'       && React.createElement(LegalView, {setView: setView}), view==='enterprise'  && React.createElement(EnterpriseView, {user: user, session: session, paystackKey: paystackKey, setShowAuth: setShowAuth, isEnterprise: isEnterprise, setIsEnterprise: setIsEnterprise, proPrice: proPrice, setView: setView}), view==='admin'       && profile?.is_admin === true && React.createElement(AdminView, {user: user, setView: setView, onPriceChange: setProPrice})), React.createElement(Footer, {setView: setView}), view !== 'enterprise' && React.createElement(BottomNav, {view: view, setView: setView}))
+        React.createElement("div", {style: { background:C.void, minHeight:'100vh', color:C.text }}, showAuth && React.createElement(AuthModal, {initialTab: authInitialTab, onClose: ()=>{ setShowAuth(false); setAuthInitialTab('login'); }, onSuccess: ()=>{ setShowAuth(false); setAuthInitialTab('login'); }}), React.createElement(Navbar, {view: view, setView: setView, user: user, profile: profile, setShowAuth: setShowAuth, onSignOut: handleSignOut, authLoading: authLoading}), React.createElement("main", null, view==='home'        && React.createElement(HomeView, viewProps), view==='four-brains' && React.createElement(FourBrainsView, viewProps), view==='cfi'         && React.createElement(CFIView, viewProps), view==='protocol'    && React.createElement(ProtocolView, viewProps), view==='analytics'   && React.createElement(AnalyticsView, viewProps), view==='lessons'     && React.createElement(LessonsView, viewProps), view==='about'       && React.createElement(AboutView, viewProps), view==='resources'   && React.createElement(ResourcesView, viewProps), view==='legal'       && React.createElement(LegalView, {setView: setView}), view==='enterprise'  && React.createElement(EnterpriseView, {user: user, session: session, paystackKey: paystackKey, setShowAuth: setShowAuth, isEnterprise: isEnterprise, setIsEnterprise: setIsEnterprise, proPrice: proPrice, entPrice: entPrice, setView: setView}), view==='admin'       && profile?.is_admin === true && React.createElement(AdminView, {user: user, setView: setView, onPriceChange: setProPrice, onEntPriceChange: setEntPrice})), React.createElement(Footer, {setView: setView}), view !== 'enterprise' && React.createElement(BottomNav, {view: view, setView: setView}))
       );
     }
 
