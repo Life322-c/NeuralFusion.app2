@@ -2985,12 +2985,6 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress, sessi
                 });
               }, style: { marginLeft:12, background:'none', border:'1px solid #991B1B', borderRadius:8, color:'#991B1B', padding:'4px 12px', cursor:'pointer', fontSize:13, fontWeight:700 }}, 'Retry')
             ),
-            // On-screen diagnostic strip — no dev tools needed. Shows exactly what
-            // happened with this save: who it saved as, what state it's in, and
-            // (once it resolves) the real error message or the saved row's id.
-            React.createElement("div", {style: { background:'#0A1628', borderBottom:'1px solid #1E3A5F', color:'#7AAFCF', padding:'8px 16px', fontSize:11, fontFamily:"'Space Mono', monospace", wordBreak:'break-all' }},
-              `DEBUG · user: ${user ? user.id : 'NOT SIGNED IN'} · save: ${saveState}` + (saveErrorMsg ? ` · ${saveErrorMsg}` : '')
-            ),
             React.createElement(CFIResults, { cfiResult, setView, user, setShowAuth, onRetake: handleRetake, saveState })
           )
         );
