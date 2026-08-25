@@ -1217,32 +1217,51 @@ Most learners take four to six weeks working through the lessons at the suggeste
     // in_progress row created via saveCFIProgress) is passed, it updates that
     // row in place instead of inserting a new one, so a single attempt never
     // produces two rows.
+    // NOTE: supabase-js does NOT throw on a failed query — it resolves with
+    // { data, error }. Every call here checks .error explicitly and logs it,
+    // so a failed save is visible in the console instead of silently vanishing.
     const saveCFIResult = async (id, r, a, draftId) => {
       const payload = { user_id:id, total_score:r.total, band:r.band, dim_scores:r.dimScores, answers:a, status:'completed' };
-      if (draftId) return await sb.from('cfi_results').update(payload).eq('id', draftId).eq('user_id', id);
-      return await sb.from('cfi_results').insert(payload);
+      if (draftId) {
+        const { data, error } = await sb.from('cfi_results').update(payload).eq('id', draftId).eq('user_id', id).select('id');
+        if (error) {
+          console.error('[CFI SAVE ERROR] update by draftId failed, falling back to insert:', error);
+        } else if (data && data.length > 0) {
+          return { data, error: null };
+        } else {
+          console.warn('[CFI SAVE WARNING] update matched 0 rows for draftId', draftId, '- falling back to insert. This usually means an RLS policy blocked it or the row does not exist.');
+        }
+        // Fall back to a fresh insert so the result is never silently lost,
+        // even if the draft row couldn't be updated for some reason.
+      }
+      const res = await sb.from('cfi_results').insert(payload);
+      if (res.error) console.error('[CFI SAVE ERROR] insert failed:', res.error);
+      return res;
     };
     // Looks up a signed-in user's in-progress CFI attempt, if one exists, so an
     // interrupted assessment (refresh, lost connection, returning later) can resume
     // instead of starting over.
     const getInProgressCFI = async (id) => {
-      try {
-        const { data } = await sb.from('cfi_results').select('*').eq('user_id', id).eq('status', 'in_progress').order('created_at', { ascending:false }).limit(1);
-        return data && data[0] ? data[0] : null;
-      } catch(_) { return null; }
+      const { data, error } = await sb.from('cfi_results').select('*').eq('user_id', id).eq('status', 'in_progress').order('created_at', { ascending:false }).limit(1);
+      if (error) { console.error('[CFI SAVE ERROR] loading in-progress attempt failed:', error); return null; }
+      return data && data[0] ? data[0] : null;
     };
     // Persists in-progress answers as the user goes. First call creates the draft
     // row (status: in_progress); subsequent calls update that same row by id, so
     // changing an answer never creates a duplicate response.
     const saveCFIProgress = async (id, answers, draftId) => {
-      try {
-        if (draftId) {
-          await sb.from('cfi_results').update({ answers, status:'in_progress' }).eq('id', draftId).eq('user_id', id);
+      if (draftId) {
+        const { data, error } = await sb.from('cfi_results').update({ answers, status:'in_progress' }).eq('id', draftId).eq('user_id', id).select('id');
+        if (error) { console.error('[CFI SAVE ERROR] progress update failed:', error); return draftId; }
+        if (!data || data.length === 0) {
+          console.warn('[CFI SAVE WARNING] progress update matched 0 rows for draftId', draftId, '- treating draft as lost and starting a new one.');
+        } else {
           return draftId;
         }
-        const { data } = await sb.from('cfi_results').insert({ user_id:id, answers, status:'in_progress' }).select('id').maybeSingle();
-        return data?.id || null;
-      } catch(_) { return draftId || null; }
+      }
+      const { data, error } = await sb.from('cfi_results').insert({ user_id:id, answers, status:'in_progress' }).select('id').maybeSingle();
+      if (error) { console.error('[CFI SAVE ERROR] progress insert failed:', error); return draftId || null; }
+      return data?.id || null;
     };
     const upsertLessonProgress = async (id, lid, p) => await sb.from('lesson_progress').upsert({user_id:id, lesson_id:lid, progress:p, completed:p===100},{onConflict:'user_id,lesson_id'});
     const loadLessonProgress = async (id) => {
@@ -2758,6 +2777,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress, sessi
       const [awaitingAuth, setAwaitingAuth] = useState(false);
       const [justAuthed, setJustAuthed] = useState(false);
       const [draftId, setDraftId] = useState(null);
+      const [saveFailed, setSaveFailed] = useState(false);
       const openAuthTab = (tab) => { setAwaitingAuth(true); if (openAuth) openAuth(tab); else setShowAuth(true); };
 
       // Once the user becomes authenticated after being sent through the gate,
@@ -2901,7 +2921,15 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress, sessi
         setShowResult(true);
         // Finalizing updates the same in-progress row (draftId) if one exists,
         // rather than inserting a second row for this attempt.
-        if (user) { saveCFIResult(user.id, result, finalAnswers, draftId); setDraftId(null); }
+        if (user) {
+          saveCFIResult(user.id, result, finalAnswers, draftId).then(({ error }) => {
+            if (error) {
+              console.error('[CFI SAVE ERROR] final result was NOT saved:', error);
+              setSaveFailed(true);
+            }
+          });
+          setDraftId(null);
+        }
       };
 
       const handleAnswer = (item, val) => {
@@ -2923,7 +2951,18 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress, sessi
 
       // ── Results screen ──
       if (showResult && cfiResult) {
-        return React.createElement(CFIResults, { cfiResult, setView, user, setShowAuth, onRetake: handleRetake });
+        return (
+          React.createElement(React.Fragment, null,
+            saveFailed && React.createElement("div", {style: { background:'#FEE2E2', borderBottom:'1px solid #FCA5A5', color:'#991B1B', padding:'12px 20px', textAlign:'center', fontSize:14, fontFamily:AC.font }},
+              "Your result is shown below, but we couldn't save it to your account. Please check your connection and retry, or contact support if this keeps happening.",
+              React.createElement("button", {className:"nf-a11y-btn", onClick: ()=>{
+                setSaveFailed(false);
+                saveCFIResult(user.id, cfiResult, answers, draftId).then(({ error }) => { if (error) setSaveFailed(true); });
+              }, style: { marginLeft:12, background:'none', border:'1px solid #991B1B', borderRadius:8, color:'#991B1B', padding:'4px 12px', cursor:'pointer', fontSize:13, fontWeight:700 }}, 'Retry')
+            ),
+            React.createElement(CFIResults, { cfiResult, setView, user, setShowAuth, onRetake: handleRetake })
+          )
+        );
       }
 
       // ── Account gate ──────────────────────────────────────────────────
@@ -3888,7 +3927,6 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress, sessi
                         { label:'Total users',       value:users.length,         color:'#C4A050', icon:'◱' },
                         { label:'PRO subscribers',   value:proUsers.length,       color:'#E2BE78', icon:'★' },
                         { label:'Enterprise users',  value:entUsers.length,       color:'#7AAFCF', icon:'⊞' },
-                        { label:'Total CFI assessments', value:cfiData.length,   color:'#D4AF6A', icon:'◎' },
                         { label:'Unique CFI participants', value:uniqueCFIUserIds.size, color:'#D4AF6A', icon:'◈' },
                         { label:'Completed CFI assessments', value:completedCFI.length, color:'#4CF7C0', icon:'◇' },
                         { label:'Active cohorts',    value:localCohorts.filter(c=>c.status==='active').length, color:'#4CF7C0', icon:'◇' },
