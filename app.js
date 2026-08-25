@@ -2621,7 +2621,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress, sessi
       );
     }
 
-    function CFIResults({ cfiResult, setView, user, setShowAuth, onRetake }) {
+    function CFIResults({ cfiResult, setView, user, setShowAuth, onRetake, saveState }) {
       const bandColors = { 'Integrated':'#7AAFCF', 'Moderate fragmentation':'#C4A050', 'High fragmentation':'#FB8C00', 'Critical fragmentation':'#F87171' };
       const bandColor = bandColors[cfiResult.band] || C.cyan;
       // Display-only label. cfiResult.band itself (the raw value written to the
@@ -2739,9 +2739,16 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress, sessi
 
             // ── Conversion / actions ──
             React.createElement("div", {className: "card", style: { padding:'28px 24px', marginBottom:24, textAlign:'center' }},
-              React.createElement("div", {style: { ...syne, fontSize:14, fontWeight:800, color:C.text, marginBottom:8 }}, user ? 'Your progress is saved.' : 'Save your results and track your growth'),
+              React.createElement("div", {style: { ...syne, fontSize:14, fontWeight:800, color:C.text, marginBottom:8 }},
+                !user ? 'Save your results and track your growth'
+                : saveState === 'saving' ? 'Saving your results…'
+                : saveState === 'failed' ? 'Your result could not be saved'
+                : 'Your progress is saved.'
+              ),
               React.createElement("div", {style: { fontSize:13, color:C.muted, marginBottom:20, maxWidth:440, margin:'0 auto 20px', lineHeight:1.7 }},
-                user ? 'Retake the CFI™ over time to watch your Clarity Delta™ grow.' : 'Create a free account to save this report, track your Clarity Delta™ over time, and unlock your personalized learning path.'
+                !user ? 'Create a free account to save this report, track your Clarity Delta™ over time, and unlock your personalized learning path.'
+                : saveState === 'failed' ? 'See the notice above — retry the save, or it will be lost when you leave this page.'
+                : 'Retake the CFI™ over time to watch your Clarity Delta™ grow.'
               ),
               !user && React.createElement("button", {className: "btn-primary", style: { marginRight:12, marginBottom:10 }, onClick: ()=>setShowAuth(true)}, 'Create free account')
             ),
@@ -2778,6 +2785,10 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress, sessi
       const [justAuthed, setJustAuthed] = useState(false);
       const [draftId, setDraftId] = useState(null);
       const [saveFailed, setSaveFailed] = useState(false);
+      // saveState drives the "Your progress is saved" message so it reflects
+      // what actually happened in the database, not just whether someone is
+      // logged in. 'idle' -> 'saving' -> 'saved' | 'failed'.
+      const [saveState, setSaveState] = useState(cfiResult ? 'saved' : 'idle');
       const openAuthTab = (tab) => { setAwaitingAuth(true); if (openAuth) openAuth(tab); else setShowAuth(true); };
 
       // Once the user becomes authenticated after being sent through the gate,
@@ -2922,10 +2933,14 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress, sessi
         // Finalizing updates the same in-progress row (draftId) if one exists,
         // rather than inserting a second row for this attempt.
         if (user) {
+          setSaveState('saving');
           saveCFIResult(user.id, result, finalAnswers, draftId).then(({ error }) => {
             if (error) {
               console.error('[CFI SAVE ERROR] final result was NOT saved:', error);
               setSaveFailed(true);
+              setSaveState('failed');
+            } else {
+              setSaveState('saved');
             }
           });
           setDraftId(null);
@@ -2957,10 +2972,13 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress, sessi
               "Your result is shown below, but we couldn't save it to your account. Please check your connection and retry, or contact support if this keeps happening.",
               React.createElement("button", {className:"nf-a11y-btn", onClick: ()=>{
                 setSaveFailed(false);
-                saveCFIResult(user.id, cfiResult, answers, draftId).then(({ error }) => { if (error) setSaveFailed(true); });
+                setSaveState('saving');
+                saveCFIResult(user.id, cfiResult, answers, draftId).then(({ error }) => {
+                  if (error) { setSaveFailed(true); setSaveState('failed'); } else { setSaveState('saved'); }
+                });
               }, style: { marginLeft:12, background:'none', border:'1px solid #991B1B', borderRadius:8, color:'#991B1B', padding:'4px 12px', cursor:'pointer', fontSize:13, fontWeight:700 }}, 'Retry')
             ),
-            React.createElement(CFIResults, { cfiResult, setView, user, setShowAuth, onRetake: handleRetake })
+            React.createElement(CFIResults, { cfiResult, setView, user, setShowAuth, onRetake: handleRetake, saveState })
           )
         );
       }
@@ -3641,6 +3659,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress, sessi
       const [loading,    setLoading]    = useState(false);
       const [actionMsg,  setActionMsg]  = useState('');
       const [actionType, setActionType] = useState('info'); // info | success | error
+      const [lastLoaded, setLastLoaded] = useState(null);
 
       // Pricing
       const [proPrice,    setProPrice]    = useState(() => parseInt(localStorage.getItem('nf_pro_price') || '600000'));
@@ -3709,8 +3728,14 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress, sessi
             sb.from('profiles').select('*').order('created_at', { ascending: false }),
             sb.from('cfi_results').select('*').order('created_at', { ascending: false }),
           ]);
+          // Surface load errors instead of silently showing empty/stale data —
+          // a blocked select (e.g. an RLS policy issue) previously failed silently
+          // here, making the dashboard look correct while quietly showing nothing.
+          if (usersRes.error) { console.error('[ADMIN LOAD ERROR] profiles select failed:', usersRes.error); showMsg('Could not load users: ' + usersRes.error.message, 'error'); }
+          if (cfiRes.error)   { console.error('[ADMIN LOAD ERROR] cfi_results select failed:', cfiRes.error);   showMsg('Could not load CFI results: ' + cfiRes.error.message, 'error'); }
           setUsers(usersRes.data || []);
           setCfiData(cfiRes.data || []);
+          setLastLoaded(new Date());
           try {
             const { data: s } = await sb.from('platform_settings').select('*').eq('key','pro_price').maybeSingle();
             if (s?.value) { setProPrice(s.value); setPriceInput(String(s.value/100)); }
@@ -3923,6 +3948,12 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress, sessi
               React.createElement("div", {style: { textAlign:'center', padding:'60px', color:C.muted }}, React.createElement("div", {style: { ...mono, fontSize:17, color:C.cyan, animation:'neuralPulse 2s ease-in-out infinite' }}, '◈'), React.createElement("div", {style: { ...mono, fontSize:11, letterSpacing:1, marginTop:16 }}, 'LOADING DATA...'))
             ), !loading && (
               React.createElement(React.Fragment, null, tab === 'overview' && (
+                  React.createElement("div", {style: { display:'flex', justifyContent:'flex-end', alignItems:'center', gap:10, marginBottom:12 }},
+                    React.createElement("div", {style: { ...mono, fontSize:10, letterSpacing:0.5, color:C.dim }},
+                      lastLoaded ? `Last refreshed ${lastLoaded.toLocaleTimeString()}` : ''
+                    ),
+                    React.createElement("button", {className:"btn-outline", style:{ fontSize:10, padding:'6px 12px' }, onClick: loadAdminData}, '↺ Refresh')
+                  ),
                   React.createElement("div", {className: "card bento-shimmer", style: { padding:'24px 28px', marginBottom:20, borderColor:'rgba(212,175,106,0.3)' }}, React.createElement("div", {style: { display:'flex', justifyContent:'space-between', alignItems:'center', flexWrap:'wrap', gap:12 }}, React.createElement("div", null, React.createElement("div", {style: { ...mono, fontSize:11, letterSpacing:1, color:'#D4AF6A', marginBottom:8 }}, 'NEURALFUSION 100 · unique authenticated participants'), React.createElement("div", {style: { ...syne, fontSize:32, fontWeight:800, color:'#D4AF6A' }}, nf100Count, ' / 100')), React.createElement("div", {style: { textAlign:'right' }}, React.createElement("div", {style: { ...mono, fontSize:10, letterSpacing:1, color:C.muted, marginBottom:4 }}, 'Completed assessments'), React.createElement("div", {style: { ...syne, fontSize:16, fontWeight:700, color:C.text }}, completedCFI.length), React.createElement("div", {style: { ...mono, fontSize:10, letterSpacing:1, color:C.muted, marginTop:8, marginBottom:4 }}, 'Total attempts (incl. drafts)'), React.createElement("div", {style: { ...syne, fontSize:16, fontWeight:700, color:C.muted }}, cfiData.length)))), React.createElement("div", null, React.createElement("div", {style: { display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(min(180px,100%),1fr))', gap:16, marginBottom:32 }}, [
                         { label:'Total users',       value:users.length,         color:'#C4A050', icon:'◱' },
                         { label:'PRO subscribers',   value:proUsers.length,       color:'#E2BE78', icon:'★' },
