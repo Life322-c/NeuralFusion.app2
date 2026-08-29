@@ -3755,7 +3755,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
 
     // ── Full Academy homepage (Sections 1–10), rendered above the lesson
     // library when the person is on the Lessons list view. ──────────────
-    function AcademyHome({ setView, user, setShowAuth, cfiResult, cfiHistory = [], lessonProgress, isPro, onStartLesson }) {
+    function AcademyHome({ setView, user, setShowAuth, cfiResult, cfiHistory = [], lessonProgress, isPro, onStartLesson, onUpgrade }) {
       const hasCFI = !!(cfiResult && cfiResult.dimensionReports);
       const rec = getAcademyRecommendation(cfiResult, lessonProgress);
       const steps = getAcademySteps(cfiResult, lessonProgress);
@@ -3763,6 +3763,20 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
       const inProgressLesson = LESSONS.find(l => { const p = lessonProgress[l.id] || 0; return p > 0 && p < 100; });
       const hasDelta = cfiHistory.length >= 2;
       const clarityDelta = hasDelta ? (cfiHistory[0].total_score - cfiHistory[cfiHistory.length - 1].total_score) : null;
+
+      // A lesson is locked when it isn't free and the person isn't Pro — same
+      // rule the Academy library uses. Recommendations must never bypass it.
+      const isLessonLocked = lesson => !!lesson && !lesson.free && !isPro;
+      // Renders "Start / Continue" when unlocked, or a Pro-required prompt that
+      // routes to upgrade instead of opening the lesson, when locked.
+      const LessonCTA = ({ lesson, label }) => isLessonLocked(lesson)
+        ? React.createElement("div", null,
+            React.createElement("div", { style: { display: 'inline-flex', alignItems: 'center', gap: 8, ...mono, fontSize: 10, letterSpacing: 1, color: '#C24545', marginBottom: 14 } },
+              '⊘ PRO REQUIRED'),
+            React.createElement("div", null,
+              React.createElement(CPButton, { onClick: onUpgrade }, 'Upgrade to Unlock →'))
+          )
+        : React.createElement(CPButton, { onClick: () => onStartLesson(lesson.id) }, label);
 
       const stepStyle = s => ({
         textAlign: 'left', padding: '16px 14px', borderRadius: 12, border: `1px solid ${CP.border}`,
@@ -3792,13 +3806,16 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
           // ── SECTION 1 — Recommended for you ──
           React.createElement(CPCard, { style: { padding: '32px 26px', marginBottom: 20, borderColor: CP.borderStrong } },
             React.createElement(CPEyebrow, null, 'Recommended For You'),
-            React.createElement("div", { style: { ...syne, fontSize: 17, fontWeight: 800, color: CP.ink, marginBottom: 8 } }, rec.lesson.title),
+            React.createElement("div", { style: { display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap', marginBottom: 8 } },
+              React.createElement("div", { style: { ...syne, fontSize: 17, fontWeight: 800, color: CP.ink } }, rec.lesson.title),
+              isLessonLocked(rec.lesson) && React.createElement("div", { style: { ...mono, fontSize: 9.5, letterSpacing: 1, color: '#C24545', padding: '3px 8px', border: '1px solid #C2454555', borderRadius: 2 } }, 'PRO REQUIRED')
+            ),
             React.createElement("div", { style: { fontSize: 13.5, color: CP.muted, lineHeight: 1.6, marginBottom: 18 } }, rec.lesson.sub),
             React.createElement("div", { style: { marginBottom: 20 } },
               React.createElement("div", { style: { ...mono, fontSize: 9, letterSpacing: 1, color: CP.faint, marginBottom: 6 } }, 'WHY THIS LESSON?'),
               React.createElement("div", { style: { fontSize: 13.5, color: CP.text, lineHeight: 1.7 } }, rec.reason)
             ),
-            React.createElement(CPButton, { onClick: () => onStartLesson(rec.lesson.id) }, 'Start This Lesson →')
+            React.createElement(LessonCTA, { lesson: rec.lesson, label: 'Start This Lesson →' })
           ),
 
           // ── SECTION 2 — Learning path ──
@@ -3829,11 +3846,11 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
                     ),
                     React.createElement("div", { style: { ...mono, fontSize: 11, color: CP.muted } }, `${lessonProgress[inProgressLesson.id]}% complete`)
                   ),
-                  React.createElement(CPButton, { onClick: () => onStartLesson(inProgressLesson.id) }, 'Continue Lesson →')
+                  React.createElement(LessonCTA, { lesson: inProgressLesson, label: 'Continue Lesson →' })
                 )
               : React.createElement(React.Fragment, null,
                   React.createElement("div", { style: { fontSize: 13.5, color: CP.muted, lineHeight: 1.7, marginBottom: 18 } }, "You haven't started a lesson yet. Your recommended lesson above is the best place to begin."),
-                  React.createElement(CPButton, { onClick: () => onStartLesson(rec.lesson.id) }, 'Start Recommended Lesson →')
+                  React.createElement(LessonCTA, { lesson: rec.lesson, label: 'Start Recommended Lesson →' })
                 )
           ),
 
@@ -3867,7 +3884,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
               React.createElement("div", { style: { ...mono, fontSize: 9, letterSpacing: 1, color: CP.faint, marginBottom: 6 } }, 'RECOMMENDED TRAINING'),
               React.createElement("div", { style: { ...syne, fontSize: 13.5, fontWeight: 700, color: CP.ink } }, rec.lesson.title)
             ),
-            React.createElement(CPButton, { onClick: () => onStartLesson(rec.lesson.id) }, 'Train This Area →')
+            React.createElement(LessonCTA, { lesson: rec.lesson, label: 'Train This Area →' })
           ),
 
           // ── SECTION 7 — Daily practice ──
@@ -4015,7 +4032,8 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
           React.createElement("div", {style: { maxWidth:1200, margin:'0 auto', padding:'40px 24px' }},
 
             React.createElement(AcademyHome, { setView, user, setShowAuth, cfiResult, cfiHistory, lessonProgress, isPro,
-              onStartLesson: (id) => { setActiveLesson(id); setPage(0); } }),
+              onStartLesson: (id) => { const l = LESSONS.find(x=>x.id===id); if (l && (l.free || isPro)) { setActiveLesson(id); setPage(0); } },
+              onUpgrade: handleProPayment }),
 
             React.createElement(CPEyebrow, null, 'Explore the Academy'),
             React.createElement("h2", {style: { ...syne, fontSize:'clamp(18px,4vw,24px)', fontWeight:800, color:CP.ink, marginBottom:16, lineHeight:1.15 }}, 'The complete NeuralFusion™ curriculum'),
