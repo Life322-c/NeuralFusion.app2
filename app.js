@@ -3648,9 +3648,271 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
     }
 
     // ═══════════════════════════════════════════════════════════════════
+    //  ACADEMY PERSONALIZATION ENGINE
+    //  CFI™ → Cognitive Profile → Development Opportunity → Recommended
+    //  Lesson → Training → Practice → Integration → Progress → Next.
+    //  Reads ONLY real cfiResult / LESSONS / lessonProgress data. Never
+    //  invents lessons, never fabricates metrics, never fakes completion.
+    // ═══════════════════════════════════════════════════════════════════
+
+    // Priority order (see master prompt "RECOMMENDATION LOGIC"):
+    // 1. Cognitive development opportunity (weakest dim → matching lesson.brain)
+    // 2. Current training progress (an in-progress lesson wins over a fresh one)
+    // 3. Lessons already completed (skip them)
+    // 4/5. Prerequisites / level progression (curriculum order, id ascending)
+    function getAcademyRecommendation(cfiResult, lessonProgress) {
+      const isComplete = id => (lessonProgress[id] || 0) === 100;
+      const inProgress = LESSONS.find(l => { const p = lessonProgress[l.id] || 0; return p > 0 && p < 100; });
+      if (inProgress) {
+        return { lesson: inProgress, opportunityDim: cfiResult?.profile?.weakestDim || null,
+          reason: `You're partway through this lesson. Finish it before starting something new — consistency matters more than coverage.` };
+      }
+      if (!cfiResult || !cfiResult.plan) {
+        const first = LESSONS.find(l => !isComplete(l.id)) || LESSONS[0];
+        return { lesson: first, opportunityDim: null,
+          reason: `This is the starting point for every NeuralFusion™ member. Take your CFI™ assessment and this recommendation will update to match how you think.` };
+      }
+      const { plan, profile } = cfiResult;
+      // plan.recommendedLessonIds = [1, <weakest-brain lesson id>]; weakest-first.
+      const ordered = [...plan.recommendedLessonIds].reverse();
+      const fromPlan = ordered.map(id => LESSONS.find(l => l.id === id)).filter(Boolean).find(l => !isComplete(l.id));
+      const nextInCurriculum = LESSONS.find(l => !isComplete(l.id));
+      const lesson = fromPlan || nextInCurriculum || LESSONS[LESSONS.length - 1];
+      const weakestName = CFI_DIM_LABELS[profile.weakestDim];
+      const matchesOpportunity = lesson.brain === profile.weakestBrain;
+      let reason;
+      if (matchesOpportunity) reason = `${weakestName} is currently your developing mode. ${plan.dailyExercise}`;
+      else if (lesson.id === 1) reason = `This lesson builds the foundation every later lesson depends on, including the training that targets ${weakestName.toLowerCase()}.`;
+      else if (!fromPlan && nextInCurriculum) reason = `You've completed your opportunity-matched training. This is your next lesson in sequence, building coordination across all four modes.`;
+      else reason = `This is the most relevant next step in your training journey right now.`;
+      return { lesson, opportunityDim: profile.weakestDim, reason };
+    }
+
+    // Five-step training path. Only marks a step complete/current when real
+    // state supports it — never a fabricated "in progress" for a step with
+    // no underlying data.
+    function getAcademySteps(cfiResult, lessonProgress) {
+      const completedCount = Object.values(lessonProgress).filter(v => v === 100).length;
+      const hasCFI = !!cfiResult;
+      const opportunityDone = cfiResult?.plan
+        ? cfiResult.plan.recommendedLessonIds.every(id => (lessonProgress[id] || 0) === 100)
+        : false;
+      const steps = [
+        { key: 'understand', step: '01', title: 'Understand', desc: 'Learn how your thinking works.', view: 'cfi',
+          status: hasCFI ? 'done' : 'current' },
+        { key: 'develop', step: '02', title: 'Develop', desc: 'Train your cognitive opportunity.', view: 'lessons',
+          status: !hasCFI ? 'locked' : opportunityDone ? 'done' : 'current' },
+        { key: 'integrate', step: '03', title: 'Integrate', desc: 'Apply multiple thinking modes together.', view: 'protocol',
+          status: !hasCFI ? 'locked' : opportunityDone ? 'current' : 'locked' },
+        { key: 'apply', step: '04', title: 'Apply', desc: 'Use NeuralFusion on real decisions and problems.', view: 'protocol',
+          status: completedCount >= LESSONS.length ? 'current' : 'locked' },
+        { key: 'improve', step: '05', title: 'Improve', desc: 'Track your development over time.', view: 'analytics',
+          status: hasCFI ? 'available' : 'locked' },
+      ];
+      return steps;
+    }
+
+    const DAILY_PRACTICE = {
+      A: { label: 'Analyze',   prompt: "Identify the facts you actually know about something on your mind right now, and separate them from your assumptions." },
+      I: { label: 'Sense',     prompt: "What are you noticing about a current situation that the available facts don't fully explain?" },
+      S: { label: 'Associate', prompt: "Name three unrelated ideas or fields that could change how you see a problem you're facing." },
+      R: { label: 'Reflect',   prompt: "What might you be overlooking in a decision you're currently working through?" },
+    };
+    function getDailyPractice(cfiResult) {
+      const dim = cfiResult?.profile?.weakestDim;
+      if (dim && DAILY_PRACTICE[dim]) return { dim, ...DAILY_PRACTICE[dim] };
+      const order = ['A', 'I', 'S', 'R'];
+      const dayIndex = Math.floor(Date.now() / 86400000) % order.length;
+      const fallbackDim = order[dayIndex];
+      return { dim: fallbackDim, ...DAILY_PRACTICE[fallbackDim] };
+    }
+
+    // ── Section 7: Today's Cognitive Practice ──────────────────────────
+    // Simplest functional version: no existing daily-practice engine to
+    // reuse, so this tracks only in-session state (no DB table exists for
+    // it yet) — an honest, un-fabricated completion marker for today.
+    function AcademyDailyPractice({ cfiResult }) {
+      const practice = getDailyPractice(cfiResult);
+      const [open, setOpen] = useState(false);
+      const [response, setResponse] = useState('');
+      const [done, setDone] = useState(false);
+      return (
+        React.createElement(CPCard, { style: { padding: '32px 26px', marginBottom: 20 } },
+          React.createElement(CPEyebrow, null, "Today's Cognitive Practice"),
+          React.createElement("div", { style: { ...syne, fontSize: 15, fontWeight: 800, color: CP.ink, marginBottom: 10 } }, practice.label),
+          React.createElement("div", { style: { fontSize: 13.5, color: CP.text, lineHeight: 1.7, marginBottom: open ? 16 : 20 } }, practice.prompt),
+          open && !done && React.createElement("div", { style: { marginBottom: 16 } },
+            React.createElement("textarea", {
+              value: response, onChange: e => setResponse(e.target.value), rows: 3, placeholder: 'Write a sentence or two…',
+              style: { width: '100%', boxSizing: 'border-box', padding: '12px 14px', borderRadius: 10, border: `1px solid ${CP.borderStrong}`, fontFamily: inter.fontFamily, fontSize: 13.5, color: CP.text, resize: 'vertical' }
+            })
+          ),
+          done && React.createElement("div", { style: { fontSize: 13, color: CP.goldDeep, marginBottom: 16 } }, "✓ Today's practice complete. Come back tomorrow for the next one."),
+          !done && React.createElement(CPButton, { onClick: () => { if (!open) { setOpen(true); } else { setDone(true); } } }, open ? 'Mark Practice Complete →' : "Start Today's Practice →")
+        )
+      );
+    }
+
+    // ── Full Academy homepage (Sections 1–10), rendered above the lesson
+    // library when the person is on the Lessons list view. ──────────────
+    function AcademyHome({ setView, user, setShowAuth, cfiResult, cfiHistory = [], lessonProgress, isPro, onStartLesson }) {
+      const hasCFI = !!(cfiResult && cfiResult.dimensionReports);
+      const rec = getAcademyRecommendation(cfiResult, lessonProgress);
+      const steps = getAcademySteps(cfiResult, lessonProgress);
+      const completedCount = Object.values(lessonProgress).filter(v => v === 100).length;
+      const inProgressLesson = LESSONS.find(l => { const p = lessonProgress[l.id] || 0; return p > 0 && p < 100; });
+      const hasDelta = cfiHistory.length >= 2;
+      const clarityDelta = hasDelta ? (cfiHistory[0].total_score - cfiHistory[cfiHistory.length - 1].total_score) : null;
+
+      const stepStyle = s => ({
+        textAlign: 'left', padding: '16px 14px', borderRadius: 12, border: `1px solid ${CP.border}`,
+        background: s.status === 'locked' ? CP.surface : CP.card,
+        opacity: s.status === 'locked' ? 0.55 : 1,
+        cursor: s.status === 'locked' ? 'default' : 'pointer',
+      });
+
+      return (
+        React.createElement("div", { style: { marginBottom: 56 } },
+
+          // ── Header ──
+          React.createElement("div", { style: { marginBottom: 32 } },
+            React.createElement(CPEyebrow, null, 'Your Cognitive Training Path'),
+            React.createElement("h1", { style: { ...syne, fontSize: 'clamp(20px,4.5vw,28px)', fontWeight: 800, color: CP.ink, marginBottom: 12, lineHeight: 1.15 } }, 'Develop How You Think'),
+            React.createElement("div", { style: { fontSize: 13.5, color: CP.muted, lineHeight: 1.7, maxWidth: 520, marginBottom: 20 } }, 'Your Cognitive Profile gives you a starting point. Your training path helps you develop from there.'),
+            hasCFI
+              ? React.createElement("button", { className: 'nf-cp-btn', onClick: () => setView('cfi'), style: { ...mono, fontSize: 11, letterSpacing: 1, color: CP.goldDeep, background: 'none', border: 'none', cursor: 'pointer', padding: 0 } }, 'View My Cognitive Profile →')
+              : React.createElement(CPButton, { onClick: () => setView('cfi') }, 'Take Your CFI™ Assessment →')
+          ),
+
+          // ── YOUR PROFILE ──
+          hasCFI && React.createElement("div", { style: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(150px,100%),1fr))', gap: 14, marginBottom: 32 } },
+            CP_MODE_ORDER.map(d => React.createElement(CPModeCard, { key: d, dim: d, report: cfiResult.dimensionReports[d] }))
+          ),
+
+          // ── SECTION 1 — Recommended for you ──
+          React.createElement(CPCard, { style: { padding: '32px 26px', marginBottom: 20, borderColor: CP.borderStrong } },
+            React.createElement(CPEyebrow, null, 'Recommended For You'),
+            React.createElement("div", { style: { ...syne, fontSize: 17, fontWeight: 800, color: CP.ink, marginBottom: 8 } }, rec.lesson.title),
+            React.createElement("div", { style: { fontSize: 13.5, color: CP.muted, lineHeight: 1.6, marginBottom: 18 } }, rec.lesson.sub),
+            React.createElement("div", { style: { marginBottom: 20 } },
+              React.createElement("div", { style: { ...mono, fontSize: 9, letterSpacing: 1, color: CP.faint, marginBottom: 6 } }, 'WHY THIS LESSON?'),
+              React.createElement("div", { style: { fontSize: 13.5, color: CP.text, lineHeight: 1.7 } }, rec.reason)
+            ),
+            React.createElement(CPButton, { onClick: () => onStartLesson(rec.lesson.id) }, 'Start This Lesson →')
+          ),
+
+          // ── SECTION 2 — Learning path ──
+          React.createElement("div", { style: { marginBottom: 20 } },
+            React.createElement(CPEyebrow, null, 'Your Learning Path'),
+            React.createElement("div", { style: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(140px,100%),1fr))', gap: 12 } },
+              steps.map(s => (
+                React.createElement("button", { key: s.key, className: 'nf-cp-row', disabled: s.status === 'locked', onClick: () => setView(s.view), style: stepStyle(s) },
+                  React.createElement("div", { style: { ...mono, fontSize: 10, letterSpacing: 1, color: CP.gold, marginBottom: 8 } }, s.step),
+                  React.createElement("div", { style: { ...syne, fontSize: 13, fontWeight: 800, color: CP.ink, marginBottom: 4 } }, s.title),
+                  React.createElement("div", { style: { fontSize: 11.5, color: CP.muted, lineHeight: 1.5, marginBottom: 8 } }, s.desc),
+                  React.createElement("div", { style: { ...mono, fontSize: 10, letterSpacing: 0.5, color: s.status === 'done' ? '#3E7CA6' : s.status === 'current' ? CP.goldDeep : CP.faint } },
+                    s.status === 'done' ? '✓ Complete' : s.status === 'current' ? '→ Current' : s.status === 'available' ? 'Available' : 'Locked')
+                )
+              ))
+            )
+          ),
+
+          // ── SECTION 3 — Continue where you left off ──
+          React.createElement(CPCard, { style: { padding: '28px 26px', marginBottom: 20 } },
+            React.createElement(CPEyebrow, null, inProgressLesson ? 'Continue Training' : 'Begin Your First Training Session'),
+            inProgressLesson
+              ? React.createElement(React.Fragment, null,
+                  React.createElement("div", { style: { ...syne, fontSize: 15, fontWeight: 800, color: CP.ink, marginBottom: 8 } }, inProgressLesson.title),
+                  React.createElement("div", { style: { display: 'flex', alignItems: 'center', gap: 12, marginBottom: 18 } },
+                    React.createElement("div", { style: { flex: 1, height: 6, background: CP.goldTint, borderRadius: 3, overflow: 'hidden' } },
+                      React.createElement("div", { style: { width: `${lessonProgress[inProgressLesson.id]}%`, height: '100%', background: CP.gold } })
+                    ),
+                    React.createElement("div", { style: { ...mono, fontSize: 11, color: CP.muted } }, `${lessonProgress[inProgressLesson.id]}% complete`)
+                  ),
+                  React.createElement(CPButton, { onClick: () => onStartLesson(inProgressLesson.id) }, 'Continue Lesson →')
+                )
+              : React.createElement(React.Fragment, null,
+                  React.createElement("div", { style: { fontSize: 13.5, color: CP.muted, lineHeight: 1.7, marginBottom: 18 } }, "You haven't started a lesson yet. Your recommended lesson above is the best place to begin."),
+                  React.createElement(CPButton, { onClick: () => onStartLesson(rec.lesson.id) }, 'Start Recommended Lesson →')
+                )
+          ),
+
+          // ── SECTION 4 — Four Thinking Modes ──
+          React.createElement("div", { style: { marginBottom: 20 } },
+            React.createElement(CPEyebrow, null, 'The Four Thinking Modes'),
+            React.createElement("div", { style: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(220px,100%),1fr))', gap: 14 } },
+              CP_MODE_ORDER.map(d => {
+                const brainKey = CFI_DIMENSION_META[d].brainKey;
+                const modeLessons = LESSONS.filter(l => l.brain === brainKey);
+                const modeCompleted = modeLessons.filter(l => (lessonProgress[l.id] || 0) === 100).length;
+                const avgProgress = modeLessons.length ? Math.round(modeLessons.reduce((s, l) => s + (lessonProgress[l.id] || 0), 0) / modeLessons.length) : null;
+                return (
+                  React.createElement(CPCard, { key: d, style: { padding: '20px 18px' } },
+                    React.createElement("div", { style: { ...syne, fontSize: 13, fontWeight: 800, color: CP.ink, marginBottom: 4 } }, CP_MODE_META[d].name),
+                    React.createElement("div", { style: { ...mono, fontSize: 9.5, letterSpacing: 0.4, color: CP.faint, marginBottom: 14 } }, CP_MODE_META[d].tagline),
+                    hasCFI && React.createElement("div", { style: { ...syne, fontSize: 20, fontWeight: 800, color: CP.goldDeep, marginBottom: 4 } }, cfiResult.dimensionReports[d].integrationScore, React.createElement("span", { style: { fontSize: 11, color: CP.faint, fontWeight: 500 } }, '% current level')),
+                    React.createElement("div", { style: { fontSize: 11.5, color: CP.muted } }, `${modeLessons.length} lesson${modeLessons.length === 1 ? '' : 's'}`, avgProgress !== null && avgProgress > 0 ? `, ${avgProgress}% training progress` : '')
+                  )
+                );
+              })
+            )
+          ),
+
+          // ── SECTION 5 — Train your development area ──
+          hasCFI && React.createElement(CPCard, { style: { padding: '32px 26px', marginBottom: 20 } },
+            React.createElement(CPEyebrow, null, 'Your Current Cognitive Opportunity'),
+            React.createElement("div", { style: { ...syne, fontSize: 16, fontWeight: 800, color: CP.ink, marginBottom: 10 } }, CFI_DIM_LABELS[cfiResult.profile.weakestDim]),
+            React.createElement("div", { style: { fontSize: 13.5, color: CP.muted, lineHeight: 1.7, marginBottom: 20 } }, 'This is an area where deliberate practice may help you create greater balance across your thinking process.'),
+            React.createElement("div", { style: { padding: '16px 18px', background: CP.surface, borderRadius: 12, border: `1px solid ${CP.border}`, marginBottom: 18 } },
+              React.createElement("div", { style: { ...mono, fontSize: 9, letterSpacing: 1, color: CP.faint, marginBottom: 6 } }, 'RECOMMENDED TRAINING'),
+              React.createElement("div", { style: { ...syne, fontSize: 13.5, fontWeight: 700, color: CP.ink } }, rec.lesson.title)
+            ),
+            React.createElement(CPButton, { onClick: () => onStartLesson(rec.lesson.id) }, 'Train This Area →')
+          ),
+
+          // ── SECTION 7 — Daily practice ──
+          React.createElement(AcademyDailyPractice, { cfiResult }),
+
+          // ── SECTION 8 — Integration Protocol ──
+          completedCount > 0 && React.createElement(CPCard, { style: { padding: '32px 26px', marginBottom: 20 } },
+            React.createElement(CPEyebrow, null, 'Put Your Thinking to Work'),
+            React.createElement("div", { style: { fontSize: 13.5, color: CP.muted, lineHeight: 1.7, marginBottom: 20 } }, 'Knowledge becomes useful when you apply it to something real.'),
+            React.createElement(CPButton, { onClick: () => setView('protocol') }, 'Start an Integration Session →')
+          ),
+
+          // ── SECTION 9 — Progress ──
+          React.createElement(CPCard, { style: { padding: '28px 26px', marginBottom: 20 } },
+            React.createElement(CPEyebrow, null, 'Your Cognitive Development'),
+            hasCFI
+              ? React.createElement("div", { style: { display: 'flex', gap: 28, flexWrap: 'wrap' } },
+                  React.createElement("div", null, React.createElement("div", { style: { ...syne, fontSize: 22, fontWeight: 800, color: CP.ink } }, completedCount, '/', LESSONS.length), React.createElement("div", { style: { ...mono, fontSize: 9.5, letterSpacing: 0.6, color: CP.faint } }, 'LESSONS COMPLETED')),
+                  React.createElement("div", null, React.createElement("div", { style: { ...syne, fontSize: 22, fontWeight: 800, color: CP.ink } }, cfiResult.integrationScore ?? '—'), React.createElement("div", { style: { ...mono, fontSize: 9.5, letterSpacing: 0.6, color: CP.faint } }, 'CFI™ COORDINATION SCORE'))
+                )
+              : React.createElement("div", { style: { fontSize: 13.5, color: CP.muted, lineHeight: 1.7 } }, 'Your baseline has been established. Complete your CFI™ assessment to begin tracking your journey.')
+          ),
+
+          // ── SECTION 10 — Clarity Delta ──
+          React.createElement(CPCard, { style: { padding: '28px 26px', marginBottom: 20 } },
+            React.createElement(CPEyebrow, null, 'Your Progress Over Time'),
+            hasDelta
+              ? React.createElement(React.Fragment, null,
+                  React.createElement("div", { style: { ...syne, fontSize: 26, fontWeight: 800, color: clarityDelta > 0 ? '#3E7CA6' : clarityDelta < 0 ? '#C24545' : CP.muted, marginBottom: 8 } }, clarityDelta > 0 ? '+' : '', clarityDelta),
+                  React.createElement("div", { style: { fontSize: 13, color: CP.muted, marginBottom: 16 } }, 'Change in Clarity Delta™ since your first CFI™.'),
+                  React.createElement(CPButton, { variant: 'outline', onClick: () => setView('analytics') }, 'View Full Progress →')
+                )
+              : React.createElement(React.Fragment, null,
+                  React.createElement("div", { style: { fontSize: 13.5, color: CP.muted, lineHeight: 1.7, marginBottom: 16 } }, hasCFI ? 'Your first CFI™ establishes your baseline. Retake it as you train to see your Clarity Delta™ over time.' : 'Take your CFI™ assessment to establish your starting point.'),
+                  React.createElement(CPButton, { variant: 'outline', onClick: () => setView('cfi') }, hasCFI ? 'Retake CFI™ →' : 'Take CFI™ →')
+                )
+          )
+        )
+      );
+    }
+
+    // ═══════════════════════════════════════════════════════════════════
     //  LESSONS VIEW
     // ═══════════════════════════════════════════════════════════════════
-    function LessonsView({ setView, user, session, paystackKey, setShowAuth, isPro, setIsPro, isEnterprise, lessonProgress, setLessonProgress, proPrice = 600000 }) {
+    function LessonsView({ setView, user, session, paystackKey, setShowAuth, isPro, setIsPro, isEnterprise, cfiResult, cfiHistory, lessonProgress, setLessonProgress, proPrice = 600000 }) {
       const [activeLesson, setActiveLesson] = useState(null);
       const [page, setPage] = useState(0);
       const [paystackLoading, setPaystackLoading] = useState(false);
@@ -3730,25 +3992,88 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
         );
       }
 
+      // ── Section 6: Explore the Academy — categorize real lessons only,
+      // never rename or fabricate. A lesson lands in the first category it
+      // matches; nothing is duplicated or invented. ──
+      const ACADEMY_CATEGORIES = [
+        { name: 'Foundations', match: l => l.level === 'Foundation' },
+        { name: 'Analytical Thinking', match: l => l.brain === 'analytical' },
+        { name: 'Intuitive Thinking', match: l => l.brain === 'intuitive' },
+        { name: 'Associative Thinking', match: l => l.brain === 'associative' },
+        { name: 'Reflective Thinking', match: l => l.brain === 'reflective' },
+        { name: 'Reference & Certification', match: l => l.level === 'Reference' },
+      ];
+      const assigned = new Set();
+      const categorized = ACADEMY_CATEGORIES.map(cat => {
+        const items = LESSONS.filter(l => !assigned.has(l.id) && cat.match(l));
+        items.forEach(l => assigned.add(l.id));
+        return { ...cat, items };
+      }).filter(cat => cat.items.length > 0);
+
       return (
-        React.createElement("div", {style: { paddingTop:80, paddingBottom:100 }}, React.createElement("div", {style: { maxWidth:1200, margin:'0 auto', padding:'40px 24px' }}, React.createElement("div", {style: { ...mono, fontSize:11, letterSpacing:1.5, color:C.cyan, marginBottom:16 }}, 'Lesson manuals'), React.createElement("h1", {style: { ...syne, fontSize:17, fontWeight:800, color:C.text, marginBottom:16, lineHeight:1.05, overflowWrap:'break-word', minWidth:0}}, 'Cognitive', React.createElement("br", null), 'training documents'), React.createElement("p", {style: { fontSize:15, color:C.muted, maxWidth:560, lineHeight:1.8, marginBottom:48 }}, 'Five structured manuals that form the complete NeuralFusion™ curriculum. Each is a cognitive transformation, not just information.'), React.createElement("div", {style: { display:'flex', flexDirection:'column', gap:16 }}, LESSONS.map((lesson,i)=>{
-                const col = levelColors[lesson.level] || C.cyan;
-                const prog = lessonProgress[lesson.id] || 0;
-                const isLocked = !lesson.free && !isPro;
-                const brainKey = lesson.brain === 'all' ? null : lesson.brain;
-                return (
-                  React.createElement("div", {key: lesson.id, className: "card", style: {
-                    padding:'28px 32px', position:'relative', overflow:'hidden',
-                    opacity: isLocked ? 0.6 : 1, cursor: isLocked ? 'default' : 'pointer',
-                  }, onClick: ()=>{ if(!isLocked){ setActiveLesson(lesson.id); setPage(0); } }, onMouseEnter: e=>{ if(!isLocked){ e.currentTarget.style.borderColor=col+'44'; } }, onMouseLeave: e=>{ e.currentTarget.style.borderColor=C.border; }}, React.createElement("div", {style: { position:'absolute', top:0, left:0, width:2, height:'100%', background:prog===100?'#7AAFCF':prog>0?col:C.border }}), React.createElement("div", {style: { display:'grid', gridTemplateColumns:'auto 1fr auto', gap:24, alignItems:'center' }}, React.createElement("div", {style: { ...syne, fontSize:14, fontWeight:800, color:col+'33', lineHeight:1.2, overflowWrap:'break-word', minWidth:0}}, String(i+1).padStart(2,'0')), React.createElement("div", null, React.createElement("div", {style: { display:'flex', gap:8, marginBottom:10, flexWrap:'wrap' }}, React.createElement("div", {style: { ...mono, fontSize:11, letterSpacing:1, color:col, padding:'3px 8px', border:`1px solid ${col}33`, borderRadius:2 }}, lesson.level.toUpperCase()), React.createElement("div", {style: { ...mono, fontSize:11, letterSpacing:1, color:C.muted, padding:'3px 8px', border:`1px solid ${C.border}`, borderRadius:2 }}, lesson.duration.toUpperCase()), lesson.free && React.createElement("div", {style: { ...mono, fontSize:11, letterSpacing:1, color:'#7AAFCF', padding:'3px 8px', border:`1px solid #7AAFCF33`, borderRadius:2 }}, 'Free'), isLocked && React.createElement("div", {style: { ...mono, fontSize:11, letterSpacing:1, color:'#F87171', padding:'3px 8px', border:`1px solid #F8717133`, borderRadius:2 }}, 'Pro required'), prog===100 && React.createElement("div", {style: { ...mono, fontSize:11, letterSpacing:1, color:'#7AAFCF', padding:'3px 8px', border:`1px solid #7AAFCF33`, borderRadius:2 }}, '✓ Complete')), React.createElement("div", {style: { ...syne, fontSize:14, fontWeight:700, color:C.text, marginBottom:6, overflowWrap:'break-word', minWidth:0}}, lesson.title), React.createElement("div", {style: { fontSize:13, color:C.muted }}, lesson.sub)), React.createElement("div", {style: { ...mono, fontSize:15, color:col+'44' }}, isLocked ? '⊘' : prog===100 ? '✓' : '→')), prog>0 && prog<100 && (
-                      React.createElement("div", {style: { marginTop:16, height:2, background:C.panel, borderRadius:2, overflow:'hidden' }}, React.createElement("div", {style: { width:`${prog}%`, height:'100%', background:col, borderRadius:2 }}))
-                    ))
-                );
-              })), !isPro && (
-              React.createElement("div", {className: "card", style: { marginTop:40, padding:'40px', textAlign:'center', borderColor:`${C.cyan}22` }}, React.createElement("div", {style: { ...mono, fontSize:11, letterSpacing:1, color:C.cyan, marginBottom:16 }}, 'Unlock all lessons'), React.createElement("div", {style: { ...syne, fontSize:15, fontWeight:800, color:C.text, marginBottom:8, overflowWrap:'break-word', minWidth:0}}, 'Pro access'), React.createElement("div", {style: { ...mono, fontSize:14, fontWeight:800, color:C.cyan, marginBottom:16, overflowWrap:'break-word', minWidth:0}}, `₦${(proPrice/100).toLocaleString()}`), React.createElement("div", {style: { fontSize:14, color:C.muted, marginBottom:32, maxWidth:400, margin:'0 auto 32px' }}, 'One-time payment. Unlocks Lessons 2–6 and the full training system.'), React.createElement("button", {className: "btn-primary", disabled: paystackLoading, onClick: handleProPayment}, paystackLoading ? 'Opening...' : `Upgrade to Pro: ₦${(proPrice/100).toLocaleString()} →`))
-            ), !isEnterprise && (
-              React.createElement("div", {className: "card", style: { marginTop:20, padding:'40px', textAlign:'center', borderColor:'rgba(76,247,192,0.25)', background:'rgba(5,20,38,0.8)' }}, React.createElement("div", {style: { ...mono, fontSize:11, letterSpacing:1, color:'#4CF7C0', marginBottom:16 }}, 'NeuralFusion™ Enterprise'), React.createElement("div", {style: { ...syne, fontSize:15, fontWeight:800, color:C.text, marginBottom:8, overflowWrap:'break-word', minWidth:0}}, 'Deploy it across your organisation'), React.createElement("div", {style: { ...mono, fontSize:14, fontWeight:800, color:'#4CF7C0', marginBottom:16, overflowWrap:'break-word', minWidth:0}}, '₦', ENTERPRISE_PRICE_DISPLAY), React.createElement("div", {style: { fontSize:14, color:C.muted, marginBottom:32, maxWidth:480, margin:'0 auto 32px', lineHeight:1.8 }}, 'Cohort management · CFI data entry · Facilitator dashboard · 5-lesson programme · Clarity Delta™ reporting'), React.createElement("button", {style: { ...syne, fontSize:13, fontWeight:700, padding:'14px 36px', background:'#4CF7C0', color:'#050C1A', border:'none', cursor:'pointer', borderRadius:2, overflowWrap:'break-word', minWidth:0}, onClick: ()=>setView('enterprise')}, 'Explore enterprise →'))
-            )))
+        React.createElement("div", {style: { paddingTop:80, paddingBottom:100, background:CP.bg }},
+          React.createElement("div", {style: { maxWidth:1200, margin:'0 auto', padding:'40px 24px' }},
+
+            React.createElement(AcademyHome, { setView, user, setShowAuth, cfiResult, cfiHistory, lessonProgress, isPro,
+              onStartLesson: (id) => { setActiveLesson(id); setPage(0); } }),
+
+            React.createElement(CPEyebrow, null, 'Explore the Academy'),
+            React.createElement("h2", {style: { ...syne, fontSize:'clamp(18px,4vw,24px)', fontWeight:800, color:CP.ink, marginBottom:16, lineHeight:1.15 }}, 'The complete NeuralFusion™ curriculum'),
+            React.createElement("p", {style: { fontSize:14, color:CP.muted, maxWidth:560, lineHeight:1.8, marginBottom:40 }}, 'Structured manuals that form the complete NeuralFusion™ curriculum. Each is a cognitive transformation, not just information.'),
+
+            categorized.map(cat => (
+              React.createElement("div", {key: cat.name, style: { marginBottom:36 }},
+                React.createElement("div", {style: { ...mono, fontSize:10.5, letterSpacing:1, color:CP.goldDeep, marginBottom:14, textTransform:'uppercase' }}, cat.name),
+                React.createElement("div", {style: { display:'flex', flexDirection:'column', gap:14 }}, cat.items.map((lesson) => {
+                  const col = levelColors[lesson.level] || CP.gold;
+                  const prog = lessonProgress[lesson.id] || 0;
+                  const isLocked = !lesson.free && !isPro;
+                  const idx = LESSONS.findIndex(l => l.id === lesson.id);
+                  return (
+                    React.createElement(CPCard, {key: lesson.id, style: {
+                      padding:'24px 26px', position:'relative', overflow:'hidden',
+                      opacity: isLocked ? 0.65 : 1, cursor: isLocked ? 'default' : 'pointer',
+                    }, onClick: ()=>{ if(!isLocked){ setActiveLesson(lesson.id); setPage(0); } }},
+                      React.createElement("div", {style: { position:'absolute', top:0, left:0, width:3, height:'100%', background:prog===100?'#3E7CA6':prog>0?col:CP.border }}),
+                      React.createElement("div", {style: { display:'grid', gridTemplateColumns:'auto 1fr auto', gap:20, alignItems:'center' }},
+                        React.createElement("div", {style: { ...syne, fontSize:13, fontWeight:800, color:CP.faint }}, String(idx+1).padStart(2,'0')),
+                        React.createElement("div", null,
+                          React.createElement("div", {style: { display:'flex', gap:8, marginBottom:10, flexWrap:'wrap' }},
+                            React.createElement("div", {style: { ...mono, fontSize:10, letterSpacing:1, color:col, padding:'3px 8px', border:`1px solid ${col}55`, borderRadius:2 }}, lesson.level.toUpperCase()),
+                            React.createElement("div", {style: { ...mono, fontSize:10, letterSpacing:1, color:CP.muted, padding:'3px 8px', border:`1px solid ${CP.border}`, borderRadius:2 }}, lesson.duration.toUpperCase()),
+                            lesson.free && React.createElement("div", {style: { ...mono, fontSize:10, letterSpacing:1, color:'#3E7CA6', padding:'3px 8px', border:'1px solid #3E7CA655', borderRadius:2 }}, 'Free'),
+                            isLocked && React.createElement("div", {style: { ...mono, fontSize:10, letterSpacing:1, color:'#C24545', padding:'3px 8px', border:'1px solid #C2454555', borderRadius:2 }}, 'Pro required'),
+                            prog===100 && React.createElement("div", {style: { ...mono, fontSize:10, letterSpacing:1, color:'#3E7CA6', padding:'3px 8px', border:'1px solid #3E7CA655', borderRadius:2 }}, '✓ Complete')
+                          ),
+                          React.createElement("div", {style: { ...syne, fontSize:13.5, fontWeight:700, color:CP.ink, marginBottom:6 }}, lesson.title),
+                          React.createElement("div", {style: { fontSize:12.5, color:CP.muted }}, lesson.sub)
+                        ),
+                        React.createElement("div", {style: { ...mono, fontSize:14, color:CP.faint }}, isLocked ? '⊘' : prog===100 ? '✓' : '→')
+                      ),
+                      prog>0 && prog<100 && React.createElement("div", {style: { marginTop:14, height:4, background:CP.goldTint, borderRadius:2, overflow:'hidden' }},
+                        React.createElement("div", {style: { width:`${prog}%`, height:'100%', background:col, borderRadius:2 }}))
+                    )
+                  );
+                }))
+              )
+            )),
+
+            !isPro && React.createElement(CPCard, {style: { marginTop:24, padding:'40px', textAlign:'center' }},
+              React.createElement(CPEyebrow, null, 'Unlock all lessons'),
+              React.createElement("div", {style: { ...syne, fontSize:15, fontWeight:800, color:CP.ink, marginBottom:8 }}, 'Pro access'),
+              React.createElement("div", {style: { ...syne, fontSize:14, fontWeight:800, color:CP.goldDeep, marginBottom:16 }}, `₦${(proPrice/100).toLocaleString()}`),
+              React.createElement("div", {style: { fontSize:14, color:CP.muted, marginBottom:32, maxWidth:400, margin:'0 auto 32px' }}, 'One-time payment. Unlocks Lessons 2–6 and the full training system.'),
+              React.createElement(CPButton, {onClick: handleProPayment, style: paystackLoading ? { opacity:0.6, pointerEvents:'none' } : {}}, paystackLoading ? 'Opening...' : `Upgrade to Pro: ₦${(proPrice/100).toLocaleString()} →`)
+            ),
+            !isEnterprise && React.createElement(CPCard, {style: { marginTop:20, padding:'40px', textAlign:'center', borderColor:'#3E7CA655', background:'#F5F9FB' }},
+              React.createElement(CPEyebrow, {color: '#3E7CA6'}, 'NeuralFusion™ Enterprise'),
+              React.createElement("div", {style: { ...syne, fontSize:15, fontWeight:800, color:CP.ink, marginBottom:8 }}, 'Deploy it across your organisation'),
+              React.createElement("div", {style: { ...syne, fontSize:14, fontWeight:800, color:'#3E7CA6', marginBottom:16 }}, '₦', ENTERPRISE_PRICE_DISPLAY),
+              React.createElement("div", {style: { fontSize:14, color:CP.muted, marginBottom:32, maxWidth:480, margin:'0 auto 32px', lineHeight:1.8 }}, 'Cohort management · CFI data entry · Facilitator dashboard · 5-lesson programme · Clarity Delta™ reporting'),
+              React.createElement(CPButton, {onClick: ()=>setView('enterprise'), style: { background:'#3E7CA6', border:'1px solid #3E7CA6', color:'#FFFFFF' }}, 'Explore enterprise →')
+            )
+          )
+        )
       );
     }
     // ═══════════════════════════════════════════════════════════════════
@@ -5283,7 +5608,18 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
             else if (total<=35) { desc='Some fragmentation detected. Specific modes need targeted training.'; recommendation='Focus on mode activation (Lesson 2). Daily mode-switching drills for 14 days.'; }
             else if (total<=49) { desc='Significant fragmentation. Integration is inconsistent under pressure.'; recommendation='Begin from Lesson 1. Run the Core Loop daily.'; }
             else { desc='Severe fragmentation. Decision-making and clarity are compromised.'; recommendation='Start Lesson 1 immediately and track your CFI weekly.'; }
-            setCfiResult({ total, band: r.band, desc, recommendation, dimScores, dominantBrain });
+            // Rebuild the same enriched fields the fresh-quiz path builds (integrationScore,
+            // dimensionReports, profile, plan) so personalization works on every reload, not
+            // only immediately after finishing the assessment.
+            let integrationScore, dimensionReports, profile, plan;
+            try {
+              integrationScore = cfiIntegrationScore(total);
+              dimensionReports = {};
+              Object.keys(dimScores).forEach(d => { dimensionReports[d] = buildDimensionReport(d, dimScores[d]); });
+              profile = buildCognitiveProfile(dimensionReports, integrationScore, r.band);
+              plan = buildImprovementPlan(dimensionReports, r.band);
+            } catch(e) { console.error('[CFI ENRICH ON LOAD ERROR]', e); }
+            setCfiResult({ total, band: r.band, desc, recommendation, dimScores, dominantBrain, integrationScore, dimensionReports, profile, plan });
           }
         } catch(e){ console.error('[LOAD USER ERROR]', e); }
         setAuthLoading(false);
