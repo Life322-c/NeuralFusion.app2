@@ -1802,6 +1802,23 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
   const completedLessons = Object.values(lessonProgress).filter(v => v === 100).length;
   const cogScore = cfiResult ? Math.max(0, 100 - cfiResult.total * 2) : null;
 
+  // ── Data: Four Thinking Modes (consumer framing of FOUR_BRAINS) ──
+  const THINKING_MODES = [
+    { key:'analytical',  name:'Analytical',  tagline:'Evidence. Logic. Structure.' },
+    { key:'intuitive',   name:'Intuitive',   tagline:'Patterns. Signals. Instinct.' },
+    { key:'associative', name:'Associative', tagline:'Connections. Possibilities. Synthesis.' },
+    { key:'reflective',  name:'Reflective',  tagline:'Awareness. Meaning. Learning.' },
+  ];
+
+  // ── Data: User Journey (Discover → Improve) ───────────────────
+  const JOURNEY_STEPS = [
+    { step:'01', title:'Discover',   desc:'Take the CFI™ assessment.', view:'cfi' },
+    { step:'02', title:'Understand', desc:'Receive your Cognitive Profile.', view:'cfi' },
+    { step:'03', title:'Train',      desc:'Practice your thinking modes.', view:'protocol' },
+    { step:'04', title:'Integrate',  desc:'Apply structured thinking to real problems and decisions.', view:'lessons' },
+    { step:'05', title:'Improve',    desc:'Track your progress through Clarity Delta™.', view:'analytics' },
+  ];
+
   return (
     React.createElement("div", {style: { paddingTop:80, paddingBottom:80, background:'var(--void)' }},
       React.createElement("div", {style: {
@@ -1819,23 +1836,29 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
             React.createElement("div", {className: "bento-noise"}),
             React.createElement("div", null,
               React.createElement("div", {style: { display:'flex', alignItems:'center', gap:10, marginBottom:16 }},
-                React.createElement("span", {className: "bento-tag"}, React.createElement("span", {className: "bento-tag-dot"}), 'Cognitive Performance OS')
+                React.createElement("span", {className: "bento-tag"}, React.createElement("span", {className: "bento-tag-dot"}), 'The Human Thinking Operating System')
               ),
               React.createElement("h1", {style: {
-                fontFamily:"'Syne', sans-serif", fontSize:'clamp(17px,1.6vw,22px)',
-                fontWeight:800, lineHeight:1.0, color:'#F0E8D0', letterSpacing:'-0.02em',
-                marginBottom:20, maxWidth:'16ch', overflowWrap:'break-word', minWidth:0,
-              }}, 'Your mind isn\'t broken. It\'s ', React.createElement("span", {style: {
+                fontFamily:"'Syne', sans-serif", fontSize:'clamp(17px,1.8vw,24px)',
+                fontWeight:800, lineHeight:1.05, color:'#F0E8D0', letterSpacing:'-0.02em',
+                marginBottom:10, maxWidth:'18ch', overflowWrap:'break-word', minWidth:0,
+              }}, 'You are the intelligence.'),
+              React.createElement("p", {style: {
+                fontFamily:"'Syne', sans-serif", fontSize:'clamp(13px,1.1vw,15px)', fontWeight:600, lineHeight:1.4,
+                marginBottom:20, maxWidth:'30ch',
                 color:'transparent', backgroundClip:'text', WebkitBackgroundClip:'text',
                 backgroundImage:'linear-gradient(135deg, #C4A050, #E2BE78)',
-              }}, 'fragmented.')),
+              }}, 'NeuralFusion is the operating system for how you think.'),
               React.createElement("p", {style: {
                 fontFamily:"'DM Sans', sans-serif", fontSize:14, color:'#8A7A5A', lineHeight:1.7,
                 maxWidth:'52ch', marginBottom:24,
-              }}, 'NeuralFusion™ helps founders, executives, and high performers turn scattered thinking into structured clarity, using a diagnostic and training system built on four measurable modes of cognition.'),
-              React.createElement("div", {style: { display:'flex', gap:12, flexWrap:'wrap' }},
-                React.createElement("button", {className: "btn-primary", onClick: () => setView('cfi')}, 'Take the Free CFI Assessment →'),
-                React.createElement("button", {className: "btn-outline", onClick: () => setView('four-brains')}, 'See How It Works')
+              }}, 'Understand how your mind works. Train how you think. Make better decisions. Take the free 10-minute CFI™ assessment and discover how your Analytical, Intuitive, Associative and Reflective thinking modes work together.'),
+              React.createElement("div", {style: { display:'flex', alignItems:'center', gap:16, flexWrap:'wrap' }},
+                React.createElement("div", {style: { display:'flex', gap:12, flexWrap:'wrap' }},
+                  React.createElement("button", {className: "btn-primary", onClick: () => setView('cfi')}, 'Discover How You Think →'),
+                  React.createElement("button", {className: "btn-outline", onClick: () => setView('four-brains')}, 'See How It Works')
+                ),
+                React.createElement("span", {style: { fontFamily:"'Space Mono', monospace", fontSize:11, letterSpacing:0.5, color:'#8A7A5A' }}, 'Free. About 10 minutes.')
               )
             ),
             React.createElement("div", {style: { marginTop:32, opacity:0.5 }}, React.createElement(BentoWaveform, {color: "#C4A050", bars: 20, height: 28}))
@@ -1880,6 +1903,26 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
               React.createElement("div", {style: { fontFamily:"'DM Sans', sans-serif", fontSize:11, color:'#8A7A5A', lineHeight:1.6, maxWidth:'26ch', margin:'0 auto 16px' }}, 'Decompose → Sense → Expand → Reflect → Fuse. Under 90 seconds with training.'),
               React.createElement("button", {className: "btn-outline", style: { fontSize:10 }, onClick: () => setView('protocol')}, 'Run the Protocol →')
             )
+          )
+        ),
+
+        // ── THE THINKING PROBLEM ──────────────────────────────
+        React.createElement("div", {className: "bento-grid", style: { marginBottom:'var(--bento-gap-lg)' }},
+          React.createElement("div", {className: "bento-card bento-p-xl bento-col-12 bento-tab-2", style: {
+            textAlign:'center', padding:'40px 24px',
+          }},
+            React.createElement("p", {style: {
+              fontFamily:"'Syne', sans-serif", fontSize:'clamp(15px,2vw,19px)', fontWeight:700, color:'#F0E8D0',
+              lineHeight:1.5, maxWidth:'34ch', margin:'0 auto 16px', overflowWrap:'break-word',
+            }}, 'Your mind doesn\u2019t use just one way of thinking. You analyze. You sense. You connect. You reflect.'),
+            React.createElement("p", {style: {
+              fontFamily:"'Syne', sans-serif", fontSize:'clamp(13px,1.4vw,15px)', fontWeight:700, color:'#C4A050',
+              marginBottom:16,
+            }}, 'How well do they work together?'),
+            React.createElement("p", {style: {
+              fontFamily:"'DM Sans', sans-serif", fontSize:13, color:'#8A7A5A', lineHeight:1.7,
+              maxWidth:'52ch', margin:'0 auto',
+            }}, 'NeuralFusion™ helps you understand that interaction and train toward greater cognitive integration.')
           )
         ),
 
@@ -1941,29 +1984,106 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
           )
         ) : null,
 
-        // ── FOUR BRAINS + CFI (two clear next steps) ─────────
+        // ── FOUR THINKING MODES ───────────────────────────────
         React.createElement("div", {style: { marginBottom:'var(--bento-gap-lg)' }},
           React.createElement("div", {className: "bento-section-header"},
-            React.createElement("div", {style: { fontFamily:"'Space Mono', monospace", fontSize:11, letterSpacing:1, color:'#C4A050', marginBottom:12 }}, 'How it works'),
-            React.createElement("div", {style: { fontFamily:"'Syne', sans-serif", fontSize:'clamp(14px,1.3vw,17px)', fontWeight:800, color:'#F0E8D0', letterSpacing:'-0.02em', lineHeight:1.1, marginBottom:12, overflowWrap:'break-word', minWidth:0 }}, 'Understand your mind, then measure it.'),
-            React.createElement("p", {style: { fontFamily:"'DM Sans', sans-serif", fontSize:14, color:'#8A7A5A', lineHeight:1.8, maxWidth:'60ch' }}, 'Two steps. Learn the framework, then take the diagnostic.')
+            React.createElement("div", {style: { fontFamily:"'Space Mono', monospace", fontSize:11, letterSpacing:1, color:'#C4A050', marginBottom:12 }}, 'The framework'),
+            React.createElement("div", {style: { fontFamily:"'Syne', sans-serif", fontSize:'clamp(14px,1.3vw,17px)', fontWeight:800, color:'#F0E8D0', letterSpacing:'-0.02em', lineHeight:1.1, marginBottom:12, overflowWrap:'break-word', minWidth:0 }}, 'Meet Your Four Thinking Modes'),
+            React.createElement("p", {style: { fontFamily:"'DM Sans', sans-serif", fontSize:14, color:'#8A7A5A', lineHeight:1.8, maxWidth:'60ch' }}, 'Not personality types. Four thinking modes within one system, each measurable, each trainable.')
           ),
           React.createElement("div", {className: "bento-grid"},
-            React.createElement("div", {className: "bento-card bento-p-md bento-card-medium bento-col-6 bento-tab-2", style: { cursor:'pointer' }, onClick: () => setView('four-brains')},
-              React.createElement("div", {className: "bento-noise"}),
-              React.createElement("span", {className: "bento-label"}, 'Four Brains framework'),
-              React.createElement("div", {style: { fontFamily:"'Syne', sans-serif", fontSize:14, fontWeight:700, color:'#F0E8D0', marginBottom:16, lineHeight:1.2, overflowWrap:'break-word', minWidth:0 }}, 'Every mind has four', React.createElement("br", null), 'cognitive instruments.'),
-              React.createElement(BentoBrainQuad, {setView: setView})
-            ),
-            React.createElement("div", {className: "bento-card bento-card-gold bento-p-md bento-card-medium bento-col-6 bento-tab-2", style: { display:'flex', flexDirection:'column', justifyContent:'space-between' }},
-              React.createElement("div", {style: { position:'absolute', top:0, left:0, right:0, height:1, background:'linear-gradient(90deg, transparent, rgba(196,160,80,0.4), transparent)', animation:'scanH 4s ease-in-out 1s infinite' }}),
-              React.createElement("div", null,
-                React.createElement("span", {className: "bento-label"}, 'CFI assessment'),
-                React.createElement("div", {style: { fontFamily:"'Syne', sans-serif", fontSize:15, fontWeight:800, color:'#F0E8D0', marginBottom:6, lineHeight:1.2, overflowWrap:'break-word', minWidth:0 }}, 'Cognitive Fragmentation Index™'),
-                React.createElement("div", {style: { fontFamily:"'DM Sans', sans-serif", fontSize:12, color:'#8A7A5A', marginBottom:18, lineHeight:1.5 }}, 'A precision diagnostic across five cognitive dimensions. Fifteen statements, ninety seconds.')
-              ),
-              React.createElement("button", {className: "btn-primary", style: { fontSize:12, padding:'12px 20px', width:'100%', textAlign:'center' }, onClick: () => setView('cfi')}, 'Begin CFI →')
+            THINKING_MODES.map(mode => {
+              const b = C.brains[mode.key];
+              return (
+                React.createElement("div", {key: mode.key, className: "bento-card bento-p-md bento-col-3 bento-tab-2 bento-card-small", style: { cursor:'pointer', display:'flex', flexDirection:'column', gap:12 }, onClick: () => setView('four-brains')},
+                  React.createElement("div", {style: {
+                    width:36, height:36, borderRadius:'50%',
+                    background:b.dim, border:`1px solid ${b.color}44`,
+                    display:'flex', alignItems:'center', justifyContent:'center',
+                    fontFamily:"'Space Mono', monospace", fontSize:15, color:b.color, textShadow:`0 0 10px ${b.color}66`,
+                  }}, b.symbol),
+                  React.createElement("div", {style: { fontFamily:"'Space Mono', monospace", fontSize:11, letterSpacing:1.5, color:b.color, textTransform:'uppercase' }}, mode.name),
+                  React.createElement("p", {style: { fontFamily:"'DM Sans', sans-serif", fontSize:12, color:'#8A7A5A', lineHeight:1.6, margin:0 }}, mode.tagline)
+                )
+              );
+            })
+          )
+        ),
+
+        // ── CFI™ ───────────────────────────────────────────────
+        React.createElement("div", {className: "bento-grid", style: { marginBottom:'var(--bento-gap-lg)' }},
+          React.createElement("div", {className: "bento-card bento-card-gold bento-p-xl bento-col-12 bento-tab-2", style: {
+            position:'relative', overflow:'hidden', textAlign:'center', padding:'48px 24px',
+          }},
+            React.createElement("div", {style: { position:'absolute', top:0, left:0, right:0, height:1, background:'linear-gradient(90deg, transparent, rgba(196,160,80,0.4), transparent)', animation:'scanH 4s ease-in-out 1s infinite' }}),
+            React.createElement("span", {className: "bento-label"}, 'CFI\u2122 assessment'),
+            React.createElement("h2", {style: {
+              fontFamily:"'Syne', sans-serif", fontSize:'clamp(18px,3vw,26px)', fontWeight:800, color:'#F0E8D0',
+              lineHeight:1.25, marginTop:12, marginBottom:16, maxWidth:'26ch', margin:'12px auto 16px', overflowWrap:'break-word',
+            }}, 'Discover How Your Thinking Works Together'),
+            React.createElement("p", {style: {
+              fontFamily:"'DM Sans', sans-serif", fontSize:14, color:'#8A7A5A', lineHeight:1.8,
+              maxWidth:520, margin:'0 auto 28px',
+            }}, 'Your CFI™ profile gives you a structured picture of how your thinking modes interact, your starting point for training toward integration.'),
+            React.createElement("div", {style: { display:'flex', flexDirection:'column', alignItems:'center', gap:8 }},
+              React.createElement("button", {className: "btn-primary", onClick: () => setView('cfi')}, 'Discover Your Cognitive Profile →'),
+              React.createElement("span", {style: { fontFamily:"'Space Mono', monospace", fontSize:11, letterSpacing:0.5, color:'#8A7A5A' }}, 'Free. About 10 minutes.')
             )
+          )
+        ),
+
+        // ── FROM FRAGMENTATION TO INTEGRATION ─────────────────
+        React.createElement("div", {className: "bento-grid", style: { marginBottom:'var(--bento-gap-lg)' }},
+          React.createElement("div", {className: "bento-card bento-card-deep bento-p-xl bento-col-12 bento-tab-2", style: { textAlign:'center', padding:'48px 24px' }},
+            React.createElement("div", {className: "bento-grid-lines"}),
+            React.createElement("h2", {style: {
+              fontFamily:"'Syne', sans-serif", fontSize:'clamp(16px,2vw,20px)', fontWeight:800, color:'#F0E8D0',
+              marginBottom:28, overflowWrap:'break-word',
+            }}, 'From Fragmentation to Integration'),
+            React.createElement("div", {style: { display:'flex', flexDirection:'column', alignItems:'center', gap:6, marginBottom:36 }},
+              [
+                'Your CFI™ establishes your starting point.',
+                'Your NeuralFusion profile shows how your thinking modes interact.',
+                'Your training helps you practice integration.',
+                'Your Clarity Delta™ tracks change over time.',
+              ].map((line, i, arr) => (
+                React.createElement(React.Fragment, {key: i},
+                  React.createElement("p", {style: { fontFamily:"'DM Sans', sans-serif", fontSize:13, color:'#8A7A5A', lineHeight:1.6, maxWidth:'42ch', margin:0 }}, line),
+                  i < arr.length - 1 ? React.createElement("span", {style: { color:'rgba(196,160,80,0.4)', fontSize:14 }}, '\u2193') : null
+                )
+              ))
+            ),
+            React.createElement("div", {style: { display:'flex', gap:10, flexWrap:'wrap', justifyContent:'center', alignItems:'center' }},
+              ['Measure', 'Understand', 'Train', 'Integrate', 'Improve'].map((word, i, arr) => (
+                React.createElement(React.Fragment, {key: word},
+                  React.createElement("span", {style: { fontFamily:"'Space Mono', monospace", fontSize:11, letterSpacing:1.5, color:'#C4A050', textTransform:'uppercase' }}, word),
+                  i < arr.length - 1 ? React.createElement("span", {style: { color:'rgba(196,160,80,0.3)', fontSize:11 }}, '\u2192') : null
+                )
+              ))
+            )
+          )
+        ),
+
+        // ── THE DIFFERENCE ─────────────────────────────────────
+        React.createElement("div", {className: "bento-grid", style: { marginBottom:'var(--bento-gap-lg)' }},
+          React.createElement("div", {className: "bento-card bento-p-xl bento-col-12 bento-tab-2", style: { textAlign:'center', padding:'40px 24px' }},
+            React.createElement("div", {style: { fontFamily:"'Space Mono', monospace", fontSize:11, letterSpacing:1.5, color:'#C4A050', marginBottom:16 }}, 'The difference'),
+            React.createElement("h2", {style: {
+              fontFamily:"'Syne', sans-serif", fontSize:'clamp(16px,2vw,20px)', fontWeight:800, color:'#F0E8D0',
+              marginBottom:16, overflowWrap:'break-word',
+            }}, 'Think Better. Deliberately.'),
+            React.createElement("p", {style: { fontFamily:"'DM Sans', sans-serif", fontSize:14, color:'#8A7A5A', lineHeight:1.8, maxWidth:'46ch', margin:'0 auto' }},
+              'You don\u2019t need another app to think for you. You need a system that helps you understand and train your own thinking. You are the intelligence. NeuralFusion is the operating system.'
+            )
+          )
+        ),
+
+        // ── USER JOURNEY ───────────────────────────────────────
+        React.createElement("div", {className: "bento-grid", style: { marginBottom:'var(--bento-gap-lg)' }},
+          React.createElement("div", {className: "bento-card bento-p-md bento-col-12 bento-tab-2"},
+            React.createElement("span", {className: "bento-label"}, 'Your journey'),
+            React.createElement("div", {style: { fontFamily:"'Syne', sans-serif", fontSize:14, fontWeight:700, color:'#F0E8D0', marginBottom:12, lineHeight:1.2, overflowWrap:'break-word', minWidth:0 }}, 'From your first assessment to measurable change.'),
+            React.createElement(BentoStepList, {steps: JOURNEY_STEPS, setView: setView})
           )
         ),
 
@@ -1972,11 +2092,11 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
           React.createElement("div", {className: "bento-grid-lines"}),
           React.createElement("div", {className: "bento-noise"}),
           React.createElement("div", {style: { position:'relative', zIndex:1 }},
-            React.createElement("div", {style: { fontFamily:"'Space Mono', monospace", fontSize:11, letterSpacing:1, color:'rgba(196,160,80,0.7)', marginBottom:16 }}, 'Begin your evolution'),
-            React.createElement("div", {style: { fontFamily:"'Syne', sans-serif", fontSize:'clamp(14px,1.3vw,17px)', fontWeight:800, color:'#F0E8D0', letterSpacing:'-0.015em', lineHeight:1.05, marginBottom:16, overflowWrap:'break-word', minWidth:0 }}, 'Your thinking is about to', ' ', React.createElement("span", {style: { color:'#C4A050' }}, 'change permanently.')),
-            React.createElement("p", {style: { fontFamily:"'DM Sans', sans-serif", fontSize:13, color:'#8A7A5A', lineHeight:1.8, maxWidth:'44ch', margin:'0 auto 28px' }}, 'Find your baseline before you try to fix anything. Ninety seconds, no framework knowledge required.'),
+            React.createElement("div", {style: { fontFamily:"'Space Mono', monospace", fontSize:11, letterSpacing:1, color:'rgba(196,160,80,0.7)', marginBottom:16 }}, 'Think better. Deliberately.'),
+            React.createElement("div", {style: { fontFamily:"'Syne', sans-serif", fontSize:'clamp(14px,1.3vw,17px)', fontWeight:800, color:'#F0E8D0', letterSpacing:'-0.015em', lineHeight:1.05, marginBottom:16, overflowWrap:'break-word', minWidth:0 }}, 'Start by discovering', ' ', React.createElement("span", {style: { color:'#C4A050' }}, 'how your mind thinks.')),
+            React.createElement("p", {style: { fontFamily:"'DM Sans', sans-serif", fontSize:13, color:'#8A7A5A', lineHeight:1.8, maxWidth:'44ch', margin:'0 auto 28px' }}, '10 minutes. Free to begin. No framework knowledge required.'),
             React.createElement("div", {style: { display:'flex', gap:12, justifyContent:'center', flexWrap:'wrap' }},
-              React.createElement("button", {className: "btn-primary", onClick: () => setView('cfi')}, 'Begin CFI →'),
+              React.createElement("button", {className: "btn-primary", onClick: () => setView('cfi')}, 'Start Your Free Cognitive Profile →'),
               React.createElement("button", {className: "btn-outline", onClick: () => setView('four-brains')}, 'Explore the framework')
             )
           )
