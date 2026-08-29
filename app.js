@@ -2740,143 +2740,424 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
       );
     }
 
+    // ═══════════════════════════════════════════════════════════════════
+    //  COGNITIVE PROFILE — white-first results experience
+    //  Scoped light theme, distinct from the app's global dark navy/gold
+    //  theme (same pattern as the accessible assessment screens above).
+    //  Every number and sentence below is pulled from the real CFI
+    //  scoring pipeline (dimensionReports / profile / plan) — nothing on
+    //  this page is hard-coded per user.
+    // ═══════════════════════════════════════════════════════════════════
+    const CP = {
+      bg: '#FFFFFF', card: '#FFFFFF', surface: '#FAF9F5',
+      ink: '#161616', text: '#2B2C31', muted: '#6B6E76', faint: '#9A9DA6',
+      border: '#ECE7DA', borderStrong: '#DED2AE',
+      gold: NF_GOLD, goldDeep: '#8F701F', goldTint: '#FBF4E3', goldTintStrong: '#F5E7C4',
+    };
+    const CP_BAND_COLORS = {
+      'Integrated': '#3E7CA6',
+      'Moderate fragmentation': '#B8923F',
+      'High fragmentation': '#C97A2B',
+      'Critical fragmentation': '#C24545',
+    };
+    const CP_MODE_META = {
+      A: { name: 'Analytical',  tagline: 'Evidence. Logic. Structure.' },
+      I: { name: 'Intuitive',   tagline: 'Patterns. Signals. Instinct.' },
+      S: { name: 'Associative', tagline: 'Connections. Possibilities. Synthesis.' },
+      R: { name: 'Reflective',  tagline: 'Awareness. Meaning. Learning.' },
+    };
+    const CP_MODE_ORDER = ['A', 'I', 'S', 'R'];
+    const CP_JOURNEY = [
+      { step: '01', title: 'Measure',    desc: 'Discover your CFI™.',                    view: 'cfi' },
+      { step: '02', title: 'Understand', desc: 'Explore your Cognitive Profile.',         view: 'cfi' },
+      { step: '03', title: 'Train',      desc: 'Learn through the NeuralFusion Academy.', view: 'lessons' },
+      { step: '04', title: 'Integrate',  desc: 'Practice the Integration Protocol.',      view: 'protocol' },
+      { step: '05', title: 'Improve',    desc: 'Track your Clarity Delta™.',              view: 'analytics' },
+    ];
+
+    function CPCard({ children, style }) {
+      return React.createElement("div", { style: { background: CP.card, border: `1px solid ${CP.border}`, borderRadius: 18, ...style } }, children);
+    }
+
+    function CPEyebrow({ children, color = CP.goldDeep }) {
+      return React.createElement("div", { style: { ...mono, fontSize: 11, letterSpacing: 1.5, color, marginBottom: 12, textTransform: 'uppercase' } }, children);
+    }
+
+    function CPScoreRing({ value, size = 180, stroke = 12, color = CP.gold, label }) {
+      const r = (size - stroke) / 2;
+      const circumference = 2 * Math.PI * r;
+      const offset = circumference * (1 - Math.max(0, Math.min(100, value)) / 100);
+      return (
+        React.createElement("div", { style: { position: 'relative', width: size, height: size, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 } },
+          React.createElement("svg", { width: size, height: size, style: { transform: 'rotate(-90deg)' } },
+            React.createElement("circle", { cx: size / 2, cy: size / 2, r, fill: 'none', stroke: CP.goldTintStrong, strokeWidth: stroke }),
+            React.createElement("circle", { cx: size / 2, cy: size / 2, r, fill: 'none', stroke: color, strokeWidth: stroke, strokeLinecap: 'round', strokeDasharray: circumference, strokeDashoffset: offset, style: { transition: 'stroke-dashoffset 0.9s ease' } })
+          ),
+          React.createElement("div", { style: { position: 'absolute', textAlign: 'center', padding: '0 10px' } },
+            React.createElement("div", { style: { ...syne, fontSize: 'clamp(30px,8vw,40px)', fontWeight: 800, color: CP.ink, lineHeight: 1 } }, value),
+            label && React.createElement("div", { style: { ...mono, fontSize: 9.5, letterSpacing: 1, color: CP.muted, marginTop: 8, maxWidth: size - 30, lineHeight: 1.4 } }, label)
+          )
+        )
+      );
+    }
+
+    // Four thinking modes as one coordinated system, not four competing bars.
+    function CPWheel({ dimensionReports, size = 236 }) {
+      const dims = CP_MODE_ORDER;
+      const angles = { A: -90, I: 0, S: 90, R: 180 };
+      const cx = size / 2, cy = size / 2, orbitR = size / 2 - 52;
+      const pos = angle => { const rad = angle * Math.PI / 180; return [cx + orbitR * Math.cos(rad), cy + orbitR * Math.sin(rad)]; };
+      return (
+        React.createElement("svg", { width: size, height: size, viewBox: `0 0 ${size} ${size}`, style: { maxWidth: '100%', height: 'auto' } },
+          React.createElement("circle", { cx, cy, r: orbitR, fill: 'none', stroke: CP.border, strokeWidth: 1 }),
+          dims.map(d => {
+            const report = dimensionReports[d];
+            const [x, y] = pos(angles[d]);
+            const strength = Math.max(0.18, report.integrationScore / 100);
+            return React.createElement("line", { key: 'conn' + d, x1: cx, y1: cy, x2: x, y2: y, stroke: CP.gold, strokeWidth: 1.5 + strength * 2.5, strokeOpacity: 0.25 + strength * 0.45, strokeLinecap: 'round' });
+          }),
+          React.createElement("circle", { cx, cy, r: 25, fill: CP.goldTint, stroke: CP.gold, strokeWidth: 1.5 }),
+          React.createElement("text", { x: cx, y: cy + 3, fill: CP.goldDeep, fontSize: 8, fontFamily: mono.fontFamily, letterSpacing: 0.5, textAnchor: 'middle' }, 'SYSTEM'),
+          dims.map(d => {
+            const report = dimensionReports[d];
+            const [x, y] = pos(angles[d]);
+            const r = 17 + (report.integrationScore / 100) * 9;
+            return (
+              React.createElement("g", { key: 'node' + d },
+                React.createElement("circle", { cx: x, cy: y, r, fill: '#FFFFFF', stroke: CP.gold, strokeWidth: 2 }),
+                React.createElement("text", { x, y: y + 4.5, fill: CP.goldDeep, fontSize: 13, fontFamily: syne.fontFamily, fontWeight: 800, textAnchor: 'middle' }, d)
+              )
+            );
+          }),
+          dims.map(d => { const [x, y] = pos(angles[d]); const ly = y > cy ? y + 34 : y - 28; return React.createElement("text", { key: 'lbl' + d, x, y: ly, fill: CP.muted, fontSize: 10, fontFamily: mono.fontFamily, textAnchor: 'middle' }, CP_MODE_META[d].name); })
+        )
+      );
+    }
+
+    function CPModeCard({ dim, report }) {
+      const meta = CP_MODE_META[dim];
+      return (
+        React.createElement(CPCard, { style: { padding: '20px 18px' } },
+          React.createElement("div", { style: { display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 } },
+            React.createElement("div", { style: { ...syne, fontSize: 13, fontWeight: 800, color: CP.ink, flex: 1 } }, meta.name),
+            React.createElement("div", { style: { ...syne, fontSize: 18, fontWeight: 800, color: CP.goldDeep } }, report.integrationScore, React.createElement("span", { style: { fontSize: 10, color: CP.faint, fontWeight: 500 } }, '%'))
+          ),
+          React.createElement("div", { style: { height: 5, background: CP.goldTint, borderRadius: 3, overflow: 'hidden', marginBottom: 10 } },
+            React.createElement("div", { style: { width: `${report.integrationScore}%`, height: '100%', background: CP.gold, borderRadius: 3, transition: 'width 0.6s ease' } })
+          ),
+          React.createElement("div", { style: { ...mono, fontSize: 9.5, letterSpacing: 0.4, color: CP.faint } }, meta.tagline)
+        )
+      );
+    }
+
+    // Tap to expand a mode's full dimensional detail — keeps the page scannable
+    // on mobile while still surfacing the real strengths/blind-spot data.
+    function CPModeDetail({ dim, report }) {
+      const [open, setOpen] = useState(false);
+      const meta = CP_MODE_META[dim];
+      return (
+        React.createElement(CPCard, { style: { padding: 0, marginBottom: 10, overflow: 'hidden' } },
+          React.createElement("button", { className: "nf-cp-row", onClick: () => setOpen(o => !o), style: { width: '100%', background: 'none', border: 'none', cursor: 'pointer', padding: '16px 18px', display: 'flex', alignItems: 'center', gap: 12, textAlign: 'left' } },
+            React.createElement("div", { style: { ...syne, fontSize: 13, fontWeight: 800, color: CP.ink, flex: 1 } }, meta.name),
+            React.createElement("div", { style: { ...syne, fontSize: 13, fontWeight: 800, color: CP.goldDeep } }, report.integrationScore, '%'),
+            React.createElement("div", { style: { color: CP.faint, fontSize: 13, transition: 'transform 0.2s', transform: open ? 'rotate(180deg)' : 'none' } }, '▾')
+          ),
+          open && React.createElement("div", { style: { padding: '0 18px 20px' } },
+            React.createElement("div", { style: { fontSize: 13.5, color: CP.text, lineHeight: 1.7, marginBottom: 16 } }, report.meaning),
+            React.createElement("div", { style: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(200px,100%),1fr))', gap: 16, marginBottom: 16 } },
+              React.createElement("div", null,
+                React.createElement("div", { style: { ...mono, fontSize: 9.5, letterSpacing: 1, color: CP.goldDeep, marginBottom: 6 } }, 'STRENGTHS'),
+                report.strengths.map((s, i) => React.createElement("div", { key: i, style: { fontSize: 12.5, color: CP.muted, lineHeight: 1.6, marginBottom: 3 } }, '· ', s))
+              ),
+              React.createElement("div", null,
+                React.createElement("div", { style: { ...mono, fontSize: 9.5, letterSpacing: 1, color: CP.faint, marginBottom: 6 } }, 'WATCH FOR'),
+                report.blindSpots.map((s, i) => React.createElement("div", { key: i, style: { fontSize: 12.5, color: CP.muted, lineHeight: 1.6, marginBottom: 3 } }, '· ', s))
+              )
+            ),
+            React.createElement("div", null,
+              React.createElement("div", { style: { ...mono, fontSize: 9.5, letterSpacing: 1, color: CP.goldDeep, marginBottom: 6 } }, 'COORDINATION PRACTICE'),
+              report.improvements.slice(0, 2).map((s, i) => React.createElement("div", { key: i, style: { fontSize: 12.5, color: CP.text, lineHeight: 1.6, marginBottom: 3 } }, `${i + 1}. `, s))
+            )
+          )
+        )
+      );
+    }
+
+    function CPButton({ children, onClick, variant = 'primary', style }) {
+      const base = { ...syne, fontSize: 13.5, fontWeight: 700, padding: '14px 24px', borderRadius: 999, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8, minHeight: 48, transition: 'opacity 0.15s ease', border: '1px solid transparent' };
+      const variants = {
+        primary: { background: CP.gold, color: '#1A1204', border: `1px solid ${CP.gold}` },
+        outline: { background: '#FFFFFF', color: CP.ink, border: `1px solid ${CP.borderStrong}` },
+        ghost: { background: 'none', color: CP.muted, border: '1px solid transparent' },
+      };
+      return React.createElement("button", { className: "nf-cp-btn", onClick, style: { ...base, ...variants[variant], ...style } }, children);
+    }
+
     function CFIResults({ cfiResult, setView, user, setShowAuth, onRetake, saveState }) {
-      const bandColors = { 'Integrated':'#7AAFCF', 'Moderate fragmentation':'#C4A050', 'High fragmentation':'#FB8C00', 'Critical fragmentation':'#F87171' };
-      const bandColor = bandColors[cfiResult.band] || C.cyan;
-      // Display-only label. cfiResult.band itself (the raw value written to the
-      // database and used for admin filters / lesson gating) is never changed.
+      const bandColor = CP_BAND_COLORS[cfiResult.band] || CP.gold;
+      // Display-only label. cfiResult.band itself (raw DB value / lesson-gating
+      // value) is never changed, exactly as in the rest of the app.
       const bandFriendly = cfiCoordinationLabel(cfiResult.band);
       const dimensionReports = cfiResult.dimensionReports || {};
       const profile = cfiResult.profile;
       const plan = cfiResult.plan;
       const hasEnrichedData = !!(profile && plan && dimensionReports.A);
+      const integrationScore = cfiResult.integrationScore ?? Math.max(0, 100 - cfiResult.total * 2);
+
+      const [shareState, setShareState] = useState('idle');
+
+      // Inject scoped hover/focus styles once. Kept separate from the app's
+      // global dark-theme CSS since this page is intentionally a light theme.
+      useEffect(() => {
+        if (!document.getElementById('nf-cp-styles')) {
+          const style = document.createElement('style');
+          style.id = 'nf-cp-styles';
+          style.textContent = `
+            .nf-cp-row:hover { background: ${CP.surface}; }
+            .nf-cp-btn:hover { opacity: 0.88; }
+            .nf-cp-btn:focus-visible, .nf-cp-row:focus-visible { outline: 2px solid ${CP.goldDeep}; outline-offset: 2px; }
+            @media print { .nf-cp-noprint { display: none !important; } }
+          `;
+          document.head.appendChild(style);
+        }
+      }, []);
+
+      const shareUrl = 'https://tryneuralfusion.com/cfi';
+      const shareText = hasEnrichedData
+        ? `My NeuralFusion Cognitive Profile — Analytical ${dimensionReports.A.integrationScore}%, Intuitive ${dimensionReports.I.integrationScore}%, Associative ${dimensionReports.S.integrationScore}%, Reflective ${dimensionReports.R.integrationScore}%. Discover how you think.`
+        : '';
+      const handleShare = async () => {
+        if (navigator.share) {
+          try { await navigator.share({ title: 'My NeuralFusion™ Cognitive Profile', text: shareText, url: shareUrl }); } catch (e) { /* user cancelled */ }
+        } else if (navigator.clipboard) {
+          try { await navigator.clipboard.writeText(`${shareText} ${shareUrl}`); setShareState('copied'); setTimeout(() => setShareState('idle'), 2200); } catch (e) { /* clipboard unavailable */ }
+        }
+      };
+
+      // ── Minimal fallback for older/unenriched results (never fabricate
+      // per-mode data that doesn't exist on this record) ──
+      if (!hasEnrichedData) {
+        return (
+          React.createElement("div", { style: { background: CP.bg, paddingTop: 80, paddingBottom: 80 }, id: 'cfi-report' },
+            React.createElement("div", { style: { maxWidth: 640, margin: '0 auto', padding: '24px 20px', textAlign: 'center' } },
+              React.createElement(CPEyebrow, null, "Your NeuralFusion™ Cognitive Profile"),
+              React.createElement("h1", { style: { ...syne, fontSize: 'clamp(22px,5vw,30px)', fontWeight: 800, color: CP.ink, marginBottom: 28 } }, "Now you can see how your thinking works."),
+              React.createElement(CPCard, { style: { padding: '36px 24px', marginBottom: 28 } },
+                React.createElement(CPScoreRing, { value: integrationScore, color: bandColor, label: 'Overall Coordination Level' }),
+                React.createElement("div", { style: { marginTop: 16, display: 'inline-block', padding: '8px 18px', background: CP.goldTint, border: `1px solid ${CP.borderStrong}`, borderRadius: 999 } },
+                  React.createElement("div", { style: { ...syne, fontSize: 13, fontWeight: 800, color: bandColor } }, bandFriendly)
+                ),
+                React.createElement("div", { style: { fontSize: 14, color: CP.muted, lineHeight: 1.7, marginTop: 16 } }, cfiResult.desc)
+              ),
+              React.createElement("div", { style: { display: 'flex', gap: 12, flexWrap: 'wrap', justifyContent: 'center' } },
+                React.createElement(CPButton, { onClick: () => setView('protocol') }, 'Start Your Integration Session →'),
+                React.createElement(CPButton, { variant: 'outline', onClick: onRetake }, 'Retake Assessment')
+              )
+            )
+          )
+        );
+      }
+
+      const primaryMode = CP_MODE_META[profile.primaryDim];
+      const secondaryMode = CP_MODE_META[profile.secondaryDim];
+      const weakestMode = CP_MODE_META[profile.weakestDim];
+      const topLessonId = plan.recommendedLessonIds[plan.recommendedLessonIds.length - 1];
+      const topLesson = LESSONS.find(l => l.id === topLessonId) || LESSONS[0];
 
       return (
-        React.createElement("div", {style: { paddingTop:80, paddingBottom:60 }, id:'cfi-report'},
-          React.createElement("div", {style: { maxWidth:920, margin:'0 auto', padding:'24px 20px' }},
+        React.createElement("div", { style: { background: CP.bg, paddingTop: 72, paddingBottom: 90 }, id: 'cfi-report' },
+          React.createElement("div", { style: { maxWidth: 760, margin: '0 auto', padding: '24px 20px' } },
 
-            React.createElement("div", {style: { ...mono, fontSize:11, letterSpacing:1.5, color:C.cyan, marginBottom:8 }}, 'CFI™ · Your Cognitive Coordination Profile™'),
-            React.createElement("div", {style: { fontSize:12, color:C.muted, lineHeight:1.6, marginBottom:16, maxWidth:640 }},
-              'The CFI™ measures thinking clarity and how well your thinking modes work together. It is not a personality test, mental health screening, or medical evaluation.'
+            // ── Header ──
+            React.createElement("div", { style: { textAlign: 'center', marginBottom: 40 } },
+              React.createElement(CPEyebrow, null, "CFI™ · Your NeuralFusion™ Cognitive Profile"),
+              React.createElement("h1", { style: { ...syne, fontSize: 'clamp(24px,5.5vw,34px)', fontWeight: 800, color: CP.ink, marginBottom: 14, lineHeight: 1.15 } }, "Now you can see how your thinking works."),
+              React.createElement("div", { style: { fontSize: 13.5, color: CP.muted, lineHeight: 1.7, maxWidth: 480, margin: '0 auto' } }, "The CFI™ measures thinking clarity and how well your four thinking modes work together. It is not a personality test, mental health screening, or medical evaluation.")
             ),
 
-            // ── Coordination philosophy explainer: sets the frame before any scores appear ──
-            React.createElement("div", {style: { fontSize:13, color:C.text, lineHeight:1.8, marginBottom:28, maxWidth:680, padding:'16px 18px', background:C.deep, borderRadius:2, border:`1px solid ${C.border}` }},
-              'NeuralFusion™ recognizes that every person has a unique cognitive architecture. Different thinking modes naturally vary in strength. ',
-              React.createElement("strong", {style:{color:C.cyanBright}}, 'The goal is not to equalize them.'),
-              ' The goal is to coordinate them, so the right thinking mode contributes when a decision actually calls for it.'
-            ),
-
-            // ── Hero: coordination score ring + coordination level + coordination wheel ──
-            React.createElement("div", {className: "card", style: { padding:'32px 24px', marginBottom:24, position:'relative', overflow:'hidden' }},
-              React.createElement(ScanLine, null),
-              React.createElement("div", {style: { display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(min(260px,100%),1fr))', gap:32, alignItems:'center' }},
-                React.createElement("div", {style: { display:'flex', flexDirection:'column', alignItems:'center', textAlign:'center', gap:16 }},
-                  React.createElement(CFIScoreRing, {value: cfiResult.integrationScore ?? Math.max(0,100-cfiResult.total*2), color: bandColor, label:'Overall Coordination Level'}),
-                  React.createElement("div", {style: { display:'inline-block', padding:'8px 18px', background:`${bandColor}15`, border:`1px solid ${bandColor}33`, borderRadius:2 }},
-                    React.createElement("div", {style: { ...syne, fontSize:13, fontWeight:800, color:bandColor }}, bandFriendly)
+            // ── SECTION 1 — Profile overview ──
+            React.createElement(CPCard, { style: { padding: '36px 28px', marginBottom: 20 } },
+              React.createElement("div", { style: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(240px,100%),1fr))', gap: 32, alignItems: 'center' } },
+                React.createElement("div", { style: { display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', gap: 14 } },
+                  React.createElement(CPScoreRing, { value: integrationScore, color: bandColor, label: 'Cognitive Integration' }),
+                  React.createElement("div", { style: { display: 'inline-block', padding: '8px 18px', background: CP.goldTint, border: `1px solid ${CP.borderStrong}`, borderRadius: 999 } },
+                    React.createElement("div", { style: { ...syne, fontSize: 13, fontWeight: 800, color: bandColor } }, bandFriendly)
                   ),
-                  React.createElement("div", {style: { fontSize:13, color:C.muted, lineHeight:1.7, maxWidth:340 }}, cfiResult.desc)
+                  React.createElement("div", { style: { fontSize: 13, color: CP.muted, lineHeight: 1.7, maxWidth: 300 } }, cfiResult.desc)
                 ),
-                hasEnrichedData && React.createElement("div", {style: { display:'flex', flexDirection:'column', alignItems:'center' }},
-                  React.createElement("div", {style: { ...mono, fontSize:10, letterSpacing:1, color:C.muted, marginBottom:12 }}, 'YOUR COORDINATION WHEEL'),
-                  React.createElement(CoordinationWheel, {dimensionReports})
+                React.createElement("div", { style: { display: 'flex', flexDirection: 'column', alignItems: 'center' } },
+                  React.createElement("div", { style: { ...mono, fontSize: 9.5, letterSpacing: 1, color: CP.faint, marginBottom: 12 } }, 'FOUR THINKING MODES, ONE SYSTEM'),
+                  React.createElement(CPWheel, { dimensionReports })
                 )
               )
             ),
 
-            // ── Cognitive Coordination Profile™ ──
-            hasEnrichedData && React.createElement("div", {className: "card", style: { padding:'32px 24px', marginBottom:24 }},
-              React.createElement("div", {style: { ...mono, fontSize:11, letterSpacing:1, color:C.cyan, marginBottom:20 }}, 'Cognitive Coordination Profile™'),
-              React.createElement("div", {style: { fontSize:14, color:C.text, lineHeight:1.8, marginBottom:24, padding:'18px 20px', background:C.deep, borderRadius:2, border:`1px solid ${C.border}` }}, profile.summary),
-              React.createElement("div", {style: { display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(min(220px,100%),1fr))', gap:20 }},
+            // ── SECTION 2 — Four thinking modes ──
+            React.createElement("div", { style: { marginBottom: 28 } },
+              React.createElement(CPEyebrow, null, 'The Four Thinking Modes'),
+              React.createElement("div", { style: { fontSize: 12.5, color: CP.muted, lineHeight: 1.6, marginBottom: 16, maxWidth: 560 } }, "These scores reflect how often each mode currently contributes to your decisions, not how intelligent or capable you are in that area."),
+              React.createElement("div", { style: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(160px,100%),1fr))', gap: 12 } },
+                CP_MODE_ORDER.map(d => React.createElement(CPModeCard, { key: d, dim: d, report: dimensionReports[d] }))
+              )
+            ),
+
+            // ── SECTION 3 — How you tend to think ──
+            React.createElement(CPCard, { style: { padding: '32px 26px', marginBottom: 20 } },
+              React.createElement(CPEyebrow, null, 'Your Thinking Profile'),
+              React.createElement("h2", { style: { ...syne, fontSize: 18, fontWeight: 800, color: CP.ink, marginBottom: 18 } }, 'How You Tend to Think'),
+              React.createElement("div", { style: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(150px,100%),1fr))', gap: 16, marginBottom: 22 } },
                 [
-                  ['Overall coordination level', bandFriendly],
-                  ['Dominant thinking modes', profile.dominantModes.join(', ')],
-                  ['Supporting thinking modes', profile.supportingModes.join(', ')],
-                  ['Underutilized thinking modes', profile.underutilizedModes.join(', ')],
-                  ['Decision coordination style', profile.decisionCoordinationStyle],
-                  ['Coordination under pressure', profile.coordinationUnderPressure],
-                  ['Typical decision blind spots', profile.decisionBlindSpots],
-                  ['Natural strengths', profile.naturalStrengths],
-                  ['Suggested coordination exercise', profile.suggestedCoordinationExercise],
+                  ['Strongest mode', primaryMode.name],
+                  ['Supporting mode', secondaryMode.name],
+                  ['Developing mode', weakestMode.name],
                 ].map(([label, value], i) => (
-                  React.createElement("div", {key: i},
-                    React.createElement("div", {style: { ...mono, fontSize:10, letterSpacing:1, color:C.muted, marginBottom:6 }}, label.toUpperCase()),
-                    React.createElement("div", {style: { fontSize:13, color:C.text, lineHeight:1.6 }}, value)
+                  React.createElement("div", { key: i, style: { padding: '14px 16px', background: CP.surface, borderRadius: 12, border: `1px solid ${CP.border}` } },
+                    React.createElement("div", { style: { ...mono, fontSize: 9, letterSpacing: 1, color: CP.faint, marginBottom: 6 } }, label.toUpperCase()),
+                    React.createElement("div", { style: { ...syne, fontSize: 14, fontWeight: 800, color: CP.ink } }, value)
+                  )
+                ))
+              ),
+              React.createElement("div", { style: { fontSize: 14.5, color: CP.text, lineHeight: 1.8 } }, profile.summary)
+            ),
+
+            // ── SECTION 4 — Your dominant thinking pattern ──
+            React.createElement(CPCard, { style: { padding: '32px 26px', marginBottom: 20 } },
+              React.createElement(CPEyebrow, null, 'Your Thinking Pattern'),
+              React.createElement("h2", { style: { ...syne, fontSize: 18, fontWeight: 800, color: CP.ink, marginBottom: 14 } }, 'Your Dominant Thinking Pattern'),
+              React.createElement("div", { style: { fontSize: 14.5, color: CP.text, lineHeight: 1.8, marginBottom: 14 } }, profile.decisionCoordinationStyle),
+              React.createElement("div", { style: { padding: '16px 18px', background: CP.surface, borderRadius: 12, border: `1px solid ${CP.border}` } },
+                React.createElement("div", { style: { ...mono, fontSize: 9, letterSpacing: 1, color: CP.faint, marginBottom: 6 } }, 'UNDER PRESSURE'),
+                React.createElement("div", { style: { fontSize: 13.5, color: CP.muted, lineHeight: 1.6 } }, profile.coordinationUnderPressure)
+              )
+            ),
+
+            // ── SECTION 5 — Where your thinking may get stuck ──
+            React.createElement(CPCard, { style: { padding: '32px 26px', marginBottom: 20 } },
+              React.createElement(CPEyebrow, null, 'Potential Blind Spot'),
+              React.createElement("h2", { style: { ...syne, fontSize: 18, fontWeight: 800, color: CP.ink, marginBottom: 14 } }, 'Where Your Thinking May Get Stuck'),
+              React.createElement("div", { style: { fontSize: 14.5, color: CP.text, lineHeight: 1.8, marginBottom: 14 } }, profile.decisionBlindSpots),
+              dimensionReports[profile.weakestDim] && React.createElement("div", null,
+                dimensionReports[profile.weakestDim].blindSpots.slice(0, 2).map((s, i) => React.createElement("div", { key: i, style: { fontSize: 13, color: CP.muted, lineHeight: 1.7, marginBottom: 4 } }, '· ', s))
+              )
+            ),
+
+            // ── SECTION 6 — Where you can grow ──
+            React.createElement(CPCard, { style: { padding: '32px 26px', marginBottom: 20, borderColor: CP.borderStrong } },
+              React.createElement(CPEyebrow, null, 'Your Cognitive Opportunity'),
+              React.createElement("h2", { style: { ...syne, fontSize: 18, fontWeight: 800, color: CP.ink, marginBottom: 6 } }, 'Where You Can Grow'),
+              React.createElement("div", { style: { ...mono, fontSize: 11, letterSpacing: 0.5, color: CP.goldDeep, marginBottom: 14 } }, `Your next opportunity: ${weakestMode.name} integration`),
+              React.createElement("div", { style: { fontSize: 14.5, color: CP.text, lineHeight: 1.8 } }, profile.suggestedCoordinationExercise)
+            ),
+
+            // ── SECTION 7 — Integration session ──
+            React.createElement(CPCard, { style: { padding: '36px 26px', marginBottom: 20, background: CP.ink } },
+              React.createElement("div", { style: { ...mono, fontSize: 11, letterSpacing: 1.5, color: CP.gold, marginBottom: 12, textTransform: 'uppercase' } }, "Your First Integration Session"),
+              React.createElement("h2", { style: { ...syne, fontSize: 19, fontWeight: 800, color: '#FFFFFF', marginBottom: 10 } }, "Let's Put Your Thinking to Work."),
+              React.createElement("div", { style: { fontSize: 13.5, color: 'rgba(255,255,255,0.68)', lineHeight: 1.7, marginBottom: 24, maxWidth: 480 } }, "Choose a real decision, problem, or idea you're currently working through. The Integration Protocol walks your four thinking modes through it, one at a time."),
+              React.createElement("div", { style: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(190px,100%),1fr))', gap: 14, marginBottom: 26 } },
+                [...PROTOCOL_STEPS.map(s => ({ num: s.num, title: s.title, subtitle: s.subtitle })),
+                 { num: '05', title: 'FUSE', subtitle: 'See where your reasoning and instincts agree, and where they don\u2019t.' }
+                ].map((s, i) => (
+                  React.createElement("div", { key: i, style: { padding: '14px 4px' } },
+                    React.createElement("div", { style: { ...mono, fontSize: 10, letterSpacing: 1, color: CP.gold, marginBottom: 6 } }, s.num),
+                    React.createElement("div", { style: { ...syne, fontSize: 13, fontWeight: 800, color: '#FFFFFF', marginBottom: 4 } }, s.title),
+                    React.createElement("div", { style: { fontSize: 12, color: 'rgba(255,255,255,0.55)', lineHeight: 1.5 } }, s.subtitle)
+                  )
+                ))
+              ),
+              React.createElement(CPButton, { onClick: () => setView('protocol'), style: { width: '100%', justifyContent: 'center' } }, 'Start Your Integration Session →')
+            ),
+
+            // ── SECTION 8 — Academy recommendation ──
+            React.createElement(CPCard, { style: { padding: '32px 26px', marginBottom: 20 } },
+              React.createElement(CPEyebrow, null, "Your Recommended NeuralFusion™ Lesson"),
+              React.createElement("div", { style: { fontSize: 13, color: CP.muted, lineHeight: 1.7, marginBottom: 22, maxWidth: 480 } }, "Your Cognitive Profile gives you a starting point. The Academy helps you train from there."),
+              React.createElement("div", { style: { padding: '20px', background: CP.surface, borderRadius: 14, border: `1px solid ${CP.border}` } },
+                React.createElement("div", { style: { ...mono, fontSize: 9.5, letterSpacing: 1, color: CP.goldDeep, marginBottom: 10 } }, 'RECOMMENDED FOR YOU'),
+                React.createElement("div", { style: { ...syne, fontSize: 16, fontWeight: 800, color: CP.ink, marginBottom: 8 } }, topLesson.title),
+                React.createElement("div", { style: { fontSize: 13, color: CP.muted, lineHeight: 1.6, marginBottom: 16 } }, topLesson.sub),
+                React.createElement("div", { style: { marginBottom: 18 } },
+                  React.createElement("div", { style: { ...mono, fontSize: 9, letterSpacing: 1, color: CP.faint, marginBottom: 6 } }, 'WHY THIS LESSON?'),
+                  React.createElement("div", { style: { fontSize: 13, color: CP.text, lineHeight: 1.7 } }, `${weakestMode.name} is currently your developing mode. ${plan.dailyExercise}`)
+                ),
+                React.createElement("div", { style: { display: 'flex', gap: 10, flexWrap: 'wrap' } },
+                  React.createElement(CPButton, { onClick: () => setView('lessons') }, 'Start This Lesson →'),
+                  React.createElement(CPButton, { variant: 'outline', onClick: () => setView('lessons') }, 'View Academy →')
+                )
+              )
+            ),
+
+            // ── SECTION 9 — Training path ──
+            React.createElement("div", { style: { marginBottom: 20 } },
+              React.createElement(CPEyebrow, null, 'Your Cognitive Development Path'),
+              React.createElement("div", { style: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(130px,100%),1fr))', gap: 12 } },
+                CP_JOURNEY.map((s, i) => (
+                  React.createElement("button", { key: i, onClick: () => setView(s.view), className: "nf-cp-row", style: { textAlign: 'left', cursor: 'pointer', padding: '16px 14px', background: CP.card, border: `1px solid ${CP.border}`, borderRadius: 12 } },
+                    React.createElement("div", { style: { ...mono, fontSize: 10, letterSpacing: 1, color: CP.gold, marginBottom: 8 } }, s.step),
+                    React.createElement("div", { style: { ...syne, fontSize: 13, fontWeight: 800, color: CP.ink, marginBottom: 4 } }, s.title),
+                    React.createElement("div", { style: { fontSize: 11.5, color: CP.muted, lineHeight: 1.5 } }, s.desc)
                   )
                 ))
               )
             ),
 
-            // ── Understanding your scores ──
-            React.createElement("div", {className: "card", style: { padding:'24px', marginBottom:24 }},
-              React.createElement("div", {style: { ...mono, fontSize:11, letterSpacing:1, color:C.cyan, marginBottom:14 }}, 'How to read your scores'),
-              React.createElement("div", {style: { display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(min(240px,100%),1fr))', gap:12 }},
-                [90,75,50,25].map(s => (
-                  React.createElement("div", {key: s, style: { fontSize:12.5, color:C.muted, lineHeight:1.6 }},
-                    React.createElement("span", {style: { color:C.cyanBright, fontWeight:700 }}, s===90?'90%+':`${s}%+`), ': ', cfiScoreMeaning(s)
+            // ── Dimensional deep dive (optional, tap to expand) ──
+            React.createElement("div", { style: { marginBottom: 20 } },
+              React.createElement(CPEyebrow, null, 'Your Thinking Architecture'),
+              CP_MODE_ORDER.map(d => React.createElement(CPModeDetail, { key: d, dim: d, report: dimensionReports[d] }))
+            ),
+
+            // ── SECTION 10 — Clarity Delta ──
+            React.createElement(CPCard, { style: { padding: '28px 26px', marginBottom: 20 } },
+              React.createElement(CPEyebrow, null, 'Track Your Progress'),
+              React.createElement("div", { style: { ...syne, fontSize: 15, fontWeight: 800, color: CP.ink, marginBottom: 8 } }, 'Clarity Delta™ · Starting Point'),
+              React.createElement("div", { style: { fontSize: 13.5, color: CP.muted, lineHeight: 1.7, marginBottom: 16, maxWidth: 480 } }, "This CFI™ establishes your baseline. Complete NeuralFusion training and retake the assessment, and your Clarity Delta™ will show how your profile changes over time."),
+              React.createElement(CPButton, { variant: 'outline', onClick: () => setView('analytics') }, 'Continue Training →')
+            ),
+
+            // ── SECTION 11 — Shareable profile ──
+            React.createElement(CPCard, { style: { padding: '28px 26px', marginBottom: 20, textAlign: 'center' } },
+              React.createElement(CPEyebrow, null, 'Share Your Cognitive Profile'),
+              React.createElement("div", { style: { fontSize: 13.5, color: CP.muted, lineHeight: 1.7, marginBottom: 18, maxWidth: 440, margin: '0 auto 18px' } }, "You discovered how you think. Now invite someone else to discover theirs."),
+              React.createElement("div", { style: { display: 'inline-block', textAlign: 'left', padding: '20px 24px', background: CP.ink, borderRadius: 14, marginBottom: 20 } },
+                React.createElement("div", { style: { ...syne, fontSize: 12, fontWeight: 800, color: CP.gold, letterSpacing: 1, marginBottom: 10 } }, 'NEURALFUSION™ · My Cognitive Profile'),
+                CP_MODE_ORDER.map(d => (
+                  React.createElement("div", { key: d, style: { display: 'flex', justifyContent: 'space-between', gap: 24, fontSize: 12.5, color: 'rgba(255,255,255,0.85)', padding: '3px 0' } },
+                    React.createElement("span", null, CP_MODE_META[d].name), React.createElement("span", { style: { color: CP.gold, fontWeight: 700 } }, dimensionReports[d].integrationScore, '%')
                   )
-                ))
+                )),
+                React.createElement("div", { style: { fontSize: 10.5, color: 'rgba(255,255,255,0.4)', marginTop: 10 } }, 'Discover how you think. tryneuralfusion.com')
+              ),
+              React.createElement("div", null,
+                React.createElement(CPButton, { onClick: handleShare }, shareState === 'copied' ? 'Link copied ✓' : 'Share Profile')
               )
             ),
 
-            // ── Dimensional deep dive ──
-            hasEnrichedData && React.createElement("div", {style: { marginBottom:8 }},
-              React.createElement("div", {style: { ...mono, fontSize:11, letterSpacing:1, color:C.cyan, marginBottom:20 }}, 'Your Thinking Architecture'),
-              CFI_SECTION_ORDER.map(d => React.createElement(CFIDimensionCard, {key: d, report: dimensionReports[d]}))
-            ),
-
-            // ── Coordination plan ──
-            hasEnrichedData && React.createElement("div", {className: "card", style: { padding:'32px 24px', marginBottom:24, borderColor:`${C.cyan}33` }},
-              React.createElement("div", {style: { ...mono, fontSize:11, letterSpacing:1, color:C.cyan, marginBottom:20 }}, 'Your Personalized Coordination Plan'),
-              React.createElement("div", {style: { display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(min(260px,100%),1fr))', gap:24, marginBottom:24 }},
-                React.createElement("div", null,
-                  React.createElement("div", {style: { ...mono, fontSize:10, letterSpacing:1, color:'#7AAFCF', marginBottom:10 }}, 'DOMINANT & SUPPORTING MODES'),
-                  plan.topStrengths.map((s,i)=> React.createElement("div", {key: i, style: { fontSize:13, color:C.text, lineHeight:1.7, marginBottom:8 }}, React.createElement("strong", {style:{color:C.text}}, s.name), ': ', s.text))
-                ),
-                React.createElement("div", null,
-                  React.createElement("div", {style: { ...mono, fontSize:10, letterSpacing:1, color:'#FB8C00', marginBottom:10 }}, 'COORDINATION OPPORTUNITIES'),
-                  plan.topGrowthAreas.map((s,i)=> React.createElement("div", {key: i, style: { fontSize:13, color:C.text, lineHeight:1.7, marginBottom:8 }}, React.createElement("strong", {style:{color:C.text}}, s.name), ': ', s.text))
-                ),
-              ),
-              React.createElement("div", {style: { display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(min(260px,100%),1fr))', gap:20, marginBottom:24, padding:'20px', background:C.deep, borderRadius:2, border:`1px solid ${C.border}` }},
-                React.createElement("div", null, React.createElement("div", {style: { ...mono, fontSize:10, letterSpacing:1, color:C.muted, marginBottom:6 }}, 'DAILY EXERCISE'), React.createElement("div", {style: { fontSize:13, color:C.text, lineHeight:1.6 }}, plan.dailyExercise)),
-                React.createElement("div", null, React.createElement("div", {style: { ...mono, fontSize:10, letterSpacing:1, color:C.muted, marginBottom:6 }}, 'THIS WEEK'), React.createElement("div", {style: { fontSize:13, color:C.text, lineHeight:1.6 }}, plan.weeklyRoutine)),
-                React.createElement("div", null, React.createElement("div", {style: { ...mono, fontSize:10, letterSpacing:1, color:C.muted, marginBottom:6 }}, 'TIME TO IMPROVE'), React.createElement("div", {style: { fontSize:13, color:C.text, lineHeight:1.6 }}, plan.estimatedTime)),
-                React.createElement("div", null, React.createElement("div", {style: { ...mono, fontSize:10, letterSpacing:1, color:C.muted, marginBottom:6 }}, 'RETAKE ON'), React.createElement("div", {style: { fontSize:13, color:C.text, lineHeight:1.6 }}, plan.nextAssessmentDate)),
-              ),
-              React.createElement("div", {style: { ...mono, fontSize:10, letterSpacing:1, color:C.cyan, marginBottom:12 }}, 'RECOMMENDED LESSONS'),
-              React.createElement("div", {style: { display:'flex', flexWrap:'wrap', gap:10 }},
-                plan.recommendedLessonIds.map(id => {
-                  const lesson = LESSONS.find(l=>l.id===id);
-                  if (!lesson) return null;
-                  return React.createElement("button", {key: id, className: "btn-outline", style:{fontSize:12, padding:'10px 16px'}, onClick: ()=>setView('lessons')}, lesson.title, ' →');
-                })
-              )
-            ),
-
-            // ── Conversion / actions ──
-            React.createElement("div", {className: "card", style: { padding:'28px 24px', marginBottom:24, textAlign:'center' }},
-              React.createElement("div", {style: { ...syne, fontSize:14, fontWeight:800, color:C.text, marginBottom:8 }},
+            // ── Save / account ──
+            React.createElement("div", { className: "nf-cp-noprint", style: { padding: '28px 24px', marginBottom: 24, textAlign: 'center' } },
+              React.createElement("div", { style: { ...syne, fontSize: 14, fontWeight: 800, color: CP.ink, marginBottom: 8 } },
                 !user ? 'Save your results and track your growth'
-                : saveState === 'saving' ? 'Saving your results…'
-                : saveState === 'failed' ? 'Your result could not be saved'
-                : 'Your progress is saved.'
+                  : saveState === 'saving' ? 'Saving your results…'
+                  : saveState === 'failed' ? 'Your result could not be saved'
+                  : 'Your progress is saved.'
               ),
-              React.createElement("div", {style: { fontSize:13, color:C.muted, marginBottom:20, maxWidth:440, margin:'0 auto 20px', lineHeight:1.7 }},
+              React.createElement("div", { style: { fontSize: 13, color: CP.muted, marginBottom: 20, maxWidth: 440, margin: '0 auto 20px', lineHeight: 1.7 } },
                 !user ? 'Create a free account to save this report, track your Clarity Delta™ over time, and unlock your personalized learning path.'
-                : saveState === 'failed' ? 'See the notice above — retry the save, or it will be lost when you leave this page.'
-                : 'Retake the CFI™ over time to watch your Clarity Delta™ grow.'
+                  : saveState === 'failed' ? 'See the notice above — retry the save, or it will be lost when you leave this page.'
+                  : 'Retake the CFI™ over time to watch your Clarity Delta™ grow.'
               ),
-              !user && React.createElement("button", {className: "btn-primary", style: { marginRight:12, marginBottom:10 }, onClick: ()=>setShowAuth(true)}, 'Create free account')
+              !user && React.createElement(CPButton, { onClick: () => setShowAuth(true) }, 'Create free account')
             ),
 
-            React.createElement("div", {style: { display:'flex', gap:12, flexWrap:'wrap', justifyContent:'center' }},
-              React.createElement("button", {className: "btn-primary", onClick: ()=>setView('protocol')}, 'Begin training →'),
-              React.createElement("button", {className: "btn-outline", onClick: ()=>setView('lessons')}, 'Open lesson manuals'),
-              React.createElement("button", {className: "btn-outline", onClick: ()=>window.print()}, 'Download PDF report'),
-              React.createElement("button", {className: "btn-ghost", onClick: onRetake}, 'Retake assessment'),
+            // ── Final CTA ──
+            React.createElement("div", { style: { textAlign: 'center', marginBottom: 32 } },
+              React.createElement("h2", { style: { ...syne, fontSize: 20, fontWeight: 800, color: CP.ink, marginBottom: 8 } }, 'Think Better. Deliberately.'),
+              React.createElement("div", { style: { fontSize: 13.5, color: CP.muted, marginBottom: 22 } }, 'Your Cognitive Profile is only the beginning.'),
+              React.createElement("div", { className: "nf-cp-noprint", style: { display: 'flex', gap: 12, flexWrap: 'wrap', justifyContent: 'center' } },
+                React.createElement(CPButton, { onClick: () => setView('lessons') }, 'Continue Your NeuralFusion Journey →'),
+                React.createElement(CPButton, { variant: 'outline', onClick: () => window.print() }, 'Download PDF report'),
+                React.createElement(CPButton, { variant: 'ghost', onClick: onRetake }, 'Retake assessment')
+              )
             )
           )
         )
