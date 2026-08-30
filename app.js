@@ -1531,10 +1531,10 @@ Most learners take four to six weeks working through the lessons at the suggeste
         { v:'lessons', label:'Academy' },
         { v:'resources', label:'Resources' },
         { v:'enterprise', label:'Enterprise' },
-        { v:'about', label:'About' },
         ...(profile?.is_admin === true ? [{ v:'admin', label:'⚙ Admin' }] : []),
       ];
       const blogHref = 'blog/index.html';
+      const aboutHref = '/about';
 
       return (
         React.createElement(React.Fragment, null, React.createElement("nav", {style: {
@@ -1549,7 +1549,15 @@ Most learners take four to six weeks working through the lessons at the suggeste
                     cursor:'pointer', transition:'color 0.2s',
                     borderBottom: view===item.v ? `1px solid ${C.cyan}` : '1px solid transparent',
                   }}, item.label)
-                )), React.createElement("a", {href: blogHref, target: "_blank", rel: "noopener noreferrer", style: {
+                )), React.createElement("a", {href: aboutHref, style: {
+                  background:'none', border:'none', padding:'8px 12px',
+                  color: C.muted,
+                  ...inter, fontSize:12, fontWeight:400,
+                  cursor:'pointer', transition:'color 0.2s',
+                  borderBottom: '1px solid transparent',
+                  textDecoration:'none',
+                  display:'inline-block',
+                }}, 'About'), React.createElement("a", {href: blogHref, target: "_blank", rel: "noopener noreferrer", style: {
                   background:'none', border:'none', padding:'8px 12px',
                   color: C.muted,
                   ...inter, fontSize:12, fontWeight:400,
@@ -1583,11 +1591,16 @@ Most learners take four to six weeks working through the lessons at the suggeste
                   }}, React.createElement("div", {style: { flex:1, ...syne, fontSize:14, fontWeight:700, color: view===item.v ? C.cyan : C.text, overflowWrap:'break-word', minWidth:0}}, item.label), view===item.v && (
                       React.createElement("div", {style: { ...mono, fontSize:10, color:C.cyan }}, '◈')
                     ))
-                )), React.createElement("a", {href: blogHref, target: "_blank", rel: "noopener noreferrer", style: {
+                )), React.createElement("a", {href: aboutHref, style: {
                   display:'flex', alignItems:'center', width:'100%', textAlign:'left',
                   borderBottom:`1px solid ${C.border}`,
                   padding:'18px 0', cursor:'pointer', textDecoration:'none',
                   animation:`fadeUp 0.3s ease ${navItems.length*0.05}s both`,
+                }}, React.createElement("div", {style: { flex:1, ...syne, fontSize:14, fontWeight:700, color:C.text, overflowWrap:'break-word', minWidth:0}}, 'About')), React.createElement("a", {href: blogHref, target: "_blank", rel: "noopener noreferrer", style: {
+                  display:'flex', alignItems:'center', width:'100%', textAlign:'left',
+                  borderBottom:`1px solid ${C.border}`,
+                  padding:'18px 0', cursor:'pointer', textDecoration:'none',
+                  animation:`fadeUp 0.3s ease ${(navItems.length+1)*0.05}s both`,
                 }}, React.createElement("div", {style: { flex:1, ...syne, fontSize:14, fontWeight:700, color:C.text, overflowWrap:'break-word', minWidth:0}}, 'Blog'), React.createElement("div", {style: { ...mono, fontSize:10, color:C.muted }}, '↗'))), React.createElement("div", {style: {
                 padding:'24px', borderTop:`1px solid ${C.border}`,
                 animation:'fadeUp 0.35s ease 0.35s both',
@@ -4387,18 +4400,21 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
         { label:'Assess', v:'cfi' },{ label:'Architecture', v:'four-brains' },
         { label:'Analytics', v:'analytics' },{ label:'Integration Protocol', v:'protocol' },
         { label:'Academy', v:'lessons' },{ label:'Resources', v:'resources' },
-        { label:'Enterprise', v:'enterprise' },{ label:'About', v:'about' },
+        { label:'Enterprise', v:'enterprise' },
       ];
       const legalLinks = [
-        { label:'Privacy policy', v:'legal', tab:'privacy' },
-        { label:'Terms & conditions', v:'legal', tab:'terms' },
-        { label:'Data Protection', v:'legal', tab:'data' },
+        { label:'About', href:'/about' },
+        { label:'Research', href:'/research' },
+        { label:'Methodology', href:'/methodology' },
+        { label:'Contact', href:'/contact' },
+        { label:'Privacy policy', href:'/privacy' },
+        { label:'Terms & conditions', href:'/terms' },
       ];
       return (
         React.createElement("footer", {style: { borderTop:`1px solid ${C.border}`, padding:'48px 24px 32px', textAlign:'center' }}, React.createElement("div", {style: { maxWidth:1200, margin:'0 auto' }}, React.createElement("div", {style: { display:'flex', alignItems:'center', justifyContent:'center', marginBottom:32 }}, React.createElement(NFLogoLockup, {iconSize: 26, gap: 10, wordmarkColor: C.text})), React.createElement("div", {style: { display:'flex', justifyContent:'center', flexWrap:'wrap', gap:24, marginBottom:20 }}, links.map(l=>(
                 React.createElement("button", {key: l.v, onClick: ()=>setView(l.v), style: { background:'none', border:'none', color:C.muted, fontSize:12, cursor:'pointer' }}, l.label)
               ))), React.createElement("div", {style: { display:'flex', justifyContent:'center', flexWrap:'wrap', gap:20, marginBottom:32, paddingTop:16, borderTop:`1px solid ${C.border}` }}, legalLinks.map(l=>(
-                React.createElement("button", {key: l.label, onClick: ()=>setView(l.v), style: { background:'none', border:'none', color:C.dim, fontSize:10, cursor:'pointer', fontFamily:"'Space Mono', monospace", letterSpacing:1 }}, l.label)
+                React.createElement("a", {key: l.label, href: l.href, style: { background:'none', border:'none', color:C.dim, fontSize:10, cursor:'pointer', fontFamily:"'Space Mono', monospace", letterSpacing:1, textDecoration:'none' }}, l.label)
               ))), React.createElement("div", {style: { ...mono, fontSize:11, letterSpacing:1, color:C.dim }}, '© 2026 LIFE EDET · NEURALFUSION™ COGNITIVE PERFORMANCE OS · ALL RIGHTS RESERVED')))
       );
     }
