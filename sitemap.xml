@@ -25,6 +25,27 @@
     <priority>0.9</priority>
   </url>
 
+  <url>
+    <loc>https://tryneuralfusion.com/thinking</loc>
+    <lastmod>2026-08-30</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.9</priority>
+  </url>
+
+  <url>
+    <loc>https://tryneuralfusion.com/cognitive-fragmentation</loc>
+    <lastmod>2026-08-30</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+
+  <url>
+    <loc>https://tryneuralfusion.com/human-intelligence-ai</loc>
+    <lastmod>2026-08-30</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+
   <!-- Trust / E-E-A-T pages -->
   <url>
     <loc>https://tryneuralfusion.com/about</loc>
