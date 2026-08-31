@@ -1533,7 +1533,7 @@ Most learners take four to six weeks working through the lessons at the suggeste
         { v:'enterprise', label:'Enterprise' },
         ...(profile?.is_admin === true ? [{ v:'admin', label:'⚙ Admin' }] : []),
       ];
-      const blogHref = 'blog/index.html';
+      const blogHref = '/blog';
       const aboutHref = '/about';
 
       return (
