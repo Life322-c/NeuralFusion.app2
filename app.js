@@ -3558,7 +3558,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
                 'Discover how you think', React.createElement("br", null), React.createElement("span", {style: {color:AC.goldDark}}, 'and where it gets stuck')
               ),
               React.createElement("p", {style: { fontSize:19, color:AC.text, lineHeight:1.7, marginBottom:20, maxWidth:560, margin:'0 auto 20px' }},
-                "You'll answer 16 short, everyday questions. No jargon, nothing tricky. It takes about 3–4 minutes."
+                `You'll answer ${CFI_ITEMS.length} short, everyday questions. No jargon, nothing tricky. It takes about 3–4 minutes.`
               ),
               // Neurodivergent-support note
               React.createElement("div", {role:'note', style: { fontSize:18, color:AC.text, lineHeight:1.7, marginBottom:20, maxWidth:560, margin:'0 auto 20px', padding:'20px 22px', background:AC.goldTint, border:`1px solid ${AC.gold}`, borderRadius:16, textAlign:'left' }},
