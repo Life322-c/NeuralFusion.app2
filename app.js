@@ -4587,13 +4587,6 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
       const [editingLesson, setEditingLesson] = useState(null);
       const [lessonDraft, setLessonDraft] = useState({});
 
-      // CFI Items editor
-      const [editingCFI, setEditingCFI] = useState(null);
-      const [cfiDraft, setCfiDraft] = useState({});
-      const [localCFIItems, setLocalCFIItems] = useState(() => {
-        try { return JSON.parse(localStorage.getItem('nf_cfi_items') || 'null') || CFI_ITEMS; } catch(_) { return CFI_ITEMS; }
-      });
-
       // Cohort manager
       const [newCohort, setNewCohort] = useState({ name:'', org:'', facilitator:'', startDate:'', maxParticipants:'' });
       const [localCohorts, setLocalCohorts] = useState(() => {
@@ -4726,28 +4719,6 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
         showMsg('Lesson saved. Reload app to see changes.', 'success');
       };
 
-      // CFI Items editor
-      const saveCFIItem = () => {
-        const updated = localCFIItems.map(i => i.id === cfiDraft.id ? { ...i, ...cfiDraft } : i);
-        setLocalCFIItems(updated);
-        localStorage.setItem('nf_cfi_items', JSON.stringify(updated));
-        setEditingCFI(null);
-        showMsg('CFI item saved.', 'success');
-      };
-      const addCFIItem = () => {
-        const newItem = { id: Math.max(...localCFIItems.map(i=>i.id)) + 1, dim:'A', brain:'analytical', text:'New assessment item.' };
-        const updated = [...localCFIItems, newItem];
-        setLocalCFIItems(updated);
-        localStorage.setItem('nf_cfi_items', JSON.stringify(updated));
-        showMsg('New CFI item added.', 'success');
-      };
-      const deleteCFIItem = (id) => {
-        const updated = localCFIItems.filter(i => i.id !== id);
-        setLocalCFIItems(updated);
-        localStorage.setItem('nf_cfi_items', JSON.stringify(updated));
-        showMsg('CFI item deleted.', 'success');
-      };
-
       // Cohorts
       const createCohort = () => {
         if (!newCohort.name || !newCohort.org) { showMsg('Name and org required.', 'error'); return; }
@@ -4808,7 +4779,6 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
         { id:'cohorts',    label:'Cohorts',      icon:'⊞' },
         { id:'ent-results',label:'Ent Results',  icon:'◇' },
         { id:'lessons',    label:'Lessons',      icon:'▤' },
-        { id:'cfi-items',  label:'CFI Items',    icon:'≡' },
         { id:'broadcast',  label:'Broadcast',    icon:'◉' },
         { id:'branding',   label:'Branding',     icon:'◐' },
         { id:'pricing',    label:'Pricing',      icon:'₦' },
@@ -5116,20 +5086,6 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
                           React.createElement("div", {key: lesson.id, className: "card", style: { padding:'20px 24px', display:'flex', alignItems:'center', gap:16 }}, React.createElement("div", {style: { ...mono, fontSize:11, color:C.cyan, flexShrink:0 }}, '#', lesson.id), React.createElement("div", {style: { flex:1, minWidth:0 }}, React.createElement("div", {style: { fontSize:14, color:C.text, fontWeight:600 }}, lesson.title), React.createElement("div", {style: { fontSize:12, color:C.muted, marginTop:2 }}, lesson.sub), React.createElement("div", {style: { display:'flex', gap:10, marginTop:6 }}, React.createElement("span", {style: { ...mono, fontSize:8, color:C.muted }}, lesson.level), React.createElement("span", {style: { ...mono, fontSize:8, color:C.muted }}, '·'), React.createElement("span", {style: { ...mono, fontSize:8, color:C.muted }}, lesson.duration), React.createElement("span", {style: { ...mono, fontSize:8, color:lesson.free ? '#4CF7C0' : '#E2BE78', background: lesson.free ? 'rgba(76,247,192,0.1)' : 'rgba(226,190,120,0.1)', border: `1px solid ${lesson.free ? 'rgba(76,247,192,0.3)' : 'rgba(226,190,120,0.3)'}`, padding:'1px 6px', borderRadius:100 }}, lesson.free ? 'Free' : 'Pro'))), React.createElement("button", {onClick: () => startEditLesson(lesson), style: { ...mono, fontSize:9, padding:'6px 16px', borderRadius:2, cursor:'pointer', background:C.cyanDim, border:`1px solid ${C.borderBright}`, color:C.cyan, flexShrink:0 }}, 'Edit'))
                         )))
                     ))
-                ), tab === 'cfi-items' && (
-                  React.createElement("div", null, React.createElement("div", {style: { display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:20, flexWrap:'wrap', gap:12 }}, React.createElement("div", {style: { ...mono, fontSize:11, letterSpacing:1, color:C.muted }}, localCFIItems.length, 'ITEMS · Changes saved to localStorage'), React.createElement("button", {className: "btn-outline", style: { fontSize:10 }, onClick: addCFIItem}, '+ Add Item')), editingCFI !== null ? (
-                      React.createElement("div", {className: "card", style: { padding:'32px', marginBottom:16 }}, React.createElement("div", {style: { ...mono, fontSize:11, letterSpacing:1, color:C.cyan, marginBottom:16 }}, 'EDITING ITEM #', cfiDraft.id), React.createElement("div", {style: { display:'flex', flexDirection:'column', gap:14 }}, React.createElement("div", null, React.createElement("div", {style: { ...mono, fontSize:11, letterSpacing:1, color:C.muted, marginBottom:5 }}, 'Question text'), React.createElement("textarea", {value: cfiDraft.text || '', onChange: e => setCfiDraft(p => ({...p, text: e.target.value})), rows: 3, style: { fontSize:13, width:'100%', resize:'vertical', background:C.deep, border:`1px solid ${C.border}`, color:C.text, padding:'10px', borderRadius:4, fontFamily:'inherit' }})), React.createElement("div", {style: { display:'flex', gap:16, flexWrap:'wrap' }}, React.createElement("div", {style: { flex:1 }}, React.createElement("div", {style: { ...mono, fontSize:11, letterSpacing:1, color:C.muted, marginBottom:5 }}, 'DIMENSION (A/I/S/R/E)'), React.createElement("input", {value: cfiDraft.dim || '', onChange: e => setCfiDraft(p => ({...p, dim: e.target.value.toUpperCase().slice(0,1)})), maxLength: 1, style: { fontSize:14, width:'100%', textAlign:'center', ...mono }})), React.createElement("div", {style: { flex:2 }}, React.createElement("div", {style: { ...mono, fontSize:11, letterSpacing:1, color:C.muted, marginBottom:5 }}, 'Brain type'), React.createElement("select", {value: cfiDraft.brain || 'analytical', onChange: e => setCfiDraft(p => ({...p, brain: e.target.value})), style: { fontSize:13, width:'100%', background:C.deep, border:`1px solid ${C.border}`, color:C.text, padding:'10px', borderRadius:4 }}, ['analytical','intuitive','associative','reflective'].map(b => React.createElement("option", {key: b, value: b}, b))))), React.createElement("div", {style: { display:'flex', gap:12 }}, React.createElement("button", {className: "btn-primary", onClick: saveCFIItem}, 'Save Item'), React.createElement("button", {className: "btn-ghost", onClick: () => setEditingCFI(null)}, 'Cancel'))))
-                    ) : null, React.createElement("div", {className: "card", style: { overflow:'hidden' }}, React.createElement("div", {style: { display:'grid', gridTemplateColumns:'40px 40px 1fr 120px 100px', gap:12, padding:'12px 20px', borderBottom:`1px solid ${C.border}`, background:C.deep }}, ['#','DIM','TEXT','BRAIN','ACTIONS'].map(h => (
-                          React.createElement("div", {key: h, style: { ...mono, fontSize:11, letterSpacing:1, color:C.muted }}, h)
-                        ))), React.createElement("div", {style: { maxHeight:560, overflowY:'auto' }}, localCFIItems.map(item => {
-                          const brainColor = C.brains[item.brain]?.color || C.cyan;
-                          return (
-                            React.createElement("div", {key: item.id, style: {
-                              display:'grid', gridTemplateColumns:'40px 40px 1fr 120px 100px', gap:12,
-                              padding:'12px 20px', borderBottom:`1px solid ${C.border}`, transition:'background 0.15s',
-                            }, onMouseEnter: e => e.currentTarget.style.background=C.deep, onMouseLeave: e => e.currentTarget.style.background='transparent'}, React.createElement("div", {style: { ...mono, fontSize:10, color:C.dim }}, item.id), React.createElement("div", {style: { ...mono, fontSize:12, fontWeight:700, color:brainColor, overflowWrap:'break-word', minWidth:0}}, item.dim), React.createElement("div", {style: { fontSize:12, color:C.muted, lineHeight:1.5 }}, item.text), React.createElement("div", {style: { ...mono, fontSize:9, color:brainColor, textTransform:'capitalize' }}, item.brain), React.createElement("div", {style: { display:'flex', gap:6 }}, React.createElement("button", {onClick: () => { setEditingCFI(item.id); setCfiDraft({...item}); }, style: { ...mono, fontSize:8, padding:'4px 10px', borderRadius:2, cursor:'pointer', background:C.cyanDim, border:`1px solid ${C.borderBright}`, color:C.cyan }}, 'Edit'), React.createElement("button", {onClick: () => deleteCFIItem(item.id), style: { ...mono, fontSize:8, padding:'4px 10px', borderRadius:2, cursor:'pointer', background:'rgba(248,113,113,0.06)', border:'1px solid rgba(248,113,113,0.2)', color:'#F87171' }}, '✕')))
-                          );
-                        }))))
                 ), tab === 'broadcast' && (
                   React.createElement("div", {style: { maxWidth:800 }}, React.createElement("div", {className: "card", style: { padding:'32px', marginBottom:20, borderColor:'rgba(196,160,80,0.25)' }}, React.createElement("div", {style: { ...mono, fontSize:11, letterSpacing:1, color:C.cyan, marginBottom:16 }}, 'Send platform announcement'), React.createElement("div", {style: { marginBottom:16 }}, React.createElement("div", {style: { ...mono, fontSize:11, letterSpacing:1, color:C.muted, marginBottom:8 }}, 'Target audience'), React.createElement("div", {style: { display:'flex', gap:8, flexWrap:'wrap' }}, [['all','All users'],['pro','Pro Users'],['free','Free Users'],['enterprise','Enterprise Users']].map(([val,label]) => (
                             React.createElement("button", {key: val, onClick: () => setBroadcastTarget(val), style: {
@@ -5191,7 +5147,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
                               color: ctrl.value ? ctrl.onColor : ctrl.offColor,
                             }}, ctrl.value ? 'ON: Disable' : 'OFF: Enable'))
                         )), React.createElement("div", {style: { display:'flex', justifyContent:'space-between', alignItems:'center', padding:'14px 0', borderBottom:`1px solid ${C.border}` }}, React.createElement("div", null, React.createElement("div", {style: { fontSize:13, color:C.text, fontWeight:500 }}, 'Refresh All Data'), React.createElement("div", {style: { fontSize:12, color:C.muted }}, 'Pull latest from Supabase')), React.createElement("button", {className: "btn-outline", style: { fontSize:10 }, onClick: loadAdminData}, '↺ Refresh')), React.createElement("div", {style: { display:'flex', justifyContent:'space-between', alignItems:'center', padding:'14px 0', borderBottom:`1px solid ${C.border}` }}, React.createElement("div", null, React.createElement("div", {style: { fontSize:13, color:C.text, fontWeight:500 }}, 'Reset localStorage Overrides'), React.createElement("div", {style: { fontSize:12, color:C.muted }}, 'Clear all admin edits (lessons, CFI items, branding)')), React.createElement("button", {onClick: () => {
-                            ['nf_lessons_overrides','nf_cfi_items','nf_brand','nf_cohorts','nf_broadcasts'].forEach(k => localStorage.removeItem(k));
+                            ['nf_lessons_overrides','nf_cfi_items','nf_brand','nf_cohorts','nf_broadcasts'].forEach(k => localStorage.removeItem(k)); // nf_cfi_items kept here to clean up any leftover key from before this editor was removed
                             showMsg('localStorage overrides cleared. Reload to see effect.', 'success');
                           }, style: { ...mono, fontSize:9, padding:'8px 16px', cursor:'pointer', borderRadius:2, background:'rgba(248,113,113,0.08)', border:'1px solid rgba(248,113,113,0.2)', color:'#F87171' }}, 'Clear Overrides')), React.createElement("div", {style: { display:'flex', justifyContent:'space-between', alignItems:'center', padding:'14px 0' }}, React.createElement("div", null, React.createElement("div", {style: { fontSize:13, color:C.text, fontWeight:500 }}, 'Lock Admin Portal'), React.createElement("div", {style: { fontSize:12, color:C.muted }}, 'Re-lock this session')), React.createElement("button", {onClick: () => { setView('home'); }, style: { ...mono, fontSize:9, padding:'8px 16px', cursor:'pointer', borderRadius:2, background:'rgba(248,113,113,0.1)', border:'1px solid rgba(248,113,113,0.3)', color:'#F87171' }}, 'Exit Admin')))), React.createElement("div", {className: "card", style: { padding:'28px' }}, React.createElement("div", {style: { ...mono, fontSize:11, letterSpacing:1, color:C.cyan, marginBottom:12 }}, 'Supabase tables'), ['profiles','cfi_results','lesson_progress','platform_settings'].map((t,i) => (
                         React.createElement("div", {key: i, style: { display:'flex', alignItems:'center', gap:10, padding:'8px 0', borderBottom:`1px solid ${C.border}` }}, React.createElement("div", {style: { width:6, height:6, borderRadius:'50%', background:'#7AAFCF', flexShrink:0 }}), React.createElement("div", {style: { fontFamily:'monospace', fontSize:13, color:C.text }}, t))
