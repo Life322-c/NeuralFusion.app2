@@ -1888,25 +1888,36 @@ function BentoStepList({ steps, setView }) {
 //  is completely unaffected.
 // ═══════════════════════════════════════════════════════════════════
 
-// ── Homepage design tokens — white/gold, shares --gold with the rest
-// of the brand so buttons and links match the product exactly. ──────
+// ── Homepage design tokens — now mapped onto the same dark navy/gold
+// "bento" system (C) used by the Four Brains section, so the two feel
+// like one continuous product instead of two different skins. ──────
 const H = {
-  bg: '#FFFFFF', bgAlt: '#FAFAF8', ink: '#151513', text: '#1A1A18',
-  muted: '#5B5850', faint: '#6E6A5E', border: 'rgba(21,21,19,0.09)',
-  borderStrong: 'rgba(21,21,19,0.16)',
-  gold: '#C4A050', goldBright: '#E2BE78', goldDeep: '#8A6D2F',
-  goldTint: 'rgba(196,160,80,0.08)', goldLine: 'rgba(196,160,80,0.35)',
-  charcoal: '#141311', charcoalText: '#F3EFE6', charcoalMuted: '#B3AC9C',
+  bg: C.void, bgAlt: C.deep, ink: C.text, text: C.text,
+  muted: C.muted, faint: C.dim, border: C.border,
+  borderStrong: C.borderBright,
+  gold: C.cyan, goldBright: C.cyanBright, goldDeep: C.cyanBright,
+  goldTint: C.cyanDim, goldLine: C.borderBright,
+  charcoal: C.surface, charcoalText: C.text, charcoalMuted: C.muted,
 };
 const hDisplay = { fontFamily: "'Clash Display','Syne',sans-serif" };
 const hBody    = { fontFamily: "'Satoshi','DM Sans',sans-serif" };
 const hMono    = { fontFamily: "'Space Mono',monospace" };
 
 const HOME_MODES = [
-  { key:'analytical',  name:'Analytical',  symbol:'◰', color:'#8A6D2F', desc:'Breaks problems into evidence, structure and logic.' },
-  { key:'intuitive',   name:'Intuitive',   symbol:'◱', color:'#C4A050', desc:'Recognizes patterns, signals and possibilities before conscious analysis.' },
-  { key:'associative', name:'Associative', symbol:'◲', color:'#7A8FA6', desc:'Connects ideas, experiences and seemingly unrelated information.' },
-  { key:'reflective',  name:'Reflective',  symbol:'◳', color:'#A68A54', desc:'Steps back, evaluates meaning and examines the thinking itself.' },
+  { key:'analytical',  name:'Analytical',  symbol:'◰', color:C.brains.analytical.color, desc:'Breaks problems into evidence, structure and logic.' },
+  { key:'intuitive',   name:'Intuitive',   symbol:'◱', color:C.brains.intuitive.color, desc:'Recognizes patterns, signals and possibilities before conscious analysis.' },
+  { key:'associative', name:'Associative', symbol:'◲', color:C.brains.associative.color, desc:'Connects ideas, experiences and seemingly unrelated information.' },
+  { key:'reflective',  name:'Reflective',  symbol:'◳', color:C.brains.reflective.color, desc:'Steps back, evaluates meaning and examines the thinking itself.' },
+];
+
+// Feature set for the homepage bento grid (Section 1.5) — mirrors the
+// card language of the Four Brains / bento system elsewhere in the app.
+const HOME_BENTO = [
+  { title:'Four Brains Framework', desc:'Understand the four cognitive modes your mind already uses, every day, mostly unconsciously.', symbol:'◈', color:C.cyan, big:true },
+  { title:'CFI™ Assessment', desc:'A 13-item index that measures how fragmented or integrated your thinking currently is.', symbol:'◰', color:C.brains.analytical.color },
+  { title:'Integration Protocol', desc:'A guided 5-step exercise: Decompose, Sense, Expand, Reflect, Fuse.', symbol:'◱', color:C.brains.intuitive.color },
+  { title:'Clarity Delta™', desc:'Reassess over time and see your fragmentation score move.', symbol:'◲', color:C.brains.associative.color },
+  { title:'Enterprise', desc:'Bring structured thinking training to your leadership team.', symbol:'◳', color:C.brains.reflective.color },
 ];
 
 /** Shared radial diagram: four cognitive nodes around a center. Used in
@@ -1927,9 +1938,9 @@ function HomeCognitiveField({ size = 220, centerLabel = 'YOU', interactive, setV
         onClick: interactive ? () => setView('four-brains') : undefined,
         style: {
           position:'absolute', left:x, top:y, width:nodeSize, height:nodeSize, borderRadius:'50%',
-          background:'#FFFFFF', border:`1px solid ${m.color}55`, display:'flex', alignItems:'center', justifyContent:'center',
+          background:C.surface, border:`1px solid ${m.color}55`, display:'flex', alignItems:'center', justifyContent:'center',
           ...hMono, fontSize:nodeSize*0.4, color:m.color, cursor: interactive ? 'pointer' : 'default',
-          boxShadow:`0 2px 10px rgba(21,21,19,0.06)`,
+          boxShadow:`0 2px 10px rgba(0,0,0,0.3)`,
         },
         title: m.name,
         'aria-label': m.name,
@@ -1976,9 +1987,15 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
       .nf-home .nf-home-cta-outline:hover { border-color:${H.goldDeep}; background:${H.goldTint}; }
       .nf-home .nf-home-link { background:none; border:none; padding:0; font:inherit; color:${H.goldDeep}; cursor:pointer; text-decoration:underline; text-underline-offset:3px; }
       .nf-home .nf-home-node:focus-visible, .nf-home button:focus-visible, .nf-home a:focus-visible { outline:2px solid ${H.gold}; outline-offset:2px; }
-      .nf-home .nf-home-modes-grid { display:grid; grid-template-columns:repeat(4, 1fr); gap:1px; background:${H.border}; border:1px solid ${H.border}; }
+      .nf-home .nf-home-modes-grid { display:grid; grid-template-columns:repeat(4, 1fr); gap:12px; }
       @media (max-width: 760px) { .nf-home .nf-home-modes-grid { grid-template-columns:repeat(2, 1fr); } }
-      .nf-home .nf-home-mode-cell { background:#FFFFFF; padding:28px 22px; }
+      .nf-home .nf-home-mode-cell { background:${C.surface}; border:1px solid ${C.border}; border-radius:8px; padding:28px 22px; transition:border-color 0.15s ease, transform 0.15s ease; }
+      .nf-home .nf-home-mode-cell:hover { border-color:${H.goldLine}; transform:translateY(-2px); }
+      .nf-home .nf-home-bento { display:grid; grid-template-columns:repeat(4, 1fr); gap:12px; }
+      .nf-home .nf-home-bento-card { background:${C.surface}; border:1px solid ${C.border}; border-radius:8px; padding:26px; position:relative; overflow:hidden; transition:border-color 0.15s ease, transform 0.15s ease; grid-column:span 2; }
+      .nf-home .nf-home-bento-card:hover { transform:translateY(-2px); }
+      .nf-home .nf-home-bento-card.big { grid-column:span 4; display:flex; align-items:center; gap:28px; }
+      @media (max-width: 760px) { .nf-home .nf-home-bento { grid-template-columns:1fr; } .nf-home .nf-home-bento-card, .nf-home .nf-home-bento-card.big { grid-column:span 1; } .nf-home .nf-home-bento-card.big { flex-direction:column; align-items:flex-start; text-align:left; } }
       .nf-home .nf-home-scatter { display:flex; flex-wrap:wrap; gap:10px 18px; justify-content:center; }
       .nf-home .nf-home-hero { grid-template-columns:1.1fr 0.9fr; }
       @media (max-width: 860px) {
@@ -2017,6 +2034,31 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
     ),
 
     // ══════════════════════════════════════════════════════════
+    // SECTION 1.5 — BENTO OVERVIEW
+    // ══════════════════════════════════════════════════════════
+    React.createElement("section", { style: { maxWidth:1280, margin:'0 auto', padding:'0 24px 72px' } },
+      React.createElement("div", { className: "nf-home-bento" },
+        HOME_BENTO.map(item => (
+          React.createElement("div", { key:item.title, className: `nf-home-bento-card${item.big ? ' big' : ''}` },
+            React.createElement("div", { style: { position:'absolute', top:0, left:0, width:2, height:'100%', background:item.color } }),
+            React.createElement("div", {
+              style: {
+                width:item.big ? 56 : 44, height:item.big ? 56 : 44, borderRadius:'50%', flexShrink:0,
+                background:`radial-gradient(circle, ${item.color}20, transparent)`, border:`1px solid ${item.color}33`,
+                display:'flex', alignItems:'center', justifyContent:'center',
+                ...hMono, fontSize:item.big ? 22 : 17, color:item.color, marginBottom:item.big ? 0 : 18,
+              }
+            }, item.symbol),
+            React.createElement("div", null,
+              React.createElement("div", { style: { ...hDisplay, fontWeight:600, fontSize:item.big ? 20 : 15, color:H.ink, marginBottom:8 } }, item.title),
+              React.createElement("div", { style: { ...hBody, fontSize:item.big ? 15 : 13, lineHeight:1.6, color:H.muted, maxWidth:item.big ? '48ch' : 'none' } }, item.desc)
+            )
+          )
+        ))
+      )
+    ),
+
+    // ══════════════════════════════════════════════════════════
     // SECTION 2 — THE HUMAN PROBLEM
     // ══════════════════════════════════════════════════════════
     React.createElement("section", { style: { maxWidth:820, margin:'0 auto', padding:'64px 24px', textAlign:'center', borderTop:`1px solid ${H.border}` } },
@@ -2042,7 +2084,8 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
         React.createElement(HomeCognitiveField, { size:200, centerLabel:'INTEGRATION', interactive:true, setView })
       ),
       React.createElement("div", { className: "nf-home-modes-grid" },
-        HOME_MODES.map(m => React.createElement("div", { key:m.key, className: "nf-home-mode-cell" },
+        HOME_MODES.map(m => React.createElement("div", { key:m.key, className: "nf-home-mode-cell", style: { position:'relative', overflow:'hidden' } },
+          React.createElement("div", { style: { position:'absolute', top:0, left:0, width:2, height:'100%', background:m.color } }),
           React.createElement("div", { style: { ...hMono, fontSize:16, color:m.color, marginBottom:10 } }, m.symbol),
           React.createElement("div", { style: { ...hDisplay, fontWeight:600, fontSize:14, letterSpacing:'0.04em', textTransform:'uppercase', color:H.ink, marginBottom:8 } }, m.name),
           React.createElement("p", { style: { ...hBody, fontSize:13.5, lineHeight:1.6, color:H.muted, margin:0 } }, m.desc)
@@ -2063,7 +2106,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
 
         // Simple, honest CFI visualization — a radial spread across the
         // four modes, not a dashboard mockup with invented numbers.
-        React.createElement("div", { style: { background:'#FFFFFF', border:`1px solid ${H.border}`, borderRadius:6, padding:'40px 24px', marginBottom:28 } },
+        React.createElement("div", { className: "card", style: { background:C.surface, border:`1px solid ${H.border}`, borderRadius:6, padding:'40px 24px', marginBottom:28 } },
           React.createElement("div", { style: { ...hMono, fontSize:10, letterSpacing:'0.12em', color:H.faint, marginBottom:24 } }, 'CFI™ COGNITIVE PROFILE — EXAMPLE'),
           React.createElement("div", { style: { display:'flex', justifyContent:'center', gap:'clamp(16px,4vw,40px)', flexWrap:'wrap' } },
             HOME_MODES.map(m => React.createElement("div", { key:m.key, style: { display:'flex', flexDirection:'column', alignItems:'center', gap:10 } },
@@ -2109,7 +2152,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
         React.createElement("div", { style: { display:'flex', flexWrap:'wrap', justifyContent:'center', alignItems:'center', gap:'10px 4px', marginBottom:36 } },
           ['Decompose','Sense','Expand','Reflect','Fuse'].map((step,i,arr) => (
             React.createElement(React.Fragment, { key:step },
-              React.createElement("span", { style: { ...hMono, fontSize:12, letterSpacing:'0.1em', textTransform:'uppercase', color:H.ink, background:'#FFFFFF', border:`1px solid ${H.borderStrong}`, borderRadius:20, padding:'8px 16px' } }, step),
+              React.createElement("span", { style: { ...hMono, fontSize:12, letterSpacing:'0.1em', textTransform:'uppercase', color:H.ink, background:C.surface, border:`1px solid ${H.borderStrong}`, borderRadius:20, padding:'8px 16px' } }, step),
               i < arr.length - 1 ? React.createElement("span", { style: { color:H.faint } }, '→') : null
             )
           ))
