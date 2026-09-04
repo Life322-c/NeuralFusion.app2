@@ -1968,10 +1968,8 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
     React.createElement("style", null, `
       .nf-home { --h-gold: ${H.gold}; }
       .nf-home *, .nf-home *::before, .nf-home *::after { box-sizing:border-box; }
-      .nf-home h1, .nf-home h2, .nf-home h3, .nf-home p, .nf-home span, .nf-home div, .nf-home a, .nf-home button {
-        overflow-wrap:break-word; word-break:break-word; hyphens:auto;
-      }
-      .nf-home p { font-weight:500; }
+      .nf-home h1, .nf-home h2, .nf-home h3, .nf-home p { overflow-wrap:break-word; }
+      .nf-home p { font-weight:500; text-wrap:pretty; }
       .nf-home h1, .nf-home h2, .nf-home h3 { text-wrap:balance; }
       .nf-home .nf-home-fade { animation: nfHomeFadeUp 0.6s ease both; }
       @keyframes nfHomeFadeUp { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
@@ -2002,7 +2000,8 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
       .nf-home .nf-home-bento-card:hover { transform:translateY(-2px); }
       .nf-home .nf-home-bento-card.big { grid-column:span 4; display:flex; align-items:center; gap:28px; }
       @media (max-width: 760px) { .nf-home .nf-home-bento { grid-template-columns:1fr; } .nf-home .nf-home-bento-card, .nf-home .nf-home-bento-card.big { grid-column:span 1; } .nf-home .nf-home-bento-card.big { flex-direction:column; align-items:flex-start; text-align:left; } }
-      .nf-home .nf-home-scatter { display:flex; flex-wrap:wrap; gap:10px 18px; justify-content:center; max-width:640px; margin:0 auto; }
+      .nf-home .nf-home-scatter { display:grid; grid-template-columns:repeat(3, minmax(140px,1fr)); gap:10px 24px; justify-items:center; max-width:640px; margin:0 auto; }
+      @media (max-width: 560px) { .nf-home .nf-home-scatter { grid-template-columns:repeat(2, 1fr); } }
       .nf-home .nf-home-hero { grid-template-columns:1.1fr 0.9fr; }
       @media (max-width: 860px) {
         .nf-home .nf-home-hero { grid-template-columns:1fr; text-align:center; }
@@ -2057,7 +2056,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
             }, item.symbol),
             React.createElement("div", null,
               React.createElement("div", { style: { ...hDisplay, fontWeight:600, fontSize:item.big ? 20 : 15, color:H.ink, marginBottom:8 } }, item.title),
-              React.createElement("div", { style: { ...hBody, fontWeight:500, fontSize:item.big ? 15 : 13, lineHeight:1.6, color:H.muted, maxWidth:item.big ? '48ch' : '32ch' } }, item.desc)
+              React.createElement("div", { style: { ...hBody, fontWeight:500, fontSize:item.big ? 15 : 13, lineHeight:1.6, color:H.muted, maxWidth:item.big ? '48ch' : 'none' } }, item.desc)
             )
           )
         ))
