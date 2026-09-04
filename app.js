@@ -79,6 +79,14 @@ const { useState, useEffect, useCallback, useRef, useMemo } = React;
     const ENTERPRISE_PRICE_KOBO    = 5000000; // ₦50,000
     const ENTERPRISE_PRICE_DISPLAY = '50,000';
 
+    // ── Currency Reference ────────────────────────────────────────────
+    // All prices are charged and settled in Naira via Paystack. This is only
+    // an approximate USD reference so international visitors aren't left
+    // guessing what a price means, it is NOT used for any actual charge.
+    // Update NGN_PER_USD periodically to keep the estimate reasonable.
+    const NGN_PER_USD = 1500;
+    const usdApprox = (kobo) => `~$${Math.round((kobo/100)/NGN_PER_USD).toLocaleString()} USD`;
+
     const syne = { fontFamily: "'Syne', sans-serif" };
     const mono = { fontFamily: "'Space Mono', monospace" };
     const inter = { fontFamily: "'DM Sans', sans-serif" };
@@ -1959,6 +1967,7 @@ function HomeLabel({ children, color }) {
 
 function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
   const completedLessons = Object.values(lessonProgress || {}).filter(v => v === 100).length;
+  const [openFaq, setOpenFaq] = useState(0);
 
   return React.createElement("div", { className: "nf-home", style: { background:H.bg, color:H.text, paddingTop:60 } },
 
@@ -2030,7 +2039,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
           'Understand your cognitive profile. Train how you think. Make better decisions.'),
         React.createElement("div", { className: "nf-home-fade", style: { display:'flex', flexWrap:'wrap', alignItems:'center', gap:18 } },
           React.createElement("button", { className: "nf-home-cta-primary", onClick: () => setView('cfi') }, 'Discover Your Cognitive Profile', React.createElement("span", null, '→')),
-          React.createElement("span", { style: { ...hMono, fontSize:11, letterSpacing:'0.08em', color:H.faint } }, '13 questions · About 3–4 minutes · Free')
+          React.createElement("span", { style: { ...hMono, fontSize:11, letterSpacing:'0.08em', color:H.faint } }, '13 questions · About 3–4 minutes · Free · No account needed to start')
         )
       ),
       React.createElement("div", { className: "nf-home-fade", style: { display:'flex', justifyContent:'center' } },
@@ -2125,7 +2134,34 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
         React.createElement("p", { style: { ...hBody, fontSize:13.5, color:H.faint, fontStyle:'italic', maxWidth:480, marginBottom:32 } },
           'Your result gives you a cognitive baseline, not a diagnosis, personality label or measure of intelligence.'),
         React.createElement("button", { className: "nf-home-cta-primary", onClick: () => setView('cfi') }, 'Take the Free CFI™ Assessment', React.createElement("span", null, '→')),
-        React.createElement("div", { style: { ...hMono, fontSize:11, letterSpacing:'0.06em', color:H.faint, marginTop:14 } }, '13 questions · About 3–4 minutes · Free')
+        React.createElement("div", { style: { ...hMono, fontSize:11, letterSpacing:'0.06em', color:H.faint, marginTop:14 } }, '13 questions · About 3–4 minutes · Free · No account needed to start')
+      )
+    ),
+
+    // ══════════════════════════════════════════════════════════
+    // SECTION 4.5 — FAQ
+    // ══════════════════════════════════════════════════════════
+    React.createElement("section", { style: { borderBottom:`1px solid ${H.border}` } },
+      React.createElement("div", { style: { maxWidth:680, margin:'0 auto', padding:'64px 24px' } },
+        React.createElement(HomeLabel, null, 'Before you start'),
+        React.createElement("h2", { style: { ...hDisplay, fontWeight:600, fontSize:'clamp(20px,2.4vw,26px)', color:H.ink, marginBottom:28 } }, 'A few things people ask.'),
+        [
+          { q:'Do I need an account to see my results?', a:'No. Answer all 13 questions and see your full CFI™ profile immediately. Create a free account only if you want to save your results and track them over time.' },
+          { q:'Is this a diagnosis or a personality test?', a:'No. The CFI™ gives you a cognitive baseline, not a diagnosis, personality label or measure of intelligence.' },
+          { q:'What happens to my answers?', a:'If you complete the assessment without an account, your answers are not stored anywhere. If you create an account, your results are saved to it so you can track changes over time.' },
+          { q:'Is NeuralFusion free?', a:'The CFI™ assessment and the first lesson are free. Pro unlocks the full training system for a one-time payment. Enterprise is a separate offering for teams and organizations.' },
+        ].map((item, i) => (
+          React.createElement("div", { key:i, style: { borderTop: i===0 ? 'none' : `1px solid ${H.border}` } },
+            React.createElement("button", {
+              onClick: () => setOpenFaq(openFaq === i ? null : i),
+              style: { width:'100%', textAlign:'left', background:'none', border:'none', cursor:'pointer', padding:'20px 0', display:'flex', justifyContent:'space-between', alignItems:'center', gap:16 }
+            },
+              React.createElement("span", { style: { ...hBody, fontWeight:600, fontSize:15, color:H.ink } }, item.q),
+              React.createElement("span", { style: { ...hMono, fontSize:14, color:H.faint, flexShrink:0 } }, openFaq === i ? '−' : '+')
+            ),
+            openFaq === i && React.createElement("p", { style: { ...hBody, fontSize:14.5, lineHeight:1.75, color:H.muted, paddingBottom:22, maxWidth:600 } }, item.a)
+          )
+        ))
       )
     ),
 
@@ -2276,13 +2312,30 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
     ),
 
     // ══════════════════════════════════════════════════════════
+    // SECTION 11.5 — CLIENT REVIEW
+    // ══════════════════════════════════════════════════════════
+    React.createElement("section", { style: { borderTop:`1px solid ${H.border}` } },
+      React.createElement("div", { style: { maxWidth:640, margin:'0 auto', padding:'64px 24px', textAlign:'center' } },
+        React.createElement("div", { style: { ...hMono, fontSize:10, letterSpacing:'0.14em', color:H.faint, marginBottom:24 } }, 'CLIENT REVIEW'),
+        React.createElement("p", { style: { ...hDisplay, fontSize:'clamp(16px,2vw,20px)', lineHeight:1.7, color:H.ink, marginBottom:24, fontStyle:'italic' } },
+          '"NeuralFusion is a useful reflection tool for founders and professionals who want to understand how they approach decisions. I\'d recommend it to anyone working on clearer thinking, leadership, or personal growth, especially because the four-mode framework makes those patterns easier to notice."'),
+        React.createElement("div", { style: { color:H.gold, fontSize:14, letterSpacing:'0.2em', marginBottom:16 } }, '★★★★★'),
+        React.createElement("div", { style: { ...hBody, fontWeight:600, fontSize:14, color:H.ink } }, 'Vimal Gopal'),
+        React.createElement("div", { style: { ...hMono, fontSize:11, letterSpacing:'0.06em', color:H.faint } }, 'FULL-FUNNEL MARKETER')
+      )
+    ),
+
+    // ══════════════════════════════════════════════════════════
     // SECTION 12 — FOUNDER
     // ══════════════════════════════════════════════════════════
     React.createElement("section", { style: { borderTop:`1px solid ${H.border}` } },
-      React.createElement("div", { style: { maxWidth:560, margin:'0 auto', padding:'64px 24px' } },
+      React.createElement("div", { style: { maxWidth:640, margin:'0 auto', padding:'64px 24px' } },
         React.createElement("div", { style: { ...hMono, fontSize:10, letterSpacing:'0.14em', color:H.faint, marginBottom:10 } }, 'FOUNDER'),
         React.createElement("div", { style: { ...hDisplay, fontWeight:600, fontSize:16, color:H.ink, marginBottom:4, letterSpacing:'0.02em' } }, 'LIFE EDET'),
-        React.createElement("div", { style: { ...hBody, fontSize:13.5, color:H.muted, marginBottom:20 } }, 'Founder & Cognitive Architect, NeuralFusion™'),
+        React.createElement("div", { style: { ...hBody, fontSize:13.5, color:H.muted, marginBottom:18 } }, 'Founder, NeuralFusion™'),
+        React.createElement("p", { style: { ...hBody, fontSize:14.5, lineHeight:1.8, color:H.muted, marginBottom:20 } },
+          'Nigerian entrepreneur and researcher working at the intersection of human intelligence, technology and personal development. Life developed the Four Brains Framework™ and the Cognitive Fragmentation Index™ through NeuralFusion™, and writes on human cognitive agency in the age of AI, including his publication ',
+          React.createElement("em", null, 'The Human Intelligence Imperative'), '.'),
         React.createElement("a", { href: "/about", className: "nf-home-link" }, 'About →')
       )
     ),
@@ -2296,7 +2349,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
           'Understand your mind.', React.createElement("br"), 'Train how you think.', React.createElement("br"), 'Become harder to fragment.'),
         React.createElement("p", { style: { ...hBody, fontSize:15, color:H.muted, marginBottom:32 } }, 'Start with your cognitive profile.'),
         React.createElement("button", { className: "nf-home-cta-primary", onClick: () => setView('cfi') }, 'Take the Free CFI™ Assessment', React.createElement("span", null, '→')),
-        React.createElement("div", { style: { ...hMono, fontSize:11, letterSpacing:'0.06em', color:H.faint, marginTop:16 } }, '13 questions · About 3–4 minutes · Free')
+        React.createElement("div", { style: { ...hMono, fontSize:11, letterSpacing:'0.06em', color:H.faint, marginTop:16 } }, '13 questions · About 3–4 minutes · Free · No account needed to start')
       )
     )
   );
@@ -3687,11 +3740,12 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
                   )
                 ))
               ),
-              React.createElement("button", {className: "nf-a11y-btn", onClick: ()=> user ? setStarted(true) : setShowGate(true), style: {
+              React.createElement("button", {className: "nf-a11y-btn", onClick: ()=> setStarted(true), style: {
                 fontFamily:AC.font, fontSize:18, fontWeight:700, padding:'18px 40px', minHeight:56,
                 background:AC.goldDark, color:'#FFFFFF', border:'none', borderRadius:16, cursor:'pointer',
                 boxShadow:'0 2px 8px rgba(138,109,47,0.35)',
-              }}, 'Begin CFI →')
+              }}, 'Begin CFI →'),
+              React.createElement("div", {style: { ...mono, fontSize:12, color:AC.muted, marginTop:14 }}, 'No account needed to see your results.')
             )
           )
         );
@@ -4332,14 +4386,16 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
             !isPro && React.createElement(CPCard, {style: { marginTop:24, padding:'40px', textAlign:'center' }},
               React.createElement(CPEyebrow, null, 'Unlock all lessons'),
               React.createElement("div", {style: { ...syne, fontSize:15, fontWeight:800, color:CP.ink, marginBottom:8 }}, 'Pro access'),
-              React.createElement("div", {style: { ...syne, fontSize:14, fontWeight:800, color:CP.goldDeep, marginBottom:16 }}, `₦${(proPrice/100).toLocaleString()}`),
+              React.createElement("div", {style: { ...syne, fontSize:14, fontWeight:800, color:CP.goldDeep, marginBottom:2 }}, `₦${(proPrice/100).toLocaleString()}`),
+              React.createElement("div", {style: { fontSize:12, color:CP.faint, marginBottom:16 }}, usdApprox(proPrice), ' · billed in Naira'),
               React.createElement("div", {style: { fontSize:14, color:CP.muted, marginBottom:32, maxWidth:400, margin:'0 auto 32px' }}, 'One-time payment. Unlocks Lessons 2–6 and the full training system.'),
               React.createElement(CPButton, {onClick: handleProPayment, style: paystackLoading ? { opacity:0.6, pointerEvents:'none' } : {}}, paystackLoading ? 'Opening...' : `Upgrade to Pro: ₦${(proPrice/100).toLocaleString()} →`)
             ),
             !isEnterprise && React.createElement(CPCard, {style: { marginTop:20, padding:'40px', textAlign:'center', borderColor:'#3E7CA655', background:'#F5F9FB' }},
               React.createElement(CPEyebrow, {color: '#3E7CA6'}, 'NeuralFusion™ Enterprise'),
               React.createElement("div", {style: { ...syne, fontSize:15, fontWeight:800, color:CP.ink, marginBottom:8 }}, 'Deploy it across your organisation'),
-              React.createElement("div", {style: { ...syne, fontSize:14, fontWeight:800, color:'#3E7CA6', marginBottom:16 }}, '₦', ENTERPRISE_PRICE_DISPLAY),
+              React.createElement("div", {style: { ...syne, fontSize:14, fontWeight:800, color:'#3E7CA6', marginBottom:2 }}, '₦', ENTERPRISE_PRICE_DISPLAY),
+              React.createElement("div", {style: { fontSize:12, color:CP.faint, marginBottom:16 }}, usdApprox(ENTERPRISE_PRICE_KOBO), ' · billed in Naira'),
               React.createElement("div", {style: { fontSize:14, color:CP.muted, marginBottom:32, maxWidth:480, margin:'0 auto 32px', lineHeight:1.8 }}, 'Cohort management · CFI data entry · Facilitator dashboard · 5-lesson programme · Clarity Delta™ reporting'),
               React.createElement(CPButton, {onClick: ()=>setView('enterprise'), style: { background:'#3E7CA6', border:'1px solid #3E7CA6', color:'#FFFFFF' }}, 'Explore enterprise →')
             )
@@ -5754,7 +5810,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
                 border:'1px solid rgba(76,247,192,0.25)',
                 backdropFilter:'blur(20px)',
                 marginBottom:32,
-              }}, React.createElement("div", {style: { ...mono, fontSize:11, letterSpacing:1.5, color:'#4CF7C0', marginBottom:16 }}, 'ENTERPRISE ACCESS · ONE-TIME'), React.createElement("div", {style: { ...syne, fontSize:52, fontWeight:900, color:'#4CF7C0', marginBottom:8, letterSpacing:'-0.02em' }}, '₦', ((entPrice || ENTERPRISE_PRICE_KOBO)/100).toLocaleString()), React.createElement("div", {style: { ...inter, fontSize:14, color:C.muted, marginBottom:40 }}, 'One-time payment · Permanent access · All cohorts · All features'), React.createElement("button", {onClick: handleUnlock, disabled: paystackLoading, style: {
+              }}, React.createElement("div", {style: { ...mono, fontSize:11, letterSpacing:1.5, color:'#4CF7C0', marginBottom:16 }}, 'ENTERPRISE ACCESS · ONE-TIME'), React.createElement("div", {style: { ...syne, fontSize:52, fontWeight:900, color:'#4CF7C0', marginBottom:4, letterSpacing:'-0.02em' }}, '₦', ((entPrice || ENTERPRISE_PRICE_KOBO)/100).toLocaleString()), React.createElement("div", {style: { ...mono, fontSize:12, color:C.muted, marginBottom:16 }}, usdApprox(entPrice || ENTERPRISE_PRICE_KOBO), ' · billed in Naira'), React.createElement("div", {style: { ...inter, fontSize:14, color:C.muted, marginBottom:40 }}, 'One-time payment · Permanent access · All cohorts · All features'), React.createElement("button", {onClick: handleUnlock, disabled: paystackLoading, style: {
                     ...syne, fontSize:14, fontWeight:700, letterSpacing:'0.05em',
                     padding:'18px 48px', background:'#4CF7C0', color:'#050C1A',
                     border:'none', cursor: paystackLoading ? 'default' : 'pointer', borderRadius:2,
