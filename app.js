@@ -17,7 +17,7 @@ const { useState, useEffect, useCallback, useRef, useMemo } = React;
         intuitive:  { color: '#E2BE78', dim: 'rgba(226,190,120,0.12)', label: 'Intuitive Brain',  code: 'I', symbol: '◱' },
         associative:{ color: '#7AAFCF', dim: 'rgba(122,175,207,0.12)', label: 'Associative Brain',code: 'S', symbol: '◲' },
         reflective: { color: '#D4AF6A', dim: 'rgba(212,175,106,0.12)', label: 'Reflective Brain', code: 'R', symbol: '◳' },
-        // Not a fifth brain — the CFI's pressure/overload item (dim E). Kept visually distinct
+        // Not a fifth brain - the CFI's pressure/overload item (dim E). Kept visually distinct
         // so it's never mistaken for the Analytical brain it used to silently fall back to.
         integration:{ color: '#8B8FA3', dim: 'rgba(139,143,163,0.12)',  label: 'Integration',     code: 'E', symbol: '◈' },
       }
@@ -139,7 +139,7 @@ const { useState, useEffect, useCallback, useRef, useMemo } = React;
       },
     };
 
-    // ── CFI Assessment Items — CFI-1.0, canonical 13-item instrument ──
+    // -- CFI Assessment Items - CFI-1.0, canonical 13-item instrument --
     // Source of truth: the Enterprise instrument (ENT_CFI_ITEMS below), which predates
     // the consumer app's since-drifted 15/16-item versions. Dimension letters are kept
     // in the app's original A/I/S/R/E scheme (not the Enterprise A/B/C/D/E scheme) so
@@ -148,7 +148,7 @@ const { useState, useEffect, useCallback, useRef, useMemo } = React;
     //   Ent B "Mode Rigidity"         → I "intuitive"
     //   Ent C "Emotional Reactivity"  → R "reflective"
     //   Ent D "Thought Interruption"  → S "associative"
-    //   Ent E "Cognitive Overload"    → E "integration" (not a fifth brain — see dominantBrain calc)
+    //   Ent E "Cognitive Overload"    → E "integration" (not a fifth brain - see dominantBrain calc)
     const CFI_ITEMS = [
       { id:1,  dim:'A', brain:'analytical',  text:'I delay making decisions even when I have sufficient information.' },
       { id:2,  dim:'A', brain:'analytical',  text:'I reconsider decisions I have already made even when no new information is available.' },
@@ -183,7 +183,7 @@ const { useState, useEffect, useCallback, useRef, useMemo } = React;
       R: { title:'Emotional Clarity Under Pressure', icon:'◳', color:'#D4AF6A',
            blurb:"These questions look at how much strong emotions affect your clarity and decisions, and whether you can stay focused when things feel stressful." },
       E: { title:'Staying Steady Under Pressure', icon:'◈', color:'#F5EDD8',
-           blurb:"Last section — just one question. It looks at how your thinking holds up when you're given a lot of information at once. Because it's a single question, treat this section as a narrow snapshot, not a full picture." },
+           blurb:"Last section: just one question. It looks at how your thinking holds up when you're given a lot of information at once. Because it's a single question, treat this section as a narrow snapshot, not a full picture." },
     };
     const CFI_SECTION_ORDER = ['A','I','S','R','E'];
 
@@ -191,7 +191,7 @@ const { useState, useEffect, useCallback, useRef, useMemo } = React;
     // Every dimension score is paired with plain-language meaning, strengths,
     // blind spots, decision style, behaviour under pressure, and 3 practical actions.
     // FIX (audit findings B/#5/#6/#7/#10): every block below was rewritten to describe
-    // only what its 3 items (or, for E, its single item) actually ask about — decision
+    // only what its 3 items (or, for E, its single item) actually ask about - decision
     // delay/reconsideration/clarity-under-pressure for A, logic-vs-gut rigidity for I,
     // attentional interruption for S, and emotional reactivity for R. Claims about
     // reasoning ability, creativity, intuition quality, and metacognition that the old
@@ -230,7 +230,7 @@ const { useState, useEffect, useCallback, useRef, useMemo } = React;
         meaning: {
           high: "You can move between logic and instinct depending on the situation, without getting stuck committed to one approach.",
           moderate: "You lean more on one of logic or instinct, and sometimes find it hard to switch once you've started.",
-          low: "Right now you tend to get stuck in one mode — either overriding useful signals with pure logic, or acting on gut feelings without checking them — and switching approach mid-problem is difficult.",
+          low: "Right now you tend to get stuck in one mode, either overriding useful signals with pure logic, or acting on gut feelings without checking them, and switching approach mid-problem is difficult.",
         },
         decisionStyle: {
           high: "You bring in whichever of logic or instinct fits the decision, and adjust if your first approach isn't working.",
@@ -303,12 +303,12 @@ const { useState, useEffect, useCallback, useRef, useMemo } = React;
         // 3 like the others. It previously carried six distinct claims (integration,
         // staying steady under pressure, mode-switching, perspective, recovery, mode
         // selection) that a single 5-point question cannot support. Content below is
-        // narrowed to only what the item actually asks — reaction to high information
-        // volume — with an explicit single-item caveat kept in every string so the
+        // narrowed to only what the item actually asks - reaction to high information
+        // volume - with an explicit single-item caveat kept in every string so the
         // limitation travels with the text wherever it's displayed.
         name: 'Handling Information Overload (single-item snapshot)', brainKey:null,
-        strengths: ["Reported feeling relatively organized when given a lot of information at once — based on one question, treat as a rough signal only"],
-        blindSpots: ["Reported feeling disorganized when given a lot of information at once — based on one question, treat as a rough signal only"],
+        strengths: ["Reported feeling relatively organized when given a lot of information at once, based on one question, treat as a rough signal only"],
+        blindSpots: ["Reported feeling disorganized when given a lot of information at once, based on one question, treat as a rough signal only"],
         meaning: {
           high: "Based on a single question, you reported feeling relatively organized even when given a lot of information at once. This is a narrow, single-item signal, not a full profile of how you handle pressure.",
           moderate: "Based on a single question, you reported some disorganization when given a lot of information at once. Treat this as a rough signal rather than a firm conclusion.",
@@ -373,14 +373,14 @@ const { useState, useEffect, useCallback, useRef, useMemo } = React;
 
     // Generic explainer for any score, independent of dimension; never show a bare number.
     // FIX (audit finding H): previously framed around how OFTEN / how RELIABLY a mode
-    // "contributes to decisions" — no CFI item asks about frequency of use or reliability
+    // "contributes to decisions" - no CFI item asks about frequency of use or reliability
     // of contribution; every item asks about self-reported DIFFICULTY in a domain. Reworded
     // to describe only what was actually measured. Never implies a "broken" brain, and
     // never implies 100% is the goal for every mode.
     function cfiScoreMeaning(score) {
       if (score >= 90) return "90%+ means you reported very little difficulty in this area on this assessment.";
       if (score >= 75) return "75–89% means you reported occasional difficulty here, with most responses on the easier end.";
-      if (score >= 50) return "50–74% means you reported noticeable difficulty in this area, especially under pressure — this is a self-report, not a frequency count.";
+      if (score >= 50) return "50–74% means you reported noticeable difficulty in this area, especially under pressure. This is a self-report, not a frequency count.";
       if (score >= 25) return "25–49% means you reported frequent difficulty in this area on this assessment.";
       return "Below 25% means you reported significant difficulty in this area right now. This reflects today's self-report, not a fixed trait.";
     }
@@ -439,12 +439,12 @@ const { useState, useEffect, useCallback, useRef, useMemo } = React;
 
         // ── Legacy fields (kept for backward compatibility with any existing consumers) ──
         // FIX (audit finding #9 / C): no CFI item measures communication, leadership, or
-        // learning behavior at all — these are coaching inferences drawn from whichever
+        // learning behavior at all - these are coaching inferences drawn from whichever
         // dimension has the lowest fragmentation score, not measured findings. Labeled
         // as such inline so the caveat travels with the text wherever it's displayed.
-        communicationStyle: `${pStyle.communication} (Coaching interpretation based on your primary mode — not directly measured by the CFI.)`,
-        leadershipStyle: `${pStyle.leadership} (Coaching interpretation based on your primary mode — not directly measured by the CFI.)`,
-        learningStyle: `${pStyle.learning} (Coaching interpretation based on your primary mode — not directly measured by the CFI.)`,
+        communicationStyle: `${pStyle.communication} (Coaching interpretation based on your primary mode, not directly measured by the CFI.)`,
+        leadershipStyle: `${pStyle.leadership} (Coaching interpretation based on your primary mode, not directly measured by the CFI.)`,
+        learningStyle: `${pStyle.learning} (Coaching interpretation based on your primary mode, not directly measured by the CFI.)`,
         decisionProfile: `You lead with ${CFI_DIM_LABELS[primaryDim]}, backed up by ${CFI_DIM_LABELS[secondaryDim]}. ${dimReports[primaryDim].decisionStyle}`,
         biggestStrength: `${CFI_DIM_LABELS[primaryDim]}: ${CFI_DIMENSION_META[primaryDim].strengths[0]}`,
         biggestBlindSpot: `${CFI_DIM_LABELS[weakestDim]}: ${CFI_DIMENSION_META[weakestDim].blindSpots[0]}`,
@@ -1261,7 +1261,7 @@ Most learners take four to six weeks working through the lessons at the suggeste
 
     // Defensive server-side-equivalent validation, mirrored client-side since this app has
     // no server layer of its own. Frontend can't be trusted alone (item 18 of the CFI
-    // correction spec) — this is the actual gate a completed attempt must pass before saveCFIResult
+    // correction spec) - this is the actual gate a completed attempt must pass before saveCFIResult
     // will submit it.
     function validateCFISubmission(answers) {
       const errors = [];
@@ -1280,8 +1280,8 @@ Most learners take four to six weeks working through the lessons at the suggeste
     }
 
     // Looks up this user's prior completed CFI-1.0 attempts (most recent first) so a new
-    // submission can be numbered and linked correctly. Per-user numbering only — never global,
-    // never reset by logout/refresh/new session — and only rows on the current CFI_VERSION count,
+    // submission can be numbered and linked correctly. Per-user numbering only - never global,
+    // never reset by logout/refresh/new session - and only rows on the current CFI_VERSION count,
     // so historical 15/16-item attempts never get silently mixed into CFI-1.0's numbering or deltas.
     const getPriorCFIResults = async (id) => {
       const { data, error } = await sb.from('cfi_results').select('*')
@@ -1295,7 +1295,7 @@ Most learners take four to six weeks working through the lessons at the suggeste
     // in_progress row created via saveCFIProgress) is passed, it updates that
     // row in place instead of inserting a new one, so a single attempt never
     // produces two rows.
-    // NOTE: supabase-js does NOT throw on a failed query — it resolves with
+    // NOTE: supabase-js does NOT throw on a failed query - it resolves with
     // { data, error }. Every call here checks .error explicitly and logs it,
     // so a failed save is visible in the console instead of silently vanishing.
     const saveCFIResult = async (id, r, a, draftId) => {
@@ -1326,8 +1326,8 @@ Most learners take four to six weeks working through the lessons at the suggeste
         reflective_score: r.dimScores?.R ?? null,
         integration_score: r.dimScores?.E ?? null,
         // Persists the (now-corrected) dominant-mode calculation so AdminView's per-row
-        // table — which reads r.dominant_brain straight from the DB rather than
-        // recomputing it — actually has a value to show instead of always falling
+        // table - which reads r.dominant_brain straight from the DB rather than
+        // recomputing it - actually has a value to show instead of always falling
         // back to 'N/A'. REQUIRES a `dominant_brain` text column on `cfi_results`
         // (see migration note below) or this insert/update will fail.
         dominant_brain: r.dominantBrain ?? null,
@@ -1919,7 +1919,7 @@ function BentoStepList({ steps, setView }) {
 }
 
 // ═══════════════════════════════════════════════════════════════════
-//  HOME VIEW — "You Are the Intelligence."
+//  HOME VIEW - "You Are the Intelligence."
 //  Cognitive Performance OS homepage. White / gold editorial system,
 //  visually aligned with the CFI™ assessment (AC tokens in CFIView).
 //  Scoped styles live under .nf-home so the rest of the app (which
@@ -1927,7 +1927,7 @@ function BentoStepList({ steps, setView }) {
 //  is completely unaffected.
 // ═══════════════════════════════════════════════════════════════════
 
-// ── Homepage design tokens — now mapped onto the same dark navy/gold
+// -- Homepage design tokens - now mapped onto the same dark navy/gold
 // "bento" system (C) used by the Four Brains section, so the two feel
 // like one continuous product instead of two different skins. ──────
 const H = {
@@ -1949,7 +1949,7 @@ const HOME_MODES = [
   { key:'reflective',  name:'Reflective',  symbol:'◳', color:C.brains.reflective.color, desc:'Steps back, evaluates meaning and examines the thinking itself.' },
 ];
 
-// Feature set for the homepage bento grid (Section 1.5) — mirrors the
+// Feature set for the homepage bento grid (Section 1.5) - mirrors the
 // card language of the Four Brains / bento system elsewhere in the app.
 const HOME_BENTO = [
   { title:'Four Brains Framework', desc:'Understand the four cognitive modes your mind already uses, every day, mostly unconsciously.', symbol:'◈', color:C.cyan, big:true },
@@ -2031,15 +2031,12 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
       .nf-home .nf-home-cta-outline:hover { border-color:${H.goldDeep}; background:${H.goldTint}; }
       .nf-home .nf-home-link { background:none; border:none; padding:0; font:inherit; color:${H.goldDeep}; cursor:pointer; text-decoration:underline; text-underline-offset:3px; }
       .nf-home .nf-home-node:focus-visible, .nf-home button:focus-visible, .nf-home a:focus-visible { outline:2px solid ${H.gold}; outline-offset:2px; }
-      .nf-home .nf-home-modes-grid { display:grid; grid-template-columns:repeat(4, 1fr); gap:12px; }
-      @media (max-width: 760px) { .nf-home .nf-home-modes-grid { grid-template-columns:repeat(2, 1fr); } }
-      .nf-home .nf-home-mode-cell { background:${C.surface}; border:1px solid ${C.border}; border-radius:8px; padding:28px 22px; transition:border-color 0.15s ease, transform 0.15s ease; }
-      .nf-home .nf-home-mode-cell:hover { border-color:${H.goldLine}; transform:translateY(-2px); }
-      .nf-home .nf-home-bento { display:grid; grid-template-columns:repeat(4, 1fr); gap:12px; }
-      .nf-home .nf-home-bento-card { background:${C.surface}; border:1px solid ${C.border}; border-radius:8px; padding:26px; position:relative; overflow:hidden; transition:border-color 0.15s ease, transform 0.15s ease; grid-column:span 2; }
-      .nf-home .nf-home-bento-card:hover { transform:translateY(-2px); }
-      .nf-home .nf-home-bento-card.big { grid-column:span 4; display:flex; align-items:center; gap:28px; }
-      @media (max-width: 760px) { .nf-home .nf-home-bento { grid-template-columns:1fr; } .nf-home .nf-home-bento-card, .nf-home .nf-home-bento-card.big { grid-column:span 1; } .nf-home .nf-home-bento-card.big { flex-direction:column; align-items:flex-start; text-align:left; } }
+      .nf-home .nf-home-modes-grid { display:grid; grid-template-columns:repeat(2, 1fr); column-gap:56px; row-gap:0; border-bottom:1px solid ${H.border}; }
+      .nf-home .nf-home-mode-cell { border-top:1px solid ${H.border}; padding:28px 0; }
+      @media (max-width: 760px) { .nf-home .nf-home-modes-grid { grid-template-columns:1fr; column-gap:0; } }
+      .nf-home .nf-home-platform-grid { display:grid; grid-template-columns:repeat(2, 1fr); column-gap:56px; row-gap:0; border-bottom:1px solid ${H.border}; }
+      .nf-home .nf-home-platform-item { border-top:1px solid ${H.border}; padding:26px 0; }
+      @media (max-width: 760px) { .nf-home .nf-home-platform-grid { grid-template-columns:1fr; column-gap:0; } }
       .nf-home .nf-home-scatter { display:grid; grid-template-columns:repeat(3, minmax(140px,1fr)); gap:10px 24px; justify-items:center; max-width:640px; margin:0 auto; }
       @media (max-width: 560px) { .nf-home .nf-home-scatter { grid-template-columns:repeat(2, 1fr); } }
       .nf-home .nf-home-hero { grid-template-columns:1.1fr 0.9fr; }
@@ -2058,7 +2055,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
     `),
 
     // ══════════════════════════════════════════════════════════
-    // SECTION 1 — HERO
+    // SECTION 1 - HERO
     // ══════════════════════════════════════════════════════════
     React.createElement("section", { style: { maxWidth:1280, margin:'0 auto', padding:'56px 24px 72px', display:'grid', gap:48, alignItems:'center' }, className: "nf-home-hero" },
       React.createElement("div", null,
@@ -2079,32 +2076,24 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
     ),
 
     // ══════════════════════════════════════════════════════════
-    // SECTION 1.5 — BENTO OVERVIEW
+    // SECTION 1.5 - BENTO OVERVIEW
     // ══════════════════════════════════════════════════════════
-    React.createElement("section", { style: { maxWidth:1280, margin:'0 auto', padding:'0 24px 72px' } },
-      React.createElement("div", { className: "nf-home-bento" },
+    React.createElement("section", { style: { maxWidth:900, margin:'0 auto', padding:'0 24px 72px' } },
+      React.createElement("div", { className: "nf-home-platform-grid" },
         HOME_BENTO.map(item => (
-          React.createElement("div", { key:item.title, className: `nf-home-bento-card${item.big ? ' big' : ''}` },
-            React.createElement("div", { style: { position:'absolute', top:0, left:0, width:2, height:'100%', background:item.color } }),
-            React.createElement("div", {
-              style: {
-                width:item.big ? 56 : 44, height:item.big ? 56 : 44, borderRadius:'50%', flexShrink:0,
-                background:`radial-gradient(circle, ${item.color}20, transparent)`, border:`1px solid ${item.color}33`,
-                display:'flex', alignItems:'center', justifyContent:'center',
-                ...hMono, fontSize:item.big ? 22 : 17, color:item.color, marginBottom:item.big ? 0 : 18,
-              }
-            }, item.symbol),
-            React.createElement("div", null,
-              React.createElement("div", { style: { ...hDisplay, fontWeight:600, fontSize:item.big ? 20 : 15, color:H.ink, marginBottom:8 } }, item.title),
-              React.createElement("div", { style: { ...hBody, fontWeight:500, fontSize:item.big ? 15 : 13, lineHeight:1.6, color:H.muted, maxWidth:item.big ? '48ch' : 'none' } }, item.desc)
-            )
+          React.createElement("div", { key:item.title, className: "nf-home-platform-item" },
+            React.createElement("div", { style: { display:'flex', alignItems:'baseline', gap:12, marginBottom:8 } },
+              React.createElement("span", { style: { ...hMono, fontSize:14, color:item.color } }, item.symbol),
+              React.createElement("span", { style: { ...hDisplay, fontWeight:600, fontSize:16, color:H.ink } }, item.title)
+            ),
+            React.createElement("p", { style: { ...hBody, fontWeight:500, fontSize:14, lineHeight:1.65, color:H.muted, maxWidth:'42ch', margin:0 } }, item.desc)
           )
         ))
       )
     ),
 
     // ══════════════════════════════════════════════════════════
-    // SECTION 2 — THE HUMAN PROBLEM
+    // SECTION 2 - THE HUMAN PROBLEM
     // ══════════════════════════════════════════════════════════
     React.createElement("section", { style: { maxWidth:820, margin:'0 auto', padding:'64px 24px', borderTop:`1px solid ${H.border}` } },
       React.createElement("h2", { style: { ...hDisplay, fontWeight:600, fontSize:'clamp(24px,3vw,34px)', lineHeight:1.25, color:H.ink, marginBottom:24 } }, 'Your problem may not be intelligence.'),
@@ -2116,7 +2105,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
     ),
 
     // ══════════════════════════════════════════════════════════
-    // SECTION 3 — FOUR THINKING MODES
+    // SECTION 3 - FOUR THINKING MODES
     // ══════════════════════════════════════════════════════════
     React.createElement("section", { style: { maxWidth:1280, margin:'0 auto', padding:'64px 24px' } },
       React.createElement("div", { style: { maxWidth:640, marginBottom:40 } },
@@ -2129,48 +2118,36 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
         React.createElement(HomeCognitiveField, { size:200, centerLabel:'INTEGRATION', interactive:true, setView })
       ),
       React.createElement("div", { className: "nf-home-modes-grid" },
-        HOME_MODES.map(m => React.createElement("div", { key:m.key, className: "nf-home-mode-cell", style: { position:'relative', overflow:'hidden' } },
-          React.createElement("div", { style: { position:'absolute', top:0, left:0, width:2, height:'100%', background:m.color } }),
-          React.createElement("div", { style: { ...hMono, fontSize:16, color:m.color, marginBottom:10 } }, m.symbol),
-          React.createElement("div", { style: { ...hDisplay, fontWeight:600, fontSize:14, letterSpacing:'0.04em', textTransform:'uppercase', color:H.ink, marginBottom:8 } }, m.name),
-          React.createElement("p", { style: { ...hBody, fontSize:13.5, lineHeight:1.6, color:H.muted, margin:0 } }, m.desc)
+        HOME_MODES.map(m => React.createElement("div", { key:m.key, className: "nf-home-mode-cell" },
+          React.createElement("div", { style: { display:'flex', alignItems:'baseline', gap:10, marginBottom:8 } },
+            React.createElement("span", { style: { ...hMono, fontSize:15, color:m.color } }, m.symbol),
+            React.createElement("span", { style: { ...hDisplay, fontWeight:600, fontSize:17, color:H.ink } }, m.name)
+          ),
+          React.createElement("p", { style: { ...hBody, fontSize:14, lineHeight:1.65, color:H.muted, margin:0, maxWidth:'40ch' } }, m.desc)
         ))
       )
     ),
 
     // ══════════════════════════════════════════════════════════
-    // SECTION 4 — CFI™ ASSESSMENT (primary entry point)
+    // SECTION 4 - CFI™ ASSESSMENT (primary entry point)
     // ══════════════════════════════════════════════════════════
     React.createElement("section", { style: { background:H.bgAlt, borderTop:`1px solid ${H.border}`, borderBottom:`1px solid ${H.border}` } },
       React.createElement("div", { style: { maxWidth:920, margin:'0 auto', padding:'72px 24px' } },
         React.createElement(HomeLabel, null, 'Before you train your thinking, understand it'),
-        React.createElement("h2", { style: { ...hDisplay, fontWeight:600, fontSize:'clamp(24px,3vw,32px)', color:H.ink, marginBottom:8 } }, 'CFI™'),
-        React.createElement("div", { style: { ...hMono, fontSize:12, letterSpacing:'0.14em', color:H.faint, marginBottom:24 } }, 'COGNITIVE FRAGMENTATION INDEX™'),
-        React.createElement("p", { style: { ...hBody, fontSize:16, lineHeight:1.75, color:H.muted, maxWidth:560, marginBottom:40 } },
-          'A 13-item cognitive assessment designed to help you identify patterns in how your thinking coordinates across different cognitive modes.'),
-
-        // Simple, honest CFI visualization — a radial spread across the
-        // four modes, not a dashboard mockup with invented numbers.
-        React.createElement("div", { className: "card", style: { background:C.surface, border:`1px solid ${H.border}`, borderRadius:6, padding:'40px 24px', marginBottom:28 } },
-          React.createElement("div", { style: { ...hMono, fontSize:10, letterSpacing:'0.12em', color:H.faint, marginBottom:24 } }, 'CFI™ COGNITIVE PROFILE — EXAMPLE'),
-          React.createElement("div", { style: { display:'flex', justifyContent:'center', gap:'clamp(16px,4vw,40px)', flexWrap:'wrap' } },
-            HOME_MODES.map(m => React.createElement("div", { key:m.key, style: { display:'flex', flexDirection:'column', alignItems:'center', gap:10 } },
-              React.createElement("div", { style: { width:6, height:76, borderRadius:3, background:H.border, position:'relative', overflow:'hidden' } },
-                React.createElement("div", { style: { position:'absolute', bottom:0, left:0, right:0, height:`${40 + (m.key.length * 7) % 45}%`, background:m.color, borderRadius:3 } })
-              ),
-              React.createElement("div", { style: { ...hMono, fontSize:10, letterSpacing:'0.06em', color:H.muted, textTransform:'uppercase' } }, m.name)
-            ))
-          )
-        ),
+        React.createElement("h2", { style: { ...hDisplay, fontWeight:600, fontSize:'clamp(24px,3vw,32px)', color:H.ink, marginBottom:16 } }, 'The Cognitive Fragmentation Index™'),
+        React.createElement("p", { style: { ...hBody, fontSize:17, lineHeight:1.7, color:H.ink, maxWidth:560, marginBottom:16 } },
+          'Understand how your thinking currently works.'),
+        React.createElement("p", { style: { ...hBody, fontSize:15.5, lineHeight:1.75, color:H.muted, maxWidth:560, marginBottom:14 } },
+          'Take the free assessment and discover how your Analytical, Intuitive, Associative and Reflective thinking modes interact.'),
         React.createElement("p", { style: { ...hBody, fontSize:13.5, color:H.faint, fontStyle:'italic', maxWidth:480, marginBottom:32 } },
           'Your result gives you a cognitive baseline, not a diagnosis, personality label or measure of intelligence.'),
-        React.createElement("button", { className: "nf-home-cta-primary", onClick: () => setView('cfi') }, 'Take the Free CFI™ Assessment', React.createElement("span", null, '→')),
+        React.createElement("button", { className: "nf-home-cta-primary", onClick: () => setView('cfi') }, 'Take the free CFI™ assessment', React.createElement("span", null, '→')),
         React.createElement("div", { style: { ...hMono, fontSize:11, letterSpacing:'0.06em', color:H.faint, marginTop:14 } }, '13 questions · About 3–4 minutes · Free · No account needed to start')
       )
     ),
 
     // ══════════════════════════════════════════════════════════
-    // SECTION 4.5 — FAQ
+    // SECTION 4.5 - FAQ
     // ══════════════════════════════════════════════════════════
     React.createElement("section", { style: { borderBottom:`1px solid ${H.border}` } },
       React.createElement("div", { style: { maxWidth:680, margin:'0 auto', padding:'64px 24px' } },
@@ -2197,7 +2174,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
     ),
 
     // ══════════════════════════════════════════════════════════
-    // SECTION 5 — FRAGMENTATION TO INTEGRATION
+    // SECTION 5 - FRAGMENTATION TO INTEGRATION
     // ══════════════════════════════════════════════════════════
     React.createElement("section", { style: { maxWidth:820, margin:'0 auto', padding:'72px 24px' } },
       React.createElement("h2", { style: { ...hDisplay, fontWeight:600, fontSize:'clamp(20px,2.4vw,26px)', color:H.ink, marginBottom:24 } }, 'Fragmented thinking feels like this.'),
@@ -2206,7 +2183,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
           React.createElement("span", { key:i, style: { ...hBody, fontSize:15, color:H.faint, opacity:0.85 } }, w)
         ))
       ),
-      React.createElement("div", { style: { ...hMono, fontSize:12, letterSpacing:'0.14em', color:H.goldDeep, marginBottom:44 } }, 'SCATTERED  →  CONNECTED  →  INTEGRATED'),
+      React.createElement("div", { style: { ...hMono, fontSize:12, letterSpacing:'0.06em', color:H.goldDeep, marginBottom:44 } }, 'Scattered  →  Connected  →  Integrated'),
       React.createElement("h2", { style: { ...hDisplay, fontWeight:600, fontSize:'clamp(20px,2.4vw,26px)', color:H.ink, marginBottom:24 } }, 'Integrated thinking feels different.'),
       React.createElement("div", { className: "nf-home-scatter" },
         ['Clarity.', 'Perspective.', 'Adaptability.', 'Better decisions.', 'Intentional action.', 'Reflection.'].map((w,i) => (
@@ -2216,7 +2193,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
     ),
 
     // ══════════════════════════════════════════════════════════
-    // SECTION 6 — CORE LOOP (training)
+    // SECTION 6 - CORE LOOP (training)
     // ══════════════════════════════════════════════════════════
     React.createElement("section", { style: { background:H.bgAlt, borderTop:`1px solid ${H.border}`, borderBottom:`1px solid ${H.border}` } },
       React.createElement("div", { style: { maxWidth:900, margin:'0 auto', padding:'72px 24px' } },
@@ -2236,7 +2213,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
     ),
 
     // ══════════════════════════════════════════════════════════
-    // SECTION 7 — DECISION-MAKING
+    // SECTION 7 - DECISION-MAKING
     // ══════════════════════════════════════════════════════════
     React.createElement("section", { style: { maxWidth:820, margin:'0 auto', padding:'72px 24px' } },
       React.createElement("h2", { style: { ...hDisplay, fontWeight:600, fontSize:'clamp(22px,2.6vw,28px)', color:H.ink, marginBottom:10 } }, "Better decisions don't come from thinking harder."),
@@ -2255,28 +2232,28 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
     ),
 
     // ══════════════════════════════════════════════════════════
-    // SECTION 8 — HUMAN COGNITIVE AGENCY + AI (dark contrast section)
+    // SECTION 8 - HUMAN COGNITIVE AGENCY + AI (dark contrast section)
     // ══════════════════════════════════════════════════════════
     React.createElement("section", { style: { background:H.charcoal, color:H.charcoalText, padding:'80px 24px' } },
       React.createElement("div", { style: { maxWidth:760, margin:'0 auto' } },
         React.createElement("h2", { style: { ...hDisplay, fontWeight:600, fontSize:'clamp(22px,2.8vw,30px)', lineHeight:1.35, marginBottom:28 } },
           'AI can generate the answer.', React.createElement("br"), 'You still have to decide whether it deserves your trust.'),
-        React.createElement("div", { style: { ...hMono, fontSize:11, letterSpacing:'0.16em', color:H.gold, marginBottom:20 } }, 'HUMAN COGNITIVE AGENCY'),
+        React.createElement("div", { style: { ...hMono, fontSize:11, letterSpacing:'0.1em', color:H.gold, marginBottom:20 } }, 'Human cognitive agency'),
         React.createElement("p", { style: { ...hBody, fontSize:15, lineHeight:1.8, color:H.charcoalMuted, marginBottom:14 } },
           'As AI takes over more analysis, generation and information processing, the uniquely human challenge becomes maintaining judgment, intention and cognitive agency.'),
         React.createElement("p", { style: { ...hBody, fontSize:15, lineHeight:1.8, color:H.charcoalMuted, marginBottom:36 } },
           'NeuralFusion™ is designed to strengthen the human side of the equation.'),
-        React.createElement("div", { style: { display:'flex', flexWrap:'wrap', justifyContent:'center', alignItems:'center', gap:10, marginBottom:36, ...hMono, fontSize:11, letterSpacing:'0.1em', color:H.charcoalMuted } },
-          React.createElement("span", null, 'AI INFORMATION'), React.createElement("span", { style: { color:H.gold } }, '↓'),
-          React.createElement("span", null, 'HUMAN JUDGMENT'), React.createElement("span", { style: { color:H.gold } }, '↓'),
-          React.createElement("span", null, 'DECISION')
+        React.createElement("div", { style: { display:'flex', flexWrap:'wrap', justifyContent:'center', alignItems:'center', gap:10, marginBottom:36, ...hBody, fontSize:13.5, color:H.charcoalMuted } },
+          React.createElement("span", null, 'AI information'), React.createElement("span", { style: { color:H.gold } }, '→'),
+          React.createElement("span", null, 'Human judgment'), React.createElement("span", { style: { color:H.gold } }, '→'),
+          React.createElement("span", null, 'Decision')
         ),
         React.createElement("a", { href: "/human-intelligence-ai", className: "nf-home-cta-outline", style: { borderColor:'rgba(196,160,80,0.4)', color:H.charcoalText, textDecoration:'none', display:'inline-block' } }, 'Explore Human Cognitive Agency →')
       )
     ),
 
     // ══════════════════════════════════════════════════════════
-    // SECTION 9 — CLARITY DELTA™
+    // SECTION 9 - CLARITY DELTA™
     // ══════════════════════════════════════════════════════════
     React.createElement("section", { style: { maxWidth:820, margin:'0 auto', padding:'72px 24px' } },
       React.createElement("h2", { style: { ...hDisplay, fontWeight:600, fontSize:'clamp(20px,2.4vw,26px)', color:H.ink, lineHeight:1.3, marginBottom:8 } }, 'Thinking can be trained.'),
@@ -2302,7 +2279,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
     ),
 
     // ══════════════════════════════════════════════════════════
-    // SECTION 10 — ENTERPRISE
+    // SECTION 10 - ENTERPRISE
     // ══════════════════════════════════════════════════════════
     React.createElement("section", { style: { background:H.bgAlt, borderTop:`1px solid ${H.border}`, borderBottom:`1px solid ${H.border}` } },
       React.createElement("div", { style: { maxWidth:1000, margin:'0 auto', padding:'72px 24px' } },
@@ -2325,29 +2302,29 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
     ),
 
     // ══════════════════════════════════════════════════════════
-    // SECTION 11 — RESEARCH + CREDIBILITY
+    // SECTION 11 - RESEARCH + CREDIBILITY
     // ══════════════════════════════════════════════════════════
     React.createElement("section", { style: { maxWidth:760, margin:'0 auto', padding:'72px 24px' } },
       React.createElement("h2", { style: { ...hDisplay, fontWeight:600, fontSize:'clamp(20px,2.4vw,26px)', color:H.ink, marginBottom:20 } }, 'Built on a simple principle.'),
       React.createElement("p", { style: { ...hBody, fontSize:15.5, lineHeight:1.9, color:H.muted, marginBottom:36 } },
         'Understand what you can measure.', React.createElement("br"), 'Measure what you can test.', React.createElement("br"), 'Be honest about what you do not yet know.'),
       React.createElement("div", { style: { display:'flex', flexWrap:'wrap', justifyContent:'center', gap:'12px 28px', ...hMono, fontSize:11.5, letterSpacing:'0.08em' } },
-        React.createElement("a", { href: "/research", style: { color:H.goldDeep, textDecoration:'underline', textUnderlineOffset:3 } }, 'RESEARCH'),
-        React.createElement("a", { href: "/methodology", style: { color:H.goldDeep, textDecoration:'underline', textUnderlineOffset:3 } }, 'METHODOLOGY'),
-        React.createElement("a", { href: "/blog", style: { color:H.goldDeep, textDecoration:'underline', textUnderlineOffset:3 } }, 'PUBLICATIONS'),
-        React.createElement("a", { href: "/cognitive-fragmentation", style: { color:H.goldDeep, textDecoration:'underline', textUnderlineOffset:3 } }, 'CFI™ FRAMEWORK'),
-        React.createElement("a", { href: "/human-intelligence-ai", style: { color:H.goldDeep, textDecoration:'underline', textUnderlineOffset:3 } }, 'HUMAN INTELLIGENCE & AI')
+        React.createElement("a", { href: "/research", style: { color:H.goldDeep, textDecoration:'underline', textUnderlineOffset:3 } }, 'Research'),
+        React.createElement("a", { href: "/methodology", style: { color:H.goldDeep, textDecoration:'underline', textUnderlineOffset:3 } }, 'Methodology'),
+        React.createElement("a", { href: "/blog", style: { color:H.goldDeep, textDecoration:'underline', textUnderlineOffset:3 } }, 'Publications'),
+        React.createElement("a", { href: "/cognitive-fragmentation", style: { color:H.goldDeep, textDecoration:'underline', textUnderlineOffset:3 } }, 'CFI™ framework'),
+        React.createElement("a", { href: "/human-intelligence-ai", style: { color:H.goldDeep, textDecoration:'underline', textUnderlineOffset:3 } }, 'Human intelligence & AI')
       ),
       React.createElement("p", { style: { ...hBody, fontSize:12.5, lineHeight:1.7, color:H.faint, maxWidth:540, margin:'36px auto 0' } },
         'The CFI™ and the Four Modes framework are NeuralFusion™ proprietary tools, developed and refined by NeuralFusion™. Where research is preliminary, we say so.')
     ),
 
     // ══════════════════════════════════════════════════════════
-    // SECTION 11.5 — CLIENT REVIEW
+    // SECTION 11.5 - CLIENT REVIEW
     // ══════════════════════════════════════════════════════════
     React.createElement("section", { style: { borderTop:`1px solid ${H.border}` } },
       React.createElement("div", { style: { maxWidth:640, margin:'0 auto', padding:'64px 24px', textAlign:'center' } },
-        React.createElement("div", { style: { ...hMono, fontSize:10, letterSpacing:'0.14em', color:H.faint, marginBottom:24 } }, 'CLIENT REVIEW'),
+        React.createElement("div", { style: { ...hMono, fontSize:11, letterSpacing:'0.06em', color:H.faint, marginBottom:24 } }, 'Client review'),
         React.createElement("p", { style: { ...hDisplay, fontSize:'clamp(16px,2vw,20px)', lineHeight:1.7, color:H.ink, marginBottom:24, fontStyle:'italic' } },
           '"NeuralFusion is a useful reflection tool for founders and professionals who want to understand how they approach decisions. I\'d recommend it to anyone working on clearer thinking, leadership, or personal growth, especially because the four-mode framework makes those patterns easier to notice."'),
         React.createElement("div", { style: { color:H.gold, fontSize:14, letterSpacing:'0.2em', marginBottom:16 } }, '★★★★★'),
@@ -2357,12 +2334,12 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
     ),
 
     // ══════════════════════════════════════════════════════════
-    // SECTION 12 — FOUNDER
+    // SECTION 12 - FOUNDER
     // ══════════════════════════════════════════════════════════
     React.createElement("section", { style: { borderTop:`1px solid ${H.border}` } },
       React.createElement("div", { style: { maxWidth:640, margin:'0 auto', padding:'64px 24px' } },
-        React.createElement("div", { style: { ...hMono, fontSize:10, letterSpacing:'0.14em', color:H.faint, marginBottom:10 } }, 'FOUNDER'),
-        React.createElement("div", { style: { ...hDisplay, fontWeight:600, fontSize:16, color:H.ink, marginBottom:4, letterSpacing:'0.02em' } }, 'LIFE EDET'),
+        React.createElement("div", { style: { ...hMono, fontSize:11, letterSpacing:'0.06em', color:H.faint, marginBottom:10 } }, 'Founder'),
+        React.createElement("div", { style: { ...hDisplay, fontWeight:600, fontSize:20, color:H.ink, marginBottom:4 } }, 'Life Edet'),
         React.createElement("div", { style: { ...hBody, fontSize:13.5, color:H.muted, marginBottom:18 } }, 'Founder, NeuralFusion™'),
         React.createElement("p", { style: { ...hBody, fontSize:14.5, lineHeight:1.8, color:H.muted, marginBottom:20 } },
           'Nigerian entrepreneur and researcher working at the intersection of human intelligence, technology and personal development. Life developed the Four Brains Framework™ and the Cognitive Fragmentation Index™ through NeuralFusion™, and writes on human cognitive agency in the age of AI, including his publication ',
@@ -3021,11 +2998,11 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
     }
 
     // ═══════════════════════════════════════════════════════════════════
-    //  COGNITIVE PROFILE — white-first results experience
+    //  COGNITIVE PROFILE - white-first results experience
     //  Scoped light theme, distinct from the app's global dark navy/gold
     //  theme (same pattern as the accessible assessment screens above).
     //  Every number and sentence below is pulled from the real CFI
-    //  scoring pipeline (dimensionReports / profile / plan) — nothing on
+    //  scoring pipeline (dimensionReports / profile / plan) - nothing on
     //  this page is hard-coded per user.
     // ═══════════════════════════════════════════════════════════════════
     const CP = {
@@ -3130,7 +3107,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
       );
     }
 
-    // Tap to expand a mode's full dimensional detail — keeps the page scannable
+    // Tap to expand a mode's full dimensional detail - keeps the page scannable
     // on mobile while still surfacing the real strengths/blind-spot data.
     function CPModeDetail({ dim, report }) {
       const [open, setOpen] = useState(false);
@@ -3204,7 +3181,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
 
       const shareUrl = 'https://tryneuralfusion.com/cfi';
       const shareText = hasEnrichedData
-        ? `My NeuralFusion Cognitive Profile — Analytical ${dimensionReports.A.integrationScore}%, Intuitive ${dimensionReports.I.integrationScore}%, Associative ${dimensionReports.S.integrationScore}%, Reflective ${dimensionReports.R.integrationScore}%. Discover how you think.`
+        ? `My NeuralFusion Cognitive Profile: Analytical ${dimensionReports.A.integrationScore}%, Intuitive ${dimensionReports.I.integrationScore}%, Associative ${dimensionReports.S.integrationScore}%, Reflective ${dimensionReports.R.integrationScore}%. Discover how you think.`
         : '';
       const handleShare = async () => {
         if (navigator.share) {
@@ -3255,7 +3232,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
               React.createElement("div", { style: { fontSize: 13.5, color: CP.muted, lineHeight: 1.7, maxWidth: 480, margin: '0 auto' } }, "The CFI™ measures thinking clarity and how well your four thinking modes work together. It is not a personality test, mental health screening, or medical evaluation.")
             ),
 
-            // ── SECTION 1 — Profile overview ──
+            // -- SECTION 1 - Profile overview --
             React.createElement(CPCard, { style: { padding: '36px 28px', marginBottom: 20 } },
               React.createElement("div", { style: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(240px,100%),1fr))', gap: 32, alignItems: 'center' } },
                 React.createElement("div", { style: { display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', gap: 14 } },
@@ -3272,7 +3249,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
               )
             ),
 
-            // ── SECTION 2 — Four thinking modes ──
+            // -- SECTION 2 - Four thinking modes --
             React.createElement("div", { style: { marginBottom: 28 } },
               React.createElement(CPEyebrow, null, 'The Four Thinking Modes'),
               React.createElement("div", { style: { fontSize: 12.5, color: CP.muted, lineHeight: 1.6, marginBottom: 16, maxWidth: 560 } }, "These scores reflect how often each mode currently contributes to your decisions, not how intelligent or capable you are in that area."),
@@ -3281,7 +3258,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
               )
             ),
 
-            // ── SECTION 3 — How you tend to think ──
+            // -- SECTION 3 - How you tend to think --
             React.createElement(CPCard, { style: { padding: '32px 26px', marginBottom: 20 } },
               React.createElement(CPEyebrow, null, 'Your Thinking Profile'),
               React.createElement("h2", { style: { ...syne, fontSize: 18, fontWeight: 800, color: CP.ink, marginBottom: 18 } }, 'How You Tend to Think'),
@@ -3300,7 +3277,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
               React.createElement("div", { style: { fontSize: 14.5, color: CP.text, lineHeight: 1.8 } }, profile.summary)
             ),
 
-            // ── SECTION 4 — Your dominant thinking pattern ──
+            // -- SECTION 4 - Your dominant thinking pattern --
             React.createElement(CPCard, { style: { padding: '32px 26px', marginBottom: 20 } },
               React.createElement(CPEyebrow, null, 'Your Thinking Pattern'),
               React.createElement("h2", { style: { ...syne, fontSize: 18, fontWeight: 800, color: CP.ink, marginBottom: 14 } }, 'Your Dominant Thinking Pattern'),
@@ -3311,7 +3288,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
               )
             ),
 
-            // ── SECTION 5 — Where your thinking may get stuck ──
+            // -- SECTION 5 - Where your thinking may get stuck --
             React.createElement(CPCard, { style: { padding: '32px 26px', marginBottom: 20 } },
               React.createElement(CPEyebrow, null, 'Potential Blind Spot'),
               React.createElement("h2", { style: { ...syne, fontSize: 18, fontWeight: 800, color: CP.ink, marginBottom: 14 } }, 'Where Your Thinking May Get Stuck'),
@@ -3321,7 +3298,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
               )
             ),
 
-            // ── SECTION 6 — Where you can grow ──
+            // -- SECTION 6 - Where you can grow --
             React.createElement(CPCard, { style: { padding: '32px 26px', marginBottom: 20, borderColor: CP.borderStrong } },
               React.createElement(CPEyebrow, null, 'Your Cognitive Opportunity'),
               React.createElement("h2", { style: { ...syne, fontSize: 18, fontWeight: 800, color: CP.ink, marginBottom: 6 } }, 'Where You Can Grow'),
@@ -3329,7 +3306,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
               React.createElement("div", { style: { fontSize: 14.5, color: CP.text, lineHeight: 1.8 } }, profile.suggestedCoordinationExercise)
             ),
 
-            // ── SECTION 7 — Integration session ──
+            // -- SECTION 7 - Integration session --
             React.createElement(CPCard, { style: { padding: '36px 26px', marginBottom: 20, background: CP.ink } },
               React.createElement("div", { style: { ...mono, fontSize: 11, letterSpacing: 1.5, color: CP.gold, marginBottom: 12, textTransform: 'uppercase' } }, "Your First Integration Session"),
               React.createElement("h2", { style: { ...syne, fontSize: 19, fontWeight: 800, color: '#FFFFFF', marginBottom: 10 } }, "Let's Put Your Thinking to Work."),
@@ -3348,7 +3325,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
               React.createElement(CPButton, { onClick: () => setView('protocol'), style: { width: '100%', justifyContent: 'center' } }, 'Start Your Integration Session →')
             ),
 
-            // ── SECTION 8 — Academy recommendation ──
+            // -- SECTION 8 - Academy recommendation --
             React.createElement(CPCard, { style: { padding: '32px 26px', marginBottom: 20 } },
               React.createElement(CPEyebrow, null, "Your Recommended NeuralFusion™ Lesson"),
               React.createElement("div", { style: { fontSize: 13, color: CP.muted, lineHeight: 1.7, marginBottom: 22, maxWidth: 480 } }, "Your Cognitive Profile gives you a starting point. The Academy helps you train from there."),
@@ -3367,7 +3344,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
               )
             ),
 
-            // ── SECTION 9 — Training path ──
+            // -- SECTION 9 - Training path --
             React.createElement("div", { style: { marginBottom: 20 } },
               React.createElement(CPEyebrow, null, 'Your Cognitive Development Path'),
               React.createElement("div", { style: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(130px,100%),1fr))', gap: 12 } },
@@ -3387,7 +3364,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
               CP_MODE_ORDER.map(d => React.createElement(CPModeDetail, { key: d, dim: d, report: dimensionReports[d] }))
             ),
 
-            // ── SECTION 10 — Clarity Delta ──
+            // -- SECTION 10 - Clarity Delta --
             React.createElement(CPCard, { style: { padding: '28px 26px', marginBottom: 20 } },
               React.createElement(CPEyebrow, null, 'Track Your Progress'),
               React.createElement("div", { style: { ...syne, fontSize: 15, fontWeight: 800, color: CP.ink, marginBottom: 8 } }, 'Clarity Delta™ · Starting Point'),
@@ -3395,7 +3372,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
               React.createElement(CPButton, { variant: 'outline', onClick: () => setView('analytics') }, 'Continue Training →')
             ),
 
-            // ── SECTION 11 — Shareable profile ──
+            // -- SECTION 11 - Shareable profile --
             React.createElement(CPCard, { style: { padding: '28px 26px', marginBottom: 20, textAlign: 'center' } },
               React.createElement(CPEyebrow, null, 'Share Your Cognitive Profile'),
               React.createElement("div", { style: { fontSize: 13.5, color: CP.muted, lineHeight: 1.7, marginBottom: 18, maxWidth: 440, margin: '0 auto 18px' } }, "You discovered how you think. Now invite someone else to discover theirs."),
@@ -3423,7 +3400,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
               ),
               React.createElement("div", { style: { fontSize: 13, color: CP.muted, marginBottom: 20, maxWidth: 440, margin: '0 auto 20px', lineHeight: 1.7 } },
                 !user ? 'Create a free account to save this report, track your Clarity Delta™ over time, and unlock your personalized learning path.'
-                  : saveState === 'failed' ? 'See the notice above — retry the save, or it will be lost when you leave this page.'
+                  : saveState === 'failed' ? 'See the notice above: retry the save, or it will be lost when you leave this page.'
                   : 'Retake the CFI™ over time to watch your Clarity Delta™ grow.'
               ),
               !user && React.createElement(CPButton, { onClick: () => setShowAuth(true) }, 'Create free account')
@@ -3601,14 +3578,14 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
         Object.keys(dims).forEach(d => { dimScores[d] = dims[d].length ? Math.round(dims[d].reduce((a,b)=>a+b,0)/dims[d].length*20) : 0; });
 
         // Dominant brain is chosen only among the four true thinking modes (A/I/S/R).
-        // E ("integration"/pressure-overload) is never a fifth brain and is excluded here —
+        // E ("integration"/pressure-overload) is never a fifth brain and is excluded here -
         // it's reported separately via integrationScore.
-        // FIX (audit finding #1): dimScores are FRAGMENTATION scores — higher = more
+        // FIX (audit finding #1): dimScores are FRAGMENTATION scores - higher = more
         // fragmented, i.e. that mode is currently coordinating WORSE, not better. The
         // dominant/strongest mode is therefore the one with the LOWEST score (ascending
         // sort), matching buildCognitiveProfile()'s primaryDim logic below. A previous
         // version of this file sorted descending here, which named the MOST fragmented
-        // mode as "Dominant" — contradicting the profile section on the same results page.
+        // mode as "Dominant" - contradicting the profile section on the same results page.
         const brainMap = { A:'analytical', I:'intuitive', S:'associative', R:'reflective' };
         const sortedDims = Object.entries(dimScores).filter(([d]) => d !== 'E').sort((a,b)=>a[1]-b[1]);
         const dominantBrain = brainMap[sortedDims[0][0]] || 'analytical';
@@ -3642,7 +3619,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
           });
         } else {
           setSaveState('idle');
-          setSaveErrorMsg('not signed in — result was never sent to the database');
+          setSaveErrorMsg('not signed in: result was never sent to the database');
         }
       };
 
@@ -3887,9 +3864,9 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
     // ═══════════════════════════════════════════════════════════════════
     //  ANALYTICS VIEW
     // ═══════════════════════════════════════════════════════════════════
-    // "YOUR COGNITIVE JOURNEY" — every completed CFI-1.0 attempt for this user, oldest→newest,
+    // "YOUR COGNITIVE JOURNEY" - every completed CFI-1.0 attempt for this user, oldest→newest,
     // with per-assessment numbering, change vs. the previous attempt, and band movement.
-    // A lower CFI score is less fragmentation, i.e. improvement — matches the Clarity Delta™
+    // A lower CFI score is less fragmentation, i.e. improvement - matches the Clarity Delta™
     // sign convention used elsewhere on this page (baseline - latest).
     function CFIJourney({ cfiHistory = [] }) {
       if (cfiHistory.length < 2) return null;
@@ -4009,7 +3986,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
       const inProgress = LESSONS.find(l => { const p = lessonProgress[l.id] || 0; return p > 0 && p < 100; });
       if (inProgress) {
         return { lesson: inProgress, opportunityDim: cfiResult?.profile?.weakestDim || null,
-          reason: `You're partway through this lesson. Finish it before starting something new — consistency matters more than coverage.` };
+          reason: `You're partway through this lesson. Finish it before starting something new: consistency matters more than coverage.` };
       }
       if (!cfiResult || !cfiResult.plan) {
         const first = LESSONS.find(l => !isComplete(l.id)) || LESSONS[0];
@@ -4033,7 +4010,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
     }
 
     // Five-step training path. Only marks a step complete/current when real
-    // state supports it — never a fabricated "in progress" for a step with
+    // state supports it - never a fabricated "in progress" for a step with
     // no underlying data.
     function getAcademySteps(cfiResult, lessonProgress) {
       const completedCount = Object.values(lessonProgress).filter(v => v === 100).length;
@@ -4074,7 +4051,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
     // ── Section 7: Today's Cognitive Practice ──────────────────────────
     // Simplest functional version: no existing daily-practice engine to
     // reuse, so this tracks only in-session state (no DB table exists for
-    // it yet) — an honest, un-fabricated completion marker for today.
+    // it yet) - an honest, un-fabricated completion marker for today.
     function AcademyDailyPractice({ cfiResult }) {
       const practice = getDailyPractice(cfiResult);
       const [open, setOpen] = useState(false);
@@ -4108,7 +4085,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
       const hasDelta = cfiHistory.length >= 2;
       const clarityDelta = hasDelta ? (cfiHistory[0].total_score - cfiHistory[cfiHistory.length - 1].total_score) : null;
 
-      // A lesson is locked when it isn't free and the person isn't Pro — same
+      // A lesson is locked when it isn't free and the person isn't Pro - same
       // rule the Academy library uses. Recommendations must never bypass it.
       const isLessonLocked = lesson => !!lesson && !lesson.free && !isPro;
       // Renders "Start / Continue" when unlocked, or a Pro-required prompt that
@@ -4147,7 +4124,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
             CP_MODE_ORDER.map(d => React.createElement(CPModeCard, { key: d, dim: d, report: cfiResult.dimensionReports[d] }))
           ),
 
-          // ── SECTION 1 — Recommended for you ──
+          // -- SECTION 1 - Recommended for you --
           React.createElement(CPCard, { style: { padding: '32px 26px', marginBottom: 20, borderColor: CP.borderStrong } },
             React.createElement(CPEyebrow, null, 'Recommended For You'),
             React.createElement("div", { style: { display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap', marginBottom: 8 } },
@@ -4162,7 +4139,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
             React.createElement(LessonCTA, { lesson: rec.lesson, label: 'Start This Lesson →' })
           ),
 
-          // ── SECTION 2 — Learning path ──
+          // -- SECTION 2 - Learning path --
           React.createElement("div", { style: { marginBottom: 20 } },
             React.createElement(CPEyebrow, null, 'Your Learning Path'),
             React.createElement("div", { style: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(140px,100%),1fr))', gap: 12 } },
@@ -4178,7 +4155,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
             )
           ),
 
-          // ── SECTION 3 — Continue where you left off ──
+          // -- SECTION 3 - Continue where you left off --
           React.createElement(CPCard, { style: { padding: '28px 26px', marginBottom: 20 } },
             React.createElement(CPEyebrow, null, inProgressLesson ? 'Continue Training' : 'Begin Your First Training Session'),
             inProgressLesson
@@ -4198,7 +4175,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
                 )
           ),
 
-          // ── SECTION 4 — Four Thinking Modes ──
+          // -- SECTION 4 - Four Thinking Modes --
           React.createElement("div", { style: { marginBottom: 20 } },
             React.createElement(CPEyebrow, null, 'The Four Thinking Modes'),
             React.createElement("div", { style: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(220px,100%),1fr))', gap: 14 } },
@@ -4219,7 +4196,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
             )
           ),
 
-          // ── SECTION 5 — Train your development area ──
+          // -- SECTION 5 - Train your development area --
           hasCFI && React.createElement(CPCard, { style: { padding: '32px 26px', marginBottom: 20 } },
             React.createElement(CPEyebrow, null, 'Your Current Cognitive Opportunity'),
             React.createElement("div", { style: { ...syne, fontSize: 16, fontWeight: 800, color: CP.ink, marginBottom: 10 } }, CFI_DIM_LABELS[cfiResult.profile.weakestDim]),
@@ -4231,28 +4208,28 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
             React.createElement(LessonCTA, { lesson: rec.lesson, label: 'Train This Area →' })
           ),
 
-          // ── SECTION 7 — Daily practice ──
+          // -- SECTION 7 - Daily practice --
           React.createElement(AcademyDailyPractice, { cfiResult }),
 
-          // ── SECTION 8 — Integration Protocol ──
+          // -- SECTION 8 - Integration Protocol --
           completedCount > 0 && React.createElement(CPCard, { style: { padding: '32px 26px', marginBottom: 20 } },
             React.createElement(CPEyebrow, null, 'Put Your Thinking to Work'),
             React.createElement("div", { style: { fontSize: 13.5, color: CP.muted, lineHeight: 1.7, marginBottom: 20 } }, 'Knowledge becomes useful when you apply it to something real.'),
             React.createElement(CPButton, { onClick: () => setView('protocol') }, 'Start an Integration Session →')
           ),
 
-          // ── SECTION 9 — Progress ──
+          // -- SECTION 9 - Progress --
           React.createElement(CPCard, { style: { padding: '28px 26px', marginBottom: 20 } },
             React.createElement(CPEyebrow, null, 'Your Cognitive Development'),
             hasCFI
               ? React.createElement("div", { style: { display: 'flex', gap: 28, flexWrap: 'wrap' } },
                   React.createElement("div", null, React.createElement("div", { style: { ...syne, fontSize: 22, fontWeight: 800, color: CP.ink } }, completedCount, '/', LESSONS.length), React.createElement("div", { style: { ...mono, fontSize: 9.5, letterSpacing: 0.6, color: CP.faint } }, 'LESSONS COMPLETED')),
-                  React.createElement("div", null, React.createElement("div", { style: { ...syne, fontSize: 22, fontWeight: 800, color: CP.ink } }, cfiResult.integrationScore ?? '—'), React.createElement("div", { style: { ...mono, fontSize: 9.5, letterSpacing: 0.6, color: CP.faint } }, 'CFI™ COORDINATION SCORE'))
+                  React.createElement("div", null, React.createElement("div", { style: { ...syne, fontSize: 22, fontWeight: 800, color: CP.ink } }, cfiResult.integrationScore ?? 'N/A'), React.createElement("div", { style: { ...mono, fontSize: 9.5, letterSpacing: 0.6, color: CP.faint } }, 'CFI™ COORDINATION SCORE'))
                 )
               : React.createElement("div", { style: { fontSize: 13.5, color: CP.muted, lineHeight: 1.7 } }, 'Your baseline has been established. Complete your CFI™ assessment to begin tracking your journey.')
           ),
 
-          // ── SECTION 10 — Clarity Delta ──
+          // -- SECTION 10 - Clarity Delta --
           React.createElement(CPCard, { style: { padding: '28px 26px', marginBottom: 20 } },
             React.createElement(CPEyebrow, null, 'Your Progress Over Time'),
             hasDelta
@@ -4353,7 +4330,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
         );
       }
 
-      // ── Section 6: Explore the Academy — categorize real lessons only,
+      // -- Section 6: Explore the Academy - categorize real lessons only,
       // never rename or fabricate. A lesson lands in the first category it
       // matches; nothing is duplicated or invented. ──
       const ACADEMY_CATEGORIES = [
@@ -4828,7 +4805,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
             sb.from('profiles').select('*').order('created_at', { ascending: false }),
             sb.from('cfi_results').select('*').order('created_at', { ascending: false }),
           ]);
-          // Surface load errors instead of silently showing empty/stale data —
+          // Surface load errors instead of silently showing empty/stale data -
           // a blocked select (e.g. an RLS policy issue) previously failed silently
           // here, making the dashboard look correct while quietly showing nothing.
           if (usersRes.error) { console.error('[ADMIN LOAD ERROR] profiles select failed:', usersRes.error); showMsg('Could not load users: ' + usersRes.error.message, 'error'); }
@@ -5014,7 +4991,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
       const nf100Count = uniqueCFIUserIds.size;
       const filteredCFI = completedCFI.filter(r => cfiFilter === 'all' || r.band === cfiFilter);
       // IMPORTANT: rows saved before this correction (assessment_version is null/legacy) used a
-      // different item set and a ~16–80 raw range — they are NOT on the CFI-1.0 13–65 scale.
+      // different item set and a ~16–80 raw range - they are NOT on the CFI-1.0 13–65 scale.
       // "Completed CFI assessments" / "Unique CFI participants" above are legitimate headcounts
       // across all versions, but any *scored* aggregate (band distribution, average/median CFI,
       // retest deltas, band movement) must never mix scales, so those are scoped to CFI-1.0 only.
@@ -5089,11 +5066,11 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
                           return (
                             React.createElement("div", {key: band, style: { marginBottom:16 }}, React.createElement("div", {style: { display:'flex', justifyContent:'space-between', marginBottom:6 }}, React.createElement("div", {style: { fontSize:12, color:C.muted }}, band), React.createElement("div", {style: { ...mono, fontSize:10, color:bandColors[band] }}, count, '(', pct, '%)')), React.createElement("div", {style: { height:4, background:C.panel, borderRadius:2 }}, React.createElement("div", {style: { width:`${pct}%`, height:'100%', background:bandColors[band], borderRadius:2, transition:'width 0.8s ease' }})))
                           );
-                        }), cfiV1.length === 0 && React.createElement("div", {style: { color:C.dim, fontSize:13 }}, 'No CFI-1.0 data yet.'), legacyCFICount > 0 && React.createElement("div", {style: { marginTop:12, ...mono, fontSize:10, color:C.dim }}, legacyCFICount, ' legacy (pre-correction) assessment(s) excluded — different scale, not shown here.')), React.createElement("div", {className: "card", style: { padding:'28px' }}, React.createElement("div", {style: { ...mono, fontSize:11, letterSpacing:1, color:C.cyan, marginBottom:20 }}, 'Retest outcomes · CFI-1.0'), [
-                          { label:'Average CFI', value: avgCFI ?? '—' },
-                          { label:'Median CFI', value: medianCFI ?? '—' },
+                        }), cfiV1.length === 0 && React.createElement("div", {style: { color:C.dim, fontSize:13 }}, 'No CFI-1.0 data yet.'), legacyCFICount > 0 && React.createElement("div", {style: { marginTop:12, ...mono, fontSize:10, color:C.dim }}, legacyCFICount, ' legacy (pre-correction) assessment(s) excluded, different scale, not shown here.')), React.createElement("div", {className: "card", style: { padding:'28px' }}, React.createElement("div", {style: { ...mono, fontSize:11, letterSpacing:1, color:C.cyan, marginBottom:20 }}, 'Retest outcomes · CFI-1.0'), [
+                          { label:'Average CFI', value: avgCFI ?? 'N/A' },
+                          { label:'Median CFI', value: medianCFI ?? 'N/A' },
                           { label:'Participants with multiple assessments', value: retestedUserIds.length },
-                          { label:'Average change among retested', value: avgChangeRetested != null ? (avgChangeRetested>0?'+':'')+avgChangeRetested : '—' },
+                          { label:'Average change among retested', value: avgChangeRetested != null ? (avgChangeRetested>0?'+':'')+avgChangeRetested : 'N/A' },
                           { label:'Improved (lower CFI)', value: improved, color:'#7AAFCF' },
                           { label:'No change', value: noChange, color:C.muted },
                           { label:'Worsened (higher CFI)', value: worsened, color:'#F87171' },
@@ -5682,7 +5659,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
             ))), threshold&&(
             /* FIX (audit finding #4): a within-subject pre/post self-report change, with no
                control/waitlist group, cannot support a causal "the programme has demonstrated
-               measurable cognitive improvement" claim on its own — retest familiarity,
+               measurable cognitive improvement" claim on its own - retest familiarity,
                regression to the mean, and demand characteristics are all live alternative
                explanations. Restated to describe only what was actually measured. */
             React.createElement("div", {style: { ...ES.accentCard({ marginBottom:'2rem', borderLeft:`2px solid ${EC.accent}` }) }}, React.createElement("div", {style: { ...ES.mono({ color:EC.accent }) }}, '◈ Clarity Delta threshold met (≤–15). Self-reported fragmentation dropped by at least 15 points pre-to-post. This reflects a within-subject self-report change, not an independently measured or controlled outcome.'))
@@ -5978,9 +5955,9 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
             const r = cfiRows[0];
             const dimScores = r.dim_scores || {};
             // Keys here are the A/I/S/R/E dimension letters (matches dimScores as stored
-            // by finalize()), not brain names — and E is excluded, same as the fresh-quiz path.
+            // by finalize()), not brain names - and E is excluded, same as the fresh-quiz path.
             const brainMap = { A:'analytical', I:'intuitive', S:'associative', R:'reflective' };
-            // FIX (audit finding #1): ascending sort — see matching comment in finalize()
+            // FIX (audit finding #1): ascending sort - see matching comment in finalize()
             // above. Lowest fragmentation score = dominant mode, consistently everywhere.
             const sortedDims = Object.entries(dimScores).filter(([d]) => d !== 'E').sort((a,b)=>a[1]-b[1]);
             const dominantBrain = brainMap[sortedDims[0]?.[0]] || 'analytical';
