@@ -1,0 +1,6040 @@
+const { useState, useEffect, useCallback, useRef, useMemo } = React;
+
+    // ── Supabase ──────────────────────────────────────────────────────
+    const SUPABASE_URL  = "https://ckrxgbosyohcmjtemrvu.supabase.co";
+    const SUPABASE_ANON = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNrcnhnYm9zeW9oY21qdGVtcnZ1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkwMzYwNjgsImV4cCI6MjA5NDYxMjA2OH0.imuN5Z-nq_RE7uGckOnqUQgaNtDWT6eq_k2ibkEfq9c";
+    const { createClient } = supabase;
+    const sb = createClient(SUPABASE_URL, SUPABASE_ANON);
+
+    // ── Design Tokens: Gold × Navy ───────────────────────────────────
+    const C = {
+      void: '#050C1A', deep: '#071020', surface: '#0C1A30', panel: '#112240',
+      border: 'rgba(196,160,80,0.15)', borderBright: 'rgba(196,160,80,0.35)',
+      cyan: '#C4A050', cyanBright: '#E2BE78', cyanDim: 'rgba(196,160,80,0.08)',
+      text: '#F5EDD8', muted: '#9A8A6A', dim: '#4A5A78',
+      brains: {
+        analytical: { color: '#C4A050', dim: 'rgba(196,160,80,0.12)',  label: 'Analytical Brain', code: 'A', symbol: '◰' },
+        intuitive:  { color: '#E2BE78', dim: 'rgba(226,190,120,0.12)', label: 'Intuitive Brain',  code: 'I', symbol: '◱' },
+        associative:{ color: '#7AAFCF', dim: 'rgba(122,175,207,0.12)', label: 'Associative Brain',code: 'S', symbol: '◲' },
+        reflective: { color: '#D4AF6A', dim: 'rgba(212,175,106,0.12)', label: 'Reflective Brain', code: 'R', symbol: '◳' },
+        // Not a fifth brain — the CFI's pressure/overload item (dim E). Kept visually distinct
+        // so it's never mistaken for the Analytical brain it used to silently fall back to.
+        integration:{ color: '#8B8FA3', dim: 'rgba(139,143,163,0.12)',  label: 'Integration',     code: 'E', symbol: '◈' },
+      }
+    };
+
+    // ── Brand Identity: NF Monogram ─────────────────────────────────────
+    // Primary brand mark. Geometric N + F sharing a single stem - the
+    // visual metaphor for "fusion": multiple thinking systems integrated
+    // into one operating mark. Sharp edges, no gradients, no glow.
+    const NF_GOLD = '#C8A24D';
+    const NF_INK  = '#0B0B0D';
+    function NFMark({ size = 32, color = NF_GOLD, title = 'NeuralFusion' }) {
+      return React.createElement(
+        "svg",
+        { width: size, height: size, viewBox: "0 0 100 100", role: "img", "aria-label": title, style: { flexShrink: 0, display: 'block' } },
+        React.createElement("rect", { x: 13, y: 13, width: 14, height: 74, fill: color }),
+        React.createElement("polygon", { points: "27,13 41,13 71,87 57,87", fill: color }),
+        React.createElement("rect", { x: 57, y: 13, width: 14, height: 74, fill: color }),
+        React.createElement("rect", { x: 57, y: 13, width: 30, height: 14, fill: color }),
+        React.createElement("rect", { x: 57, y: 44, width: 24, height: 14, fill: color })
+      );
+    }
+    // Icon on a dark square badge - for contexts needing a self-contained
+    // mark (cards, loading states, standalone app-icon-style usage).
+    function NFBadge({ size = 40, radius = 8, gold = NF_GOLD, ink = NF_INK }) {
+      return React.createElement(
+        "svg",
+        { width: size, height: size, viewBox: "0 0 100 100", role: "img", "aria-label": "NeuralFusion", style: { flexShrink: 0, display: 'block' } },
+        React.createElement("rect", { x: 0, y: 0, width: 100, height: 100, rx: radius, fill: ink }),
+        React.createElement("rect", { x: 22, y: 22, width: 10.5, height: 56, fill: gold }),
+        React.createElement("polygon", { points: "32.5,22 43,22 67.5,78 57,78", fill: gold }),
+        React.createElement("rect", { x: 57, y: 22, width: 10.5, height: 56, fill: gold }),
+        React.createElement("rect", { x: 57, y: 22, width: 21, height: 10.5, fill: gold }),
+        React.createElement("rect", { x: 57, y: 45.75, width: 17, height: 10.5, fill: gold })
+      );
+    }
+    // Horizontal lockup: icon + wordmark, vertically centered, consistent
+    // gap. Used in the primary nav. Collapses to icon-only via CSS below
+    // a set breakpoint (see .nf-lockup-text in style.css).
+    function NFLogoLockup({ iconSize = 30, gap = 12, wordmarkColor = '#F5EDD8', tagline, taglineColor = '#9A8A6A' }) {
+      return React.createElement(
+        "div",
+        { className: "nf-lockup", style: { display: 'flex', alignItems: 'center', gap } },
+        React.createElement(NFMark, { size: iconSize }),
+        React.createElement(
+          "div",
+          { className: "nf-lockup-text", style: { display: 'flex', flexDirection: 'column', justifyContent: 'center', minWidth: 0 } },
+          React.createElement("div", { style: { fontFamily: "'Syne', sans-serif", fontSize: 15, fontWeight: 700, letterSpacing: '0.06em', color: wordmarkColor, lineHeight: 1.15, whiteSpace: 'nowrap' } }, 'NEURALFUSION', React.createElement("sup", { style: { fontSize: '0.5em', marginLeft: 1 } }, '™')),
+          tagline && React.createElement("div", { style: { fontFamily: "'Space Mono', monospace", fontSize: 10.5, letterSpacing: '0.08em', color: taglineColor, marginTop: 2, whiteSpace: 'nowrap' } }, tagline)
+        )
+      );
+    }
+
+    // ── Admin Config ──────────────────────────────────────────────────
+    // Admin access is enforced server-side via profiles.is_admin (Supabase RLS).
+    // No credentials are stored in the client bundle.
+
+    // ── Enterprise Config ─────────────────────────────────────────────
+    const ENTERPRISE_PRICE_KOBO    = 5000000; // ₦50,000
+    const ENTERPRISE_PRICE_DISPLAY = '50,000';
+
+    // ── Currency Reference ────────────────────────────────────────────
+    // All prices are charged and settled in Naira via Paystack. This is only
+    // an approximate USD reference so international visitors aren't left
+    // guessing what a price means, it is NOT used for any actual charge.
+    // Update NGN_PER_USD periodically to keep the estimate reasonable.
+    const NGN_PER_USD = 1500;
+    const usdApprox = (kobo) => `~$${Math.round((kobo/100)/NGN_PER_USD).toLocaleString()} USD`;
+
+    const syne = { fontFamily: "'Syne', sans-serif" };
+    const mono = { fontFamily: "'Space Mono', monospace" };
+    const inter = { fontFamily: "'DM Sans', sans-serif" };
+
+    // ── Four Brains Data ──────────────────────────────────────────────
+    const FOUR_BRAINS = {
+      analytical: {
+        label: 'Analytical Brain', code: 'A', symbol: '◰', color: '#C4A050',
+        tagline: 'Logic · Structure · Precision',
+        description: 'The Analytical Brain processes information through systematic decomposition. It thrives on data, evidence, and logical frameworks, transforming complexity into structured certainty.',
+        strengths: ['Logical deduction', 'Pattern verification', 'Data synthesis', 'Risk assessment', 'Systematic planning'],
+        weaknesses: ['Analysis paralysis', 'Emotional disconnect', 'Rigidity under ambiguity', 'Overcomplication'],
+        thinkingStyle: 'Sequential, evidence-based, framework-driven',
+        decisionPattern: 'Evaluates all variables before committing. Seeks certainty. Can delay under incomplete information.',
+        trainingFocus: 'Structured reasoning drills, logical sequencing, deductive exercises',
+        profile: 'You are a builder of mental architecture. You need information organized before action. Your superpower is precision; your blind spot is forgetting that not everything can be quantified.',
+      },
+      intuitive: {
+        label: 'Intuitive Brain', code: 'I', symbol: '◱', color: '#E2BE78',
+        tagline: 'Pattern · Signal · Insight',
+        description: 'The Intuitive Brain operates through rapid subconscious pattern recognition. It integrates vast experiential data into instantaneous knowing, bypassing conscious reasoning.',
+        strengths: ['Rapid situational reads', 'Emotional intelligence', 'Implicit pattern detection', 'Holistic understanding'],
+        weaknesses: ['Confirmation bias', 'Difficulty articulating reasoning', 'Inconsistency under logic pressure', 'Overthinking that kills the signal'],
+        thinkingStyle: 'Holistic, non-linear, feeling-based, experience-driven',
+        decisionPattern: 'Knows the answer before the analysis arrives. Commits quickly. Struggles to defend the why.',
+        trainingFocus: 'Pattern recognition acceleration, signal vs noise calibration, intuitive accuracy logging',
+        profile: 'You process reality faster than you can explain it. Your instincts carry compressed intelligence. The training challenge: learning to trust, verify, and communicate what your gut already knows.',
+      },
+      associative: {
+        label: 'Associative Brain', code: 'S', symbol: '◲', color: '#7AAFCF',
+        tagline: 'Connection · Synthesis · Creation',
+        description: 'The Associative Brain generates meaning through cross-domain connection. It sees relationships invisible to linear thinkers, producing creative synthesis and breakthrough ideas.',
+        strengths: ['Creative problem solving', 'Metaphorical thinking', 'Cross-domain insight', 'Innovation', 'Reframing'],
+        weaknesses: ['Scattered focus', 'Over-ideation', 'Execution gaps', 'Difficulty with repetitive precision'],
+        thinkingStyle: 'Lateral, divergent, metaphor-driven, connection-seeking',
+        decisionPattern: 'Generates multiple solutions rapidly. Struggles to commit to one path. Needs structure to execute.',
+        trainingFocus: 'Creative constraint exercises, idea compression, systematic divergence protocols',
+        profile: 'Your mind is a connective tissue between ideas. You see things others miss entirely. The training challenge: transforming brilliant connections into executable precision.',
+      },
+      reflective: {
+        label: 'Reflective Brain', code: 'R', symbol: '◳', color: '#D4AF6A',
+        tagline: 'Awareness · Meaning · Integration',
+        description: 'The Reflective Brain generates meta-cognitive awareness. It observes the thinking process itself, evaluating quality, extracting lessons, and integrating experience into wisdom.',
+        strengths: ['Self-awareness', 'Learning acceleration', 'Emotional regulation', 'Long-term strategic thinking', 'Value alignment'],
+        weaknesses: ['Rumination', 'Action delay', 'Excessive self-evaluation', 'Getting stuck in meaning-making'],
+        thinkingStyle: 'Meta-cognitive, evaluative, meaning-seeking, integrative',
+        decisionPattern: 'Processes decisions through the lens of values and long-term consequence. Wise but sometimes slow.',
+        trainingFocus: 'Structured reflection protocols, rumination interruption, clarity journaling, pattern review',
+        profile: 'You are the observer of your own mind. You see not just what happened, but why, and what it means. The training challenge: using reflection as a weapon, not a prison.',
+      },
+    };
+
+    // ── CFI Assessment Items — CFI-1.0, canonical 13-item instrument ──
+    // Source of truth: the Enterprise instrument (ENT_CFI_ITEMS below), which predates
+    // the consumer app's since-drifted 15/16-item versions. Dimension letters are kept
+    // in the app's original A/I/S/R/E scheme (not the Enterprise A/B/C/D/E scheme) so
+    // CFI_SECTIONS, CFI_DIMENSION_META, and the brainMap below don't need to change:
+    //   Ent A "Decision Latency"      → A "analytical"
+    //   Ent B "Mode Rigidity"         → I "intuitive"
+    //   Ent C "Emotional Reactivity"  → R "reflective"
+    //   Ent D "Thought Interruption"  → S "associative"
+    //   Ent E "Cognitive Overload"    → E "integration" (not a fifth brain — see dominantBrain calc)
+    const CFI_ITEMS = [
+      { id:1,  dim:'A', brain:'analytical',  text:'I delay making decisions even when I have sufficient information.' },
+      { id:2,  dim:'A', brain:'analytical',  text:'I reconsider decisions I have already made even when no new information is available.' },
+      { id:3,  dim:'A', brain:'analytical',  text:'When facing a decision under time pressure, my thinking becomes unclear.' },
+      { id:4,  dim:'I', brain:'intuitive',   text:'I rely on facts and logic alone, even when something tells me to think differently.' },
+      { id:5,  dim:'I', brain:'intuitive',   text:'I act on gut feelings without pausing to examine the evidence behind them.' },
+      { id:6,  dim:'I', brain:'intuitive',   text:'I find it difficult to shift my thinking approach once I have started working on a problem.' },
+      { id:7,  dim:'R', brain:'reflective',  text:'Strong emotions make my thinking less clear.' },
+      { id:8,  dim:'R', brain:'reflective',  text:'I make decisions I later regret when I am under emotional pressure.' },
+      { id:9,  dim:'R', brain:'reflective',  text:'I am able to remain mentally focused even when the situation feels stressful.', reversed:true },
+      { id:10, dim:'S', brain:'associative', text:'My thinking gets interrupted by unrelated thoughts when I am trying to focus.' },
+      { id:11, dim:'S', brain:'associative', text:'I experience competing thoughts when trying to reach a clear conclusion.' },
+      { id:12, dim:'S', brain:'associative', text:'After completing a task, my thoughts feel organised and settled.', reversed:true },
+      { id:13, dim:'E', brain:'integration', text:'When I am presented with too much information at once, my thinking becomes disorganised.' },
+    ];
+    // 13 items, each scored 1–5. Raw total range: 13 (best) – 65 (worst).
+    // Items 9 and 12 are reverse-scored (`reversed:true`): scoring well there is a
+    // *strength*, not fragmentation, so the raw 1–5 answer is inverted (6 - value)
+    // everywhere fragmentation totals are computed.
+
+    // ── CFI Section Intros ──────────────────────────────────────────────
+    // FIX (audit findings B/#5/#6/#7): titles and blurbs rewritten to describe what the
+    // items in each section actually ask about, rather than the broader trait the section
+    // used to imply. See CFI_Audit_Report Section B for the item-by-item mapping.
+    const CFI_SECTIONS = {
+      A: { title:'Clear, Logical Thinking', icon:'◰', color:'#C4A050',
+           blurb:"These questions look at how decisive and clear your thinking stays, especially when you're under time pressure to decide." },
+      I: { title:'Instinct vs. Logic Flexibility', icon:'◱', color:'#E2BE78',
+           blurb:"These questions look at whether you can move between logic and gut instinct, or tend to get stuck relying on only one of them even when it isn't working." },
+      S: { title:'Focus & Mental Interruptions', icon:'◲', color:'#7AAFCF',
+           blurb:"These questions look at how often unrelated or competing thoughts interrupt your focus, and whether your mind feels settled once a task is done." },
+      R: { title:'Emotional Clarity Under Pressure', icon:'◳', color:'#D4AF6A',
+           blurb:"These questions look at how much strong emotions affect your clarity and decisions, and whether you can stay focused when things feel stressful." },
+      E: { title:'Staying Steady Under Pressure', icon:'◈', color:'#F5EDD8',
+           blurb:"Last section — just one question. It looks at how your thinking holds up when you're given a lot of information at once. Because it's a single question, treat this section as a narrow snapshot, not a full picture." },
+    };
+    const CFI_SECTION_ORDER = ['A','I','S','R','E'];
+
+    // ── CFI Dimension Content Library ───────────────────────────────────
+    // Every dimension score is paired with plain-language meaning, strengths,
+    // blind spots, decision style, behaviour under pressure, and 3 practical actions.
+    // FIX (audit findings B/#5/#6/#7/#10): every block below was rewritten to describe
+    // only what its 3 items (or, for E, its single item) actually ask about — decision
+    // delay/reconsideration/clarity-under-pressure for A, logic-vs-gut rigidity for I,
+    // attentional interruption for S, and emotional reactivity for R. Claims about
+    // reasoning ability, creativity, intuition quality, and metacognition that the old
+    // copy implied but that no item measures have been removed. See CFI_Audit_Report
+    // Section B for the full item-to-construct mapping this rewrite is based on.
+    const CFI_DIMENSION_META = {
+      A: {
+        name: 'Clear, Logical Thinking', brainKey:'analytical',
+        strengths: ['Can decide without much delay once you have enough information', "Doesn't tend to reopen decisions without a new reason to", 'Thinking mostly stays clear even when a decision is time-pressured'],
+        blindSpots: ['Can delay deciding even with enough information in hand', 'May reconsider a settled decision without any new information', 'Thinking can turn unclear specifically when a decision is time-pressured'],
+        meaning: {
+          high: "You tend to decide without much delay once you have enough information, and time pressure has a limited effect on your clarity.",
+          moderate: "You sometimes delay or reconsider decisions, and time pressure occasionally makes your thinking less clear.",
+          low: "Right now you often delay deciding, reconsider decisions you've already made, and time pressure regularly makes your thinking unclear. This is common, and trainable.",
+        },
+        decisionStyle: {
+          high: "You commit to a decision once you have enough information, and you don't tend to relitigate it later.",
+          moderate: 'You can commit to decisions, but you sometimes revisit them without anything new prompting it.',
+          low: 'You tend to stall or reopen decisions, often without a clear reason to.',
+        },
+        underPressure: {
+          high: 'Time pressure has a limited effect on how clearly you think.',
+          moderate: 'Time pressure sometimes clouds your thinking, though you usually still reach a decision.',
+          low: 'Time pressure tends to make your thinking noticeably less clear.',
+        },
+        improvements: [
+          'Give yourself a hard deadline to decide once you have the key facts.',
+          "If you catch yourself reconsidering a decision, ask first whether anything actually changed.",
+          'Practice making one low-stakes decision daily under a short time limit.',
+        ],
+      },
+      I: {
+        name: 'Instinct vs. Logic Flexibility', brainKey:'intuitive',
+        strengths: ['Can lean on logic and evidence when a situation calls for it', 'Can act on a gut read when speed matters', "Doesn't get permanently stuck in one approach once it stops working"],
+        blindSpots: ['May rely on facts and logic alone even when something else is telling you differently', 'May act on gut feelings without pausing to check them against evidence', "Can find it difficult to shift approach once you've started working a problem"],
+        meaning: {
+          high: "You can move between logic and instinct depending on the situation, without getting stuck committed to one approach.",
+          moderate: "You lean more on one of logic or instinct, and sometimes find it hard to switch once you've started.",
+          low: "Right now you tend to get stuck in one mode — either overriding useful signals with pure logic, or acting on gut feelings without checking them — and switching approach mid-problem is difficult.",
+        },
+        decisionStyle: {
+          high: "You bring in whichever of logic or instinct fits the decision, and adjust if your first approach isn't working.",
+          moderate: 'You tend to default to one approach, and switching takes deliberate effort.',
+          low: 'You commit early to either pure logic or pure instinct and rarely revisit that choice mid-decision.',
+        },
+        underPressure: {
+          high: "Pressure doesn't lock you into one approach.",
+          moderate: "Pressure makes it harder to switch approaches if your first one isn't working.",
+          low: "Under pressure you're most likely to get stuck in whichever mode you started in.",
+        },
+        improvements: [
+          "When a decision feels stuck, deliberately try the other approach: if you've been logical, ask what your gut says, and vice versa.",
+          'Before acting on a gut feeling, name one piece of evidence that supports or challenges it.',
+          'Notice the moment you feel resistant to changing approach mid-problem, and pause there.',
+        ],
+      },
+      S: {
+        name: 'Focus & Mental Interruptions', brainKey:'associative',
+        strengths: ['Can hold a single train of thought without much interference', 'Mind tends to feel settled once a task is finished', 'Fewer competing thoughts getting in the way of reaching a conclusion'],
+        blindSpots: ["Unrelated thoughts can interrupt your focus when you're trying to concentrate", 'Competing thoughts can make it harder to reach a clear conclusion', "Thoughts may still feel unsettled after a task is done"],
+        meaning: {
+          high: "Your focus holds steady: unrelated or competing thoughts rarely derail you, and your mind tends to feel settled once a task is done.",
+          moderate: "Your focus holds up reasonably well, but competing or unrelated thoughts sometimes interrupt you, and you don't always feel settled afterward.",
+          low: "Right now, unrelated or competing thoughts frequently interrupt your focus, and your mind often doesn't feel settled after finishing a task.",
+        },
+        decisionStyle: {
+          high: 'You can reach a conclusion without much interference from competing thoughts.',
+          moderate: 'Competing thoughts sometimes slow you down before you reach a conclusion.',
+          low: 'Competing or unrelated thoughts often get in the way before you can reach a clear conclusion.',
+        },
+        underPressure: {
+          high: "Pressure doesn't noticeably increase mental interruptions for you.",
+          moderate: 'Pressure makes unrelated thoughts a bit more likely to intrude.',
+          low: 'Pressure makes it much harder to hold a single train of thought.',
+        },
+        improvements: [
+          'When an unrelated thought intrudes, jot it down and return to your task instead of following it.',
+          'After finishing a task, take one minute to note anything that still feels unfinished, then set it aside.',
+          'If competing thoughts are pulling you in different directions, list them out to separate them from each other.',
+        ],
+      },
+      R: {
+        name: 'Emotional Clarity Under Pressure', brainKey:'reflective',
+        strengths: ['Thinking stays relatively clear even when emotions run high', "Fewer decisions made under emotional pressure that you later regret", 'Can stay mentally focused when a situation feels stressful'],
+        blindSpots: ['Strong emotions can make your thinking less clear', "May make decisions under emotional pressure that you later regret", "Stress can pull your focus away from the task at hand"],
+        meaning: {
+          high: "Strong emotions have a limited effect on your clarity, and you can generally stay focused even when a situation feels stressful.",
+          moderate: "Emotions sometimes cloud your thinking, and stress occasionally pulls your focus, though you can usually recover.",
+          low: "Right now, strong emotions frequently reduce your clarity, and stressful situations often pull your focus and lead to decisions you later regret.",
+        },
+        decisionStyle: {
+          high: "Emotional pressure doesn't strongly steer your decisions.",
+          moderate: "Emotional pressure sometimes shapes a decision more than you'd like.",
+          low: 'Decisions made under emotional pressure are more likely to be ones you regret later.',
+        },
+        underPressure: {
+          high: 'You stay mentally focused even when a situation feels stressful.',
+          moderate: 'Stress pulls at your focus, though you can usually pull it back.',
+          low: 'Stress tends to overwhelm your focus and clarity.',
+        },
+        improvements: [
+          "Before deciding under emotional pressure, pause and name the emotion you're feeling.",
+          'If a decision feels emotionally charged, give it a short cooling-off period before acting.',
+          'Notice the specific situations where stress most often affects your focus, and plan for them in advance.',
+        ],
+      },
+      E: {
+        // FIX (audit finding C / Section C): this dimension is built from ONE item, not
+        // 3 like the others. It previously carried six distinct claims (integration,
+        // staying steady under pressure, mode-switching, perspective, recovery, mode
+        // selection) that a single 5-point question cannot support. Content below is
+        // narrowed to only what the item actually asks — reaction to high information
+        // volume — with an explicit single-item caveat kept in every string so the
+        // limitation travels with the text wherever it's displayed.
+        name: 'Handling Information Overload (single-item snapshot)', brainKey:null,
+        strengths: ["Reported feeling relatively organized when given a lot of information at once — based on one question, treat as a rough signal only"],
+        blindSpots: ["Reported feeling disorganized when given a lot of information at once — based on one question, treat as a rough signal only"],
+        meaning: {
+          high: "Based on a single question, you reported feeling relatively organized even when given a lot of information at once. This is a narrow, single-item signal, not a full profile of how you handle pressure.",
+          moderate: "Based on a single question, you reported some disorganization when given a lot of information at once. Treat this as a rough signal rather than a firm conclusion.",
+          low: "Based on a single question, you reported that too much information at once tends to leave your thinking disorganized. Treat this as a rough signal rather than a firm conclusion.",
+        },
+        decisionStyle: {
+          high: "This dimension is based on one question and isn't detailed enough to describe a decision style.",
+          moderate: "This dimension is based on one question and isn't detailed enough to describe a decision style.",
+          low: "This dimension is based on one question and isn't detailed enough to describe a decision style.",
+        },
+        underPressure: {
+          high: "You reported handling a high volume of information reasonably well (single-item measure).",
+          moderate: "You reported some difficulty handling a high volume of information (single-item measure).",
+          low: "You reported that a high volume of information tends to disorganize your thinking (single-item measure).",
+        },
+        improvements: [
+          'If a large volume of information often leaves you disorganized, try breaking it into smaller chunks before deciding.',
+          'Ask for a short summary or the top few points before diving into a large amount of information.',
+          'Build in a short pause to reorganize your thoughts before responding to information overload.',
+        ],
+      },
+    };
+
+    const CFI_DIM_LABELS = { A:'Clear, Logical Thinking', I:'Gut Instinct', S:'Creative Connections', R:'Self-Awareness', E:'Staying Steady Under Pressure' };
+
+    // Communication / leadership / learning style, keyed by brain
+    const CFI_STYLE_TABLE = {
+      analytical:  { communication:'Direct, structured, and fact-based.', leadership:'Leads with clear plans and measurable standards.', learning:'Learns best through step-by-step instruction and structured practice.' },
+      intuitive:   { communication:'Concise and confident, sometimes short on detailed explanation.', leadership:'Leads by reading people and situations quickly, adjusting on the fly.', learning:'Learns best through hands-on experience and repeated exposure.' },
+      associative: { communication:'Story-driven, uses analogies and big-picture framing.', leadership:'Leads by connecting people and ideas toward a shared vision.', learning:'Learns best by exploring, experimenting, and making unexpected connections.' },
+      reflective:  { communication:'Thoughtful and measured, prefers to consider before responding.', leadership:'Leads through consistency, values, and long-term thinking.', learning:'Learns best through reflection, journaling, and reviewing past experience.' },
+    };
+
+    // Score → plain-language bucket (0 = perfectly integrated dimension, 100 = fully fragmented)
+    function cfiLevel(fragScore) {
+      const integ = 100 - fragScore;
+      if (integ >= 70) return 'high';
+      if (integ >= 40) return 'moderate';
+      return 'low';
+    }
+
+    function cfiIntegrationScore(total) {
+      // total ranges 13 (best) to 65 (worst) across the 13 five-point CFI-1.0 items
+      const pct = ((total - 13) / 52) * 100;
+      return Math.max(0, Math.min(100, Math.round(100 - pct)));
+    }
+
+    function buildDimensionReport(dim, fragScore) {
+      const meta = CFI_DIMENSION_META[dim];
+      const level = cfiLevel(fragScore);
+      const integrationScore = Math.max(0, Math.min(100, 100 - fragScore));
+      return {
+        dim, name: meta.name, brainKey: meta.brainKey, level, integrationScore, fragScore,
+        meaning: meta.meaning[level],
+        strengths: meta.strengths,
+        blindSpots: meta.blindSpots,
+        decisionStyle: meta.decisionStyle[level],
+        underPressure: meta.underPressure[level],
+        improvements: meta.improvements,
+      };
+    }
+
+    // Generic explainer for any score, independent of dimension; never show a bare number.
+    // FIX (audit finding H): previously framed around how OFTEN / how RELIABLY a mode
+    // "contributes to decisions" — no CFI item asks about frequency of use or reliability
+    // of contribution; every item asks about self-reported DIFFICULTY in a domain. Reworded
+    // to describe only what was actually measured. Never implies a "broken" brain, and
+    // never implies 100% is the goal for every mode.
+    function cfiScoreMeaning(score) {
+      if (score >= 90) return "90%+ means you reported very little difficulty in this area on this assessment.";
+      if (score >= 75) return "75–89% means you reported occasional difficulty here, with most responses on the easier end.";
+      if (score >= 50) return "50–74% means you reported noticeable difficulty in this area, especially under pressure — this is a self-report, not a frequency count.";
+      if (score >= 25) return "25–49% means you reported frequent difficulty in this area on this assessment.";
+      return "Below 25% means you reported significant difficulty in this area right now. This reflects today's self-report, not a fixed trait.";
+    }
+
+    // Band (internal value, unchanged) → coordination-framed label + one-line description.
+    // The underlying `band` string itself (e.g. 'Critical fragmentation') is left exactly
+    // as-is everywhere it drives logic (DB writes, admin filters, lesson gating); this
+    // mapping only controls what the person actually reads on the results page.
+    const CFI_COORDINATION_LABEL = {
+      'Integrated':             'Strongly Coordinated',
+      'Moderate fragmentation': 'Developing Coordination',
+      'High fragmentation':     'Building Coordination',
+      'Critical fragmentation': 'Early-Stage Coordination',
+    };
+    function cfiCoordinationLabel(band) {
+      return CFI_COORDINATION_LABEL[band] || band;
+    }
+
+    function buildCognitiveProfile(dimReports, integrationScore, band) {
+      const core = ['A','I','S','R']; // exclude E (integration), it isn't a standalone thinking mode
+      // Best-to-least-frequently-activated, NOT "best brain to worst brain." With four
+      // modes: the top mode is Dominant, the middle two are Supporting, and the last is
+      // currently Underutilized. Everyone has this shape, by definition.
+      const sorted = [...core].sort((a,b)=> dimReports[a].fragScore - dimReports[b].fragScore);
+      const primaryDim = sorted[0], secondaryDim = sorted[1], tertiaryDim = sorted[2], weakestDim = sorted[sorted.length-1];
+      const primaryBrain = CFI_DIMENSION_META[primaryDim].brainKey;
+      const secondaryBrain = CFI_DIMENSION_META[secondaryDim].brainKey;
+      const weakestBrain = CFI_DIMENSION_META[weakestDim].brainKey;
+      const pStyle = CFI_STYLE_TABLE[primaryBrain] || CFI_STYLE_TABLE.analytical;
+      const coordinationLevel = cfiCoordinationLabel(band);
+
+      const dominantModes = [primaryDim];
+      const supportingModes = [secondaryDim, tertiaryDim];
+      const underutilizedModes = [weakestDim];
+      const modeNames = arr => arr.map(d => CFI_DIM_LABELS[d]).join(' and ');
+
+      return {
+        integrationScore,
+        fragmentationLevel: band, // kept for backward compatibility; raw band value, unchanged
+        coordinationLevel,        // new: display-facing label for the same band
+
+        primaryDim, secondaryDim, tertiaryDim, weakestDim,
+        primaryBrain, secondaryBrain, weakestBrain,
+        primaryStyle: CFI_DIM_LABELS[primaryDim],
+        secondaryStyle: CFI_DIM_LABELS[secondaryDim],
+
+        // ── Cognitive Coordination Profile™ fields ──
+        dominantModes: dominantModes.map(d => CFI_DIM_LABELS[d]),
+        supportingModes: supportingModes.map(d => CFI_DIM_LABELS[d]),
+        underutilizedModes: underutilizedModes.map(d => CFI_DIM_LABELS[d]),
+        decisionCoordinationStyle: `You typically lead with ${CFI_DIM_LABELS[primaryDim]}, coordinated with ${modeNames(supportingModes)}. ${dimReports[primaryDim].decisionStyle}`,
+        coordinationUnderPressure: dimReports[primaryDim].underPressure,
+        decisionBlindSpots: `${CFI_DIM_LABELS[weakestDim]} currently contributes less often than your other modes, so watch for: ${CFI_DIMENSION_META[weakestDim].blindSpots[0].toLowerCase()}`,
+        naturalStrengths: `${CFI_DIM_LABELS[primaryDim]}: ${CFI_DIMENSION_META[primaryDim].strengths[0]}`,
+        suggestedCoordinationExercise: `${CFI_DIMENSION_META[weakestDim].improvements[0]} This helps ${CFI_DIM_LABELS[weakestDim].toLowerCase()} activate more often, alongside (not instead of) your dominant modes.`,
+
+        // ── Legacy fields (kept for backward compatibility with any existing consumers) ──
+        // FIX (audit finding #9 / C): no CFI item measures communication, leadership, or
+        // learning behavior at all — these are coaching inferences drawn from whichever
+        // dimension has the lowest fragmentation score, not measured findings. Labeled
+        // as such inline so the caveat travels with the text wherever it's displayed.
+        communicationStyle: `${pStyle.communication} (Coaching interpretation based on your primary mode — not directly measured by the CFI.)`,
+        leadershipStyle: `${pStyle.leadership} (Coaching interpretation based on your primary mode — not directly measured by the CFI.)`,
+        learningStyle: `${pStyle.learning} (Coaching interpretation based on your primary mode — not directly measured by the CFI.)`,
+        decisionProfile: `You lead with ${CFI_DIM_LABELS[primaryDim]}, backed up by ${CFI_DIM_LABELS[secondaryDim]}. ${dimReports[primaryDim].decisionStyle}`,
+        biggestStrength: `${CFI_DIM_LABELS[primaryDim]}: ${CFI_DIMENSION_META[primaryDim].strengths[0]}`,
+        biggestBlindSpot: `${CFI_DIM_LABELS[weakestDim]}: ${CFI_DIMENSION_META[weakestDim].blindSpots[0]}`,
+        biggestOpportunity: `${CFI_DIMENSION_META[weakestDim].improvements[0]}`,
+
+        summary: `Your thinking modes are currently ${coordinationLevel.toLowerCase()}, with an overall coordination score of ${integrationScore}/100 `
+          + `(a scaled self-report score, not a percentile or clinical measure). `
+          + `This is not a measure of intelligence. It reflects how well your natural thinking modes work together right now. `
+          + `You naturally lead with ${CFI_DIM_LABELS[primaryDim].toLowerCase()}, supported by ${modeNames(supportingModes).toLowerCase()}. `
+          + `${CFI_DIM_LABELS[weakestDim]} is currently underutilized in your decision process. The goal isn't to make it equal to your dominant mode, `
+          + `it's to bring it in deliberately when a decision calls for it.`,
+      };
+    }
+
+    function buildImprovementPlan(dimReports, band) {
+      const dims = CFI_SECTION_ORDER;
+      const byStrength = [...dims].sort((a,b)=> dimReports[a].fragScore - dimReports[b].fragScore);
+      const strong = byStrength.slice(0,3);
+      const weak = [...byStrength].reverse().slice(0,3);
+
+      const brainToLesson = { analytical:2, intuitive:5, associative:3, reflective:4 };
+      const weakestBrain = CFI_DIMENSION_META[weak[0]].brainKey;
+      const recommendedLessonIds = Array.from(new Set([1, brainToLesson[weakestBrain] || 2]));
+
+      const timeByBand = {
+        'Integrated': '2–3 weeks to sharpen further',
+        'Moderate fragmentation': '3–4 weeks of consistent practice',
+        'High fragmentation': '5–6 weeks with daily practice',
+        'Critical fragmentation': '6–8 weeks, starting from Lesson 1',
+      };
+      const weeksByBand = { 'Integrated':14, 'Moderate fragmentation':21, 'High fragmentation':21, 'Critical fragmentation':14 };
+      const nextDate = new Date(Date.now() + (weeksByBand[band] || 21) * 24 * 60 * 60 * 1000);
+
+      return {
+        topStrengths: strong.map(d => ({ dim:d, name: CFI_DIM_LABELS[d], text: CFI_DIMENSION_META[d].strengths[0] })),
+        topGrowthAreas: weak.map(d => ({ dim:d, name: CFI_DIM_LABELS[d], text: CFI_DIMENSION_META[d].improvements[0] })),
+        recommendedLessonIds,
+        dailyExercise: CFI_DIMENSION_META[weak[0]].improvements[0],
+        weeklyRoutine: `Three times this week, run the Core Loop training module (8 min), paying extra attention to your ${CFI_DIM_LABELS[weak[0]].toLowerCase()}.`,
+        estimatedTime: timeByBand[band] || '3–4 weeks of consistent practice',
+        nextAssessmentDate: nextDate.toLocaleDateString('en-US', { month:'long', day:'numeric', year:'numeric' }),
+      };
+    }
+
+
+    // ── Lesson Data ───────────────────────────────────────────────────
+    const LESSONS = [
+      { id:1, title:'Foundation of Integrated Cognition', sub:'Understand the Four Brains. Begin control.', level:'Foundation', free:true, duration:'25 min', brain:'all' },
+      { id:2, title:'Brain Mode Activation & Switching', sub:'Enter and exit thinking modes deliberately.', level:'Intermediate', free:false, duration:'28 min', brain:'analytical' },
+      { id:3, title:'Synthesis & Decision Architecture', sub:'Convert cognitive fragmentation into unified decisions.', level:'Intermediate', free:false, duration:'32 min', brain:'associative' },
+      { id:4, title:'Cognitive Stabilization Under Pressure', sub:'Maintain mental clarity when urgency strikes.', level:'Advanced', free:false, duration:'32 min', brain:'reflective' },
+      { id:5, title:'Cognitive Fluency Installation', sub:'From deliberate effort to automatic integration.', level:'Mastery', free:false, duration:'26 min', brain:'intuitive' },
+      { id:6, title:'Field Reference & Certification', sub:'Glossary, templates, scorecard, and the Final Assessment.', level:'Reference', free:false, duration:'30 min', brain:'all' },
+    ];
+
+    const LESSON_CONTENT = {
+      1: { pages: [
+        { title: `Learning Objectives`, body: `By the end of Lesson One, you will be able to:
+
+1. Explain what NeuralFusion™ is and the specific problem it is designed to solve.
+2. Identify each of the Four Brains by name and function.
+3. Walk through the four stages of the NeuralFusion™ Core Loop from memory.
+4. Complete a first conscious NeuralFusion™ cycle on a real issue from your own life.
+5. Begin noticing, in real time, which brain is currently active.
+
+WHY THIS LESSON MATTERS
+
+Every advanced skill in this curriculum (synthesis, stabilization, automatic fluency) is built on the foundation established here. If you rush Lesson One, later lessons will feel abstract, because you will be trying to switch and integrate brains you have not yet learned to recognize.
+
+Think of this lesson as installing the map before you learn to navigate. Once you can name what is happening in your own mind, "this is Analytical," "this is Intuitive," you gain the first form of control: the ability to observe your thinking instead of simply being carried by it.` },
+        { title: `Cognitive Principles`, body: `Two principles anchor this lesson, and both recur throughout the curriculum.
+
+PRINCIPLE 1: FRAGMENTATION IS THE DEFAULT, NOT THE EXCEPTION
+
+Left untrained, the mind moves between logic, emotion, memory, and impulse in an unstructured way. This is not a personal failing. It is simply what happens when thinking has no deliberate structure applied to it. NeuralFusion™ calls this cognitive fragmentation: the experience of thinking in disconnected pieces rather than as one coordinated process.
+
+PRINCIPLE 2: INTEGRATION IS TRAINABLE
+
+The Four Brains are not new; every person already uses all four. What NeuralFusion™ adds is a trainable method for engaging them on purpose, in sequence, so their outputs combine into a single, usable conclusion instead of competing with each other.` },
+        { title: `What Is NeuralFusion™?`, body: `NeuralFusion™ is a structured mental skill that trains the brain to combine multiple thinking modes intentionally, instead of relying on only one at a time.
+
+Most untrained thinking happens in fragments:
+
+· Logic without intuition: decisions that are technically correct but feel wrong, and are later abandoned.
+· Creativity without structure: good ideas that never convert into a workable plan.
+· Emotion without reflection: reactive choices made under pressure, regretted once the pressure passes.
+
+NeuralFusion™ teaches you how to fuse these modes into one coordinated thinking loop, so their strengths combine instead of colliding.
+
+KEY TAKEAWAY: NeuralFusion™ is not intelligence. It is control over intelligence. You already have every raw thinking capacity you need. This system trains you to direct it.` },
+        { title: `The Problem NeuralFusion™ Solves`, body: `The modern mind is exposed to more information, more competing demands, and more emotional pressure than at almost any point in human history. Left unmanaged, this produces five recognizable symptoms:
+
+1. Overthinking: circling the same decision without reaching resolution.
+2. Mental confusion: difficulty locating a clear next step, even on familiar problems.
+3. Poor decisions: choices driven by whichever brain is loudest in the moment, not the one best suited to the problem.
+4. Emotional reactivity: responding to pressure instead of to the actual situation.
+5. Inconsistent focus: attention that shifts randomly rather than by intention.
+
+These symptoms share a single root cause: the brain is switching modes randomly, without a structure to organize the switch. NeuralFusion™ introduces that structure.` },
+        { title: `The Four Brains, Revisited`, body: `NeuralFusion™ works by consciously activating and integrating four natural thinking modes that every person already possesses:
+
+▰ ANALYTICAL: Logic, structure, and facts. The mode of breakdown, planning, and precision.
+
+▱ INTUITIVE: Gut feeling, insight, and pattern recognition. The mode of fast judgment and direction.
+
+▲ ASSOCIATIVE: Creativity, connection, and idea generation. The mode of expansion and new options.
+
+△ REFLECTIVE: Self-awareness, evaluation, and meaning. The mode of learning and long-term perspective.
+
+Every human being has access to all four brains. Very few people are ever taught to coordinate them on purpose; most simply default to whichever mode habit, mood, or urgency selects for them.` },
+        { title: `The NeuralFusion™ Core Loop`, body: `NeuralFusion™ operates through a simple, repeatable four-stage loop:
+
+1. DECOMPOSITION: Break the problem or thought into clear, separate parts.
+2. MODE SWITCHING: Intentionally activate the brain best suited to each part.
+3. SYNTHESIS: Combine the outputs of each brain into one unified insight.
+4. STABILIZATION: Lock in the resulting clarity and reduce mental noise.
+
+With training, this loop can be completed in under a minute. At the beginner stage, expect it to take several minutes. Speed comes later, in Lesson Five.` },
+        { title: `Real-World Applications`, body: `BUSINESS: A founder is deciding whether to raise external funding. Analytical reviews the numbers. Intuitive surfaces unease about losing independence. Associative generates a middle option: a smaller raise from aligned investors. Reflective asks what kind of company the founder actually wants to build. Synthesis merges these into one direction; stabilization locks it in.
+
+LEADERSHIP: A manager must decide whether to address a team conflict directly or let it resolve on its own. Analytical weighs delivery timelines. Intuitive senses that avoidance will make it worse. Associative considers a facilitated conversation. Reflective asks what kind of leader this decision reflects.
+
+STUDENT: A student is choosing between two elective courses. Analytical compares workload and grading. Intuitive notices genuine excitement about one subject. Associative considers how each connects to future goals. Reflective asks which choice will still feel right in a year.
+
+DAILY LIFE: Someone is deciding how to respond to a frustrating text message. Analytical reviews what was actually said. Intuitive notices the emotional charge. Associative considers alternative interpretations. Reflective asks what response actually serves the relationship.` },
+        { title: `Try It Now`, body: `Pick one of the four examples above that most resembles a situation in your own life right now.
+
+Write one sentence for what each brain, Analytical, Intuitive, Associative, Reflective, would say about it.
+
+Notice which brain you would have defaulted to if you had not paused to check the other three.` },
+        { title: `First Guided Practice: Conscious Thought Control`, body: `This is your first full pass through the NeuralFusion™ Core Loop. Use a real issue: something mildly unresolved in your life right now, not a hypothetical.
+
+WORKSHEET
+
+1. Sit comfortably and relax your body for a few breaths.
+2. Choose a simple issue you are currently facing.
+3. Decomposition: write the issue in one sentence.
+4. Analytical: list facts only, no emotion, no interpretation.
+5. Intuitive: pause, then write your immediate gut response.
+6. Associative: write three ideas or connections related to the issue.
+7. Reflective: ask, "What does this teach me?" and write the answer.
+8. Observe how your sense of clarity has changed compared to when you started.
+
+EXPERT TIP: Write your answers down rather than doing this exercise purely in your head. The act of writing forces true mode separation; without it, brains tend to blur together.` },
+        { title: `Reflection Questions & Practice Exercises`, body: `REFLECTION QUESTIONS
+
+· Which of the four brains did you notice yourself using most often today, before reading this lesson?
+· Which brain do you tend to trust the least, and why?
+· Describe a recent decision that might have gone differently if you had consciously used all four brains.
+· What does "mental leadership" mean to you after completing the first guided practice?
+
+EXERCISE A: MODE NAMING
+Throughout one full day, pause five separate times and silently name which brain is currently active. No action is required beyond naming it; this builds raw awareness, the prerequisite for all later control.
+
+EXERCISE B: THE ONE-SENTENCE DECOMPOSITION
+Take any problem that feels overwhelming and force yourself to write it as a single sentence. Notice how much of the overwhelm was actually the problem itself, versus the absence of decomposition.
+
+DECISION DRILL: LOW-STAKES FUSION
+Choose a low-stakes decision you would normally make instantly. Deliberately run it through all four brains before deciding. The goal is not a better decision; it is building the habit of consulting all four.` },
+        { title: `Common Mistakes & Success Indicators`, body: `COMMON MISTAKES
+
+· Treating this as a one-time exercise rather than a repeatable skill; awareness fades quickly without practice.
+· Skipping the writing step and trying to do the loop entirely in your head, which allows brains to blur together.
+· Judging your gut response (Intuitive) as "wrong" before giving it a fair hearing alongside the other brains.
+· Expecting instant speed; at the beginner stage, a slow, deliberate loop is the goal, not a fast one.
+
+SUCCESS INDICATORS
+
+· You can name, without hesitation, all four brains and their core function.
+· You catch yourself mid-thought and can identify which brain you are currently in.
+· The one-sentence decomposition step feels clarifying rather than reductive.
+· You completed the full guided practice worksheet on a real issue, not a hypothetical one.` },
+        { title: `Key Insight, Recap & Assignment`, body: `KEY INSIGHT: You are not your thoughts. You are the conductor of them. NeuralFusion™ trains mental leadership: the ability to direct thinking rather than be directed by it.
+
+END-OF-LESSON RECAP
+
+· NeuralFusion™ is a trainable skill that fuses four natural brains into one coordinated process.
+· Fragmented thinking produces overthinking, confusion, and poor decisions.
+· The Four Brains are Analytical, Intuitive, Associative, and Reflective.
+· The Core Loop, Decomposition, Mode Switching, Synthesis, Stabilization, is the engine of every later lesson.
+· Awareness of your current brain is the first and most essential form of control.
+
+ASSIGNMENT (Next 24 Hours)
+
+1. Observe when your thinking becomes chaotic or overwhelmed.
+2. Pause and ask: "Which brain am I stuck in?"
+3. Write one short reflection on what you noticed.
+
+No perfection is required at this stage. Awareness itself is progress.` }
+      ]},
+      2: { pages: [
+        { title: `Learning Objectives`, body: `By the end of Lesson Two, you will be able to:
+
+1. Recognize your dominant, default brain without conscious effort.
+2. Enter and exit any of the Four Brains on command, using a specific activation question.
+3. Identify the risk of overusing any single brain and correct for it.
+4. Apply the Emergency Reset protocol to interrupt mental overload within a minute.
+
+WHY THIS LESSON MATTERS
+
+Lesson One taught you to notice which brain is active. Lesson Two teaches you to choose it. This is the difference between observing your weather and being able to change it. Without this skill, awareness alone can become a passive habit: you notice you are overthinking, but you stay stuck in it. Mode activation gives you the lever to move.` },
+        { title: `Cognitive Principles & The Core Truth`, body: `PRINCIPLE 1: REACTION IS THE DEFAULT STATE
+
+Most people do not think; they react. Thoughts appear automatically because the brain defaults to habit, emotion, or urgency rather than deliberate selection. This is efficient for survival, but poorly suited to complex modern decisions.
+
+PRINCIPLE 2: CONTROL BEGINS AT THE POINT OF CHOICE
+
+NeuralFusion™ replaces reaction with activation. Control does not begin when a decision is made; it begins the moment you choose how to think about the situation in the first place.
+
+KEY TAKEAWAY: Reaction is automatic. Activation is chosen. Every time you pause before a default thought pattern takes over, you are practicing NeuralFusion™.` },
+        { title: `Each Brain: Best Use & Overuse Risk`, body: `Lesson One introduced the four brains by function. Lesson Two adds a second dimension: what each brain is best used for, and the specific risk that appears when it is overused.
+
+▰ ANALYTICAL (Precision): Best for decisions, planning, and problem breakdown. Overused, it produces rigidity and overthinking.
+
+▱ INTUITIVE (Insight): Best for fast judgment, pattern sensing, and direction. Overused, it produces impulsiveness.
+
+▲ ASSOCIATIVE (Expansion): Best for creativity, new ideas, and connections. Overused, it produces distraction.
+
+△ REFLECTIVE (Meaning): Best for self-awareness, evaluation, and learning. Overused, it produces rumination.
+
+NeuralFusion™ is not about staying in one brain. It is about moving between all four deliberately, spending only as much time in each as the situation actually requires.` },
+        { title: `Mode Activation Signals`, body: `Each brain has a mental entry signal: a specific question that reliably switches your brain into that mode. Learning these signals is what gives you control.
+
+▰ ANALYTICAL: "What are the facts?"
+
+▱ INTUITIVE: Pause, then ask, "What feels correct?"
+
+▲ ASSOCIATIVE: "What else is this connected to?"
+
+△ REFLECTIVE: "What does this mean for me?"
+
+Questions are switches. Asking the right question is often enough, on its own, to shift which part of your mind is doing the work.` },
+        { title: `Real-World Applications`, body: `BUSINESS: A sales lead has gone quiet after weeks of promising conversation. The default reaction is anxious rumination, Reflective overused, spiraling. Applying the Analytical activation question interrupts the spiral: the facts are that the deal is delayed, not dead.
+
+LEADERSHIP: A manager receives a sharply worded email from a senior stakeholder. The default reaction is Intuitive alarm. Deliberately activating Analytical mode reveals the email is blunt in tone but not actually escalatory in content.
+
+STUDENT: A student receives a lower grade than expected and drops into Reflective rumination about their ability. Activating Associative mode surfaces a more useful angle: a fixable skill gap, not a fixed trait.
+
+DAILY LIFE: Someone feels a sudden urge to buy something impulsively while browsing online, Intuitive running unchecked. Activating Reflective mode creates enough of a pause to notice the impulse is about boredom, not need.` },
+        { title: `Try It Now`, body: `Recall the last time you felt "stuck" in a thought loop.
+
+Identify which brain you were likely overusing, using the risk list above.
+
+Say the activation question for a different brain out loud, right now, and notice the shift.` },
+        { title: `The NeuralFusion™ Switching Drill`, body: `This drill builds mode awareness by deliberately spending time in each of the four brains, back to back, on the same neutral topic.
+
+WORKSHEET: 7 MINUTES
+
+1. Sit upright and breathe slowly for a few seconds.
+2. Choose a neutral topic, for example, your day so far.
+3. Spend 60 seconds in Analytical mode: facts only.
+4. Spend 60 seconds in Intuitive mode: your gut response.
+5. Spend 60 seconds in Associative mode: ideas and connections.
+6. Spend 60 seconds in Reflective mode: meaning or lesson.
+7. Spend the remaining time noticing the distinct mental "texture" of each mode.
+
+EXPERT TIP: The goal is not the content you produce; it is building a felt sense of what each brain is like from the inside, so you can recognize it instantly in real situations.` },
+        { title: `Stopping Mental Overload: The Emergency Reset`, body: `When thoughts feel overwhelming, use this four-step protocol:
+
+1. Pause.
+2. Name the brain you are stuck in.
+3. Switch deliberately to Reflective mode.
+4. Ask: "What is one thing I can control right now?"
+
+This collapses noise into clarity by forcing a single, small, actionable focus, Reflective mode's natural function.
+
+KEY TAKEAWAY: Mental freedom is the ability to switch your thoughts, not escape them. NeuralFusion™ gives you that freedom through the Emergency Reset.` },
+        { title: `Reflection Questions & Practice Exercises`, body: `REFLECTION QUESTIONS
+
+· What is your default brain, and in which situations does it serve you least well?
+· Which activation question was hardest for you to use naturally? What made it difficult?
+· Describe a moment this week when the Emergency Reset would have helped, in hindsight.
+· How did the "texture" of each brain feel different during the Switching Drill?
+
+EXERCISE A: FORCED MODE ENTRY
+Three times today, deliberately activate a brain you are not currently in, using its activation question, regardless of the situation.
+
+DECISION DRILL: OVERUSE DETECTION
+Look back at a recent decision that did not go well. Identify which brain was likely overused. Name what the opposite, underused brain would have contributed.
+
+MENTAL TRAINING ACTIVITY: THE RESET REHEARSAL
+Even when not overwhelmed, rehearse the Emergency Reset once per day so it is already familiar when you actually need it under pressure.` },
+        { title: `Common Mistakes & Success Indicators`, body: `COMMON MISTAKES
+
+· Waiting until overload is severe before attempting the Emergency Reset; it works best used early.
+· Treating one brain as "better" than the others rather than situational.
+· Skipping the naming step in the Emergency Reset; naming the brain is what creates the separation needed to switch out of it.
+· Practicing the Switching Drill only once instead of repeating it until transitions feel distinct.
+
+SUCCESS INDICATORS
+
+· You can identify your default brain without needing to think hard about it.
+· You have used at least one activation question in a real, unplanned situation this week.
+· You can recite the Emergency Reset from memory.
+· You notice mode dominance, your own or observed in others, more often in daily life.` },
+        { title: `Recap & Assignment`, body: `END-OF-LESSON RECAP
+
+· Mental control begins at the point of choice, not after a thought has already run its course.
+· Each brain has a best use and a risk when overused: rigidity, impulsiveness, distraction, or rumination.
+· Each brain has a specific activation question that reliably switches you into it.
+· The Emergency Reset, Pause, Name, Switch to Reflective, Ask what you can control, interrupts overload in under a minute.
+
+ASSIGNMENT (Next 48 Hours)
+
+1. Identify your default brain in three separate situations.
+2. Practice switching brain deliberately at least once per day.
+3. Write one sentence on what changed as a result.
+
+Consistency builds mastery. A single successful switch matters less than repeating the practice across multiple days.` }
+      ]},
+      3: { pages: [
+        { title: `Learning Objectives`, body: `By the end of Lesson Three, you will be able to:
+
+1. Explain why most decisions fail, in NeuralFusion™ terms.
+2. Define synthesis as integration rather than compromise.
+3. Apply the four-step Synthesis Framework: Extract, Align, Compress, Decide.
+4. Use the Commitment Lock to convert a decision into stable action.
+5. Respond to post-decision doubt without breaking a completed synthesis.
+
+WHY THIS LESSON MATTERS
+
+Lessons One and Two built awareness and control of individual brains. Lesson Three is where those separate skills become useful: converting multiple, sometimes contradictory, streams of thought into one decision you can actually act on. This is the core power of NeuralFusion™: most people are not short on information or ideas; they are short on a reliable method for integrating them.` },
+        { title: `Cognitive Principles`, body: `PRINCIPLE 1: FRAGMENTATION, NOT EFFORT, CAUSES DECISION FAILURE
+
+Decisions fail not because of a lack of intelligence but because of internal fragmentation: logic arguing with emotion, intuition contradicting the facts, creativity overwhelming focus. NeuralFusion™ ends this internal conflict by unifying the outputs of all four brains rather than letting one silence the others.
+
+PRINCIPLE 2: A FUSED MIND DOES NOT HESITATE
+
+Hesitation is frequently a symptom of unresolved fragmentation, not of an inherently difficult decision. Once brains are genuinely synthesized, the felt experience of the decision changes from uncertain to settled.
+
+KEY TAKEAWAY: NeuralFusion™ ends internal conflict by unifying outputs. A fused mind does not hesitate.` },
+        { title: `What Synthesis Really Means`, body: `Synthesis is not compromise. Synthesis is integration. Three conditions define real synthesis:
+
+· Each brain contributes something to the final conclusion.
+· No single brain dominates or silences the others.
+· One clear conclusion emerges from the combination.
+
+NeuralFusion™ treats the four brains as advisors, not rulers. Their role is to inform the decision, not to individually control it.` },
+        { title: `The NeuralFusion™ Synthesis Framework`, body: `After activating all four brains on a given decision, synthesis follows a strict, repeatable order:
+
+1. EXTRACT: Identify the single strongest output from each of the four brains.
+2. ALIGN: Check the four outputs for overlap and for direct contradiction.
+3. COMPRESS: Reduce the aligned outputs into one core insight.
+4. DECIDE: Commit mentally to a single direction based on that insight.
+
+KEY TAKEAWAY: Clarity is compression. The Synthesis Framework works because it forces multiple valid inputs down into one usable conclusion.` },
+        { title: `Real-World Applications`, body: `BUSINESS: A founder is deciding whether to enter a new market. Extract: Analytical surfaces strong demand data; Intuitive surfaces hesitation about timing; Associative surfaces a phased-entry option; Reflective surfaces a concern about spreading focus too thin. Align: the hesitation and the focus concern point the same direction. Compress: "enter, but only through the phased option." Decide: a limited pilot rather than a full launch.
+
+LEADERSHIP: A manager must decide whether to promote from within or hire externally. The four outputs converge on a hybrid path: promote internally, hire externally into a different open role. Decide: both moves happen together.
+
+STUDENT: A student choosing a thesis topic finds the two candidate topics can be partially combined into one integrated question that serves long-term interests.
+
+DAILY LIFE: Someone deciding whether to move to a new city finds all four brains align. The decision is made, and the Commitment Lock is applied so it is not relitigated every time nerves appear.` },
+        { title: `Try It Now`, body: `Think of a decision you are currently sitting on.
+
+Write one line of output for each brain: Analytical, Intuitive, Associative, Reflective.
+
+Underline where they already agree; that overlap is the seed of your synthesis.` },
+        { title: `Guided Practice: Full NeuralFusion™ Cycle`, body: `WORKSHEET: 10 MINUTES, ONE DECISION, ONE DIRECTION
+
+1. Choose a real decision you are currently facing.
+2. Write the Analytical output: facts and constraints.
+3. Write the Intuitive output: your strongest gut signal.
+4. Write the Associative output: your best idea or option.
+5. Write the Reflective output: the lesson or value at stake.
+6. Underline the common theme across all four.
+7. Write your decision as a single sentence.
+8. Read that sentence aloud, slowly.
+
+Most people notice a measurable reduction in mental tension once the one-sentence decision is written and read aloud; this is the felt signature of synthesis.` },
+        { title: `The Commitment Lock & Handling Doubt`, body: `THE COMMITMENT LOCK
+
+Most people can think clearly but still fail to commit. Once synthesis is complete, re-analysis stops. Action begins immediately, even if only a small first step.
+
+Revisiting a decision without new information breaks fusion. The Commitment Lock exists specifically to prevent this: it trains decisiveness, not stubbornness.
+
+HANDLING DOUBT AFTER A DECISION
+
+Doubt after a completed synthesis usually means a brain is reactivating unnecessarily, not that the decision itself was wrong.
+
+1. Identify which brain has reactivated.
+2. Acknowledge it without immediately acting on it.
+3. Return deliberately to the fused conclusion you already reached.
+
+EXPERT TIP: Doubt is data about a brain, not necessarily about the decision. Separating the two is what preserves stability after synthesis.` },
+        { title: `Reflection Questions & Practice Exercises`, body: `REFLECTION QUESTIONS
+
+· Describe a past decision where one brain clearly dominated the others. What was the outcome?
+· What did the moment of "compression" feel like during your guided practice?
+· Where in your life do you tend to break the Commitment Lock by re-analyzing after deciding?
+· What is one decision currently waiting on you that could benefit from the Synthesis Framework?
+
+EXERCISE A: THE OVERLAP HUNT
+For any decision, write all four brain outputs before looking for agreement. Most people jump to compression too early; forcing full extraction first produces a more honest synthesis.
+
+DECISION DRILL: 24-HOUR COMMITMENT
+Apply the full Synthesis Framework to a real decision, then commit to taking no further analysis on it for 24 hours, regardless of doubt that surfaces.` },
+        { title: `Common Mistakes & Success Indicators`, body: `COMMON MISTAKES
+
+· Compressing before genuinely extracting all four brain outputs.
+· Treating disagreement between brains as a problem to eliminate rather than information to align.
+· Breaking the Commitment Lock the first time doubt appears, rather than running the doubt-handling protocol.
+· Skipping the step of reading the decision sentence aloud, which measurably reinforces the felt sense of closure.
+
+SUCCESS INDICATORS
+
+· You can produce four distinct brain outputs for a real decision without effort.
+· You can identify the common theme across those outputs without forcing it.
+· You have applied the Commitment Lock at least once and held it despite doubt.
+· Your decisions increasingly feel settled rather than merely made.` },
+        { title: `Key Insight, Recap & Assignment`, body: `KEY INSIGHT: Clarity is not finding the right answer; it is unifying the mind. NeuralFusion™ makes clarity repeatable.
+
+END-OF-LESSON RECAP
+
+· Decisions fail from fragmentation, brains arguing with each other, not from a lack of intelligence.
+· Synthesis is integration: every brain contributes, none dominates, one conclusion emerges.
+· The Synthesis Framework runs Extract → Align → Compress → Decide.
+· The Commitment Lock stops re-analysis once synthesis is complete.
+· Post-decision doubt is handled by identifying, acknowledging, and returning to the fused conclusion.
+
+ASSIGNMENT (Next 72 Hours)
+
+1. Apply the full Synthesis Framework to one real decision.
+2. Act on it.
+3. Record what changed, emotionally and mentally, after acting.
+
+Action completes the loop. Synthesis that is never acted on remains theoretical rather than trained.` }
+      ]},
+      4: { pages: [
+        { title: `Learning Objectives`, body: `By the end of Lesson Four, you will be able to:
+
+1. Explain why clarity collapses under pressure, in NeuralFusion™ terms.
+2. Distinguish stabilization from suppression.
+3. Apply the three NeuralFusion™ Stabilizers: Cognitive Anchor, Temporal Compression, and Mode Containment.
+4. Complete the Pressure Simulation guided practice.
+5. Recognize and interrupt the early signs of mental relapse after a decision.
+
+WHY THIS LESSON MATTERS
+
+Lessons One through Three build clarity under calm conditions: a seated practice, a quiet moment to write, time to think. Real decisions rarely happen that way. Pressure, urgency, and emotion are exactly the conditions under which fused thinking is most needed and most likely to collapse. Lesson Four closes that gap: it trains clarity that survives contact with stress, rather than clarity that only works in ideal conditions.` },
+        { title: `Cognitive Principles`, body: `PRINCIPLE 1: PRESSURE IS NOT THE ENEMY, INSTABILITY IS
+
+NeuralFusion™ does not treat pressure as something to eliminate or avoid. Pressure is a normal feature of meaningful decisions. The actual problem is instability: the tendency for a fused conclusion to collapse back into fragmentation the moment stress rises.
+
+PRINCIPLE 2: STABILIZATION IS CONTAINMENT, NOT SUPPRESSION
+
+Stabilizing a brain does not mean silencing it. It means preventing any one brain, usually emotion or urgency-driven analysis, from seizing full control of the decision. The other brains remain present; they are simply prevented from being overridden.` },
+        { title: `Why Clarity Collapses Under Pressure`, body: `Pressure reliably triggers three responses in an untrained mind:
+
+1. Emotional hijacking: feeling takes over before reasoning has a chance to contribute.
+2. Narrow attention: the mind fixates on the most urgent-seeming detail and loses the wider picture.
+3. Mode dominance: usually emotion or rushed analysis takes over completely, silencing the other brains.
+
+Under real pressure, the brain shifts into survival prioritization rather than deliberate reasoning. This is a normal biological response, not a personal failure, but it is exactly the state NeuralFusion™ trains you to recognize and work with.
+
+KEY TAKEAWAY: NeuralFusion™ does not fight pressure. It absorbs and stabilizes it. Pressure is not the enemy; instability is.` },
+        { title: `The Stabilization Principle`, body: `Stabilization means holding one fused conclusion while emotion or urgency is present, without letting either take over the decision. This is containment, not suppression.
+
+A stabilized mind under pressure feels distinctly different from either panic or forced calm:
+
+· Calm but alert: not numb, not frozen.
+· Focused but flexible: able to hold a direction while still noticing new information.
+· Certain without aggression: decisive without needing to force the outcome.` },
+        { title: `The Three NeuralFusion™ Stabilizers`, body: `1. COGNITIVE ANCHOR
+A short internal statement that locks in a completed synthesis, preventing re-fragmentation. Examples: "This is my decision" or "I have already fused this." The anchor is a specific, repeatable interruption of the impulse to re-open a decision under stress.
+
+2. TEMPORAL COMPRESSION
+Pressure distorts time, making distant consequences feel as urgent as immediate ones. NeuralFusion™ compresses time deliberately by asking: "What matters in the next 10 minutes?" This narrows the decision space to what is actually actionable right now.
+
+3. MODE CONTAINMENT
+When one brain flares up under pressure, most often emotion, the response is not to eliminate it. It is to identify it, reduce its influence on the current decision, and return authority to the already-completed synthesis. No brain is removed; it is simply regulated back to its appropriate role as one advisor among four.` },
+        { title: `Real-World Applications`, body: `BUSINESS: A founder receives an unexpectedly aggressive counteroffer minutes before a call. Anchor: "I already know my walk-away terms." Compression: "What matters in the next 10 minutes is staying calm on this call." Containment: the flare of anxious urgency is named and set aside.
+
+LEADERSHIP: A manager is blindsided by a public complaint during a meeting. Anchor: "I lead by listening first, deciding later." Compression: focus only on responding calmly in the room, deferring resolution to a scheduled follow-up.
+
+STUDENT: A student opens an exam and blanks on the first question. Anchor: "I know this material; the block is temporary." Compression: start with a question they do know.
+
+DAILY LIFE: Someone receives a tense text while driving. Anchor: "I don't need to resolve this right now." Compression narrows focus to driving safely.` },
+        { title: `Try It Now`, body: `Recall a recent moment of real pressure, not hypothetical, something that actually happened.
+
+Write one Cognitive Anchor statement you could have used in that exact moment.
+
+Write the one thing that genuinely mattered in the next 10 minutes of that situation.` },
+        { title: `Guided Practice: Pressure Simulation`, body: `WORKSHEET: 8 MINUTES, STABILIZED THINKING DRILL
+
+1. Recall a recent stressful moment in specific detail.
+2. Identify which brain was dominant at the time.
+3. Re-run the situation mentally using one Cognitive Anchor.
+4. Apply Temporal Compression: name what actually mattered in the next 10 minutes.
+5. Notice how the level of tension changes compared to your memory of the original moment.
+
+EXPERT TIP: Rehearsing a stabilizer on a past event trains the same neural pathway as using it live, with none of the real-time cost of getting it wrong. Repeat this drill on different memories to generalize the skill.` },
+        { title: `Preventing Mental Relapse`, body: `Relapse is the return of fragmented thinking after a decision has already been stabilized. It typically happens through two mechanisms:
+
+· Decisions are revisited emotionally rather than because of genuinely new information.
+· Old habitual patterns of reaction regain control once the pressure of the moment has passed.
+
+Relapse is not a sign that stabilization failed permanently; it is a normal part of the training process, best treated as information rather than as failure.
+
+RELAPSE PREVENTION PROTOCOL
+
+1. Recognize the trigger that caused the relapse.
+2. Re-state the fused conclusion you had already reached.
+3. Take one action aligned with that conclusion, however small.
+
+Action stabilizes thought. The fastest way out of a relapse is a small aligned action, not further analysis of why the relapse happened.` },
+        { title: `Reflection, Mistakes & Success Indicators`, body: `REFLECTION QUESTIONS
+
+· What is your default pressure response: emotional hijacking, narrow attention, or mode dominance?
+· Which of the three Stabilizers feels most natural to you? Which feels hardest?
+· Describe a recent relapse into fragmented thinking after a decision felt settled.
+
+COMMON MISTAKES
+
+· Trying to eliminate pressure or emotion entirely, rather than stabilizing while it is present.
+· Using a Cognitive Anchor as empty positive self-talk rather than a specific reference to a completed synthesis.
+· Skipping Temporal Compression and trying to resolve the entire situation at once under pressure.
+
+SUCCESS INDICATORS
+
+· You can name your own default pressure response.
+· You have used a Cognitive Anchor in an actual moment of pressure, not just in rehearsal.
+· You can apply Temporal Compression to a live situation within a few seconds.` },
+        { title: `Key Insight, Recap & Assignment`, body: `KEY INSIGHT: Mental mastery is not calm thinking; it is stable thinking. NeuralFusion™ creates stability that survives pressure, rather than clarity that only works when conditions are ideal.
+
+END-OF-LESSON RECAP
+
+· Pressure triggers emotional hijacking, narrow attention, and mode dominance in an untrained mind.
+· Stabilization is containment, not suppression: no brain is eliminated, only regulated.
+· The three Stabilizers are the Cognitive Anchor, Temporal Compression, and Mode Containment.
+· Relapse is normal and reversible through recognition, re-statement, and one aligned action.
+
+ASSIGNMENT (Next 72 Hours)
+
+1. Apply stabilization during one real stressful event.
+2. Use at least one of the three Stabilizers deliberately.
+3. Record the outcome, including what worked and what didn't.
+
+Stability strengthens with use. The first application under real pressure is rarely smooth; that is expected, not a sign of failure.` }
+      ]},
+      5: { pages: [
+        { title: `Learning Objectives`, body: `By the end of Lesson Five, you will be able to:
+
+1. Define cognitive fluency and distinguish it from effortful thinking.
+2. Explain the three stages every trained skill passes through, and identify which stage you are in.
+3. Use the Automatic Fusion Trigger to initiate the Core Loop instinctively.
+4. Recognize the practical signs that NeuralFusion™ is becoming automatic in daily life.
+5. Commit to a lifetime maintenance protocol for the skill.
+
+WHY THIS LESSON MATTERS
+
+Every lesson so far has required deliberate effort: naming a brain, asking an activation question, running the Synthesis Framework step by step, applying a Stabilizer under pressure. This is appropriate for early training, but it is not the end state. Lesson Five completes the arc by training NeuralFusion™ to operate without conscious effort, the same way an experienced driver no longer thinks through each step of using a clutch.` },
+        { title: `Cognitive Principles & Cognitive Fluency`, body: `PRINCIPLE 1: ELITE PERFORMANCE IS INTEGRATED, NOT EFFORTFUL
+
+High performers across disciplines are rarely distinguished by thinking harder than others in the moment of performance. They are distinguished by thinking in a more integrated way, built through extensive prior deliberate practice.
+
+PRINCIPLE 2: MASTERY IS EFFORT DISAPPEARING, NOT EFFORT INCREASING
+
+A common misconception is that mastery means working harder at a skill indefinitely. In NeuralFusion™, mastery is marked by the opposite: the loop that once took ten minutes of deliberate writing now runs in seconds, unnoticed.
+
+COGNITIVE FLUENCY has three defining qualities: fast (the Core Loop completes in seconds), stable (clarity holds under pressure without conscious stabilization steps), and adaptive (the loop applies itself automatically to whatever is in front of you).` },
+        { title: `From Skill to Instinct`, body: `Every trainable skill, physical or cognitive, passes through the same three stages:
+
+STAGE 1, CONSCIOUS CONTROL: Slow and effortful. Every step of the Core Loop must be deliberately walked through, usually in writing.
+
+STAGE 2, STRUCTURED PRACTICE: Consistent and deliberate. The steps are familiar but still require attention to execute correctly.
+
+STAGE 3, AUTOMATIC EXECUTION: Fast and natural. The Core Loop runs without conscious step-by-step effort.
+
+Lessons One through Four operate primarily in Stages One and Two. Lesson Five initiates Stage Three.` },
+        { title: `The Automatic Fusion Trigger`, body: `NeuralFusion™ automation begins with a single internal cue: the word "Fuse."
+
+This single word, used consistently, signals the brain to run the full loop without conscious step-by-step direction:
+
+1. Decompose the situation automatically.
+2. Activate the relevant brains.
+3. Synthesize rapidly.
+4. Stabilize instantly.
+
+With repetition, this becomes reflexive, the same way a practiced athlete no longer consciously thinks through the individual components of a well-trained movement.` },
+        { title: `Living NeuralFusion™: Daily Integration`, body: `As automatic integration develops, it shows up as specific, observable changes in daily life rather than as an abstract feeling of "mastery":
+
+· Faster decisions, without a corresponding drop in decision quality.
+· Reduced overthinking, particularly on familiar categories of decision.
+· Calm confidence that does not depend on external validation.
+· Clearer prioritization, especially under competing demands.
+
+The shift in identity is simple but significant: you stop managing your thoughts, and start leading them.
+
+EXAMPLE: An experienced founder is asked a difficult question in an investor meeting with no time to prepare. The word "Fuse" runs silently, and a clear, integrated answer arrives in seconds, the same process from Lesson One, now compressed and unconscious.` },
+        { title: `Guided Practice: Fluency Installation`, body: `EXERCISE: ONE-WORD FUSION (6 MINUTES)
+
+1. Sit calmly for a moment.
+2. Think of a current, real situation you are facing.
+3. Say internally, "Fuse."
+4. Allow the mind to organize itself without forcing a specific structure.
+5. Notice the clarity that emerges, without straining for it.
+
+EXPERT TIP: Repeat this exercise daily. The word itself is not magic; it works because of the extensive practice from Lessons One through Four that it now triggers automatically.` },
+        { title: `Signs of Completion, Mistakes & Success Indicators`, body: `SIGNS OF COMPLETION
+
+· You pause naturally before reacting, without consciously deciding to pause.
+· Decisions feel settled rather than merely made.
+· Mental noise reduces on its own, without needing to run a formal exercise.
+· Confidence feels quiet rather than loud: certain without needing to be forceful.
+
+COMMON MISTAKES
+
+· Expecting fluency to arrive without having genuinely practiced Lessons One through Four.
+· Treating the word "Fuse" as a standalone technique rather than a trigger built on prior training.
+· Abandoning daily practice once fluency begins to appear, causing the skill to fade.
+
+SUCCESS INDICATORS
+
+· You can run a compressed version of the Core Loop in under a minute on a real decision.
+· The word "Fuse" reliably produces a shift toward clarity when used.` },
+        { title: `Final Insight & Lifetime Protocol`, body: `FINAL INSIGHT: You do not control the mind by force; you train it by structure. NeuralFusion™ is now part of you.
+
+END-OF-LESSON RECAP
+
+· Cognitive fluency is fast, stable, and adaptive thinking that requires no deliberate effort.
+· Every skill passes through Conscious Control, Structured Practice, and Automatic Execution.
+· The word "Fuse" is the trigger that activates the full Core Loop automatically, once trained.
+· Daily integration shows up as faster decisions, reduced overthinking, calm confidence, and clearer priorities.
+
+FINAL ASSIGNMENT: LIFETIME PROTOCOL
+
+1. Use NeuralFusion™ daily, through the automatic trigger and the underlying loop it activates.
+2. Teach it through behavior, not words; let others notice the change rather than announcing it.
+3. Return to conscious structure whenever clarity fades, rather than assuming fluency is permanent.
+
+This completes the core system of NeuralFusion™ Level One. "You do not control the mind by force; you train it by structure."` }
+      ]},
+      6: { pages: [
+        { title: `Glossary, Part 1`, body: `NEURALFUSION™: The overall trainable cognitive skill system that coordinates the Four Brains into one controlled process.
+
+COGNITIVE FRAGMENTATION: The default, untrained state of thinking in disconnected pieces (logic without intuition, emotion without reflection) rather than as one coordinated process.
+
+THE FOUR BRAINS: Analytical, Intuitive, Associative, and Reflective, the four natural modes of thought that NeuralFusion™ trains you to activate and coordinate deliberately.
+
+ANALYTICAL BRAIN: Governs logic, structure, and facts. Best used for decisions, planning, and problem breakdown.
+
+INTUITIVE BRAIN: Governs gut feeling, insight, and pattern recognition. Best used for fast judgment and direction.
+
+ASSOCIATIVE BRAIN: Governs creativity, connection, and idea generation. Best used for expansion and new options.
+
+REFLECTIVE BRAIN: Governs self-awareness, evaluation, and meaning. Best used for learning and long-term perspective.
+
+MODE ACTIVATION SIGNAL: A short internal question used to deliberately switch into a specific brain.` },
+        { title: `Glossary, Part 2`, body: `THE CORE LOOP: The four-stage process, Decomposition, Mode Switching, Synthesis, Stabilization, that structures every application of NeuralFusion™.
+
+SYNTHESIS: Combining the outputs of all four brains into one unified insight. Integration, not compromise.
+
+THE SYNTHESIS FRAMEWORK: The four-step method for synthesis, Extract, Align, Compress, Decide.
+
+STABILIZATION: Locking in a fused conclusion and reducing mental noise, especially under pressure.
+
+THE COMMITMENT LOCK: The discipline of stopping re-analysis once synthesis is complete, converting a decision into stable action.
+
+COGNITIVE ANCHOR: A short internal statement used to lock in synthesis and prevent re-fragmentation under pressure.
+
+TEMPORAL COMPRESSION: A stabilizer that narrows focus to what matters in the next short window of time.
+
+MODE CONTAINMENT: A stabilizer that reduces the influence of an overactive brain without eliminating it.
+
+MENTAL RELAPSE: The return of fragmented thinking after a decision has already been stabilized.
+
+COGNITIVE FLUENCY: The advanced state in which the Core Loop runs quickly, stably, and adaptively without deliberate effort.
+
+THE AUTOMATIC FUSION TRIGGER: The single-word cue ("Fuse") used to activate the full Core Loop automatically, once trained.
+
+MENTAL LEADERSHIP: The core identity shift NeuralFusion™ aims to produce, from being carried by one's thoughts to consciously directing them.` },
+        { title: `Quick-Reference: The Core Loop & Synthesis Framework`, body: `THE CORE LOOP
+
+1. Decomposition: break it into parts.
+2. Mode Switching: activate the right brain for each part.
+3. Synthesis: combine outputs into one insight.
+4. Stabilization: lock in clarity, reduce noise.
+
+THE SYNTHESIS FRAMEWORK
+
+1. Extract: strongest output from each brain.
+2. Align: check overlaps and contradictions.
+3. Compress: reduce to one core insight.
+4. Decide: commit to a single direction.
+
+THE THREE STABILIZERS
+
+· Cognitive Anchor: a short statement that locks synthesis in place.
+· Temporal Compression: "What matters in the next 10 minutes?"
+· Mode Containment: identify, reduce influence, return authority to synthesis.
+
+THE EMERGENCY RESET
+
+1. Pause. 2. Name the brain you are stuck in. 3. Switch to Reflective. 4. Ask: "What is one thing I can control right now?"` },
+        { title: `Progress Tracker & Weekly Practice Schedule`, body: `Use this tracker to record your completion of each lesson's core components: Guided Practice completed, Assignment completed, date, and a personal confidence rating from 1 to 5.
+
+· Lesson 1, Foundation of Integrated Cognition
+· Lesson 2, Brain Mode Activation & Switching
+· Lesson 3, Synthesis & Decision Architecture
+· Lesson 4, Cognitive Stabilization Under Pressure
+· Lesson 5, Cognitive Fluency Installation
+
+SUGGESTED FOUR-WEEK SCHEDULE
+
+WEEK 1: Lesson One. Daily mode-naming practice. Complete the First Guided Practice and 24-hour assignment.
+
+WEEK 2: Lesson Two. Daily Switching Drill or a single deliberate mode switch. Rehearse the Emergency Reset once per day.
+
+WEEK 3: Lesson Three. Apply the Full NeuralFusion™ Cycle to one real decision. Practice the Commitment Lock on smaller daily decisions.
+
+WEEK 4: Lesson Four. Run the Pressure Simulation on a past event. Apply at least one Stabilizer to a real pressure moment.
+
+WEEK 5+: Lesson Five. Begin using the Automatic Fusion Trigger daily. Shift from written exercises to in-the-moment application.
+
+This schedule is a starting structure, not a fixed rule. If a lesson has not yet produced its Success Indicators, it is more effective to repeat that week than to advance on schedule.` },
+        { title: `Decision Journal & Reflection Journal Templates`, body: `DECISION JOURNAL TEMPLATE
+
+Use this each time you apply the Full NeuralFusion™ Cycle or the Synthesis Framework to a real decision.
+
+· Date
+· The Decision (one sentence)
+· Analytical Output: facts and constraints
+· Intuitive Output: strongest gut signal
+· Associative Output: best idea or option
+· Reflective Output: lesson or value at stake
+· Common Theme
+· Final Decision Sentence
+· Commitment Lock Applied? Yes / Not yet
+· Outcome (add later)
+
+REFLECTION JOURNAL TEMPLATE
+
+Use one entry per lesson, or more frequently if useful.
+
+· Lesson / Date
+· What I noticed about my thinking today
+· Which brain I relied on most
+· Which brain I underused
+· One moment I would handle differently now
+· What I want to practice next
+
+Short, honest entries written consistently are more valuable than long, polished entries written occasionally. The Reflection Journal is a training log, not a performance.` },
+        { title: `Cognitive Performance Scorecard`, body: `Use this scorecard monthly to track your own sense of progress across the five core NeuralFusion™ capacities. Rate each from 1 (Rarely) to 5 (Consistently). This is a self-assessment tool for personal tracking, not a diagnostic or clinical instrument.
+
+· I can name my current brain on request.
+· I can switch deliberately into a specific brain using an activation signal.
+· I can complete a full synthesis and produce a one-sentence decision.
+· I can apply at least one Stabilizer during a real pressure moment.
+· I notice NeuralFusion™ operating automatically, without deliberate effort.
+
+This scorecard measures your own subjective sense of skill, consistent with how NeuralFusion™ is designed to be practiced. It is not a psychological assessment and does not diagnose any condition.` },
+        { title: `Mastery Checklist: Level One`, body: `Complete this checklist honestly before considering Level One finished. Every item should reflect something you have actually done, not something you understand conceptually.
+
+· I completed all five lessons in order, including every guided practice.
+· I can name the Four Brains and describe the risk of overusing each.
+· I can state the four stages of the Core Loop from memory.
+· I can state the four steps of the Synthesis Framework from memory.
+· I have applied the Commitment Lock to a real decision.
+· I can name the three Stabilizers and have used at least one under real pressure.
+· I have used the Automatic Fusion Trigger ("Fuse") in a real, unplanned situation.
+· I have completed at least one full Decision Journal entry.
+· I have completed at least three Reflection Journal entries.
+· I can explain, in my own words, why NeuralFusion™ is described as a trainable skill rather than a personality trait.` },
+        { title: `Final Level One Assessment`, body: `This assessment is self-graded and reflective by design: NeuralFusion™ measures applied skill, not memorized theory.
+
+PART A: CONCEPTUAL UNDERSTANDING
+1. In your own words, define cognitive fragmentation and explain how NeuralFusion™ addresses it.
+2. Name the Four Brains and describe one overuse risk for each.
+3. Explain the difference between synthesis and compromise.
+4. Explain the difference between stabilization and suppression.
+5. Define cognitive fluency and describe what it feels like in practice.
+
+PART B: APPLIED SKILL
+1. Walk through a real decision using the full Synthesis Framework, and record the resulting one-sentence decision.
+2. Describe a real instance where you used a Stabilizer under genuine pressure, and what happened.
+3. Describe a real instance where the Automatic Fusion Trigger produced clarity without deliberate step-by-step effort.
+
+PART C: SELF-EVALUATION
+1. Which lesson required the most repetition for you, and why?
+2. Which Success Indicators do you meet most confidently? Least confidently?
+3. What is your personal plan for continuing to practice NeuralFusion™ after completing this curriculum?
+
+There is no passing score. Completion of this assessment in full, honest written form is what qualifies you to proceed toward certification.` },
+        { title: `Certification, Daily Practice & FAQ`, body: `LEVEL ONE CERTIFICATION REQUIREMENTS
+
+1. Completion of all five lessons, including every guided practice and assignment.
+2. A fully completed Mastery Checklist.
+3. A fully completed Final Level One Assessment, in writing.
+4. At least five completed Decision Journal entries, drawn from real decisions.
+5. At least one documented, real-world application of a Stabilizer under genuine pressure.
+
+RECOMMENDED DAILY PRACTICE ROUTINE
+
+· Morning (2–3 min): One deliberate pass through the Core Loop on the day's first meaningful decision.
+· Midday (1 min): A single mode check; pause and name whatever brain is currently active.
+· As needed: Use the Automatic Fusion Trigger ("Fuse") whenever a decision or reaction arises.
+· Under pressure: Apply a Stabilizer as the situation requires.
+· Evening (3–5 min): One Reflection Journal entry, focused on what was noticed rather than what was achieved.
+
+IS NEURALFUSION™ A FORM OF THERAPY?
+No. NeuralFusion™ is a cognitive skill training system. It is not a medical, psychological, psychiatric, or therapeutic treatment, and it does not replace professional care. If you are working through a mental health concern, please consult a licensed professional.
+
+HOW LONG DOES LEVEL ONE TAKE?
+Most learners take four to six weeks working through the lessons at the suggested pace. The timeline matters far less than whether each lesson's Success Indicators have genuinely been met before moving on.` }
+      ]},
+    };
+
+    // ── Supabase Helpers ──────────────────────────────────────────────
+    const getProfile = async (id) => { try { const {data} = await sb.from('profiles').select('*').eq('id',id).maybeSingle(); return data; } catch(_){ return null; } };
+    const upsertProfile = async (id, u) => { try { await sb.from('profiles').upsert({id,...u},{onConflict:'id'}); } catch(_){} };
+
+    const CFI_VERSION = 'CFI-1.0'; // the canonical 13-item instrument. Never mix with older 15/16-item data.
+
+    // Defensive server-side-equivalent validation, mirrored client-side since this app has
+    // no server layer of its own. Frontend can't be trusted alone (item 18 of the CFI
+    // correction spec) — this is the actual gate a completed attempt must pass before saveCFIResult
+    // will submit it.
+    function validateCFISubmission(answers) {
+      const errors = [];
+      const ids = CFI_ITEMS.map(i => i.id);
+      if (ids.length !== 13) errors.push(`CFI_ITEMS has ${ids.length} items, expected exactly 13.`);
+      const answeredIds = ids.filter(id => answers[id] !== undefined && answers[id] !== null);
+      if (answeredIds.length !== 13) errors.push(`Expected 13 answers, got ${answeredIds.length}.`);
+      answeredIds.forEach(id => {
+        const v = answers[id];
+        if (!(Number.isInteger(v) && v >= 1 && v <= 5)) errors.push(`Answer for item ${id} (${v}) is not an integer 1–5.`);
+      });
+      return { valid: errors.length === 0, errors };
+    }
+    function validateCFIScore(total) {
+      return Number.isInteger(total) && total >= 13 && total <= 65;
+    }
+
+    // Looks up this user's prior completed CFI-1.0 attempts (most recent first) so a new
+    // submission can be numbered and linked correctly. Per-user numbering only — never global,
+    // never reset by logout/refresh/new session — and only rows on the current CFI_VERSION count,
+    // so historical 15/16-item attempts never get silently mixed into CFI-1.0's numbering or deltas.
+    const getPriorCFIResults = async (id) => {
+      const { data, error } = await sb.from('cfi_results').select('*')
+        .eq('user_id', id).eq('status', 'completed').eq('assessment_version', CFI_VERSION)
+        .order('created_at', { ascending: false });
+      if (error) { console.error('[CFI SAVE ERROR] loading prior results failed:', error); return []; }
+      return data || [];
+    };
+
+    // saveCFIResult finalizes a completed assessment. If a draftId (an existing
+    // in_progress row created via saveCFIProgress) is passed, it updates that
+    // row in place instead of inserting a new one, so a single attempt never
+    // produces two rows.
+    // NOTE: supabase-js does NOT throw on a failed query — it resolves with
+    // { data, error }. Every call here checks .error explicitly and logs it,
+    // so a failed save is visible in the console instead of silently vanishing.
+    const saveCFIResult = async (id, r, a, draftId) => {
+      const check = validateCFISubmission(a);
+      if (!check.valid || !validateCFIScore(r.total)) {
+        const msg = 'CFI submission failed validation: ' + check.errors.concat(
+          validateCFIScore(r.total) ? [] : [`total score ${r.total} outside 13–65`]
+        ).join('; ');
+        console.error('[CFI SAVE ERROR]', msg);
+        return { data: null, error: { message: msg } };
+      }
+      const prior = await getPriorCFIResults(id);
+      const previous = prior[0] || null;
+      const assessmentNumber = prior.length + 1;
+      const scoreChange = previous ? (r.total - previous.total_score) : null;
+      const bandChanged = previous ? (previous.band !== r.band) : false;
+      const payload = {
+        user_id:id, total_score:r.total, band:r.band, dim_scores:r.dimScores, answers:a, status:'completed',
+        assessment_version: CFI_VERSION,
+        assessment_number: assessmentNumber,
+        previous_assessment_id: previous ? previous.id : null,
+        previous_band: previous ? previous.band : null,
+        score_change: scoreChange,
+        band_changed: bandChanged,
+        analytical_score: r.dimScores?.A ?? null,
+        intuitive_score: r.dimScores?.I ?? null,
+        associative_score: r.dimScores?.S ?? null,
+        reflective_score: r.dimScores?.R ?? null,
+        integration_score: r.dimScores?.E ?? null,
+        // Persists the (now-corrected) dominant-mode calculation so AdminView's per-row
+        // table — which reads r.dominant_brain straight from the DB rather than
+        // recomputing it — actually has a value to show instead of always falling
+        // back to 'N/A'. REQUIRES a `dominant_brain` text column on `cfi_results`
+        // (see migration note below) or this insert/update will fail.
+        dominant_brain: r.dominantBrain ?? null,
+      };
+      if (draftId) {
+        const { data, error } = await sb.from('cfi_results').update(payload).eq('id', draftId).eq('user_id', id).select('id');
+        if (error) {
+          console.error('[CFI SAVE ERROR] update by draftId failed, falling back to insert:', error);
+        } else if (data && data.length > 0) {
+          return { data, error: null };
+        } else {
+          console.warn('[CFI SAVE WARNING] update matched 0 rows for draftId', draftId, '- falling back to insert. This usually means an RLS policy blocked it or the row does not exist.');
+        }
+        // Fall back to a fresh insert so the result is never silently lost,
+        // even if the draft row couldn't be updated for some reason.
+      }
+      const res = await sb.from('cfi_results').insert(payload).select('id');
+      if (res.error) console.error('[CFI SAVE ERROR] insert failed:', res.error);
+      return res;
+    };
+    // Looks up a signed-in user's in-progress CFI attempt, if one exists, so an
+    // interrupted assessment (refresh, lost connection, returning later) can resume
+    // instead of starting over.
+    const getInProgressCFI = async (id) => {
+      const { data, error } = await sb.from('cfi_results').select('*').eq('user_id', id).eq('status', 'in_progress').order('created_at', { ascending:false }).limit(1);
+      if (error) { console.error('[CFI SAVE ERROR] loading in-progress attempt failed:', error); return null; }
+      return data && data[0] ? data[0] : null;
+    };
+    // Persists in-progress answers as the user goes. First call creates the draft
+    // row (status: in_progress); subsequent calls update that same row by id, so
+    // changing an answer never creates a duplicate response.
+    const saveCFIProgress = async (id, answers, draftId) => {
+      if (draftId) {
+        const { data, error } = await sb.from('cfi_results').update({ answers, status:'in_progress' }).eq('id', draftId).eq('user_id', id).select('id');
+        if (error) { console.error('[CFI SAVE ERROR] progress update failed:', error); return draftId; }
+        if (!data || data.length === 0) {
+          console.warn('[CFI SAVE WARNING] progress update matched 0 rows for draftId', draftId, '- treating draft as lost and starting a new one.');
+        } else {
+          return draftId;
+        }
+      }
+      const { data, error } = await sb.from('cfi_results').insert({ user_id:id, answers, status:'in_progress' }).select('id').maybeSingle();
+      if (error) { console.error('[CFI SAVE ERROR] progress insert failed:', error); return draftId || null; }
+      return data?.id || null;
+    };
+    const upsertLessonProgress = async (id, lid, p) => await sb.from('lesson_progress').upsert({user_id:id, lesson_id:lid, progress:p, completed:p===100},{onConflict:'user_id,lesson_id'});
+    const loadLessonProgress = async (id) => {
+      const {data} = await sb.from('lesson_progress').select('*').eq('user_id',id);
+      const map = {}; (data||[]).forEach(r=>{map[r.lesson_id]=r.progress;}); return map;
+    };
+    // Platform settings helpers
+    const getPlatformSetting = async (key) => {
+      try { const {data} = await sb.from('platform_settings').select('value,text_value').eq('key',key).maybeSingle(); return data?.text_value ?? data?.value ?? null; } catch(_){ return null; }
+    };
+    const setPlatformSetting = async (key, value) => {
+      try { await sb.from('platform_settings').upsert({key, value},{onConflict:'key'}); } catch(_){}
+    };
+    const setTextSetting = async (key, text_value) => {
+      try { await sb.from('platform_settings').upsert({key, text_value},{onConflict:'key'}); } catch(_){}
+    };
+    // Enterprise results helpers
+    const saveEnterpriseResult = async (result) => {
+      try {
+        await sb.from('enterprise_results').upsert({
+          pid: result.pid,
+          cohort: result.cohort,
+          phase: result.phase,
+          group_label: result.group || null,
+          composite: result.composite,
+          dims: result.dims,
+          responses: result.responses,
+          entered_by: result.enteredBy || 'participant',
+          recorded_at: new Date(result.ts).toISOString(),
+        }, { onConflict: 'pid,cohort,phase' });
+      } catch(_){}
+    };
+    const loadEnterpriseResults = async (cohort) => {
+      try {
+        const {data} = await sb.from('enterprise_results').select('*').eq('cohort', cohort);
+        return (data||[]).map(r=>({
+          pid: r.pid, cohort: r.cohort, phase: r.phase, group: r.group_label,
+          composite: r.composite, dims: r.dims, responses: r.responses,
+          enteredBy: r.entered_by, ts: new Date(r.recorded_at).getTime(),
+        }));
+      } catch(_){ return []; }
+    };
+
+    // ── NEURAL VISUAL ─────────────────────────────────────────────────
+    function NeuralOrb({ size=120, color='#C4A050', animated=true }) {
+      return (
+        React.createElement("div", {style: { width:size, height:size, position:'relative', display:'flex', alignItems:'center', justifyContent:'center' }}, React.createElement("div", {style: {
+            position:'absolute', inset:0, borderRadius:'50%',
+            border:`1px solid ${color}22`,
+            animation: animated ? 'rotate 12s linear infinite' : 'none',
+          }}), React.createElement("div", {style: {
+            position:'absolute', inset:8, borderRadius:'50%',
+            border:`1px dashed ${color}33`,
+            animation: animated ? 'counterRotate 8s linear infinite' : 'none',
+          }}), React.createElement("div", {style: {
+            width:size*0.4, height:size*0.4, borderRadius:'50%',
+            background:`radial-gradient(circle, ${color}20 0%, transparent 70%)`,
+            border:`1px solid ${color}44`,
+            display:'flex', alignItems:'center', justifyContent:'center',
+            animation: animated ? 'neuralPulse 3s ease-in-out infinite' : 'none',
+            boxShadow:`0 0 ${size/3}px ${color}20`,
+          }}, React.createElement("div", {style: { fontFamily:"'Space Mono'", fontSize:size/8, color, opacity:0.9 }}, '◈')), [0,90,180,270].map((deg,i)=>(
+            React.createElement("div", {key: i, style: {
+              position:'absolute', width:6, height:6, borderRadius:'50%',
+              background:color, opacity:0.6,
+              top: '50%', left: '50%',
+              transformOrigin:'0 0',
+              transform:`rotate(${deg}deg) translateX(${size/2-3}px)`,
+              animation: animated ? `rotate ${8+i}s linear infinite` : 'none',
+              boxShadow:`0 0 8px ${color}`,
+            }})
+          )))
+      );
+    }
+
+    // ── SCAN LINE EFFECT ──────────────────────────────────────────────
+    function ScanLine() {
+      return (
+        React.createElement("div", {style: { position:'absolute', inset:0, overflow:'hidden', pointerEvents:'none', borderRadius:'inherit' }}, React.createElement("div", {style: {
+            position:'absolute', left:0, right:0, height:1,
+            background:'linear-gradient(90deg, transparent, rgba(196,160,80,0.3), transparent)',
+            animation:'scanH 4s ease-in-out infinite',
+          }}))
+      );
+    }
+
+    // ── BRAIN MODE CARD ───────────────────────────────────────────────
+    function BrainCard({ brainKey, compact=false, onClick, active=false }) {
+      const brain = FOUR_BRAINS[brainKey];
+      const b = C.brains[brainKey];
+      return (
+        React.createElement("div", {onClick: onClick, style: {
+          background: active ? `${b.color}12` : C.surface,
+          border: `1px solid ${active ? b.color+'44' : C.border}`,
+          borderRadius:4, padding: compact ? '16px' : '24px',
+          cursor: onClick ? 'pointer' : 'default',
+          transition:'all 0.25s ease',
+          position:'relative', overflow:'hidden',
+        }, onMouseEnter: e=>{if(onClick){e.currentTarget.style.borderColor=b.color+'66'; e.currentTarget.style.background=b.color+'10';}}, onMouseLeave: e=>{if(onClick && !active){e.currentTarget.style.borderColor=C.border; e.currentTarget.style.background=C.surface;}}}, React.createElement("div", {style: { display:'flex', alignItems:compact?'center':'flex-start', gap:16 }}, React.createElement("div", {style: {
+              width:compact?36:48, height:compact?36:48, borderRadius:'50%',
+              background:`radial-gradient(circle, ${b.color}20, transparent)`,
+              border:`1px solid ${b.color}33`,
+              display:'flex', alignItems:'center', justifyContent:'center',
+              flexShrink:0,
+              fontSize:compact?16:20, color:b.color,
+              fontFamily:"'Space Mono'",
+            }}, b.symbol), React.createElement("div", {style: {flex:1}}, React.createElement("div", {style: { ...mono, fontSize:11, letterSpacing:1, color:b.color, marginBottom:4 }}, 'BRAIN:', b.code), React.createElement("div", {style: { ...syne, fontSize:compact?15:18, fontWeight:700, color:C.text, marginBottom:compact?0:8, overflowWrap:'break-word', minWidth:0}}, brain.label), !compact && React.createElement("div", {style: { fontSize:12, color:C.muted, lineHeight:1.5 }}, brain.tagline))), !compact && (
+            React.createElement("div", {style: { marginTop:16, fontSize:13, color:C.muted, lineHeight:1.7 }}, brain.description.slice(0,140), '...')
+          ), active && React.createElement("div", {style: { position:'absolute', top:0, left:0, width:2, height:'100%', background:b.color }}))
+      );
+    }
+
+    // ── PROGRESS RING ─────────────────────────────────────────────────
+    function ProgressRing({ value=70, size=80, color='#C4A050', label='' }) {
+      const r = (size-8)/2;
+      const circ = 2*Math.PI*r;
+      const dash = (value/100)*circ;
+      return (
+        React.createElement("div", {style: { position:'relative', width:size, height:size, display:'flex', alignItems:'center', justifyContent:'center' }}, React.createElement("svg", {width: size, height: size, style: {position:'absolute', transform:'rotate(-90deg)'}}, React.createElement("circle", {cx: size/2, cy: size/2, r: r, fill: "none", stroke: `${color}15`, strokeWidth: 2}), React.createElement("circle", {cx: size/2, cy: size/2, r: r, fill: "none", stroke: color, strokeWidth: 2, strokeDasharray: `${dash} ${circ}`, strokeLinecap: "round", style: { transition:'stroke-dasharray 1s ease' }})), React.createElement("div", {style: { textAlign:'center' }}, React.createElement("div", {style: { ...syne, fontSize:size/5, fontWeight:800, color, overflowWrap:'break-word', minWidth:0}}, value, '%'), label && React.createElement("div", {style: { ...mono, fontSize:7, letterSpacing:1, color:C.muted, marginTop:2 }}, label)))
+      );
+    }
+
+    // ── AUTH MODAL ────────────────────────────────────────────────────
+    function AuthModal({ onClose, onSuccess, initialTab = 'login' }) {
+      const [tab, setTab] = useState(initialTab);
+      const [email, setEmail] = useState('');
+      const [password, setPassword] = useState('');
+      const [confirmPassword, setConfirmPassword] = useState('');
+      const [name, setName] = useState('');
+      const [loading, setLoading] = useState(false);
+      const [msg, setMsg] = useState({ text:'', type:'' });
+
+      // Sync if parent changes initialTab (e.g. PASSWORD_RECOVERY fires after mount)
+      useEffect(() => { setTab(initialTab); }, [initialTab]);
+
+      const handleLogin = async () => {
+        if (!email || !password) { setMsg({text:'Email and password required.',type:'error'}); return; }
+        setLoading(true); setMsg({text:'',type:''});
+        const { error } = await sb.auth.signInWithPassword({ email, password });
+        setLoading(false);
+        if (error) setMsg({text:error.message,type:'error'});
+        else { onSuccess(); onClose(); }
+      };
+
+      const handleSignup = async () => {
+        if (!email||!password||!name) { setMsg({text:'All fields required.',type:'error'}); return; }
+        if (password.length < 8) { setMsg({text:'Password must be at least 8 characters.',type:'error'}); return; }
+        if (confirmPassword && password !== confirmPassword) { setMsg({text:'Passwords do not match.',type:'error'}); return; }
+        setLoading(true); setMsg({text:'',type:''});
+        try {
+          const { data, error } = await sb.auth.signUp({
+            email: email.trim().toLowerCase(),
+            password,
+            options:{ data:{ full_name: name.trim() } }
+          });
+          if (error) {
+            setLoading(false);
+            setMsg({text: error.message, type:'error'});
+            return;
+          }
+
+          // If email confirmation is required, identities will be empty or session null
+          const needsConfirm = !data.session || data.user?.identities?.length === 0;
+          if (needsConfirm) {
+            setLoading(false);
+            setMsg({text:'Account created. Check your inbox for a confirmation link.', type:'success'});
+            return;
+          }
+
+          // Email confirmation disabled; user is already signed in via onAuthStateChange
+          // Just upsert the profile as a safety net
+          const uid = data.user?.id;
+          if (uid) {
+            await sb.from('profiles')
+              .upsert({ id: uid, full_name: name.trim(), is_pro: false }, { onConflict: 'id' });
+          }
+
+          setLoading(false);
+          onSuccess();
+          onClose();
+        } catch(err) {
+          setLoading(false);
+          setMsg({text: err.message || 'Something went wrong. Please try again.', type:'error'});
+        }
+      };
+
+      const handleForgotPassword = async () => {
+        if (!email) { setMsg({text:'Please enter your email address.',type:'error'}); return; }
+        setLoading(true); setMsg({text:'',type:''});
+        const { error } = await sb.auth.resetPasswordForEmail(email.trim().toLowerCase(), {
+          redirectTo: window.location.href,
+        });
+        setLoading(false);
+        if (error) setMsg({text:error.message,type:'error'});
+        else setMsg({text:'Reset link sent. Check your inbox.', type:'success'});
+      };
+
+      const handleUpdatePassword = async () => {
+        if (!password) { setMsg({text:'Please enter a new password.',type:'error'}); return; }
+        if (password.length < 8) { setMsg({text:'Password must be at least 8 characters.',type:'error'}); return; }
+        if (password !== confirmPassword) { setMsg({text:'Passwords do not match.',type:'error'}); return; }
+        setLoading(true); setMsg({text:'',type:''});
+        const { error } = await sb.auth.updateUser({ password });
+        setLoading(false);
+        if (error) setMsg({text:error.message,type:'error'});
+        else {
+          setMsg({text:'Password updated. You are now signed in.', type:'success'});
+          setTimeout(()=>{ onSuccess(); onClose(); }, 1500);
+        }
+      };
+
+      const tabMeta = {
+        login:           { title:'Sign in',      sub:'Welcome back.' },
+        signup:          { title:'Create account',       sub:'Start your cognitive training.' },
+        'forgot-password':{ title:'Reset password',          sub:"We'll send a reset link to your inbox." },
+        'update-password':{ title:'New password',        sub:'Choose a strong password (8+ characters).' },
+      };
+
+      const { title, sub } = tabMeta[tab] || tabMeta.login;
+
+      return (
+        React.createElement("div", {style: {
+          position:'fixed', inset:0, background:'rgba(5,12,26,0.95)', zIndex:1000,
+          display:'flex', alignItems:'center', justifyContent:'center', padding:20,
+          backdropFilter:'blur(8px)',
+        }}, React.createElement("div", {className: "card fade-up", style: { maxWidth:420, width:'100%', padding:'36px 32px', position:'relative' }}, React.createElement("button", {onClick: onClose, style: { position:'absolute', top:16, right:16, background:'none', border:'none', color:C.muted, fontSize:14, cursor:'pointer', lineHeight:1 }}, '×'), React.createElement("div", {style: { ...mono, fontSize:11, letterSpacing:1, color:C.cyan, marginBottom:20 }}, 'Authentication'), React.createElement("div", {style: { ...syne, fontSize:15, fontWeight:800, color:C.text, marginBottom:6, overflowWrap:'break-word', minWidth:0}}, title), React.createElement("div", {style: { fontSize:13, color:C.muted, marginBottom:28 }}, sub), (tab==='login'||tab==='signup') && (
+              React.createElement("div", {style: { display:'flex', gap:2, marginBottom:24, background:C.deep, padding:4, borderRadius:2 }}, ['login','signup'].map(t=>(
+                  React.createElement("button", {key: t, onClick: ()=>{ setTab(t); setMsg({text:'',type:''}); }, style: {
+                    flex:1, padding:'10px', background:tab===t?C.cyan:'transparent',
+                    color:tab===t?C.void:C.muted, ...syne, fontSize:11, fontWeight:700,
+                    letterSpacing:1, borderRadius:2, border:'none', cursor:'pointer', overflowWrap:'break-word', minWidth:0}}, t==='login'?'Sign in':'Register')
+                )))
+            ), tab==='login' && (React.createElement(React.Fragment, null, React.createElement("div", {style: { marginBottom:14 }}, React.createElement("div", {style: { ...mono, fontSize:9, letterSpacing:1, color:C.muted, marginBottom:8 }}, 'Email'), React.createElement("input", {type: "email", value: email, onChange: e=>setEmail(e.target.value), placeholder: "you@example.com"})), React.createElement("div", {style: { marginBottom:8 }}, React.createElement("div", {style: { ...mono, fontSize:9, letterSpacing:1, color:C.muted, marginBottom:8 }}, 'Password'), React.createElement("input", {type: "password", value: password, onChange: e=>setPassword(e.target.value), placeholder: "••••••••", onKeyDown: e=>e.key==='Enter'&&handleLogin()})), React.createElement("div", {style: { textAlign:'right', marginBottom:20 }}, React.createElement("button", {onClick: ()=>{ setTab('forgot-password'); setMsg({text:'',type:''}); }, style: {
+                  background:'none', border:'none', ...mono, fontSize:9, letterSpacing:1,
+                  color:C.muted, cursor:'pointer', textDecoration:'underline',
+                }}, 'Forgot password?')))), tab==='signup' && (React.createElement(React.Fragment, null, React.createElement("div", {style: { marginBottom:14 }}, React.createElement("div", {style: { ...mono, fontSize:9, letterSpacing:1, color:C.muted, marginBottom:8 }}, 'Full name'), React.createElement("input", {value: name, onChange: e=>setName(e.target.value), placeholder: "Your name"})), React.createElement("div", {style: { marginBottom:14 }}, React.createElement("div", {style: { ...mono, fontSize:9, letterSpacing:1, color:C.muted, marginBottom:8 }}, 'Email'), React.createElement("input", {type: "email", value: email, onChange: e=>setEmail(e.target.value), placeholder: "you@example.com"})), React.createElement("div", {style: { marginBottom:14 }}, React.createElement("div", {style: { ...mono, fontSize:9, letterSpacing:1, color:C.muted, marginBottom:8 }}, 'Password'), React.createElement("input", {type: "password", value: password, onChange: e=>setPassword(e.target.value), placeholder: "••••••••"})), React.createElement("div", {style: { marginBottom:24 }}, React.createElement("div", {style: { ...mono, fontSize:9, letterSpacing:1, color:C.muted, marginBottom:8 }}, 'Confirm password'), React.createElement("input", {type: "password", value: confirmPassword, onChange: e=>setConfirmPassword(e.target.value), placeholder: "••••••••", onKeyDown: e=>e.key==='Enter'&&handleSignup()})))), tab==='forgot-password' && (React.createElement(React.Fragment, null, React.createElement("div", {style: { marginBottom:24 }}, React.createElement("div", {style: { ...mono, fontSize:9, letterSpacing:1, color:C.muted, marginBottom:8 }}, 'Email'), React.createElement("input", {type: "email", value: email, onChange: e=>setEmail(e.target.value), placeholder: "you@example.com", onKeyDown: e=>e.key==='Enter'&&handleForgotPassword()})))), tab==='update-password' && (React.createElement(React.Fragment, null, React.createElement("div", {style: { marginBottom:14 }}, React.createElement("div", {style: { ...mono, fontSize:9, letterSpacing:1, color:C.muted, marginBottom:8 }}, 'New password'), React.createElement("input", {type: "password", value: password, onChange: e=>setPassword(e.target.value), placeholder: "••••••••"})), React.createElement("div", {style: { marginBottom:24 }}, React.createElement("div", {style: { ...mono, fontSize:9, letterSpacing:1, color:C.muted, marginBottom:8 }}, 'Confirm password'), React.createElement("input", {type: "password", value: confirmPassword, onChange: e=>setConfirmPassword(e.target.value), placeholder: "••••••••", onKeyDown: e=>e.key==='Enter'&&handleUpdatePassword()})))), msg.text && (
+              React.createElement("div", {style: { marginBottom:20, padding:'12px 16px', background:msg.type==='error'?'rgba(248,113,113,0.1)':'rgba(128,203,196,0.1)',
+                border:`1px solid ${msg.type==='error'?'#F8717144':'#7AAFCF44'}`, borderRadius:2,
+                color:msg.type==='error'?'#F87171':'#7AAFCF', fontSize:13 }}, msg.text)
+            ), React.createElement("button", {className: "btn-primary", style: { width:'100%', fontSize:12, opacity:loading?0.6:1 }, disabled: loading, onClick: 
+                tab==='login'            ? handleLogin :
+                tab==='signup'           ? handleSignup :
+                tab==='forgot-password'  ? handleForgotPassword :
+                                           handleUpdatePassword
+              }, loading ? 'Working...' : (
+                tab==='login'            ? 'Sign in →' :
+                tab==='signup'           ? 'Create account →' :
+                tab==='forgot-password'  ? 'Send reset link →' :
+                                           'Update password →'
+              )), (tab==='forgot-password'||tab==='update-password') && (
+              React.createElement("div", {style: { textAlign:'center', marginTop:16 }}, React.createElement("button", {onClick: ()=>{ setTab('login'); setMsg({text:'',type:''}); setPassword(''); setConfirmPassword(''); }, style: {
+                  background:'none', border:'none', ...mono, fontSize:9, letterSpacing:1,
+                  color:C.muted, cursor:'pointer', textDecoration:'underline',
+                }}, '← Back to sign in'))
+            )))
+      );
+    }
+
+    // ── NAVBAR ────────────────────────────────────────────────────────
+    function Navbar({ view, setView, user, profile, setShowAuth, onSignOut, authLoading }) {
+      const [menuOpen, setMenuOpen] = useState(false);
+      const navItems = [
+        { v:'cfi', label:'Assess' },
+        { v:'four-brains', label:'Architecture' },
+        { v:'analytics', label:'Analytics' },
+        { v:'protocol', label:'Integration Protocol' },
+        { v:'lessons', label:'Academy' },
+        { v:'resources', label:'Resources' },
+        { v:'enterprise', label:'Enterprise' },
+        ...(profile?.is_admin === true ? [{ v:'admin', label:'⚙ Admin' }] : []),
+      ];
+      const blogHref = '/blog';
+      const aboutHref = '/about';
+
+      return (
+        React.createElement(React.Fragment, null, React.createElement("nav", {style: {
+            position:'fixed', top:0, left:0, right:0, zIndex:100,
+            background:'rgba(5,12,26,0.85)', backdropFilter:'blur(20px)',
+            borderBottom:`1px solid ${C.border}`,
+          }}, React.createElement("div", {style: { maxWidth:1280, margin:'0 auto', padding:'0 24px', height:60, display:'flex', alignItems:'center', justifyContent:'space-between' }}, React.createElement("button", {className: "nf-logo-btn", onClick: ()=>setView('home'), style: { background:'none', border:'none', display:'flex', alignItems:'center', cursor:'pointer' }}, React.createElement(NFLogoLockup, {iconSize: 30, gap: 12, wordmarkColor: C.text, tagline: 'Cognitive OS', taglineColor: C.muted})), React.createElement("div", {className: "desktop-nav"}, navItems.map(item => (
+                  React.createElement("button", {key: item.v, onClick: ()=>setView(item.v), style: {
+                    background:'none', border:'none', padding:'8px 12px',
+                    color: view===item.v ? C.cyan : C.muted,
+                    ...inter, fontSize:12, fontWeight:view===item.v?600:400,
+                    cursor:'pointer', transition:'color 0.2s',
+                    borderBottom: view===item.v ? `1px solid ${C.cyan}` : '1px solid transparent',
+                  }}, item.label)
+                )), React.createElement("a", {href: aboutHref, style: {
+                  background:'none', border:'none', padding:'8px 12px',
+                  color: C.muted,
+                  ...inter, fontSize:12, fontWeight:400,
+                  cursor:'pointer', transition:'color 0.2s',
+                  borderBottom: '1px solid transparent',
+                  textDecoration:'none',
+                  display:'inline-block',
+                }}, 'About'), React.createElement("a", {href: blogHref, target: "_blank", rel: "noopener noreferrer", style: {
+                  background:'none', border:'none', padding:'8px 12px',
+                  color: C.muted,
+                  ...inter, fontSize:12, fontWeight:400,
+                  cursor:'pointer', transition:'color 0.2s',
+                  borderBottom: '1px solid transparent',
+                  textDecoration:'none',
+                  display:'inline-block',
+                }}, 'Blog')), React.createElement("div", {style: { display:'flex', alignItems:'center', gap:12 }}, React.createElement("div", {className: "nav-user-label", style: { ...mono, fontSize:9, letterSpacing:1, color:C.muted }}, user ? user.email?.split('@')[0].toUpperCase() : ''), authLoading ? (
+                  React.createElement("div", {className: "desktop-only", style: { width:16, height:16, border:'2px solid rgba(196,160,80,0.3)', borderTopColor:'#C4A050', borderRadius:'50%', animation:'nf-spin 0.8s linear infinite' }})
+                ) : user ? (
+                  React.createElement("button", {className: "btn-outline desktop-only", style: { fontSize:10, padding:'8px 16px' }, onClick: onSignOut}, 'Sign out')
+                ) : (
+                  React.createElement("button", {className: "btn-primary desktop-only", style: { fontSize:10, padding:'10px 20px' }, onClick: ()=>setShowAuth(true)}, 'Sign in →')
+                ), React.createElement("button", {className: "hamburger-btn", onClick: ()=>setMenuOpen(!menuOpen), style: {
+                  background:'none', border:`1px solid ${C.border}`, borderRadius:2,
+                  color:C.muted, width:40, height:36, flexDirection:'column',
+                  alignItems:'center', justifyContent:'center', gap:5, cursor:'pointer',
+                }}, React.createElement("div", {style: { width:18, height:1, background:C.muted }}), React.createElement("div", {style: { width:14, height:1, background:C.muted }}), React.createElement("div", {style: { width:10, height:1, background:C.muted }}))))), menuOpen && (
+            React.createElement("div", {style: {
+              position:'fixed', inset:0, zIndex:99, background:'rgba(5,12,26,0.97)',
+              backdropFilter:'blur(20px)', paddingTop:70, display:'flex', flexDirection:'column',
+            }}, React.createElement("button", {onClick: ()=>setMenuOpen(false), style: {
+                position:'absolute', top:20, right:24, background:'none', border:'none',
+                color:C.muted, fontSize:14, cursor:'pointer', lineHeight:1,
+              }}, '×'), React.createElement("div", {style: { padding:'32px 24px', flex:1, overflowY:'auto' }}, navItems.map((item,i) => (
+                  React.createElement("button", {key: item.v, onClick: ()=>{ setView(item.v); setMenuOpen(false); }, style: {
+                    display:'flex', alignItems:'center', width:'100%', textAlign:'left',
+                    background:'none', border:'none', borderBottom:`1px solid ${C.border}`,
+                    padding:'18px 0', cursor:'pointer',
+                    animation:`fadeUp 0.3s ease ${i*0.05}s both`,
+                  }}, React.createElement("div", {style: { flex:1, ...syne, fontSize:14, fontWeight:700, color: view===item.v ? C.cyan : C.text, overflowWrap:'break-word', minWidth:0}}, item.label), view===item.v && (
+                      React.createElement("div", {style: { ...mono, fontSize:10, color:C.cyan }}, '◈')
+                    ))
+                )), React.createElement("a", {href: aboutHref, style: {
+                  display:'flex', alignItems:'center', width:'100%', textAlign:'left',
+                  borderBottom:`1px solid ${C.border}`,
+                  padding:'18px 0', cursor:'pointer', textDecoration:'none',
+                  animation:`fadeUp 0.3s ease ${navItems.length*0.05}s both`,
+                }}, React.createElement("div", {style: { flex:1, ...syne, fontSize:14, fontWeight:700, color:C.text, overflowWrap:'break-word', minWidth:0}}, 'About')), React.createElement("a", {href: blogHref, target: "_blank", rel: "noopener noreferrer", style: {
+                  display:'flex', alignItems:'center', width:'100%', textAlign:'left',
+                  borderBottom:`1px solid ${C.border}`,
+                  padding:'18px 0', cursor:'pointer', textDecoration:'none',
+                  animation:`fadeUp 0.3s ease ${(navItems.length+1)*0.05}s both`,
+                }}, React.createElement("div", {style: { flex:1, ...syne, fontSize:14, fontWeight:700, color:C.text, overflowWrap:'break-word', minWidth:0}}, 'Blog'), React.createElement("div", {style: { ...mono, fontSize:10, color:C.muted }}, '↗'))), React.createElement("div", {style: {
+                padding:'24px', borderTop:`1px solid ${C.border}`,
+                animation:'fadeUp 0.35s ease 0.35s both',
+              }}, user ? (
+                  React.createElement("div", {style: { display:'flex', flexDirection:'column', gap:12 }}, React.createElement("div", {style: { ...mono, fontSize:11, letterSpacing:1, color:C.muted }}, 'Signed in as', user.email?.toUpperCase()), React.createElement("button", {className: "btn-outline", style: { width:'100%', fontSize:11, textAlign:'center' }, onClick: ()=>{ onSignOut(); setMenuOpen(false); }}, 'Sign out'))
+                ) : (
+                  React.createElement("div", {style: { display:'flex', flexDirection:'column', gap:10 }}, React.createElement("div", {style: { ...mono, fontSize:11, letterSpacing:1, color:C.muted, marginBottom:4 }}, 'Cognitive performance OS'), React.createElement("button", {className: "btn-primary", style: { width:'100%', fontSize:12, textAlign:'center' }, onClick: ()=>{ setShowAuth(true); setMenuOpen(false); }}, 'Sign in →'))
+                )))
+          ))
+      );
+    }
+
+    // ── BOTTOM NAV ────────────────────────────────────────────────────
+    function BottomNav({ view, setView }) {
+      const items = [
+        { v:'home', symbol:'⌂', label:'Home' },
+        { v:'cfi', symbol:'◎', label:'CFI' },
+        { v:'four-brains', symbol:'◈', label:'Brains' },
+        { v:'protocol', symbol:'▲', label:'Protocol' },
+        { v:'enterprise', symbol:'⬡', label:'Enterprise' },
+      ];
+      return (
+        React.createElement("div", {className: "bottom-nav", style: {
+          position:'fixed', bottom:0, left:0, right:0, zIndex:90,
+          background:'rgba(5,12,26,0.95)', backdropFilter:'blur(20px)',
+          borderTop:`1px solid ${C.border}`,
+        }}, items.map(item => (
+            React.createElement("button", {key: item.v, onClick: ()=>setView(item.v), style: {
+              flex:1, padding:'10px 4px 14px', background:'none', border:'none',
+              display:'flex', flexDirection:'column', alignItems:'center', gap:4, cursor:'pointer',
+            }}, React.createElement("div", {style: { ...mono, fontSize:14, color:view===item.v?C.cyan:C.dim, transition:'color 0.2s' }}, item.symbol), React.createElement("div", {style: { ...inter, fontSize:9, letterSpacing:1, color:view===item.v?C.cyan:C.dim, fontWeight:view===item.v?600:400, transition:'color 0.2s' }}, item.label))
+          )))
+      );
+    }
+
+
+// ─────────────────────────────────────────────────────────────
+//  BENTO HELPER COMPONENTS
+// ─────────────────────────────────────────────────────────────
+
+/** Animated neural orb: shown in hero card */
+function BentoNeuralOrb({ size = 120, color = '#C4A050', pulseColor }) {
+  const pc = pulseColor || color;
+  return (
+    React.createElement("div", {style: { position:'relative', width:size, height:size, flexShrink:0 }}, [1,2,3].map(i => (
+        React.createElement("div", {key: i, style: {
+          position:'absolute', inset:0, borderRadius:'50%',
+          border:`1px solid ${pc}`,
+          opacity: 0,
+          animation:`pulseRing ${1.6 + i*0.4}s ease-out ${i*0.4}s infinite`,
+        }})
+      )), React.createElement("div", {style: {
+        position:'absolute', inset:0, borderRadius:'50%',
+        border:`1px solid ${color}33`,
+        boxShadow:`0 0 40px ${color}14`,
+      }}), React.createElement("div", {style: {
+        position:'absolute', inset:12, borderRadius:'50%',
+        border:`1px solid ${color}22`,
+        background:`radial-gradient(circle, ${color}08, transparent 70%)`,
+      }}), React.createElement("div", {style: {
+        position:'absolute', inset:0,
+        display:'flex', alignItems:'center', justifyContent:'center',
+        fontFamily:"'Space Mono', monospace", fontSize:size/3,
+        color,
+        animation:'neuralPulse 3s ease-in-out infinite',
+        textShadow:`0 0 20px ${color}`,
+      }}, '◈'))
+  );
+}
+
+/** Mini live-looking waveform strip */
+function BentoWaveform({ color = '#C4A050', bars = 16, height = 32 }) {
+  const heights = [0.3,0.7,0.5,0.9,0.4,0.8,0.6,1.0,0.5,0.7,0.3,0.85,0.6,0.4,0.75,0.5];
+  return (
+    React.createElement("div", {style: {
+      display:'flex', alignItems:'flex-end', gap:3, height,
+    }}, heights.slice(0, bars).map((h, i) => (
+        React.createElement("div", {key: i, style: {
+          flex:1, height:`${h*100}%`,
+          background:`linear-gradient(180deg, ${color}, ${color}44)`,
+          borderRadius:2,
+          opacity: 0.6 + h * 0.4,
+          animation:`neuralPulse ${1.2 + (i%4)*0.3}s ease-in-out ${(i%5)*0.1}s infinite`,
+        }})
+      )))
+  );
+}
+
+/** A single stat chip for the metrics row */
+function BentoStat({ label, value, color, icon }) {
+  return (
+    React.createElement("div", {style: {
+      display:'flex', flexDirection:'column', gap:6,
+      padding:'16px 20px',
+      background:'rgba(10,22,40,0.5)',
+      borderRadius:12,
+      border:`1px solid rgba(255,255,255,0.05)`,
+      backdropFilter:'blur(8px)',
+      transition:'border-color 0.2s',
+    }, onMouseEnter: e => e.currentTarget.style.borderColor=`${color}33`, onMouseLeave: e => e.currentTarget.style.borderColor='rgba(255,255,255,0.05)'}, icon && (
+        React.createElement("div", {style: {
+          fontFamily:"'Space Mono', monospace",
+          fontSize:15, color, marginBottom:2,
+          textShadow:`0 0 12px ${color}88`,
+        }}, icon)
+      ), React.createElement("div", {style: {
+        fontFamily:"'Space Mono', monospace",
+        fontSize:11, letterSpacing:1, color:'#8A7A5A',
+      }}, label), React.createElement("div", {style: {
+        fontFamily:"'Syne', sans-serif",
+        fontSize:15, fontWeight:800, color,
+        lineHeight:1.2, letterSpacing:'-0.02em', overflowWrap:'break-word', minWidth:0}}, value))
+  );
+}
+
+/** CFI Progress bars card content */
+function BentoCFIBars({ data }) {
+  return (
+    React.createElement("div", {style: { display:'flex', flexDirection:'column', gap:14 }}, data.map(({ label, pct, color }, i) => (
+        React.createElement("div", {key: i}, React.createElement("div", {style: {
+            display:'flex', justifyContent:'space-between', marginBottom:6,
+          }}, React.createElement("div", {style: {
+              fontFamily:"'DM Sans', sans-serif",
+              fontSize:11, color:'#8A7A5A', letterSpacing:'0.01em',
+            }}, label), React.createElement("div", {style: {
+              fontFamily:"'Space Mono', monospace",
+              fontSize:10, color,
+            }}, pct)), React.createElement("div", {className: "bento-progress-track"}, React.createElement("div", {className: "bento-progress-fill", style: {
+              width:`${pct}%`,
+              background:`linear-gradient(90deg, ${color}88, ${color})`,
+              boxShadow:`0 0 8px ${color}44`,
+              transitionDelay:`${i*0.08}s`,
+            }})))
+      )))
+  );
+}
+
+/** Brain mode quad card: 2x2 grid */
+function BentoBrainQuad({ setView }) {
+  const brains = [
+    { key:'analytical', symbol:'◰', label:'Analytical', color:'#C4A050', tagline:'Logic · Structure' },
+    { key:'intuitive',  symbol:'◱', label:'Intuitive',  color:'#E2BE78', tagline:'Pattern · Signal' },
+    { key:'associative',symbol:'◲', label:'Associative',color:'#7AAFCF', tagline:'Connection · Synthesis' },
+    { key:'reflective', symbol:'◳', label:'Reflective', color:'#D4AF6A', tagline:'Awareness · Meaning' },
+  ];
+  return (
+    React.createElement("div", {style: { display:'grid', gridTemplateColumns:'1fr 1fr', gap:10, height:'100%' }}, brains.map(b => (
+        React.createElement("div", {key: b.key, onClick: () => setView('four-brains'), style: {
+            padding:'16px 14px',
+            borderRadius:12,
+            background:`linear-gradient(135deg, ${b.color}10, rgba(10,22,40,0.6))`,
+            border:`1px solid ${b.color}22`,
+            cursor:'pointer',
+            transition:'all 0.25s cubic-bezier(0.34,1.56,0.64,1)',
+            display:'flex', flexDirection:'column', gap:6,
+          }, onMouseEnter: e => {
+            e.currentTarget.style.borderColor = `${b.color}50`;
+            e.currentTarget.style.transform = 'translateY(-2px)';
+            e.currentTarget.style.boxShadow = `0 8px 24px ${b.color}18`;
+          }, onMouseLeave: e => {
+            e.currentTarget.style.borderColor = `${b.color}22`;
+            e.currentTarget.style.transform = 'translateY(0)';
+            e.currentTarget.style.boxShadow = 'none';
+          }}, React.createElement("div", {style: {
+            fontFamily:"'Space Mono', monospace", fontSize:17, color:b.color,
+            textShadow:`0 0 10px ${b.color}88`, lineHeight:1,
+          }}, b.symbol), React.createElement("div", {style: {
+            fontFamily:"'Syne', sans-serif",
+            fontSize:12, fontWeight:700, color:'#F0E8D0', overflowWrap:'break-word', minWidth:0}}, b.label), React.createElement("div", {style: {
+            fontFamily:"'DM Sans', sans-serif",
+            fontSize:10, color:'#8A7A5A', lineHeight:1.4,
+          }}, b.tagline))
+      )))
+  );
+}
+
+/** Step timeline for "How it works" card */
+function BentoStepList({ steps, setView }) {
+  return (
+    React.createElement("div", {style: { display:'flex', flexDirection:'column', gap:0 }}, steps.map((step, i) => (
+        React.createElement("div", {key: i, onClick: () => setView(step.view), style: {
+            display:'flex', gap:16, alignItems:'flex-start',
+            padding:'14px 0',
+            borderBottom: i < steps.length - 1 ? '1px solid rgba(196,160,80,0.06)' : 'none',
+            cursor:'pointer',
+            transition:'opacity 0.2s',
+          }, onMouseEnter: e => e.currentTarget.style.opacity='0.75', onMouseLeave: e => e.currentTarget.style.opacity='1'}, React.createElement("div", {style: {
+            flexShrink:0, width:28, height:28,
+            borderRadius:8,
+            background:'rgba(196,160,80,0.06)',
+            border:'1px solid rgba(196,160,80,0.16)',
+            display:'flex', alignItems:'center', justifyContent:'center',
+            fontFamily:"'Space Mono', monospace",
+            fontSize:9, color:'#C4A050', letterSpacing:1,
+          }}, step.step), React.createElement("div", {style: { flex:1, minWidth:0 }}, React.createElement("div", {style: {
+              fontFamily:"'Syne', sans-serif",
+              fontSize:13, fontWeight:700, color:'#F0E8D0', marginBottom:3, overflowWrap:'break-word', minWidth:0}}, step.title), React.createElement("div", {style: {
+              fontFamily:"'DM Sans', sans-serif",
+              fontSize:11, color:'#8A7A5A', lineHeight:1.5,
+            }}, step.desc)), React.createElement("div", {style: {
+            flexShrink:0, fontSize:12, color:'rgba(196,160,80,0.3)',
+            marginTop:6,
+          }}, '→'))
+      )))
+  );
+}
+
+// ═══════════════════════════════════════════════════════════════════
+//  HOME VIEW — "You Are the Intelligence."
+//  Cognitive Performance OS homepage. White / gold editorial system,
+//  visually aligned with the CFI™ assessment (AC tokens in CFIView).
+//  Scoped styles live under .nf-home so the rest of the app (which
+//  uses the dark navy/gold "bento" system via the C token object)
+//  is completely unaffected.
+// ═══════════════════════════════════════════════════════════════════
+
+// ── Homepage design tokens — now mapped onto the same dark navy/gold
+// "bento" system (C) used by the Four Brains section, so the two feel
+// like one continuous product instead of two different skins. ──────
+const H = {
+  bg: C.void, bgAlt: C.deep, ink: C.text, text: C.text,
+  muted: C.muted, faint: C.dim, border: C.border,
+  borderStrong: C.borderBright,
+  gold: C.cyan, goldBright: C.cyanBright, goldDeep: C.cyanBright,
+  goldTint: C.cyanDim, goldLine: C.borderBright,
+  charcoal: C.surface, charcoalText: C.text, charcoalMuted: C.muted,
+};
+const hDisplay = { fontFamily: "'Clash Display','Syne',sans-serif" };
+const hBody    = { fontFamily: "'Satoshi','DM Sans',sans-serif" };
+const hMono    = { fontFamily: "'Space Mono',monospace" };
+
+const HOME_MODES = [
+  { key:'analytical',  name:'Analytical',  symbol:'◰', color:C.brains.analytical.color, desc:'Breaks problems into evidence, structure and logic.' },
+  { key:'intuitive',   name:'Intuitive',   symbol:'◱', color:C.brains.intuitive.color, desc:'Recognizes patterns, signals and possibilities before conscious analysis.' },
+  { key:'associative', name:'Associative', symbol:'◲', color:C.brains.associative.color, desc:'Connects ideas, experiences and seemingly unrelated information.' },
+  { key:'reflective',  name:'Reflective',  symbol:'◳', color:C.brains.reflective.color, desc:'Steps back, evaluates meaning and examines the thinking itself.' },
+];
+
+// Feature set for the homepage bento grid (Section 1.5) — mirrors the
+// card language of the Four Brains / bento system elsewhere in the app.
+const HOME_BENTO = [
+  { title:'Four Brains Framework', desc:'Understand the four cognitive modes your mind already uses, every day, mostly unconsciously.', symbol:'◈', color:C.cyan, big:true },
+  { title:'CFI™ Assessment', desc:'A 13-item index that measures how fragmented or integrated your thinking currently is.', symbol:'◰', color:C.brains.analytical.color },
+  { title:'Integration Protocol', desc:'A guided 5-step exercise: Decompose, Sense, Expand, Reflect, Fuse.', symbol:'◱', color:C.brains.intuitive.color },
+  { title:'Clarity Delta™', desc:'Reassess over time and see your fragmentation score move.', symbol:'◲', color:C.brains.associative.color },
+  { title:'Enterprise', desc:'Bring structured thinking training to your leadership team.', symbol:'◳', color:C.brains.reflective.color },
+];
+
+/** Shared radial diagram: four cognitive nodes around a center. Used in
+ * the hero and in the "four thinking modes" section at different sizes. */
+function HomeCognitiveField({ size = 220, centerLabel = 'YOU', interactive, setView }) {
+  const r = size * 0.36;
+  const nodeSize = Math.max(30, size * 0.16);
+  return React.createElement("div", { className: "nf-home-field", style: { position:'relative', width:size, height:size, margin:'0 auto' } },
+    React.createElement("div", { style: { position:'absolute', inset:0, borderRadius:'50%', border:`1px dashed ${H.goldLine}`, opacity:0.5, animation:'nfHomeRotate 26s linear infinite' } }),
+    React.createElement("div", { style: { position:'absolute', inset:size*0.14, borderRadius:'50%', border:`1px solid ${H.border}` } }),
+    HOME_MODES.map((m, i) => {
+      const angle = (i * 90 - 90) * Math.PI / 180;
+      const x = size/2 + r * Math.cos(angle) - nodeSize/2;
+      const y = size/2 + r * Math.sin(angle) - nodeSize/2;
+      return React.createElement("button", {
+        key: m.key,
+        className: "nf-home-node",
+        onClick: interactive ? () => setView('four-brains') : undefined,
+        style: {
+          position:'absolute', left:x, top:y, width:nodeSize, height:nodeSize, borderRadius:'50%',
+          background:C.surface, border:`1px solid ${m.color}55`, display:'flex', alignItems:'center', justifyContent:'center',
+          ...hMono, fontSize:nodeSize*0.4, color:m.color, cursor: interactive ? 'pointer' : 'default',
+          boxShadow:`0 2px 10px rgba(0,0,0,0.3)`,
+        },
+        title: m.name,
+        'aria-label': m.name,
+      }, m.symbol);
+    }),
+    React.createElement("div", { style: { position:'absolute', inset:0, display:'flex', alignItems:'center', justifyContent:'center', flexDirection:'column' } },
+      React.createElement("div", { style: { ...hDisplay, fontWeight:700, fontSize:Math.max(11, size*0.06), letterSpacing:'0.04em', color:H.ink } }, centerLabel)
+    )
+  );
+}
+
+/** Small uppercase mono label used as a recurring section marker. */
+function HomeLabel({ children, color }) {
+  return React.createElement("div", { className: "nf-home-fade", style: { ...hMono, fontSize:11, letterSpacing:'0.18em', textTransform:'uppercase', color: color || H.goldDeep, marginBottom:16 } }, children);
+}
+
+function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
+  const completedLessons = Object.values(lessonProgress || {}).filter(v => v === 100).length;
+  const [openFaq, setOpenFaq] = useState(0);
+
+  return React.createElement("div", { className: "nf-home", style: { background:H.bg, color:H.text, paddingTop:60 } },
+
+    // Scoped styles: keyframes, focus states, and small responsive
+    // tweaks that inline styles can't express. Everything is prefixed
+    // .nf-home so it cannot leak into the dark app shell.
+    React.createElement("style", null, `
+      .nf-home { --h-gold: ${H.gold}; }
+      .nf-home *, .nf-home *::before, .nf-home *::after { box-sizing:border-box; }
+      .nf-home h1, .nf-home h2, .nf-home h3, .nf-home p { overflow-wrap:break-word; }
+      .nf-home p { font-weight:500; text-wrap:pretty; }
+      .nf-home h1, .nf-home h2, .nf-home h3 { text-wrap:balance; }
+      .nf-home .nf-home-fade { animation: nfHomeFadeUp 0.6s ease both; }
+      @keyframes nfHomeFadeUp { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
+      @keyframes nfHomeRotate { to { transform:rotate(360deg); } }
+      .nf-home a { color:inherit; }
+      .nf-home .nf-home-cta-primary {
+        background:var(--h-gold); color:#151513; ${hDisplay.fontFamily ? '' : ''}
+        font-family:'Clash Display','Syne',sans-serif; font-weight:600; font-size:13px;
+        letter-spacing:0.04em; padding:15px 28px; border-radius:4px; border:none;
+        cursor:pointer; display:inline-flex; align-items:center; gap:8px; transition:transform 0.15s ease, box-shadow 0.15s ease;
+        box-shadow:0 6px 24px rgba(196,160,80,0.28);
+      }
+      .nf-home .nf-home-cta-primary:hover { transform:translateY(-1px); box-shadow:0 10px 30px rgba(196,160,80,0.38); }
+      .nf-home .nf-home-cta-outline {
+        background:transparent; color:${H.ink}; font-family:'Satoshi','DM Sans',sans-serif; font-weight:500; font-size:13px;
+        padding:14px 26px; border-radius:4px; border:1px solid ${H.borderStrong}; cursor:pointer;
+        transition:border-color 0.15s ease, background 0.15s ease;
+      }
+      .nf-home .nf-home-cta-outline:hover { border-color:${H.goldDeep}; background:${H.goldTint}; }
+      .nf-home .nf-home-link { background:none; border:none; padding:0; font:inherit; color:${H.goldDeep}; cursor:pointer; text-decoration:underline; text-underline-offset:3px; }
+      .nf-home .nf-home-node:focus-visible, .nf-home button:focus-visible, .nf-home a:focus-visible { outline:2px solid ${H.gold}; outline-offset:2px; }
+      .nf-home .nf-home-modes-grid { display:grid; grid-template-columns:repeat(4, 1fr); gap:12px; }
+      @media (max-width: 760px) { .nf-home .nf-home-modes-grid { grid-template-columns:repeat(2, 1fr); } }
+      .nf-home .nf-home-mode-cell { background:${C.surface}; border:1px solid ${C.border}; border-radius:8px; padding:28px 22px; transition:border-color 0.15s ease, transform 0.15s ease; }
+      .nf-home .nf-home-mode-cell:hover { border-color:${H.goldLine}; transform:translateY(-2px); }
+      .nf-home .nf-home-bento { display:grid; grid-template-columns:repeat(4, 1fr); gap:12px; }
+      .nf-home .nf-home-bento-card { background:${C.surface}; border:1px solid ${C.border}; border-radius:8px; padding:26px; position:relative; overflow:hidden; transition:border-color 0.15s ease, transform 0.15s ease; grid-column:span 2; }
+      .nf-home .nf-home-bento-card:hover { transform:translateY(-2px); }
+      .nf-home .nf-home-bento-card.big { grid-column:span 4; display:flex; align-items:center; gap:28px; }
+      @media (max-width: 760px) { .nf-home .nf-home-bento { grid-template-columns:1fr; } .nf-home .nf-home-bento-card, .nf-home .nf-home-bento-card.big { grid-column:span 1; } .nf-home .nf-home-bento-card.big { flex-direction:column; align-items:flex-start; text-align:left; } }
+      .nf-home .nf-home-scatter { display:grid; grid-template-columns:repeat(3, minmax(140px,1fr)); gap:10px 24px; justify-items:center; max-width:640px; margin:0 auto; }
+      @media (max-width: 560px) { .nf-home .nf-home-scatter { grid-template-columns:repeat(2, 1fr); } }
+      .nf-home .nf-home-hero { grid-template-columns:1.1fr 0.9fr; }
+      @media (max-width: 860px) {
+        .nf-home .nf-home-hero { grid-template-columns:1fr; text-align:center; }
+        .nf-home .nf-home-hero p { margin-left:auto; margin-right:auto; }
+        .nf-home .nf-home-hero > div:first-child > div:last-child { justify-content:center; }
+      }
+      .nf-home .nf-home-field { max-width:100%; }
+      @media (max-width: 380px) {
+        .nf-home .nf-home-field { transform:scale(0.85); }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .nf-home * { animation-duration:0.01ms !important; animation-iteration-count:1 !important; }
+      }
+    `),
+
+    // ══════════════════════════════════════════════════════════
+    // SECTION 1 — HERO
+    // ══════════════════════════════════════════════════════════
+    React.createElement("section", { style: { maxWidth:1280, margin:'0 auto', padding:'56px 24px 72px', display:'grid', gap:48, alignItems:'center' }, className: "nf-home-hero" },
+      React.createElement("div", null,
+        React.createElement(HomeLabel, null, 'NeuralFusion™ · Cognitive Performance OS'),
+        React.createElement("h1", { className: "nf-home-fade", style: { ...hDisplay, fontWeight:600, fontSize:'clamp(38px,6vw,64px)', lineHeight:1.02, letterSpacing:'-0.02em', color:H.ink, marginBottom:22 } }, 'You are the intelligence.'),
+        React.createElement("p", { className: "nf-home-fade", style: { ...hBody, fontSize:'clamp(16px,1.6vw,19px)', lineHeight:1.6, color:H.muted, maxWidth:'46ch', marginBottom:14 } },
+          'NeuralFusion™ is the cognitive performance operating system for understanding, training and integrating how you think.'),
+        React.createElement("p", { className: "nf-home-fade", style: { ...hBody, fontSize:15, lineHeight:1.7, color:H.faint, maxWidth:'48ch', marginBottom:32 } },
+          'Understand your cognitive profile. Train how you think. Make better decisions.'),
+        React.createElement("div", { className: "nf-home-fade", style: { display:'flex', flexWrap:'wrap', alignItems:'center', gap:18 } },
+          React.createElement("button", { className: "nf-home-cta-primary", onClick: () => setView('cfi') }, 'Discover Your Cognitive Profile', React.createElement("span", null, '→')),
+          React.createElement("span", { style: { ...hMono, fontSize:11, letterSpacing:'0.08em', color:H.faint } }, '13 questions · About 3–4 minutes · Free · No account needed to start')
+        )
+      ),
+      React.createElement("div", { className: "nf-home-fade", style: { display:'flex', justifyContent:'center' } },
+        React.createElement(HomeCognitiveField, { size:280, centerLabel:'YOU' })
+      )
+    ),
+
+    // ══════════════════════════════════════════════════════════
+    // SECTION 1.5 — BENTO OVERVIEW
+    // ══════════════════════════════════════════════════════════
+    React.createElement("section", { style: { maxWidth:1280, margin:'0 auto', padding:'0 24px 72px' } },
+      React.createElement("div", { className: "nf-home-bento" },
+        HOME_BENTO.map(item => (
+          React.createElement("div", { key:item.title, className: `nf-home-bento-card${item.big ? ' big' : ''}` },
+            React.createElement("div", { style: { position:'absolute', top:0, left:0, width:2, height:'100%', background:item.color } }),
+            React.createElement("div", {
+              style: {
+                width:item.big ? 56 : 44, height:item.big ? 56 : 44, borderRadius:'50%', flexShrink:0,
+                background:`radial-gradient(circle, ${item.color}20, transparent)`, border:`1px solid ${item.color}33`,
+                display:'flex', alignItems:'center', justifyContent:'center',
+                ...hMono, fontSize:item.big ? 22 : 17, color:item.color, marginBottom:item.big ? 0 : 18,
+              }
+            }, item.symbol),
+            React.createElement("div", null,
+              React.createElement("div", { style: { ...hDisplay, fontWeight:600, fontSize:item.big ? 20 : 15, color:H.ink, marginBottom:8 } }, item.title),
+              React.createElement("div", { style: { ...hBody, fontWeight:500, fontSize:item.big ? 15 : 13, lineHeight:1.6, color:H.muted, maxWidth:item.big ? '48ch' : 'none' } }, item.desc)
+            )
+          )
+        ))
+      )
+    ),
+
+    // ══════════════════════════════════════════════════════════
+    // SECTION 2 — THE HUMAN PROBLEM
+    // ══════════════════════════════════════════════════════════
+    React.createElement("section", { style: { maxWidth:820, margin:'0 auto', padding:'64px 24px', borderTop:`1px solid ${H.border}` } },
+      React.createElement("h2", { style: { ...hDisplay, fontWeight:600, fontSize:'clamp(24px,3vw,34px)', lineHeight:1.25, color:H.ink, marginBottom:24 } }, 'Your problem may not be intelligence.'),
+      React.createElement("p", { style: { ...hBody, fontSize:17, lineHeight:1.8, color:H.muted, marginBottom:20 } },
+        'You can be highly intelligent and still overthink a decision, freeze under pressure, chase too many possibilities, or keep analyzing after you already know enough.'),
+      React.createElement("p", { style: { ...hBody, fontSize:18, lineHeight:1.7, color:H.ink } },
+        'The question is not simply how much you think. It is ',
+        React.createElement("span", { style: { color:H.goldDeep, fontWeight:600 } }, 'how your thinking works together'), '.')
+    ),
+
+    // ══════════════════════════════════════════════════════════
+    // SECTION 3 — FOUR THINKING MODES
+    // ══════════════════════════════════════════════════════════
+    React.createElement("section", { style: { maxWidth:1280, margin:'0 auto', padding:'64px 24px' } },
+      React.createElement("div", { style: { maxWidth:640, marginBottom:40 } },
+        React.createElement(HomeLabel, { color:H.goldDeep }, 'The framework'),
+        React.createElement("h2", { style: { ...hDisplay, fontWeight:600, fontSize:'clamp(22px,2.6vw,30px)', color:H.ink, marginBottom:16 } }, 'Your mind does not use just one way of thinking.'),
+        React.createElement("p", { style: { ...hBody, fontSize:15, lineHeight:1.7, color:H.muted } },
+          'NeuralFusion™ helps you understand how these modes interact, and where they may become fragmented.')
+      ),
+      React.createElement("div", { style: { display:'flex', justifyContent:'center', marginBottom:40 } },
+        React.createElement(HomeCognitiveField, { size:200, centerLabel:'INTEGRATION', interactive:true, setView })
+      ),
+      React.createElement("div", { className: "nf-home-modes-grid" },
+        HOME_MODES.map(m => React.createElement("div", { key:m.key, className: "nf-home-mode-cell", style: { position:'relative', overflow:'hidden' } },
+          React.createElement("div", { style: { position:'absolute', top:0, left:0, width:2, height:'100%', background:m.color } }),
+          React.createElement("div", { style: { ...hMono, fontSize:16, color:m.color, marginBottom:10 } }, m.symbol),
+          React.createElement("div", { style: { ...hDisplay, fontWeight:600, fontSize:14, letterSpacing:'0.04em', textTransform:'uppercase', color:H.ink, marginBottom:8 } }, m.name),
+          React.createElement("p", { style: { ...hBody, fontSize:13.5, lineHeight:1.6, color:H.muted, margin:0 } }, m.desc)
+        ))
+      )
+    ),
+
+    // ══════════════════════════════════════════════════════════
+    // SECTION 4 — CFI™ ASSESSMENT (primary entry point)
+    // ══════════════════════════════════════════════════════════
+    React.createElement("section", { style: { background:H.bgAlt, borderTop:`1px solid ${H.border}`, borderBottom:`1px solid ${H.border}` } },
+      React.createElement("div", { style: { maxWidth:920, margin:'0 auto', padding:'72px 24px' } },
+        React.createElement(HomeLabel, null, 'Before you train your thinking, understand it'),
+        React.createElement("h2", { style: { ...hDisplay, fontWeight:600, fontSize:'clamp(24px,3vw,32px)', color:H.ink, marginBottom:8 } }, 'CFI™'),
+        React.createElement("div", { style: { ...hMono, fontSize:12, letterSpacing:'0.14em', color:H.faint, marginBottom:24 } }, 'COGNITIVE FRAGMENTATION INDEX™'),
+        React.createElement("p", { style: { ...hBody, fontSize:16, lineHeight:1.75, color:H.muted, maxWidth:560, marginBottom:40 } },
+          'A 13-item cognitive assessment designed to help you identify patterns in how your thinking coordinates across different cognitive modes.'),
+
+        // Simple, honest CFI visualization — a radial spread across the
+        // four modes, not a dashboard mockup with invented numbers.
+        React.createElement("div", { className: "card", style: { background:C.surface, border:`1px solid ${H.border}`, borderRadius:6, padding:'40px 24px', marginBottom:28 } },
+          React.createElement("div", { style: { ...hMono, fontSize:10, letterSpacing:'0.12em', color:H.faint, marginBottom:24 } }, 'CFI™ COGNITIVE PROFILE — EXAMPLE'),
+          React.createElement("div", { style: { display:'flex', justifyContent:'center', gap:'clamp(16px,4vw,40px)', flexWrap:'wrap' } },
+            HOME_MODES.map(m => React.createElement("div", { key:m.key, style: { display:'flex', flexDirection:'column', alignItems:'center', gap:10 } },
+              React.createElement("div", { style: { width:6, height:76, borderRadius:3, background:H.border, position:'relative', overflow:'hidden' } },
+                React.createElement("div", { style: { position:'absolute', bottom:0, left:0, right:0, height:`${40 + (m.key.length * 7) % 45}%`, background:m.color, borderRadius:3 } })
+              ),
+              React.createElement("div", { style: { ...hMono, fontSize:10, letterSpacing:'0.06em', color:H.muted, textTransform:'uppercase' } }, m.name)
+            ))
+          )
+        ),
+        React.createElement("p", { style: { ...hBody, fontSize:13.5, color:H.faint, fontStyle:'italic', maxWidth:480, marginBottom:32 } },
+          'Your result gives you a cognitive baseline, not a diagnosis, personality label or measure of intelligence.'),
+        React.createElement("button", { className: "nf-home-cta-primary", onClick: () => setView('cfi') }, 'Take the Free CFI™ Assessment', React.createElement("span", null, '→')),
+        React.createElement("div", { style: { ...hMono, fontSize:11, letterSpacing:'0.06em', color:H.faint, marginTop:14 } }, '13 questions · About 3–4 minutes · Free · No account needed to start')
+      )
+    ),
+
+    // ══════════════════════════════════════════════════════════
+    // SECTION 4.5 — FAQ
+    // ══════════════════════════════════════════════════════════
+    React.createElement("section", { style: { borderBottom:`1px solid ${H.border}` } },
+      React.createElement("div", { style: { maxWidth:680, margin:'0 auto', padding:'64px 24px' } },
+        React.createElement(HomeLabel, null, 'Before you start'),
+        React.createElement("h2", { style: { ...hDisplay, fontWeight:600, fontSize:'clamp(20px,2.4vw,26px)', color:H.ink, marginBottom:28 } }, 'A few things people ask.'),
+        [
+          { q:'Do I need an account to see my results?', a:'No. Answer all 13 questions and see your full CFI™ profile immediately. Create a free account only if you want to save your results and track them over time.' },
+          { q:'Is this a diagnosis or a personality test?', a:'No. The CFI™ gives you a cognitive baseline, not a diagnosis, personality label or measure of intelligence.' },
+          { q:'What happens to my answers?', a:'If you complete the assessment without an account, your answers are not stored anywhere. If you create an account, your results are saved to it so you can track changes over time.' },
+          { q:'Is NeuralFusion free?', a:'The CFI™ assessment and the first lesson are free. Pro unlocks the full training system for a one-time payment. Enterprise is a separate offering for teams and organizations.' },
+        ].map((item, i) => (
+          React.createElement("div", { key:i, style: { borderTop: i===0 ? 'none' : `1px solid ${H.border}` } },
+            React.createElement("button", {
+              onClick: () => setOpenFaq(openFaq === i ? null : i),
+              style: { width:'100%', textAlign:'left', background:'none', border:'none', cursor:'pointer', padding:'20px 0', display:'flex', justifyContent:'space-between', alignItems:'center', gap:16 }
+            },
+              React.createElement("span", { style: { ...hBody, fontWeight:600, fontSize:15, color:H.ink } }, item.q),
+              React.createElement("span", { style: { ...hMono, fontSize:14, color:H.faint, flexShrink:0 } }, openFaq === i ? '−' : '+')
+            ),
+            openFaq === i && React.createElement("p", { style: { ...hBody, fontSize:14.5, lineHeight:1.75, color:H.muted, paddingBottom:22, maxWidth:600 } }, item.a)
+          )
+        ))
+      )
+    ),
+
+    // ══════════════════════════════════════════════════════════
+    // SECTION 5 — FRAGMENTATION TO INTEGRATION
+    // ══════════════════════════════════════════════════════════
+    React.createElement("section", { style: { maxWidth:820, margin:'0 auto', padding:'72px 24px' } },
+      React.createElement("h2", { style: { ...hDisplay, fontWeight:600, fontSize:'clamp(20px,2.4vw,26px)', color:H.ink, marginBottom:24 } }, 'Fragmented thinking feels like this.'),
+      React.createElement("div", { className: "nf-home-scatter", style: { marginBottom:44 } },
+        ['Overthinking.', 'Indecision.', 'Mental loops.', 'Too many possibilities.', 'Analysis without action.', 'Action without reflection.'].map((w,i) => (
+          React.createElement("span", { key:i, style: { ...hBody, fontSize:15, color:H.faint, opacity:0.85 } }, w)
+        ))
+      ),
+      React.createElement("div", { style: { ...hMono, fontSize:12, letterSpacing:'0.14em', color:H.goldDeep, marginBottom:44 } }, 'SCATTERED  →  CONNECTED  →  INTEGRATED'),
+      React.createElement("h2", { style: { ...hDisplay, fontWeight:600, fontSize:'clamp(20px,2.4vw,26px)', color:H.ink, marginBottom:24 } }, 'Integrated thinking feels different.'),
+      React.createElement("div", { className: "nf-home-scatter" },
+        ['Clarity.', 'Perspective.', 'Adaptability.', 'Better decisions.', 'Intentional action.', 'Reflection.'].map((w,i) => (
+          React.createElement("span", { key:i, style: { ...hBody, fontSize:16, color:H.ink, fontWeight:600 } }, w)
+        ))
+      )
+    ),
+
+    // ══════════════════════════════════════════════════════════
+    // SECTION 6 — CORE LOOP (training)
+    // ══════════════════════════════════════════════════════════
+    React.createElement("section", { style: { background:H.bgAlt, borderTop:`1px solid ${H.border}`, borderBottom:`1px solid ${H.border}` } },
+      React.createElement("div", { style: { maxWidth:900, margin:'0 auto', padding:'72px 24px' } },
+        React.createElement("h2", { style: { ...hDisplay, fontWeight:600, fontSize:'clamp(22px,2.6vw,28px)', color:H.ink, marginBottom:36 } }, 'Train the way your thinking moves.'),
+        React.createElement("div", { style: { display:'flex', flexWrap:'wrap', justifyContent:'center', alignItems:'center', gap:'10px 4px', marginBottom:36 } },
+          ['Decompose','Sense','Expand','Reflect','Fuse'].map((step,i,arr) => (
+            React.createElement(React.Fragment, { key:step },
+              React.createElement("span", { style: { ...hMono, fontSize:12, letterSpacing:'0.1em', textTransform:'uppercase', color:H.ink, background:C.surface, border:`1px solid ${H.borderStrong}`, borderRadius:20, padding:'8px 16px' } }, step),
+              i < arr.length - 1 ? React.createElement("span", { style: { color:H.faint } }, '→') : null
+            )
+          ))
+        ),
+        React.createElement("p", { style: { ...hBody, fontSize:15, lineHeight:1.75, color:H.muted, maxWidth:560, marginBottom:32 } },
+          'NeuralFusion™ gives you structured exercises designed to help you deliberately move between different modes of thinking instead of relying on the same cognitive pattern for every problem.'),
+        React.createElement("button", { className: "nf-home-cta-outline", onClick: () => setView('protocol') }, 'Explore Cognitive Training →')
+      )
+    ),
+
+    // ══════════════════════════════════════════════════════════
+    // SECTION 7 — DECISION-MAKING
+    // ══════════════════════════════════════════════════════════
+    React.createElement("section", { style: { maxWidth:820, margin:'0 auto', padding:'72px 24px' } },
+      React.createElement("h2", { style: { ...hDisplay, fontWeight:600, fontSize:'clamp(22px,2.6vw,28px)', color:H.ink, marginBottom:10 } }, "Better decisions don't come from thinking harder."),
+      React.createElement("p", { style: { ...hBody, fontSize:16, color:H.goldDeep, fontWeight:600, marginBottom:32 } }, 'They come from knowing when to change how you think.'),
+      React.createElement("div", { style: { display:'flex', flexWrap:'wrap', justifyContent:'center', alignItems:'center', gap:'8px 4px', marginBottom:32 } },
+        ['Analyze','Sense','Connect','Reflect','Decide'].map((step,i,arr) => (
+          React.createElement(React.Fragment, { key:step },
+            React.createElement("span", { style: { ...hMono, fontSize:11, letterSpacing:'0.08em', textTransform:'uppercase', color:H.muted } }, step),
+            i < arr.length - 1 ? React.createElement("span", { style: { color:H.border } }, '→') : null
+          )
+        ))
+      ),
+      React.createElement("p", { style: { ...hBody, fontSize:15, lineHeight:1.75, color:H.muted, maxWidth:520, marginBottom:32 } },
+        'NeuralFusion™ helps you build a more deliberate relationship with your own thinking.'),
+      React.createElement("button", { className: "nf-home-cta-outline", onClick: () => setView('protocol') }, 'Explore Decision Intelligence →')
+    ),
+
+    // ══════════════════════════════════════════════════════════
+    // SECTION 8 — HUMAN COGNITIVE AGENCY + AI (dark contrast section)
+    // ══════════════════════════════════════════════════════════
+    React.createElement("section", { style: { background:H.charcoal, color:H.charcoalText, padding:'80px 24px' } },
+      React.createElement("div", { style: { maxWidth:760, margin:'0 auto' } },
+        React.createElement("h2", { style: { ...hDisplay, fontWeight:600, fontSize:'clamp(22px,2.8vw,30px)', lineHeight:1.35, marginBottom:28 } },
+          'AI can generate the answer.', React.createElement("br"), 'You still have to decide whether it deserves your trust.'),
+        React.createElement("div", { style: { ...hMono, fontSize:11, letterSpacing:'0.16em', color:H.gold, marginBottom:20 } }, 'HUMAN COGNITIVE AGENCY'),
+        React.createElement("p", { style: { ...hBody, fontSize:15, lineHeight:1.8, color:H.charcoalMuted, marginBottom:14 } },
+          'As AI takes over more analysis, generation and information processing, the uniquely human challenge becomes maintaining judgment, intention and cognitive agency.'),
+        React.createElement("p", { style: { ...hBody, fontSize:15, lineHeight:1.8, color:H.charcoalMuted, marginBottom:36 } },
+          'NeuralFusion™ is designed to strengthen the human side of the equation.'),
+        React.createElement("div", { style: { display:'flex', flexWrap:'wrap', justifyContent:'center', alignItems:'center', gap:10, marginBottom:36, ...hMono, fontSize:11, letterSpacing:'0.1em', color:H.charcoalMuted } },
+          React.createElement("span", null, 'AI INFORMATION'), React.createElement("span", { style: { color:H.gold } }, '↓'),
+          React.createElement("span", null, 'HUMAN JUDGMENT'), React.createElement("span", { style: { color:H.gold } }, '↓'),
+          React.createElement("span", null, 'DECISION')
+        ),
+        React.createElement("a", { href: "/human-intelligence-ai", className: "nf-home-cta-outline", style: { borderColor:'rgba(196,160,80,0.4)', color:H.charcoalText, textDecoration:'none', display:'inline-block' } }, 'Explore Human Cognitive Agency →')
+      )
+    ),
+
+    // ══════════════════════════════════════════════════════════
+    // SECTION 9 — CLARITY DELTA™
+    // ══════════════════════════════════════════════════════════
+    React.createElement("section", { style: { maxWidth:820, margin:'0 auto', padding:'72px 24px' } },
+      React.createElement("h2", { style: { ...hDisplay, fontWeight:600, fontSize:'clamp(20px,2.4vw,26px)', color:H.ink, lineHeight:1.3, marginBottom:8 } }, 'Thinking can be trained.'),
+      React.createElement("h2", { style: { ...hDisplay, fontWeight:600, fontSize:'clamp(20px,2.4vw,26px)', color:H.ink, lineHeight:1.3, marginBottom:24 } }, 'Change can be measured.'),
+      React.createElement("div", { style: { ...hMono, fontSize:12, letterSpacing:'0.14em', color:H.goldDeep, marginBottom:24 } }, 'CLARITY DELTA™'),
+      React.createElement("p", { style: { ...hBody, fontSize:15, lineHeight:1.75, color:H.muted, maxWidth:520, marginBottom:36 } },
+        'Establish your cognitive baseline. Train deliberately. Reassess. See how your profile changes over time.'),
+      React.createElement("div", { style: { display:'flex', flexWrap:'wrap', justifyContent:'center', alignItems:'center', gap:'8px 4px' } },
+        ['Baseline','Training','Reassessment','Change'].map((step,i,arr) => (
+          React.createElement(React.Fragment, { key:step },
+            React.createElement("span", { style: { ...hMono, fontSize:11, letterSpacing:'0.08em', textTransform:'uppercase', color:H.ink, borderBottom:`2px solid ${H.gold}`, paddingBottom:4 } }, step),
+            i < arr.length - 1 ? React.createElement("span", { style: { color:H.border } }, '→') : null
+          )
+        ))
+      ),
+      user && cfiResult ? (
+        React.createElement("div", { style: { marginTop:40, padding:'20px 24px', background:H.bgAlt, border:`1px solid ${H.border}`, borderRadius:6, display:'inline-flex', gap:28, flexWrap:'wrap', justifyContent:'center' } },
+          React.createElement("div", null, React.createElement("div", { style: { ...hMono, fontSize:10, letterSpacing:'0.08em', color:H.faint, marginBottom:4 } }, 'YOUR CFI BAND'), React.createElement("div", { style: { ...hDisplay, fontWeight:600, fontSize:15, color:H.ink } }, cfiResult.band)),
+          React.createElement("div", null, React.createElement("div", { style: { ...hMono, fontSize:10, letterSpacing:'0.08em', color:H.faint, marginBottom:4 } }, 'LESSONS COMPLETE'), React.createElement("div", { style: { ...hDisplay, fontWeight:600, fontSize:15, color:H.ink } }, completedLessons, '/5')),
+          React.createElement("button", { className: "nf-home-link", onClick: () => setView('analytics') }, 'View Analytics →')
+        )
+      ) : null
+    ),
+
+    // ══════════════════════════════════════════════════════════
+    // SECTION 10 — ENTERPRISE
+    // ══════════════════════════════════════════════════════════
+    React.createElement("section", { style: { background:H.bgAlt, borderTop:`1px solid ${H.border}`, borderBottom:`1px solid ${H.border}` } },
+      React.createElement("div", { style: { maxWidth:1000, margin:'0 auto', padding:'72px 24px' } },
+        React.createElement("div", { style: { maxWidth:640, marginBottom:40 } },
+          React.createElement("h2", { style: { ...hDisplay, fontWeight:600, fontSize:'clamp(22px,2.6vw,28px)', color:H.ink, marginBottom:14 } }, "Build better thinking into the way your organization works."),
+          React.createElement("p", { style: { ...hBody, fontSize:15, lineHeight:1.7, color:H.muted } }, 'For leadership teams, executives, L&D teams and organizations navigating high-stakes decisions and AI-driven work.')
+        ),
+        React.createElement("div", { style: { display:'flex', flexWrap:'wrap', justifyContent:'center', gap:'14px 40px', marginBottom:40 } },
+          ['Leadership','Decision-Making','Human Performance','AI-Enabled Work'].map(label => (
+            React.createElement("span", { key:label, style: { ...hDisplay, fontWeight:600, fontSize:13, letterSpacing:'0.03em', color:H.ink, borderBottom:`1px solid ${H.borderStrong}`, paddingBottom:6 } }, label)
+          ))
+        ),
+        React.createElement("p", { style: { ...hBody, fontSize:14.5, lineHeight:1.75, color:H.muted, maxWidth:600, marginBottom:36 } },
+          'NeuralFusion™ provides cognitive assessment, structured training and longitudinal measurement designed to help organizations understand and develop human thinking.'),
+        React.createElement("div", { style: { display:'flex', gap:14, justifyContent:'center', flexWrap:'wrap' } },
+          React.createElement("button", { className: "nf-home-cta-primary", onClick: () => setView('enterprise') }, 'Explore Enterprise →'),
+          React.createElement("a", { href: "/contact", className: "nf-home-cta-outline", style: { textDecoration:'none' } }, 'Request an Enterprise Pilot')
+        )
+      )
+    ),
+
+    // ══════════════════════════════════════════════════════════
+    // SECTION 11 — RESEARCH + CREDIBILITY
+    // ══════════════════════════════════════════════════════════
+    React.createElement("section", { style: { maxWidth:760, margin:'0 auto', padding:'72px 24px' } },
+      React.createElement("h2", { style: { ...hDisplay, fontWeight:600, fontSize:'clamp(20px,2.4vw,26px)', color:H.ink, marginBottom:20 } }, 'Built on a simple principle.'),
+      React.createElement("p", { style: { ...hBody, fontSize:15.5, lineHeight:1.9, color:H.muted, marginBottom:36 } },
+        'Understand what you can measure.', React.createElement("br"), 'Measure what you can test.', React.createElement("br"), 'Be honest about what you do not yet know.'),
+      React.createElement("div", { style: { display:'flex', flexWrap:'wrap', justifyContent:'center', gap:'12px 28px', ...hMono, fontSize:11.5, letterSpacing:'0.08em' } },
+        React.createElement("a", { href: "/research", style: { color:H.goldDeep, textDecoration:'underline', textUnderlineOffset:3 } }, 'RESEARCH'),
+        React.createElement("a", { href: "/methodology", style: { color:H.goldDeep, textDecoration:'underline', textUnderlineOffset:3 } }, 'METHODOLOGY'),
+        React.createElement("a", { href: "/blog", style: { color:H.goldDeep, textDecoration:'underline', textUnderlineOffset:3 } }, 'PUBLICATIONS'),
+        React.createElement("a", { href: "/cognitive-fragmentation", style: { color:H.goldDeep, textDecoration:'underline', textUnderlineOffset:3 } }, 'CFI™ FRAMEWORK'),
+        React.createElement("a", { href: "/human-intelligence-ai", style: { color:H.goldDeep, textDecoration:'underline', textUnderlineOffset:3 } }, 'HUMAN INTELLIGENCE & AI')
+      ),
+      React.createElement("p", { style: { ...hBody, fontSize:12.5, lineHeight:1.7, color:H.faint, maxWidth:540, margin:'36px auto 0' } },
+        'The CFI™ and the Four Modes framework are NeuralFusion™ proprietary tools, developed and refined by NeuralFusion™. Where research is preliminary, we say so.')
+    ),
+
+    // ══════════════════════════════════════════════════════════
+    // SECTION 11.5 — CLIENT REVIEW
+    // ══════════════════════════════════════════════════════════
+    React.createElement("section", { style: { borderTop:`1px solid ${H.border}` } },
+      React.createElement("div", { style: { maxWidth:640, margin:'0 auto', padding:'64px 24px', textAlign:'center' } },
+        React.createElement("div", { style: { ...hMono, fontSize:10, letterSpacing:'0.14em', color:H.faint, marginBottom:24 } }, 'CLIENT REVIEW'),
+        React.createElement("p", { style: { ...hDisplay, fontSize:'clamp(16px,2vw,20px)', lineHeight:1.7, color:H.ink, marginBottom:24, fontStyle:'italic' } },
+          '"NeuralFusion is a useful reflection tool for founders and professionals who want to understand how they approach decisions. I\'d recommend it to anyone working on clearer thinking, leadership, or personal growth, especially because the four-mode framework makes those patterns easier to notice."'),
+        React.createElement("div", { style: { color:H.gold, fontSize:14, letterSpacing:'0.2em', marginBottom:16 } }, '★★★★★'),
+        React.createElement("div", { style: { ...hBody, fontWeight:600, fontSize:14, color:H.ink } }, 'Vimal Gopal'),
+        React.createElement("div", { style: { ...hMono, fontSize:11, letterSpacing:'0.06em', color:H.faint } }, 'FULL-FUNNEL MARKETER')
+      )
+    ),
+
+    // ══════════════════════════════════════════════════════════
+    // SECTION 12 — FOUNDER
+    // ══════════════════════════════════════════════════════════
+    React.createElement("section", { style: { borderTop:`1px solid ${H.border}` } },
+      React.createElement("div", { style: { maxWidth:640, margin:'0 auto', padding:'64px 24px' } },
+        React.createElement("div", { style: { ...hMono, fontSize:10, letterSpacing:'0.14em', color:H.faint, marginBottom:10 } }, 'FOUNDER'),
+        React.createElement("div", { style: { ...hDisplay, fontWeight:600, fontSize:16, color:H.ink, marginBottom:4, letterSpacing:'0.02em' } }, 'LIFE EDET'),
+        React.createElement("div", { style: { ...hBody, fontSize:13.5, color:H.muted, marginBottom:18 } }, 'Founder, NeuralFusion™'),
+        React.createElement("p", { style: { ...hBody, fontSize:14.5, lineHeight:1.8, color:H.muted, marginBottom:20 } },
+          'Nigerian entrepreneur and researcher working at the intersection of human intelligence, technology and personal development. Life developed the Four Brains Framework™ and the Cognitive Fragmentation Index™ through NeuralFusion™, and writes on human cognitive agency in the age of AI, including his publication ',
+          React.createElement("em", null, 'The Human Intelligence Imperative'), '.'),
+        React.createElement("a", { href: "/about", className: "nf-home-link" }, 'About →')
+      )
+    ),
+
+    // ══════════════════════════════════════════════════════════
+    // FINAL CTA
+    // ══════════════════════════════════════════════════════════
+    React.createElement("section", { style: { background:H.bgAlt, borderTop:`1px solid ${H.border}`, padding:'88px 24px' } },
+      React.createElement("div", { style: { maxWidth:600, margin:'0 auto' } },
+        React.createElement("h2", { style: { ...hDisplay, fontWeight:600, fontSize:'clamp(22px,2.8vw,30px)', lineHeight:1.35, color:H.ink, marginBottom:20 } },
+          'Understand your mind.', React.createElement("br"), 'Train how you think.', React.createElement("br"), 'Become harder to fragment.'),
+        React.createElement("p", { style: { ...hBody, fontSize:15, color:H.muted, marginBottom:32 } }, 'Start with your cognitive profile.'),
+        React.createElement("button", { className: "nf-home-cta-primary", onClick: () => setView('cfi') }, 'Take the Free CFI™ Assessment', React.createElement("span", null, '→')),
+        React.createElement("div", { style: { ...hMono, fontSize:11, letterSpacing:'0.06em', color:H.faint, marginTop:16 } }, '13 questions · About 3–4 minutes · Free · No account needed to start')
+      )
+    )
+  );
+}
+
+
+    // ═══════════════════════════════════════════════════════════════════
+    //  FOUR BRAINS VIEW
+    // ═══════════════════════════════════════════════════════════════════
+    function FourBrainsView({ setView, cfiResult }) {
+      const [active, setActive] = useState('analytical');
+      const brain = FOUR_BRAINS[active];
+      const b = C.brains[active];
+
+      return (
+        React.createElement("div", {style: { paddingTop:80, paddingBottom:100 }}, React.createElement("div", {style: { maxWidth:1200, margin:'0 auto', padding:'40px 24px' }}, React.createElement("div", {style: { ...mono, fontSize:11, letterSpacing:1.5, color:C.cyan, marginBottom:16 }}, 'Four Brains framework'), React.createElement("h1", {style: { ...syne, fontSize:14, fontWeight:800, color:C.text, marginBottom:16, lineHeight:1.05, overflowWrap:'break-word', minWidth:0}}, 'The architecture', React.createElement("br", null), 'of human thinking'), React.createElement("p", {style: { fontSize:15, color:C.muted, maxWidth:600, lineHeight:1.8, marginBottom:48 }}, 'Every mind operates through four cognitive modes. Most people have never been taught to identify them, let alone coordinate them.'), React.createElement("div", {style: { display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(min(200px, 100%), 1fr))', gap:12, marginBottom:48 }}, Object.keys(FOUR_BRAINS).map(key=>(
+                React.createElement(BrainCard, {key: key, brainKey: key, compact: true, active: active===key, onClick: ()=>setActive(key)})
+              ))), React.createElement("div", {key: active, style: { animation:'fadeUp 0.4s ease both' }}, React.createElement("div", {style: { display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(min(300px, 100%), 1fr))', gap:32, marginBottom:32 }}, React.createElement("div", {className: "card", style: { padding:'32px', position:'relative', overflow:'hidden', borderColor:`${b.color}22` }}, React.createElement("div", {style: { position:'absolute', top:0, left:0, width:2, height:'100%', background:b.color }}), React.createElement("div", {style: { display:'flex', alignItems:'center', gap:20, marginBottom:28 }}, React.createElement("div", {style: {
+                      width:72, height:72, borderRadius:'50%',
+                      background:`radial-gradient(circle, ${b.color}20, transparent)`,
+                      border:`1px solid ${b.color}33`,
+                      display:'flex', alignItems:'center', justifyContent:'center',
+                      ...mono, fontSize:17, color:b.color,
+                    }}, b.symbol), React.createElement("div", null, React.createElement("div", {style: { ...mono, fontSize:11, letterSpacing:1, color:b.color, marginBottom:6 }}, 'Brain mode:', b.code), React.createElement("div", {style: { ...syne, fontSize:15, fontWeight:800, color:C.text, overflowWrap:'break-word', minWidth:0}}, brain.label), React.createElement("div", {style: { fontSize:12, color:C.muted, marginTop:4 }}, brain.tagline))), React.createElement("p", {style: { fontSize:14, color:C.muted, lineHeight:1.8, marginBottom:24 }}, brain.description), React.createElement("div", {style: { padding:'16px', background:C.deep, borderRadius:2, border:`1px solid ${C.border}`, fontStyle:'italic' }}, React.createElement("div", {style: { ...mono, fontSize:11, letterSpacing:1, color:C.muted, marginBottom:8 }}, 'Profile insight'), React.createElement("div", {style: { fontSize:13, color:C.text, lineHeight:1.7 }}, brain.profile))), React.createElement("div", {style: { display:'flex', flexDirection:'column', gap:16 }}, React.createElement("div", {className: "card", style: { padding:'24px' }}, React.createElement("div", {style: { ...mono, fontSize:11, letterSpacing:1, color:'#7AAFCF', marginBottom:16 }}, 'Strengths'), brain.strengths.map((s,i)=>(
+                      React.createElement("div", {key: i, style: { display:'flex', alignItems:'center', gap:12, marginBottom:10 }}, React.createElement("div", {style: { width:6, height:6, borderRadius:'50%', background:'#7AAFCF', flexShrink:0 }}), React.createElement("div", {style: { fontSize:13, color:C.muted }}, s))
+                    ))), React.createElement("div", {className: "card", style: { padding:'24px' }}, React.createElement("div", {style: { ...mono, fontSize:11, letterSpacing:1, color:'#F87171', marginBottom:16 }}, 'Blind spots'), brain.weaknesses.map((w,i)=>(
+                      React.createElement("div", {key: i, style: { display:'flex', alignItems:'center', gap:12, marginBottom:10 }}, React.createElement("div", {style: { width:6, height:6, borderRadius:'50%', background:'#F87171', flexShrink:0 }}), React.createElement("div", {style: { fontSize:13, color:C.muted }}, w))
+                    ))))), React.createElement("div", {style: { display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(min(280px, 100%), 1fr))', gap:16 }}, [
+                  { label:'Thinking style', value:brain.thinkingStyle, icon:'◰' },
+                  { label:'Decision pattern', value:brain.decisionPattern, icon:'◱' },
+                  { label:'Training focus', value:brain.trainingFocus, icon:'◲' },
+                ].map((item,i)=>(
+                  React.createElement("div", {key: i, className: "card", style: { padding:'24px' }}, React.createElement("div", {style: { ...mono, fontSize:11, letterSpacing:1, color:C.muted, marginBottom:12 }}, item.label), React.createElement("div", {style: { ...mono, fontSize:14, color:b.color, marginBottom:10 }}, item.icon), React.createElement("div", {style: { fontSize:13, color:C.text, lineHeight:1.7 }}, item.value))
+                )), React.createElement("div", {className: "card", style: { padding:'24px', display:'flex', flexDirection:'column', justifyContent:'space-between' }}, React.createElement("div", {style: { ...mono, fontSize:11, letterSpacing:1, color:C.muted, marginBottom:12 }}, 'Begin training'), React.createElement("div", {style: { ...syne, fontSize:15, fontWeight:700, color:C.text, marginBottom:16, lineHeight:1.3, overflowWrap:'break-word', minWidth:0}}, 'Train your', brain.label.split(' ')[0], 'mode today'), React.createElement("button", {className: "btn-primary", onClick: ()=>setView('protocol')}, 'Enter training →')))), React.createElement("div", {style: { marginTop:64, padding:'48px 0', borderTop:`1px solid ${C.border}` }}, React.createElement("div", {style: { textAlign:'center', marginBottom:48 }}, React.createElement("div", {style: { ...mono, fontSize:11, letterSpacing:1, color:C.cyan, marginBottom:16 }}, 'The integration principle'), React.createElement("h2", {style: { ...syne, fontSize:17, fontWeight:800, color:C.text, overflowWrap:'break-word', minWidth:0}}, 'No brain is superior. All four must integrate.')), React.createElement("div", {style: { display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(min(250px, 100%), 1fr))', gap:24 }}, [
+                  { title:'Single-brain dominance', desc:'When one mode controls all processing: precision without creativity, or intuition without structure.', color:'#F87171', label:'Fragmented' },
+                  { title:'Two-brain balance', desc:'Partial integration. Functional, but blind spots remain. Under pressure, one mode takes over.', color:'#C4A050', label:'Partial' },
+                  { title:'Four-brain integration', desc:'All four modes active and coordinated. Each informs the others. Precision at every level.', color:'#7AAFCF', label:'Integrated' },
+                ].map((item,i)=>(
+                  React.createElement("div", {key: i, className: "card", style: { padding:'24px', borderColor:`${item.color}22` }}, React.createElement("div", {style: { ...mono, fontSize:11, letterSpacing:1, color:item.color, marginBottom:12 }}, item.label), React.createElement("div", {style: { ...syne, fontSize:14, fontWeight:700, color:C.text, marginBottom:12, overflowWrap:'break-word', minWidth:0}}, item.title), React.createElement("div", {style: { fontSize:13, color:C.muted, lineHeight:1.7 }}, item.desc))
+                ))))))
+      );
+    }
+
+    // ═══════════════════════════════════════════════════════════════════
+    //  INTEGRATION PROTOCOL: interactive experience
+    //  Decompose → Sense → Expand → Reflect → Fuse
+    //
+    //  Philosophy: NeuralFusion™ does not think for the visitor. It
+    //  organizes and reflects the visitor's own thinking back to them.
+    //  Every line of "synthesis" below is derived from words the visitor
+    //  typed themselves, never a generated recommendation or decision.
+    // ═══════════════════════════════════════════════════════════════════
+
+    const PROTOCOL_STOPWORDS = new Set(['this','that','these','those','with','from','have','will','been','were','they','them','their','what','when','where','which','while','about','because','would','could','should','there','here','than','then','also','just','into','over','under','some','more','most','very','really','feel','feels','feeling','think','thinking','know','like','want','need','sure','maybe','things','thing','something','someone','anything','everything','being','doing','going','still','right','wrong']);
+
+    function protocolTokenize(text) {
+      if (!text) return [];
+      return (text.toLowerCase().match(/[a-z']+/g) || [])
+        .filter(w => w.length > 3 && !PROTOCOL_STOPWORDS.has(w));
+    }
+
+    function protocolWordFreq(words) {
+      const freq = {};
+      words.forEach(w => { freq[w] = (freq[w] || 0) + 1; });
+      return freq;
+    }
+
+    function protocolTopWords(freq, exclude, n = 3) {
+      return Object.entries(freq)
+        .filter(([w]) => !exclude.has(w))
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, n)
+        .map(([w]) => w);
+    }
+
+    const PROTOCOL_UNCERTAINTY_RE = /\b(not sure|don'?t know|unsure|unclear|maybe|confused|torn|conflicted|undecided|can'?t tell|no idea)\b/i;
+
+    // Reads the visitor's own four answers and reflects patterns back to
+    // them in their own language. Hedged, non-directive phrasing throughout,
+    // NeuralFusion™ never tells the visitor what to decide.
+    function synthesizeProtocol(answers) {
+      const logicalWords = [...protocolTokenize(answers.decompose), ...protocolTokenize(answers.expand)];
+      const signalWords  = [...protocolTokenize(answers.sense), ...protocolTokenize(answers.reflect)];
+      const logicalFreq = protocolWordFreq(logicalWords);
+      const signalFreq  = protocolWordFreq(signalWords);
+      const logicalSet = new Set(Object.keys(logicalFreq));
+      const signalSet  = new Set(Object.keys(signalFreq));
+
+      const convergence = [...logicalSet].filter(w => signalSet.has(w))
+        .sort((a, b) => (logicalFreq[b] + signalFreq[b]) - (logicalFreq[a] + signalFreq[a]))
+        .slice(0, 5);
+
+      const divergentLogical = protocolTopWords(logicalFreq, signalSet, 3);
+      const divergentSignal  = protocolTopWords(signalFreq, logicalSet, 3);
+      const hasTension = divergentLogical.length > 0 && divergentSignal.length > 0;
+      const uncertain = [answers.decompose, answers.sense, answers.expand, answers.reflect]
+        .some(a => PROTOCOL_UNCERTAINTY_RE.test(a || ''));
+
+      const topLogical = divergentLogical[0];
+      const topSignal = divergentSignal[0];
+
+      let insight;
+      if (hasTension) {
+        insight = `Your reasoning keeps returning to "${topLogical}," while your instincts and values keep raising "${topSignal}." That gap between what you can argue and what you're sensing may be worth investigating before you decide.`;
+      } else if (convergence.length >= 2) {
+        insight = `"${convergence[0]}" and "${convergence[1]}" show up in both your reasoning and your instincts. When your logic and your gut are naming the same thing, that convergence is usually worth paying attention to.`;
+      } else if (convergence.length === 1) {
+        insight = `"${convergence[0]}" is the one thread running through both your reasoning and your instincts. Everything else may still be unsettled, and that's useful to know before you decide.`;
+      } else {
+        insight = "Your four responses don't share much common language yet. That isn't a failure, it may simply mean this decision needs more time, more information, or a different question before it comes into focus.";
+      }
+
+      const gapQuestions = [
+        topSignal ? `What evidence would explain why "${topSignal}" keeps coming up for you?` : "What evidence would explain what your intuition is picking up on?",
+        topLogical ? `What might your intuition be detecting that "${topLogical}" doesn't fully capture?` : "What might your intuition be detecting that your analysis doesn't fully capture?",
+        "What information would make the gap between your reasoning and your instincts clearer?",
+      ];
+
+      return { convergence, divergentLogical, divergentSignal, hasTension, uncertain, insight, gapQuestions };
+    }
+
+    const PROTOCOL_STEPS = [
+      {
+        key: 'decompose', num: '01', title: 'DECOMPOSE', brain: 'analytical',
+        subtitle: 'Separate the problem from the noise.',
+        intro: 'No interpretation, no emotion, no judgment yet, just the verifiable structure of what is actually happening.',
+        questions: ['What do you know for certain?', 'What are you assuming?', 'What constraints are you dealing with?', 'What remains unclear?'],
+        placeholder: 'What do you know for certain? What are you assuming? What constraints are you working with? What remains unclear?',
+        cta: 'Continue to Sense',
+      },
+      {
+        key: 'sense', num: '02', title: 'SENSE', brain: 'intuitive',
+        subtitle: 'What is your intuition noticing?',
+        intro: "Not every useful signal arrives as a fully formed argument. Examine what your instincts and internal signals are telling you.",
+        questions: ['What is your gut telling you?', 'What feels right?', 'What feels wrong or concerning?', "Is there something you're noticing that you can't fully explain yet?"],
+        placeholder: "What does your gut tell you? What feels right, what feels off, what can't you quite explain?",
+        cta: 'Continue to Expand',
+      },
+      {
+        key: 'expand', num: '03', title: 'EXPAND', brain: 'associative',
+        subtitle: 'Open the problem before narrowing it.',
+        intro: 'Before choosing an answer, explore what else might be possible.',
+        questions: ['What other options exist?', "What are you not considering?", 'What would you do if the obvious option disappeared?', 'Can the problem be reframed?'],
+        placeholder: 'What other options exist? What are you not considering? How else could this be framed?',
+        cta: 'Continue to Reflect',
+      },
+      {
+        key: 'reflect', num: '04', title: 'REFLECT', brain: 'reflective',
+        subtitle: 'Step back and examine the decision itself.',
+        intro: 'Examine what actually matters here, beneath the pressure of the moment.',
+        questions: ['What matters most to you here?', 'What are you trying to protect or achieve?', 'What might you regret?', 'Are fear, pressure, ego, or expectations influencing your thinking?'],
+        placeholder: 'What matters most here? What are you protecting or trying to achieve? What might you regret? Would your answer change without outside expectations?',
+        cta: 'Fuse the Thinking',
+      },
+    ];
+
+    // ── Accessible design tokens (WCAG AA, dyslexia-friendly) ──────────
+    // Shared with the CFI™ assessment (CFIView) so the Integration Protocol
+    // reads as one continuous experience with the CFI, not a separate style.
+    const PROTOCOL_AC = {
+      bg: '#FFFFFF', surface: '#FFFFFF', surfaceAlt: '#F9FAFB',
+      text: '#111827', muted: '#4B5563', border: '#D1D5DB',
+      gold: '#C8A95A', goldDark: '#8A6D2F', goldTint: '#FBF3E3',
+      focus: '#8A6D2F',
+      font: "'Atkinson Hyperlegible', 'Inter', -apple-system, sans-serif",
+    };
+
+    // Injects the same dyslexia-friendly font + focus-visible styles CFIView
+    // uses. Guarded by id so it's a no-op if CFIView already added them.
+    function useProtocolA11yStyles() {
+      useEffect(() => {
+        if (!document.getElementById('nf-a11y-font')) {
+          const link = document.createElement('link');
+          link.id = 'nf-a11y-font';
+          link.rel = 'stylesheet';
+          link.href = 'https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Inter:wght@400;600;700;800&display=swap';
+          document.head.appendChild(link);
+        }
+        if (!document.getElementById('nf-a11y-styles')) {
+          const style = document.createElement('style');
+          style.id = 'nf-a11y-styles';
+          style.textContent = `
+            .nf-a11y-scale-btn:focus-visible,
+            .nf-a11y-btn:focus-visible {
+              outline: 3px solid ${PROTOCOL_AC.focus};
+              outline-offset: 3px;
+            }
+            .nf-a11y-scale-btn:hover { border-color: ${PROTOCOL_AC.gold} !important; background: ${PROTOCOL_AC.goldTint} !important; }
+            .nf-a11y-textarea:focus { border-color: ${PROTOCOL_AC.goldDark} !important; box-shadow: 0 0 0 3px rgba(138,109,47,0.12) !important; }
+            @media (prefers-reduced-motion: reduce) {
+              .nf-a11y-fade { animation: none !important; }
+            }
+          `;
+          document.head.appendChild(style);
+        }
+      }, []);
+    }
+
+    function ProtocolTextarea({ value, onChange, placeholder, minHeight = 130 }) {
+      return React.createElement("textarea", {
+        className: "nf-a11y-textarea",
+        value, onChange, placeholder, rows: 5,
+        style: {
+          width:'100%', minHeight, resize:'vertical',
+          background:'#FFFFFF', border:`2px solid ${PROTOCOL_AC.border}`, borderRadius:16,
+          color:PROTOCOL_AC.text, fontFamily:PROTOCOL_AC.font, fontSize:17, lineHeight:1.6,
+          padding:'16px 18px', outline:'none', transition:'border-color 0.2s, box-shadow 0.2s',
+        },
+      });
+    }
+
+    function ProtocolProgress({ percent, label }) {
+      return (
+        React.createElement("div", null,
+          React.createElement("div", {style: { display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:14, flexWrap:'wrap', gap:8 }},
+            React.createElement("div", {style: { fontFamily:PROTOCOL_AC.font, fontSize:15, fontWeight:700, color:PROTOCOL_AC.text }}, label),
+            React.createElement("div", {style: { fontFamily:PROTOCOL_AC.font, fontSize:15, fontWeight:600, color:PROTOCOL_AC.goldDark }}, percent, '% through the protocol')
+          ),
+          React.createElement("div", {role:'progressbar', 'aria-valuenow':percent, 'aria-valuemin':0, 'aria-valuemax':100, style: { height:10, background:PROTOCOL_AC.surfaceAlt, border:`1px solid ${PROTOCOL_AC.border}`, borderRadius:6, marginBottom:14, overflow:'hidden' }},
+            React.createElement("div", {style: { width:`${percent}%`, height:'100%', background:PROTOCOL_AC.gold, borderRadius:6, transition:'width 0.4s ease' }})
+          )
+        )
+      );
+    }
+
+    // ── Fuse / Result screen ────────────────────────────────────────────
+    function ProtocolResult({ problem, answers, setView, user, setShowAuth, onRestart }) {
+      useProtocolA11yStyles();
+      const synthesis = useMemo(() => synthesizeProtocol(answers), [answers]);
+      const AC = PROTOCOL_AC;
+      const modes = [
+        { key:'decompose', brain:'analytical', title:'Analytical', tag:'Facts · Logic · Evidence' },
+        { key:'sense', brain:'intuitive', title:'Intuitive', tag:'Signals · Instinct · Patterns' },
+        { key:'expand', brain:'associative', title:'Associative', tag:'Connections · Possibilities · Creativity' },
+        { key:'reflect', brain:'reflective', title:'Reflective', tag:'Perspective · Meaning · Self-awareness' },
+      ];
+
+      return (
+        React.createElement("div", {style: { paddingTop:80, paddingBottom:60, background:AC.bg, minHeight:'100vh', fontFamily:AC.font }},
+          React.createElement("div", {style: { maxWidth:920, margin:'0 auto', padding:'24px 20px' }},
+
+            React.createElement("div", {style: { fontFamily:AC.font, fontSize:14, fontWeight:700, letterSpacing:'0.06em', color:AC.goldDark, marginBottom:8, textTransform:'uppercase' }}, 'The Integration Protocol · Fuse'),
+            React.createElement("div", {style: { fontSize:14, color:AC.muted, lineHeight:1.6, marginBottom:20, maxWidth:640 }},
+              'NeuralFusion™ does not think for you. It helps you see how you are thinking. Everything below is drawn from your own words, not a decision, diagnosis, or recommendation.'
+            ),
+
+            React.createElement("h1", {style: { fontFamily:AC.font, fontSize:'clamp(24px,4.5vw,30px)', fontWeight:800, color:AC.text, marginBottom:20, lineHeight:1.3 }}, 'Your Thinking, Integrated.'),
+
+            // Your Problem
+            React.createElement("div", {style: { padding:'20px 22px', background:AC.surface, border:`1px solid ${AC.border}`, borderRadius:16, boxShadow:'0 1px 3px rgba(17,24,39,0.06)', marginBottom:28 }},
+              React.createElement("div", {style: { fontFamily:AC.font, fontSize:13, fontWeight:700, letterSpacing:'0.04em', color:AC.goldDark, marginBottom:10, textTransform:'uppercase' }}, 'Your Problem'),
+              React.createElement("div", {style: { fontSize:16, color:AC.text, lineHeight:1.7 }}, problem || 'No problem entered.')
+            ),
+
+            // Four thinking modes
+            React.createElement("div", {style: { fontFamily:AC.font, fontSize:14, fontWeight:700, letterSpacing:'0.04em', color:AC.goldDark, marginBottom:14, textTransform:'uppercase' }}, 'Your Four Thinking Modes'),
+            React.createElement("div", {style: { display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(min(240px,100%),1fr))', gap:16, marginBottom:32 }},
+              modes.map(m => {
+                const b = C.brains[m.brain];
+                return (
+                  React.createElement("div", {key: m.key, style: {
+                    padding:'20px 22px', background:AC.surface, border:`1px solid ${AC.border}`, borderLeft:`4px solid ${b.color}`,
+                    borderRadius:16, boxShadow:'0 1px 3px rgba(17,24,39,0.06)',
+                  }},
+                    React.createElement("div", {style: { display:'flex', alignItems:'center', gap:10, marginBottom:10 }},
+                      React.createElement("span", {style: { fontSize:17, color:b.color }}, b.symbol),
+                      React.createElement("div", null,
+                        React.createElement("div", {style: { fontFamily:AC.font, fontSize:15, fontWeight:700, color:AC.text }}, m.title),
+                        React.createElement("div", {style: { fontSize:11.5, letterSpacing:'0.03em', color:b.color, fontWeight:600 }}, m.tag)
+                      )
+                    ),
+                    React.createElement("div", {style: { fontSize:14, color:AC.muted, lineHeight:1.7, whiteSpace:'pre-wrap' }}, answers[m.key] || 'No response given.')
+                  )
+                );
+              })
+            ),
+
+            // Convergence
+            React.createElement("div", {style: { padding:'22px', background:AC.surfaceAlt, border:`1px solid ${AC.border}`, borderRadius:16, marginBottom:16 }},
+              React.createElement("div", {style: { fontFamily:AC.font, fontSize:13, fontWeight:700, letterSpacing:'0.04em', color:AC.goldDark, marginBottom:10, textTransform:'uppercase' }}, 'Where Your Thinking Converged'),
+              React.createElement("div", {style: { fontSize:14, color:AC.text, lineHeight:1.8 }},
+                synthesis.convergence.length
+                  ? React.createElement("span", null, 'Across your reasoning and your instincts, these ideas kept resurfacing: ',
+                      synthesis.convergence.map((w,i) => React.createElement("span", {key: w}, i>0 ? ', ' : '', React.createElement("strong", {style:{color:AC.goldDark}}, w))),
+                      '. Your responses appear to converge around these themes.'
+                    )
+                  : "Your reasoning and your instincts didn't share much common language this time. That's fine, it may simply mean this is early-stage thinking."
+              )
+            ),
+
+            // Divergence
+            React.createElement("div", {style: { padding:'22px', background:AC.goldTint, border:`1px solid ${AC.gold}`, borderRadius:16, marginBottom:32 }},
+              React.createElement("div", {style: { fontFamily:AC.font, fontSize:13, fontWeight:700, letterSpacing:'0.04em', color:AC.goldDark, marginBottom:10, textTransform:'uppercase' }}, 'Where Your Thinking Diverged'),
+              React.createElement("div", {style: { fontSize:14, color:AC.text, lineHeight:1.8, marginBottom: synthesis.hasTension ? 14 : 0 }},
+                synthesis.hasTension
+                  ? React.createElement("span", null,
+                      'Your Decompose and Expand answers lean toward ', React.createElement("strong", {style:{color:AC.goldDark}}, synthesis.divergentLogical.join(', ')),
+                      ', while your Sense and Reflect answers keep raising ', React.createElement("strong", {style:{color:AC.goldDark}}, synthesis.divergentSignal.join(', ')), ". A tension appears between what you can argue and what you're sensing."
+                    )
+                  : "No strong tension surfaced between your reasoning and your instincts this time."
+              ),
+              React.createElement("div", {style: { fontSize:13, color:AC.muted, lineHeight:1.7, fontStyle:'italic' }}, 'Disagreement is information. A conflict between thinking modes can reveal uncertainty, missing information, hidden assumptions, competing priorities, or an unresolved value, not failure.')
+            ),
+
+            // Integrated picture / fusion insight
+            React.createElement("div", {style: { padding:'28px 24px', background:AC.surface, border:`2px solid ${AC.goldDark}`, borderRadius:16, boxShadow:'0 2px 8px rgba(138,109,47,0.12)', marginBottom:24 }},
+              React.createElement("div", {style: { fontFamily:AC.font, fontSize:13, fontWeight:700, letterSpacing:'0.04em', color:AC.goldDark, marginBottom:16, textTransform:'uppercase' }}, 'The Integrated Picture'),
+              React.createElement("div", {style: { fontSize:17, color:AC.text, lineHeight:1.8, marginBottom:20, padding:'18px 20px', background:AC.surfaceAlt, borderRadius:12, border:`1px solid ${AC.border}` }}, synthesis.insight),
+              synthesis.uncertain && React.createElement("div", {style: { fontSize:13.5, color:AC.muted, lineHeight:1.7, marginBottom:8 }}, "This may be worth investigating further: parts of your own answers suggest you're still uncertain, and that uncertainty is worth sitting with rather than rushing past."),
+              React.createElement("div", {style: { fontSize:13, color:AC.muted, lineHeight:1.6, marginTop:12 }}, "NeuralFusion™ is not an AI decision-maker. You remain the intelligence. This is your thinking, organized and reflected back to you.")
+            ),
+
+            // Investigate the gap
+            React.createElement("div", {style: { padding:'22px', background:AC.surface, border:`1px solid ${AC.border}`, borderRadius:16, boxShadow:'0 1px 3px rgba(17,24,39,0.06)', marginBottom:40 }},
+              React.createElement("div", {style: { fontFamily:AC.font, fontSize:13, fontWeight:700, letterSpacing:'0.04em', color:AC.goldDark, marginBottom:14, textTransform:'uppercase' }}, 'Investigate the Gap'),
+              synthesis.gapQuestions.map((q,i) => (
+                React.createElement("div", {key: i, style: { display:'flex', gap:10, marginBottom:10 }},
+                  React.createElement("span", {style: { fontFamily:AC.font, fontSize:13, fontWeight:700, color:AC.goldDark, flexShrink:0 }}, `0${i+1}`),
+                  React.createElement("span", {style: { fontSize:14, color:AC.text, lineHeight:1.7 }}, q)
+                )
+              ))
+            ),
+
+            // CTA after experience
+            React.createElement("div", {style: { padding:'32px 24px', background:AC.goldTint, border:`1px solid ${AC.gold}`, borderRadius:16, marginBottom:24, textAlign:'center' }},
+              React.createElement("div", {style: { fontFamily:AC.font, fontSize:18, fontWeight:800, color:AC.text, marginBottom:10, lineHeight:1.3 }}, 'Want to strengthen how you think, not just solve one problem?'),
+              React.createElement("p", {style: { fontSize:14, color:AC.muted, lineHeight:1.7, maxWidth:480, margin:'0 auto 22px' }}, 'The Integration Protocol gives you a structured way to examine a single problem. NeuralFusion™ is designed to help you develop this way of thinking across decisions, challenges, and complex situations.'),
+              React.createElement("div", {style: { display:'flex', gap:12, flexWrap:'wrap', justifyContent:'center' }},
+                React.createElement("button", {className: "nf-a11y-btn", onClick: () => user ? setView('protocol') : setShowAuth(true), style: {
+                  fontFamily:AC.font, fontSize:16, fontWeight:700, padding:'16px 32px', minHeight:52,
+                  background:AC.goldDark, color:'#FFFFFF', border:'none', borderRadius:16, cursor:'pointer',
+                  boxShadow:'0 2px 8px rgba(138,109,47,0.35)',
+                }}, 'Explore NeuralFusion™ →'),
+                React.createElement("button", {className: "nf-a11y-btn", onClick: () => setView('four-brains'), style: {
+                  fontFamily:AC.font, fontSize:16, fontWeight:700, padding:'14px 28px', minHeight:52,
+                  background:'transparent', color:AC.goldDark, border:`2px solid ${AC.goldDark}`, borderRadius:16, cursor:'pointer',
+                }}, 'Learn the Four-Brain Framework')
+              )
+            ),
+
+            // Optional lead capture: reuses existing account creation, never forced
+            !user && React.createElement("div", {style: { textAlign:'center', marginBottom:20 }},
+              React.createElement("button", {className: "nf-a11y-btn", onClick: () => setShowAuth(true), style: {
+                fontFamily:AC.font, fontSize:15, fontWeight:600, padding:'10px 16px', minHeight:44,
+                background:'transparent', color:AC.muted, border:'none', cursor:'pointer', borderRadius:12,
+              }}, 'Save your thinking map →')
+            ),
+
+            React.createElement("div", {style: { textAlign:'center' }},
+              React.createElement("button", {className: "nf-a11y-btn", onClick: onRestart, style: {
+                fontFamily:AC.font, fontSize:15, fontWeight:600, padding:'10px 16px', minHeight:44,
+                background:'transparent', color:AC.muted, border:'none', cursor:'pointer', borderRadius:12,
+              }}, 'Run the Protocol again')
+            )
+          )
+        )
+      );
+    }
+
+    function ProtocolView({ setView, user, setShowAuth }) {
+      useProtocolA11yStyles();
+      const AC = PROTOCOL_AC;
+      const [phase, setPhase] = useState('intro'); // intro | steps | result
+      const [stepIndex, setStepIndex] = useState(0);
+      const [problem, setProblem] = useState('');
+      const [answers, setAnswers] = useState({ decompose:'', sense:'', expand:'', reflect:'' });
+
+      useEffect(() => { window.scrollTo(0, 0); }, [phase, stepIndex]);
+
+      const restart = () => {
+        setPhase('intro'); setStepIndex(0); setProblem(''); setAnswers({ decompose:'', sense:'', expand:'', reflect:'' });
+      };
+
+      // ── Intro (mirrors the CFI™ intro screen) ───────────────────────
+      if (phase === 'intro') {
+        return (
+          React.createElement("div", {style: { paddingTop:80, paddingBottom:60, background:AC.bg, minHeight:'100vh', fontFamily:AC.font }},
+            React.createElement("div", {style: { maxWidth:720, margin:'0 auto', padding:'32px 20px', textAlign:'center' }},
+              React.createElement("div", {style: { fontFamily:AC.font, fontSize:14, fontWeight:700, letterSpacing:'0.06em', color:AC.goldDark, marginBottom:20, textTransform:'uppercase' }}, 'The Integration Protocol'),
+              React.createElement("h1", {style: { fontFamily:AC.font, fontSize:'clamp(26px,5vw,34px)', fontWeight:800, color:AC.text, marginBottom:20, lineHeight:1.3 }},
+                'Think Through the Problem.', React.createElement("br", null), React.createElement("span", {style: {color:AC.goldDark}}, "Don't just think about it.")
+              ),
+              React.createElement("p", {style: { fontSize:19, color:AC.text, lineHeight:1.7, marginBottom:20, maxWidth:560, margin:'0 auto 20px' }},
+                'Bring a real decision, challenge, or situation. Five short stages, about five minutes.'
+              ),
+              React.createElement("div", {role:'note', style: { fontSize:18, color:AC.text, lineHeight:1.7, marginBottom:20, maxWidth:560, margin:'0 auto 20px', padding:'20px 22px', background:AC.goldTint, border:`1px solid ${AC.gold}`, borderRadius:16, textAlign:'left' }},
+                "NeuralFusion™ does not think for you. It helps you see how you are thinking. There are no wrong answers, and you'll see your own responses reflected back to you at the end, not a decision made for you."
+              ),
+              React.createElement("div", {style: { display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(min(200px, 100%), 1fr))', gap:12, marginBottom:36, textAlign:'left' }},
+                [
+                  { brain:'analytical', label:'Decompose', text:'Separate the problem from the noise' },
+                  { brain:'intuitive', label:'Sense', text:'Notice what your instincts are telling you' },
+                  { brain:'associative', label:'Expand', text:'Open the problem before narrowing it' },
+                  { brain:'reflective', label:'Reflect', text:'Examine what actually matters here' },
+                ].map((s,i) => {
+                  const b = C.brains[s.brain];
+                  return (
+                    React.createElement("div", {key: i, style: { padding:'16px 18px', display:'flex', alignItems:'flex-start', gap:12, background:AC.surface, border:`1px solid ${AC.border}`, borderRadius:16, boxShadow:'0 1px 3px rgba(17,24,39,0.06)' }},
+                      React.createElement("div", {style: { fontSize:18, color:b.color, flexShrink:0 }}, b.symbol),
+                      React.createElement("div", null,
+                        React.createElement("div", {style: { fontSize:15, fontWeight:700, color:AC.text }}, s.label),
+                        React.createElement("div", {style: { fontSize:13, color:AC.muted, lineHeight:1.5 }}, s.text)
+                      )
+                    )
+                  );
+                })
+              ),
+              React.createElement("button", {className: "nf-a11y-btn", onClick: ()=>setPhase('steps'), style: {
+                fontFamily:AC.font, fontSize:18, fontWeight:700, padding:'18px 40px', minHeight:56,
+                background:AC.goldDark, color:'#FFFFFF', border:'none', borderRadius:16, cursor:'pointer',
+                boxShadow:'0 2px 8px rgba(138,109,47,0.35)', marginBottom:16,
+              }}, 'Run the Protocol →'),
+              React.createElement("div", null,
+                React.createElement("button", {className: "nf-a11y-btn", onClick: ()=>setView('four-brains'), style: {
+                  fontFamily:AC.font, fontSize:16, fontWeight:600, padding:'12px 20px', minHeight:48,
+                  background:'transparent', color:AC.muted, border:'none', cursor:'pointer', borderRadius:12,
+                }}, 'See how it works')
+              )
+            )
+          )
+        );
+      }
+
+      // ── Result / Fuse ──────────────────────────────────────────────
+      if (phase === 'result') {
+        return React.createElement(ProtocolResult, { problem, answers, setView, user, setShowAuth, onRestart: restart });
+      }
+
+      // ── Steps 1–4 (mirrors the CFI™ question screen) ────────────────
+      const step = PROTOCOL_STEPS[stepIndex];
+      const b = C.brains[step.brain];
+      const isDecompose = step.key === 'decompose';
+      const answerValue = answers[step.key];
+      const canContinue = isDecompose
+        ? problem.trim().length > 3 && answerValue.trim().length > 3
+        : answerValue.trim().length > 3;
+      const percent = Math.round(((stepIndex) / PROTOCOL_STEPS.length) * 100);
+
+      const goNext = () => {
+        if (stepIndex < PROTOCOL_STEPS.length - 1) setStepIndex(i => i + 1);
+        else setPhase('result');
+      };
+      const goBack = () => {
+        if (stepIndex > 0) setStepIndex(i => i - 1);
+        else setPhase('intro');
+      };
+
+      return (
+        React.createElement("div", {style: { paddingTop:80, paddingBottom:60, background:AC.bg, minHeight:'100vh', fontFamily:AC.font }},
+          React.createElement("div", {style: { maxWidth:680, margin:'0 auto', padding:'32px 20px', width:'100%' }},
+            React.createElement(ProtocolProgress, {percent, label: `Stage ${stepIndex+1} of ${PROTOCOL_STEPS.length}`}),
+
+            React.createElement("div", {key: step.key, className: "nf-a11y-fade"},
+              React.createElement("div", {style: { display:'flex', alignItems:'center', gap:10, marginBottom:16 }},
+                React.createElement("div", {style: { fontSize:20, color:b.color }}, b.symbol),
+                React.createElement("div", {style: { fontFamily:AC.font, fontSize:14, fontWeight:700, letterSpacing:'0.04em', color:AC.goldDark, textTransform:'uppercase' }}, step.title)
+              ),
+              React.createElement("div", {style: { fontFamily:AC.font, fontSize:'clamp(20px,4.5vw,26px)', fontWeight:700, color:AC.text, lineHeight:1.5, marginBottom:14 }}, step.subtitle),
+              React.createElement("p", {style: { fontSize:16, color:AC.muted, lineHeight:1.7, marginBottom:24 }}, step.intro),
+
+              isDecompose && React.createElement("div", {style: { marginBottom:22 }},
+                React.createElement("label", {style: { display:'block', fontFamily:AC.font, fontSize:14, fontWeight:700, color:AC.text, marginBottom:8 }}, 'What are you trying to understand?'),
+                React.createElement(ProtocolTextarea, {
+                  value: problem, onChange: e => setProblem(e.target.value),
+                  placeholder: 'Describe the situation in your own words...', minHeight: 100,
+                })
+              ),
+
+              React.createElement("div", {role:'note', style: { display:'flex', flexDirection:'column', gap:8, marginBottom:16, padding:'18px 20px', background:AC.goldTint, border:`1px solid ${AC.gold}`, borderRadius:16 }},
+                step.questions.map((q,i) => (
+                  React.createElement("div", {key: i, style: { fontSize:15, color:AC.text, lineHeight:1.6, display:'flex', gap:10 }},
+                    React.createElement("span", {style:{color:AC.goldDark, fontWeight:700}}, '·'), q
+                  )
+                ))
+              ),
+
+              React.createElement("div", {style: { marginBottom:28 }},
+                React.createElement(ProtocolTextarea, {
+                  value: answerValue, onChange: e => setAnswers(prev => ({ ...prev, [step.key]: e.target.value })),
+                  placeholder: step.placeholder, minHeight: 140,
+                })
+              ),
+
+              React.createElement("div", {style: { display:'flex', gap:12, flexWrap:'wrap', alignItems:'center' }},
+                React.createElement("button", {className: "nf-a11y-btn", onClick: goBack, style: {
+                  fontFamily:AC.font, fontSize:16, fontWeight:600, padding:'12px 18px', minHeight:48,
+                  background:'transparent', color:AC.muted, border:`1px solid ${AC.border}`, cursor:'pointer', borderRadius:12,
+                }}, '← Back'),
+                React.createElement("button", {
+                  className: "nf-a11y-btn", onClick: goNext, disabled: !canContinue,
+                  style: {
+                    fontFamily:AC.font, fontSize:17, fontWeight:700, padding:'16px 32px', minHeight:52,
+                    background:AC.goldDark, color:'#FFFFFF', border:'none', borderRadius:16,
+                    opacity: canContinue ? 1 : 0.4, cursor: canContinue ? 'pointer' : 'not-allowed',
+                    boxShadow: canContinue ? '0 2px 8px rgba(138,109,47,0.35)' : 'none', marginLeft:'auto',
+                  },
+                }, step.cta, ' →')
+              )
+            )
+          )
+        )
+      );
+    }
+
+
+    // ═══════════════════════════════════════════════════════════════════
+    //  CFI ASSESSMENT VIEW
+    // ═══════════════════════════════════════════════════════════════════
+    //  CFI ASSESSMENT VIEW
+    // ═══════════════════════════════════════════════════════════════════
+    function CFIScoreRing({ value, size=180, stroke=14, color='#C4A050', label }) {
+      const r = (size - stroke) / 2;
+      const circumference = 2 * Math.PI * r;
+      const offset = circumference * (1 - Math.max(0, Math.min(100, value)) / 100);
+      return (
+        React.createElement("div", {style: { position:'relative', width:size, height:size, display:'inline-flex', alignItems:'center', justifyContent:'center', flexShrink:0 }},
+          React.createElement("svg", {width: size, height: size, style: { transform:'rotate(-90deg)' }},
+            React.createElement("circle", {cx: size/2, cy: size/2, r, fill:'none', stroke:'rgba(196,160,80,0.12)', strokeWidth:stroke}),
+            React.createElement("circle", {cx: size/2, cy: size/2, r, fill:'none', stroke:color, strokeWidth:stroke, strokeLinecap:'round', strokeDasharray:circumference, strokeDashoffset:offset, style:{transition:'stroke-dashoffset 0.9s ease'}})
+          ),
+          React.createElement("div", {style: { position:'absolute', textAlign:'center', padding:'0 8px' }},
+            React.createElement("div", {style: { ...syne, fontSize:'clamp(26px,7vw,36px)', fontWeight:800, color, lineHeight:1 }}, value),
+            label && React.createElement("div", {style: { ...mono, fontSize:9, letterSpacing:1, color:C.muted, marginTop:6, maxWidth:size-40 }}, label)
+          )
+        )
+      );
+    }
+
+    // Legacy radar chart. No longer used on the CFI results page (a four-way polygon
+    // visually reads as "four scores competing" rather than "one coordinated system"),
+    // but left in place in case anything else references it.
+    function CFIRadar({ dimensionReports, size=260 }) {
+      const dims = ['A','I','S','R'];
+      const angles = { A:-90, I:0, S:90, R:180 };
+      const cx = size/2, cy = size/2, maxR = size/2 - 50;
+      const pt = (angle, frac) => { const rad = angle*Math.PI/180; return [cx + maxR*frac*Math.cos(rad), cy + maxR*frac*Math.sin(rad)]; };
+      const dataPoints = dims.map(d => pt(angles[d], dimensionReports[d].integrationScore/100));
+      const dataPath = dataPoints.map(p=>p.join(',')).join(' ');
+      const rings = [0.25,0.5,0.75,1];
+      return (
+        React.createElement("svg", {width: size, height: size, viewBox:`0 0 ${size} ${size}`, style:{maxWidth:'100%', height:'auto'}},
+          rings.map((f,i)=> React.createElement("polygon", {key: 'ring'+i, points: dims.map(d=>pt(angles[d],f).join(',')).join(' '), fill:'none', stroke:'rgba(196,160,80,0.14)', strokeWidth:1})),
+          dims.map(d => { const [x,y]=pt(angles[d],1); return React.createElement("line", {key: 'axis'+d, x1:cx, y1:cy, x2:x, y2:y, stroke:'rgba(196,160,80,0.16)', strokeWidth:1}); }),
+          React.createElement("polygon", {points: dataPath, fill:'rgba(196,160,80,0.20)', stroke:'#C4A050', strokeWidth:2}),
+          dataPoints.map((p,i)=> React.createElement("circle", {key: 'pt'+i, cx:p[0], cy:p[1], r:4, fill:'#E2BE78'})),
+          dims.map(d => { const [x,y]=pt(angles[d],1.28); return React.createElement("text", {key: 'lbl'+d, x, y, fill:C.muted, fontSize:10, fontFamily:"'Space Mono', monospace", textAnchor:'middle', dominantBaseline:'middle'}, CFI_DIM_LABELS[d].split(',')[0]); })
+        )
+      );
+    }
+
+    // ── Coordination Wheel ──────────────────────────────────────────────
+    // Replaces the four-way radar. Visual language: ONE coordinated system (a central
+    // Decision Hub) with FOUR thinking modes feeding into it, not four bars racing
+    // each other to 100. Node size/glow reflects how often that mode currently
+    // contributes, never "how good" the mode is. The hub always sits at full strength:
+    // coordination, not any single mode, is the thing being measured.
+    function CoordinationWheel({ dimensionReports, size=260 }) {
+      const dims = ['A','I','S','R'];
+      const angles = { A:-90, I:0, S:90, R:180 };
+      const cx = size/2, cy = size/2, orbitR = size/2 - 56;
+      const pos = angle => { const rad = angle*Math.PI/180; return [cx + orbitR*Math.cos(rad), cy + orbitR*Math.sin(rad)]; };
+      const brainColors = { analytical:'#C4A050', intuitive:'#E2BE78', associative:'#7AAFCF', reflective:'#D4AF6A' };
+
+      return (
+        React.createElement("svg", {width: size, height: size, viewBox:`0 0 ${size} ${size}`, style:{maxWidth:'100%', height:'auto'}},
+          // faint orbit ring, showing the four modes share one system
+          React.createElement("circle", {cx, cy, r:orbitR, fill:'none', stroke:'rgba(196,160,80,0.14)', strokeWidth:1}),
+          // connections: hub → each mode, thickness/opacity reflects current contribution level
+          dims.map(d => {
+            const report = dimensionReports[d];
+            const [x,y] = pos(angles[d]);
+            const color = brainColors[report.brainKey] || C.cyan;
+            const strength = Math.max(0.15, report.integrationScore/100);
+            return React.createElement("line", {key: 'conn'+d, x1:cx, y1:cy, x2:x, y2:y, stroke:color, strokeWidth: 1.5 + strength*3, strokeOpacity: 0.25 + strength*0.5, strokeLinecap:'round'});
+          }),
+          // central Decision Hub, the coordinated system itself
+          React.createElement("circle", {cx, cy, r:22, fill:C.deep, stroke:C.cyanBright, strokeWidth:2}),
+          React.createElement("text", {x:cx, y:cy-2, fill:C.cyanBright, fontSize:8.5, fontFamily:"'Space Mono', monospace", letterSpacing:0.5, textAnchor:'middle'}, 'DECISION'),
+          React.createElement("text", {x:cx, y:cy+9, fill:C.cyanBright, fontSize:8.5, fontFamily:"'Space Mono', monospace", letterSpacing:0.5, textAnchor:'middle'}, 'HUB'),
+          // four thinking-mode nodes
+          dims.map(d => {
+            const report = dimensionReports[d];
+            const [x,y] = pos(angles[d]);
+            const color = brainColors[report.brainKey] || C.cyan;
+            const r = 14 + (report.integrationScore/100)*10;
+            return (
+              React.createElement("g", {key: 'node'+d},
+                React.createElement("circle", {cx:x, cy:y, r, fill:`${color}22`, stroke:color, strokeWidth:2}),
+                React.createElement("text", {x, y:y+4, fill:color, fontSize:13, fontFamily:"'Syne', sans-serif", fontWeight:800, textAnchor:'middle'}, d)
+              )
+            );
+          }),
+          dims.map(d => { const [x,y]=pos(angles[d]); const ly = y > cy ? y + 34 : y - 26; return React.createElement("text", {key: 'lbl'+d, x, y:ly, fill:C.muted, fontSize:10, fontFamily:"'Space Mono', monospace", textAnchor:'middle'}, CFI_DIM_LABELS[d].split(',')[0]); })
+        )
+      );
+    }
+
+    function CFIDimensionCard({ report }) {
+      const meta = CFI_SECTIONS[report.dim];
+      const col = meta.color;
+      return (
+        React.createElement("div", {className: "card", style: { padding:'28px', marginBottom:16 }},
+          React.createElement("div", {style: { display:'flex', alignItems:'center', gap:12, marginBottom:16, flexWrap:'wrap' }},
+            React.createElement("div", {style: { ...mono, fontSize:16, color:col }}, meta.icon),
+            React.createElement("div", {style: { ...syne, fontSize:15, fontWeight:800, color:C.text, flex:1, minWidth:120 }}, report.name),
+            React.createElement("div", {style: { ...syne, fontSize:16, fontWeight:800, color:col }}, report.integrationScore, React.createElement("span", {style:{fontSize:11, color:C.muted, fontWeight:400}}, '/100')),
+          ),
+          React.createElement("div", {style: { height:6, background:C.panel, borderRadius:3, marginBottom:16, overflow:'hidden' }},
+            React.createElement("div", {style: { width:`${report.integrationScore}%`, height:'100%', background:col, borderRadius:3, transition:'width 0.6s ease' }})
+          ),
+          React.createElement("div", {style: { fontSize:14, color:C.text, lineHeight:1.7, marginBottom:20 }}, report.meaning),
+          React.createElement("div", {style: { display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(min(220px,100%),1fr))', gap:16, marginBottom:16 }},
+            React.createElement("div", null,
+              React.createElement("div", {style: { ...mono, fontSize:10, letterSpacing:1, color:col, marginBottom:8 }}, 'STRENGTHS'),
+              report.strengths.map((s,i)=> React.createElement("div", {key: i, style: { fontSize:13, color:C.muted, lineHeight:1.7, marginBottom:4 }}, '· ', s))
+            ),
+            React.createElement("div", null,
+              React.createElement("div", {style: { ...mono, fontSize:10, letterSpacing:1, color:C.muted, marginBottom:8 }}, 'WATCH FOR'),
+              report.blindSpots.map((s,i)=> React.createElement("div", {key: i, style: { fontSize:13, color:C.muted, lineHeight:1.7, marginBottom:4 }}, '· ', s))
+            ),
+          ),
+          React.createElement("div", {style: { display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(min(220px,100%),1fr))', gap:16, marginBottom:16, padding:'16px', background:C.deep, borderRadius:2, border:`1px solid ${C.border}` }},
+            React.createElement("div", null,
+              React.createElement("div", {style: { ...mono, fontSize:10, letterSpacing:1, color:C.cyan, marginBottom:6 }}, 'DECISION STYLE'),
+              React.createElement("div", {style: { fontSize:13, color:C.muted, lineHeight:1.6 }}, report.decisionStyle)
+            ),
+            React.createElement("div", null,
+              React.createElement("div", {style: { ...mono, fontSize:10, letterSpacing:1, color:C.cyan, marginBottom:6 }}, 'UNDER PRESSURE'),
+              React.createElement("div", {style: { fontSize:13, color:C.muted, lineHeight:1.6 }}, report.underPressure)
+            ),
+          ),
+          React.createElement("div", null,
+            React.createElement("div", {style: { ...mono, fontSize:10, letterSpacing:1, color:col, marginBottom:8 }}, 'COORDINATION PRACTICE'),
+            report.improvements.map((s,i)=> React.createElement("div", {key: i, style: { fontSize:13, color:C.text, lineHeight:1.7, marginBottom:4 }}, `${i+1}. `, s))
+          )
+        )
+      );
+    }
+
+    // ═══════════════════════════════════════════════════════════════════
+    //  COGNITIVE PROFILE — white-first results experience
+    //  Scoped light theme, distinct from the app's global dark navy/gold
+    //  theme (same pattern as the accessible assessment screens above).
+    //  Every number and sentence below is pulled from the real CFI
+    //  scoring pipeline (dimensionReports / profile / plan) — nothing on
+    //  this page is hard-coded per user.
+    // ═══════════════════════════════════════════════════════════════════
+    const CP = {
+      bg: '#FFFFFF', card: '#FFFFFF', surface: '#FAF9F5',
+      ink: '#161616', text: '#2B2C31', muted: '#6B6E76', faint: '#9A9DA6',
+      border: '#ECE7DA', borderStrong: '#DED2AE',
+      gold: NF_GOLD, goldDeep: '#8F701F', goldTint: '#FBF4E3', goldTintStrong: '#F5E7C4',
+    };
+    const CP_BAND_COLORS = {
+      'Integrated': '#3E7CA6',
+      'Moderate fragmentation': '#B8923F',
+      'High fragmentation': '#C97A2B',
+      'Critical fragmentation': '#C24545',
+    };
+    const CP_MODE_META = {
+      A: { name: 'Analytical',  tagline: 'Evidence. Logic. Structure.' },
+      I: { name: 'Intuitive',   tagline: 'Patterns. Signals. Instinct.' },
+      S: { name: 'Associative', tagline: 'Connections. Possibilities. Synthesis.' },
+      R: { name: 'Reflective',  tagline: 'Awareness. Meaning. Learning.' },
+    };
+    const CP_MODE_ORDER = ['A', 'I', 'S', 'R'];
+    const CP_JOURNEY = [
+      { step: '01', title: 'Measure',    desc: 'Discover your CFI™.',                    view: 'cfi' },
+      { step: '02', title: 'Understand', desc: 'Explore your Cognitive Profile.',         view: 'cfi' },
+      { step: '03', title: 'Train',      desc: 'Learn through the NeuralFusion Academy.', view: 'lessons' },
+      { step: '04', title: 'Integrate',  desc: 'Practice the Integration Protocol.',      view: 'protocol' },
+      { step: '05', title: 'Improve',    desc: 'Track your Clarity Delta™.',              view: 'analytics' },
+    ];
+
+    function CPCard({ children, style }) {
+      return React.createElement("div", { style: { background: CP.card, border: `1px solid ${CP.border}`, borderRadius: 18, ...style } }, children);
+    }
+
+    function CPEyebrow({ children, color = CP.goldDeep }) {
+      return React.createElement("div", { style: { ...mono, fontSize: 11, letterSpacing: 1.5, color, marginBottom: 12, textTransform: 'uppercase' } }, children);
+    }
+
+    function CPScoreRing({ value, size = 180, stroke = 12, color = CP.gold, label }) {
+      const r = (size - stroke) / 2;
+      const circumference = 2 * Math.PI * r;
+      const offset = circumference * (1 - Math.max(0, Math.min(100, value)) / 100);
+      return (
+        React.createElement("div", { style: { position: 'relative', width: size, height: size, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 } },
+          React.createElement("svg", { width: size, height: size, style: { transform: 'rotate(-90deg)' } },
+            React.createElement("circle", { cx: size / 2, cy: size / 2, r, fill: 'none', stroke: CP.goldTintStrong, strokeWidth: stroke }),
+            React.createElement("circle", { cx: size / 2, cy: size / 2, r, fill: 'none', stroke: color, strokeWidth: stroke, strokeLinecap: 'round', strokeDasharray: circumference, strokeDashoffset: offset, style: { transition: 'stroke-dashoffset 0.9s ease' } })
+          ),
+          React.createElement("div", { style: { position: 'absolute', textAlign: 'center', padding: '0 10px' } },
+            React.createElement("div", { style: { ...syne, fontSize: 'clamp(30px,8vw,40px)', fontWeight: 800, color: CP.ink, lineHeight: 1 } }, value),
+            label && React.createElement("div", { style: { ...mono, fontSize: 9.5, letterSpacing: 1, color: CP.muted, marginTop: 8, maxWidth: size - 30, lineHeight: 1.4 } }, label)
+          )
+        )
+      );
+    }
+
+    // Four thinking modes as one coordinated system, not four competing bars.
+    function CPWheel({ dimensionReports, size = 236 }) {
+      const dims = CP_MODE_ORDER;
+      const angles = { A: -90, I: 0, S: 90, R: 180 };
+      const cx = size / 2, cy = size / 2, orbitR = size / 2 - 52;
+      const pos = angle => { const rad = angle * Math.PI / 180; return [cx + orbitR * Math.cos(rad), cy + orbitR * Math.sin(rad)]; };
+      return (
+        React.createElement("svg", { width: size, height: size, viewBox: `0 0 ${size} ${size}`, style: { maxWidth: '100%', height: 'auto' } },
+          React.createElement("circle", { cx, cy, r: orbitR, fill: 'none', stroke: CP.border, strokeWidth: 1 }),
+          dims.map(d => {
+            const report = dimensionReports[d];
+            const [x, y] = pos(angles[d]);
+            const strength = Math.max(0.18, report.integrationScore / 100);
+            return React.createElement("line", { key: 'conn' + d, x1: cx, y1: cy, x2: x, y2: y, stroke: CP.gold, strokeWidth: 1.5 + strength * 2.5, strokeOpacity: 0.25 + strength * 0.45, strokeLinecap: 'round' });
+          }),
+          React.createElement("circle", { cx, cy, r: 25, fill: CP.goldTint, stroke: CP.gold, strokeWidth: 1.5 }),
+          React.createElement("text", { x: cx, y: cy + 3, fill: CP.goldDeep, fontSize: 8, fontFamily: mono.fontFamily, letterSpacing: 0.5, textAnchor: 'middle' }, 'SYSTEM'),
+          dims.map(d => {
+            const report = dimensionReports[d];
+            const [x, y] = pos(angles[d]);
+            const r = 17 + (report.integrationScore / 100) * 9;
+            return (
+              React.createElement("g", { key: 'node' + d },
+                React.createElement("circle", { cx: x, cy: y, r, fill: '#FFFFFF', stroke: CP.gold, strokeWidth: 2 }),
+                React.createElement("text", { x, y: y + 4.5, fill: CP.goldDeep, fontSize: 13, fontFamily: syne.fontFamily, fontWeight: 800, textAnchor: 'middle' }, d)
+              )
+            );
+          }),
+          dims.map(d => { const [x, y] = pos(angles[d]); const ly = y > cy ? y + 34 : y - 28; return React.createElement("text", { key: 'lbl' + d, x, y: ly, fill: CP.muted, fontSize: 10, fontFamily: mono.fontFamily, textAnchor: 'middle' }, CP_MODE_META[d].name); })
+        )
+      );
+    }
+
+    function CPModeCard({ dim, report }) {
+      const meta = CP_MODE_META[dim];
+      return (
+        React.createElement(CPCard, { style: { padding: '20px 18px' } },
+          React.createElement("div", { style: { display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 } },
+            React.createElement("div", { style: { ...syne, fontSize: 13, fontWeight: 800, color: CP.ink, flex: 1 } }, meta.name),
+            React.createElement("div", { style: { ...syne, fontSize: 18, fontWeight: 800, color: CP.goldDeep } }, report.integrationScore, React.createElement("span", { style: { fontSize: 10, color: CP.faint, fontWeight: 500 } }, '%'))
+          ),
+          React.createElement("div", { style: { height: 5, background: CP.goldTint, borderRadius: 3, overflow: 'hidden', marginBottom: 10 } },
+            React.createElement("div", { style: { width: `${report.integrationScore}%`, height: '100%', background: CP.gold, borderRadius: 3, transition: 'width 0.6s ease' } })
+          ),
+          React.createElement("div", { style: { ...mono, fontSize: 9.5, letterSpacing: 0.4, color: CP.faint } }, meta.tagline)
+        )
+      );
+    }
+
+    // Tap to expand a mode's full dimensional detail — keeps the page scannable
+    // on mobile while still surfacing the real strengths/blind-spot data.
+    function CPModeDetail({ dim, report }) {
+      const [open, setOpen] = useState(false);
+      const meta = CP_MODE_META[dim];
+      return (
+        React.createElement(CPCard, { style: { padding: 0, marginBottom: 10, overflow: 'hidden' } },
+          React.createElement("button", { className: "nf-cp-row", onClick: () => setOpen(o => !o), style: { width: '100%', background: 'none', border: 'none', cursor: 'pointer', padding: '16px 18px', display: 'flex', alignItems: 'center', gap: 12, textAlign: 'left' } },
+            React.createElement("div", { style: { ...syne, fontSize: 13, fontWeight: 800, color: CP.ink, flex: 1 } }, meta.name),
+            React.createElement("div", { style: { ...syne, fontSize: 13, fontWeight: 800, color: CP.goldDeep } }, report.integrationScore, '%'),
+            React.createElement("div", { style: { color: CP.faint, fontSize: 13, transition: 'transform 0.2s', transform: open ? 'rotate(180deg)' : 'none' } }, '▾')
+          ),
+          open && React.createElement("div", { style: { padding: '0 18px 20px' } },
+            React.createElement("div", { style: { fontSize: 13.5, color: CP.text, lineHeight: 1.7, marginBottom: 16 } }, report.meaning),
+            React.createElement("div", { style: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(200px,100%),1fr))', gap: 16, marginBottom: 16 } },
+              React.createElement("div", null,
+                React.createElement("div", { style: { ...mono, fontSize: 9.5, letterSpacing: 1, color: CP.goldDeep, marginBottom: 6 } }, 'STRENGTHS'),
+                report.strengths.map((s, i) => React.createElement("div", { key: i, style: { fontSize: 12.5, color: CP.muted, lineHeight: 1.6, marginBottom: 3 } }, '· ', s))
+              ),
+              React.createElement("div", null,
+                React.createElement("div", { style: { ...mono, fontSize: 9.5, letterSpacing: 1, color: CP.faint, marginBottom: 6 } }, 'WATCH FOR'),
+                report.blindSpots.map((s, i) => React.createElement("div", { key: i, style: { fontSize: 12.5, color: CP.muted, lineHeight: 1.6, marginBottom: 3 } }, '· ', s))
+              )
+            ),
+            React.createElement("div", null,
+              React.createElement("div", { style: { ...mono, fontSize: 9.5, letterSpacing: 1, color: CP.goldDeep, marginBottom: 6 } }, 'COORDINATION PRACTICE'),
+              report.improvements.slice(0, 2).map((s, i) => React.createElement("div", { key: i, style: { fontSize: 12.5, color: CP.text, lineHeight: 1.6, marginBottom: 3 } }, `${i + 1}. `, s))
+            )
+          )
+        )
+      );
+    }
+
+    function CPButton({ children, onClick, variant = 'primary', style }) {
+      const base = { ...syne, fontSize: 13.5, fontWeight: 700, padding: '14px 24px', borderRadius: 999, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8, minHeight: 48, transition: 'opacity 0.15s ease', border: '1px solid transparent' };
+      const variants = {
+        primary: { background: CP.gold, color: '#1A1204', border: `1px solid ${CP.gold}` },
+        outline: { background: '#FFFFFF', color: CP.ink, border: `1px solid ${CP.borderStrong}` },
+        ghost: { background: 'none', color: CP.muted, border: '1px solid transparent' },
+      };
+      return React.createElement("button", { className: "nf-cp-btn", onClick, style: { ...base, ...variants[variant], ...style } }, children);
+    }
+
+    function CFIResults({ cfiResult, setView, user, setShowAuth, onRetake, saveState }) {
+      const bandColor = CP_BAND_COLORS[cfiResult.band] || CP.gold;
+      // Display-only label. cfiResult.band itself (raw DB value / lesson-gating
+      // value) is never changed, exactly as in the rest of the app.
+      const bandFriendly = cfiCoordinationLabel(cfiResult.band);
+      const dimensionReports = cfiResult.dimensionReports || {};
+      const profile = cfiResult.profile;
+      const plan = cfiResult.plan;
+      const hasEnrichedData = !!(profile && plan && dimensionReports.A);
+      const integrationScore = cfiResult.integrationScore ?? Math.max(0, 100 - cfiResult.total * 2);
+
+      const [shareState, setShareState] = useState('idle');
+
+      // Inject scoped hover/focus styles once. Kept separate from the app's
+      // global dark-theme CSS since this page is intentionally a light theme.
+      useEffect(() => {
+        if (!document.getElementById('nf-cp-styles')) {
+          const style = document.createElement('style');
+          style.id = 'nf-cp-styles';
+          style.textContent = `
+            .nf-cp-row:hover { background: ${CP.surface}; }
+            .nf-cp-btn:hover { opacity: 0.88; }
+            .nf-cp-btn:focus-visible, .nf-cp-row:focus-visible { outline: 2px solid ${CP.goldDeep}; outline-offset: 2px; }
+            @media print { .nf-cp-noprint { display: none !important; } }
+          `;
+          document.head.appendChild(style);
+        }
+      }, []);
+
+      const shareUrl = 'https://tryneuralfusion.com/cfi';
+      const shareText = hasEnrichedData
+        ? `My NeuralFusion Cognitive Profile — Analytical ${dimensionReports.A.integrationScore}%, Intuitive ${dimensionReports.I.integrationScore}%, Associative ${dimensionReports.S.integrationScore}%, Reflective ${dimensionReports.R.integrationScore}%. Discover how you think.`
+        : '';
+      const handleShare = async () => {
+        if (navigator.share) {
+          try { await navigator.share({ title: 'My NeuralFusion™ Cognitive Profile', text: shareText, url: shareUrl }); } catch (e) { /* user cancelled */ }
+        } else if (navigator.clipboard) {
+          try { await navigator.clipboard.writeText(`${shareText} ${shareUrl}`); setShareState('copied'); setTimeout(() => setShareState('idle'), 2200); } catch (e) { /* clipboard unavailable */ }
+        }
+      };
+
+      // ── Minimal fallback for older/unenriched results (never fabricate
+      // per-mode data that doesn't exist on this record) ──
+      if (!hasEnrichedData) {
+        return (
+          React.createElement("div", { style: { background: CP.bg, paddingTop: 80, paddingBottom: 80 }, id: 'cfi-report' },
+            React.createElement("div", { style: { maxWidth: 640, margin: '0 auto', padding: '24px 20px', textAlign: 'center' } },
+              React.createElement(CPEyebrow, null, "Your NeuralFusion™ Cognitive Profile"),
+              React.createElement("h1", { style: { ...syne, fontSize: 'clamp(22px,5vw,30px)', fontWeight: 800, color: CP.ink, marginBottom: 28 } }, "Now you can see how your thinking works."),
+              React.createElement(CPCard, { style: { padding: '36px 24px', marginBottom: 28 } },
+                React.createElement(CPScoreRing, { value: integrationScore, color: bandColor, label: 'Overall Coordination Level' }),
+                React.createElement("div", { style: { marginTop: 16, display: 'inline-block', padding: '8px 18px', background: CP.goldTint, border: `1px solid ${CP.borderStrong}`, borderRadius: 999 } },
+                  React.createElement("div", { style: { ...syne, fontSize: 13, fontWeight: 800, color: bandColor } }, bandFriendly)
+                ),
+                React.createElement("div", { style: { fontSize: 14, color: CP.muted, lineHeight: 1.7, marginTop: 16 } }, cfiResult.desc)
+              ),
+              React.createElement("div", { style: { display: 'flex', gap: 12, flexWrap: 'wrap', justifyContent: 'center' } },
+                React.createElement(CPButton, { onClick: () => setView('protocol') }, 'Start Your Integration Session →'),
+                React.createElement(CPButton, { variant: 'outline', onClick: onRetake }, 'Retake Assessment')
+              )
+            )
+          )
+        );
+      }
+
+      const primaryMode = CP_MODE_META[profile.primaryDim];
+      const secondaryMode = CP_MODE_META[profile.secondaryDim];
+      const weakestMode = CP_MODE_META[profile.weakestDim];
+      const topLessonId = plan.recommendedLessonIds[plan.recommendedLessonIds.length - 1];
+      const topLesson = LESSONS.find(l => l.id === topLessonId) || LESSONS[0];
+
+      return (
+        React.createElement("div", { style: { background: CP.bg, paddingTop: 72, paddingBottom: 90 }, id: 'cfi-report' },
+          React.createElement("div", { style: { maxWidth: 760, margin: '0 auto', padding: '24px 20px' } },
+
+            // ── Header ──
+            React.createElement("div", { style: { textAlign: 'center', marginBottom: 40 } },
+              React.createElement(CPEyebrow, null, "CFI™ · Your NeuralFusion™ Cognitive Profile"),
+              React.createElement("h1", { style: { ...syne, fontSize: 'clamp(24px,5.5vw,34px)', fontWeight: 800, color: CP.ink, marginBottom: 14, lineHeight: 1.15 } }, "Now you can see how your thinking works."),
+              React.createElement("div", { style: { fontSize: 13.5, color: CP.muted, lineHeight: 1.7, maxWidth: 480, margin: '0 auto' } }, "The CFI™ measures thinking clarity and how well your four thinking modes work together. It is not a personality test, mental health screening, or medical evaluation.")
+            ),
+
+            // ── SECTION 1 — Profile overview ──
+            React.createElement(CPCard, { style: { padding: '36px 28px', marginBottom: 20 } },
+              React.createElement("div", { style: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(240px,100%),1fr))', gap: 32, alignItems: 'center' } },
+                React.createElement("div", { style: { display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', gap: 14 } },
+                  React.createElement(CPScoreRing, { value: integrationScore, color: bandColor, label: 'Cognitive Integration' }),
+                  React.createElement("div", { style: { display: 'inline-block', padding: '8px 18px', background: CP.goldTint, border: `1px solid ${CP.borderStrong}`, borderRadius: 999 } },
+                    React.createElement("div", { style: { ...syne, fontSize: 13, fontWeight: 800, color: bandColor } }, bandFriendly)
+                  ),
+                  React.createElement("div", { style: { fontSize: 13, color: CP.muted, lineHeight: 1.7, maxWidth: 300 } }, cfiResult.desc)
+                ),
+                React.createElement("div", { style: { display: 'flex', flexDirection: 'column', alignItems: 'center' } },
+                  React.createElement("div", { style: { ...mono, fontSize: 9.5, letterSpacing: 1, color: CP.faint, marginBottom: 12 } }, 'FOUR THINKING MODES, ONE SYSTEM'),
+                  React.createElement(CPWheel, { dimensionReports })
+                )
+              )
+            ),
+
+            // ── SECTION 2 — Four thinking modes ──
+            React.createElement("div", { style: { marginBottom: 28 } },
+              React.createElement(CPEyebrow, null, 'The Four Thinking Modes'),
+              React.createElement("div", { style: { fontSize: 12.5, color: CP.muted, lineHeight: 1.6, marginBottom: 16, maxWidth: 560 } }, "These scores reflect how often each mode currently contributes to your decisions, not how intelligent or capable you are in that area."),
+              React.createElement("div", { style: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(160px,100%),1fr))', gap: 12 } },
+                CP_MODE_ORDER.map(d => React.createElement(CPModeCard, { key: d, dim: d, report: dimensionReports[d] }))
+              )
+            ),
+
+            // ── SECTION 3 — How you tend to think ──
+            React.createElement(CPCard, { style: { padding: '32px 26px', marginBottom: 20 } },
+              React.createElement(CPEyebrow, null, 'Your Thinking Profile'),
+              React.createElement("h2", { style: { ...syne, fontSize: 18, fontWeight: 800, color: CP.ink, marginBottom: 18 } }, 'How You Tend to Think'),
+              React.createElement("div", { style: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(150px,100%),1fr))', gap: 16, marginBottom: 22 } },
+                [
+                  ['Strongest mode', primaryMode.name],
+                  ['Supporting mode', secondaryMode.name],
+                  ['Developing mode', weakestMode.name],
+                ].map(([label, value], i) => (
+                  React.createElement("div", { key: i, style: { padding: '14px 16px', background: CP.surface, borderRadius: 12, border: `1px solid ${CP.border}` } },
+                    React.createElement("div", { style: { ...mono, fontSize: 9, letterSpacing: 1, color: CP.faint, marginBottom: 6 } }, label.toUpperCase()),
+                    React.createElement("div", { style: { ...syne, fontSize: 14, fontWeight: 800, color: CP.ink } }, value)
+                  )
+                ))
+              ),
+              React.createElement("div", { style: { fontSize: 14.5, color: CP.text, lineHeight: 1.8 } }, profile.summary)
+            ),
+
+            // ── SECTION 4 — Your dominant thinking pattern ──
+            React.createElement(CPCard, { style: { padding: '32px 26px', marginBottom: 20 } },
+              React.createElement(CPEyebrow, null, 'Your Thinking Pattern'),
+              React.createElement("h2", { style: { ...syne, fontSize: 18, fontWeight: 800, color: CP.ink, marginBottom: 14 } }, 'Your Dominant Thinking Pattern'),
+              React.createElement("div", { style: { fontSize: 14.5, color: CP.text, lineHeight: 1.8, marginBottom: 14 } }, profile.decisionCoordinationStyle),
+              React.createElement("div", { style: { padding: '16px 18px', background: CP.surface, borderRadius: 12, border: `1px solid ${CP.border}` } },
+                React.createElement("div", { style: { ...mono, fontSize: 9, letterSpacing: 1, color: CP.faint, marginBottom: 6 } }, 'UNDER PRESSURE'),
+                React.createElement("div", { style: { fontSize: 13.5, color: CP.muted, lineHeight: 1.6 } }, profile.coordinationUnderPressure)
+              )
+            ),
+
+            // ── SECTION 5 — Where your thinking may get stuck ──
+            React.createElement(CPCard, { style: { padding: '32px 26px', marginBottom: 20 } },
+              React.createElement(CPEyebrow, null, 'Potential Blind Spot'),
+              React.createElement("h2", { style: { ...syne, fontSize: 18, fontWeight: 800, color: CP.ink, marginBottom: 14 } }, 'Where Your Thinking May Get Stuck'),
+              React.createElement("div", { style: { fontSize: 14.5, color: CP.text, lineHeight: 1.8, marginBottom: 14 } }, profile.decisionBlindSpots),
+              dimensionReports[profile.weakestDim] && React.createElement("div", null,
+                dimensionReports[profile.weakestDim].blindSpots.slice(0, 2).map((s, i) => React.createElement("div", { key: i, style: { fontSize: 13, color: CP.muted, lineHeight: 1.7, marginBottom: 4 } }, '· ', s))
+              )
+            ),
+
+            // ── SECTION 6 — Where you can grow ──
+            React.createElement(CPCard, { style: { padding: '32px 26px', marginBottom: 20, borderColor: CP.borderStrong } },
+              React.createElement(CPEyebrow, null, 'Your Cognitive Opportunity'),
+              React.createElement("h2", { style: { ...syne, fontSize: 18, fontWeight: 800, color: CP.ink, marginBottom: 6 } }, 'Where You Can Grow'),
+              React.createElement("div", { style: { ...mono, fontSize: 11, letterSpacing: 0.5, color: CP.goldDeep, marginBottom: 14 } }, `Your next opportunity: ${weakestMode.name} integration`),
+              React.createElement("div", { style: { fontSize: 14.5, color: CP.text, lineHeight: 1.8 } }, profile.suggestedCoordinationExercise)
+            ),
+
+            // ── SECTION 7 — Integration session ──
+            React.createElement(CPCard, { style: { padding: '36px 26px', marginBottom: 20, background: CP.ink } },
+              React.createElement("div", { style: { ...mono, fontSize: 11, letterSpacing: 1.5, color: CP.gold, marginBottom: 12, textTransform: 'uppercase' } }, "Your First Integration Session"),
+              React.createElement("h2", { style: { ...syne, fontSize: 19, fontWeight: 800, color: '#FFFFFF', marginBottom: 10 } }, "Let's Put Your Thinking to Work."),
+              React.createElement("div", { style: { fontSize: 13.5, color: 'rgba(255,255,255,0.68)', lineHeight: 1.7, marginBottom: 24, maxWidth: 480 } }, "Choose a real decision, problem, or idea you're currently working through. The Integration Protocol walks your four thinking modes through it, one at a time."),
+              React.createElement("div", { style: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(190px,100%),1fr))', gap: 14, marginBottom: 26 } },
+                [...PROTOCOL_STEPS.map(s => ({ num: s.num, title: s.title, subtitle: s.subtitle })),
+                 { num: '05', title: 'FUSE', subtitle: 'See where your reasoning and instincts agree, and where they don\u2019t.' }
+                ].map((s, i) => (
+                  React.createElement("div", { key: i, style: { padding: '14px 4px' } },
+                    React.createElement("div", { style: { ...mono, fontSize: 10, letterSpacing: 1, color: CP.gold, marginBottom: 6 } }, s.num),
+                    React.createElement("div", { style: { ...syne, fontSize: 13, fontWeight: 800, color: '#FFFFFF', marginBottom: 4 } }, s.title),
+                    React.createElement("div", { style: { fontSize: 12, color: 'rgba(255,255,255,0.55)', lineHeight: 1.5 } }, s.subtitle)
+                  )
+                ))
+              ),
+              React.createElement(CPButton, { onClick: () => setView('protocol'), style: { width: '100%', justifyContent: 'center' } }, 'Start Your Integration Session →')
+            ),
+
+            // ── SECTION 8 — Academy recommendation ──
+            React.createElement(CPCard, { style: { padding: '32px 26px', marginBottom: 20 } },
+              React.createElement(CPEyebrow, null, "Your Recommended NeuralFusion™ Lesson"),
+              React.createElement("div", { style: { fontSize: 13, color: CP.muted, lineHeight: 1.7, marginBottom: 22, maxWidth: 480 } }, "Your Cognitive Profile gives you a starting point. The Academy helps you train from there."),
+              React.createElement("div", { style: { padding: '20px', background: CP.surface, borderRadius: 14, border: `1px solid ${CP.border}` } },
+                React.createElement("div", { style: { ...mono, fontSize: 9.5, letterSpacing: 1, color: CP.goldDeep, marginBottom: 10 } }, 'RECOMMENDED FOR YOU'),
+                React.createElement("div", { style: { ...syne, fontSize: 16, fontWeight: 800, color: CP.ink, marginBottom: 8 } }, topLesson.title),
+                React.createElement("div", { style: { fontSize: 13, color: CP.muted, lineHeight: 1.6, marginBottom: 16 } }, topLesson.sub),
+                React.createElement("div", { style: { marginBottom: 18 } },
+                  React.createElement("div", { style: { ...mono, fontSize: 9, letterSpacing: 1, color: CP.faint, marginBottom: 6 } }, 'WHY THIS LESSON?'),
+                  React.createElement("div", { style: { fontSize: 13, color: CP.text, lineHeight: 1.7 } }, `${weakestMode.name} is currently your developing mode. ${plan.dailyExercise}`)
+                ),
+                React.createElement("div", { style: { display: 'flex', gap: 10, flexWrap: 'wrap' } },
+                  React.createElement(CPButton, { onClick: () => setView('lessons') }, 'Start This Lesson →'),
+                  React.createElement(CPButton, { variant: 'outline', onClick: () => setView('lessons') }, 'View Academy →')
+                )
+              )
+            ),
+
+            // ── SECTION 9 — Training path ──
+            React.createElement("div", { style: { marginBottom: 20 } },
+              React.createElement(CPEyebrow, null, 'Your Cognitive Development Path'),
+              React.createElement("div", { style: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(130px,100%),1fr))', gap: 12 } },
+                CP_JOURNEY.map((s, i) => (
+                  React.createElement("button", { key: i, onClick: () => setView(s.view), className: "nf-cp-row", style: { textAlign: 'left', cursor: 'pointer', padding: '16px 14px', background: CP.card, border: `1px solid ${CP.border}`, borderRadius: 12 } },
+                    React.createElement("div", { style: { ...mono, fontSize: 10, letterSpacing: 1, color: CP.gold, marginBottom: 8 } }, s.step),
+                    React.createElement("div", { style: { ...syne, fontSize: 13, fontWeight: 800, color: CP.ink, marginBottom: 4 } }, s.title),
+                    React.createElement("div", { style: { fontSize: 11.5, color: CP.muted, lineHeight: 1.5 } }, s.desc)
+                  )
+                ))
+              )
+            ),
+
+            // ── Dimensional deep dive (optional, tap to expand) ──
+            React.createElement("div", { style: { marginBottom: 20 } },
+              React.createElement(CPEyebrow, null, 'Your Thinking Architecture'),
+              CP_MODE_ORDER.map(d => React.createElement(CPModeDetail, { key: d, dim: d, report: dimensionReports[d] }))
+            ),
+
+            // ── SECTION 10 — Clarity Delta ──
+            React.createElement(CPCard, { style: { padding: '28px 26px', marginBottom: 20 } },
+              React.createElement(CPEyebrow, null, 'Track Your Progress'),
+              React.createElement("div", { style: { ...syne, fontSize: 15, fontWeight: 800, color: CP.ink, marginBottom: 8 } }, 'Clarity Delta™ · Starting Point'),
+              React.createElement("div", { style: { fontSize: 13.5, color: CP.muted, lineHeight: 1.7, marginBottom: 16, maxWidth: 480 } }, "This CFI™ establishes your baseline. Complete NeuralFusion training and retake the assessment, and your Clarity Delta™ will show how your profile changes over time."),
+              React.createElement(CPButton, { variant: 'outline', onClick: () => setView('analytics') }, 'Continue Training →')
+            ),
+
+            // ── SECTION 11 — Shareable profile ──
+            React.createElement(CPCard, { style: { padding: '28px 26px', marginBottom: 20, textAlign: 'center' } },
+              React.createElement(CPEyebrow, null, 'Share Your Cognitive Profile'),
+              React.createElement("div", { style: { fontSize: 13.5, color: CP.muted, lineHeight: 1.7, marginBottom: 18, maxWidth: 440, margin: '0 auto 18px' } }, "You discovered how you think. Now invite someone else to discover theirs."),
+              React.createElement("div", { style: { display: 'inline-block', textAlign: 'left', padding: '20px 24px', background: CP.ink, borderRadius: 14, marginBottom: 20 } },
+                React.createElement("div", { style: { ...syne, fontSize: 12, fontWeight: 800, color: CP.gold, letterSpacing: 1, marginBottom: 10 } }, 'NEURALFUSION™ · My Cognitive Profile'),
+                CP_MODE_ORDER.map(d => (
+                  React.createElement("div", { key: d, style: { display: 'flex', justifyContent: 'space-between', gap: 24, fontSize: 12.5, color: 'rgba(255,255,255,0.85)', padding: '3px 0' } },
+                    React.createElement("span", null, CP_MODE_META[d].name), React.createElement("span", { style: { color: CP.gold, fontWeight: 700 } }, dimensionReports[d].integrationScore, '%')
+                  )
+                )),
+                React.createElement("div", { style: { fontSize: 10.5, color: 'rgba(255,255,255,0.4)', marginTop: 10 } }, 'Discover how you think. tryneuralfusion.com')
+              ),
+              React.createElement("div", null,
+                React.createElement(CPButton, { onClick: handleShare }, shareState === 'copied' ? 'Link copied ✓' : 'Share Profile')
+              )
+            ),
+
+            // ── Save / account ──
+            React.createElement("div", { className: "nf-cp-noprint", style: { padding: '28px 24px', marginBottom: 24, textAlign: 'center' } },
+              React.createElement("div", { style: { ...syne, fontSize: 14, fontWeight: 800, color: CP.ink, marginBottom: 8 } },
+                !user ? 'Save your results and track your growth'
+                  : saveState === 'saving' ? 'Saving your results…'
+                  : saveState === 'failed' ? 'Your result could not be saved'
+                  : 'Your progress is saved.'
+              ),
+              React.createElement("div", { style: { fontSize: 13, color: CP.muted, marginBottom: 20, maxWidth: 440, margin: '0 auto 20px', lineHeight: 1.7 } },
+                !user ? 'Create a free account to save this report, track your Clarity Delta™ over time, and unlock your personalized learning path.'
+                  : saveState === 'failed' ? 'See the notice above — retry the save, or it will be lost when you leave this page.'
+                  : 'Retake the CFI™ over time to watch your Clarity Delta™ grow.'
+              ),
+              !user && React.createElement(CPButton, { onClick: () => setShowAuth(true) }, 'Create free account')
+            ),
+
+            // ── Final CTA ──
+            React.createElement("div", { style: { textAlign: 'center', marginBottom: 32 } },
+              React.createElement("h2", { style: { ...syne, fontSize: 20, fontWeight: 800, color: CP.ink, marginBottom: 8 } }, 'Think Better. Deliberately.'),
+              React.createElement("div", { style: { fontSize: 13.5, color: CP.muted, marginBottom: 22 } }, 'Your Cognitive Profile is only the beginning.'),
+              React.createElement("div", { className: "nf-cp-noprint", style: { display: 'flex', gap: 12, flexWrap: 'wrap', justifyContent: 'center' } },
+                React.createElement(CPButton, { onClick: () => setView('lessons') }, 'Continue Your NeuralFusion Journey →'),
+                React.createElement(CPButton, { variant: 'outline', onClick: () => window.print() }, 'Download PDF report'),
+                React.createElement(CPButton, { variant: 'ghost', onClick: onRetake }, 'Retake assessment')
+              )
+            )
+          )
+        )
+      );
+    }
+
+    function CFIView({ setView, user, setShowAuth, openAuth, cfiResult, setCfiResult }) {
+      const [started, setStarted] = useState(false);
+      const [step, setStep] = useState(0);
+      const [answers, setAnswers] = useState({});
+      const [showResult, setShowResult] = useState(!!cfiResult);
+
+      // ── Account-first gate state ────────────────────────────────────
+      // showGate: the account-creation screen shown when a signed-out visitor
+      //   tries to begin the assessment (instead of starting it directly).
+      // awaitingAuth: true once they've tapped "Create Free Account" / "Sign In"
+      //   from the gate, so we know to continue them into the assessment the
+      //   moment auth succeeds, rather than dumping them back on the intro.
+      // justAuthed: the brief "your account is ready" screen shown once, right
+      //   after that succeeds.
+      // draftId: id of this attempt's in-progress cfi_results row, once one
+      //   exists, so subsequent saves update it instead of creating new rows.
+      const [showGate, setShowGate] = useState(false);
+      const [awaitingAuth, setAwaitingAuth] = useState(false);
+      const [justAuthed, setJustAuthed] = useState(false);
+      const [draftId, setDraftId] = useState(null);
+      const [saveFailed, setSaveFailed] = useState(false);
+      const [saveErrorMsg, setSaveErrorMsg] = useState('');
+      // saveState drives the "Your progress is saved" message so it reflects
+      // what actually happened in the database, not just whether someone is
+      // logged in. 'idle' -> 'saving' -> 'saved' | 'failed'.
+      const [saveState, setSaveState] = useState(cfiResult ? 'saved' : 'idle');
+      const openAuthTab = (tab) => { setAwaitingAuth(true); if (openAuth) openAuth(tab); else setShowAuth(true); };
+
+      // Once the user becomes authenticated after being sent through the gate,
+      // close the gate and show the short "ready" transition rather than
+      // silently dropping them back on the un-started intro screen.
+      useEffect(() => {
+        if (user && awaitingAuth) {
+          setAwaitingAuth(false);
+          setShowGate(false);
+          setJustAuthed(true);
+        }
+      }, [user, awaitingAuth]);
+
+      // Resume an interrupted attempt: if a signed-in user has an in-progress
+      // CFI row (refresh, dropped connection, closed browser, came back later),
+      // load its answers and continue from the first unanswered question
+      // instead of making them start over.
+      useEffect(() => {
+        if (!user || started || showResult) return;
+        let cancelled = false;
+        getInProgressCFI(user.id).then(draft => {
+          if (cancelled || !draft) return;
+          const savedAnswers = draft.answers || {};
+          if (Object.keys(savedAnswers).length === 0) return;
+          setAnswers(savedAnswers);
+          setDraftId(draft.id);
+          const firstUnansweredIdx = flow.findIndex(f => f.type==='question' && !(f.item.id in savedAnswers));
+          setStep(firstUnansweredIdx === -1 ? 0 : firstUnansweredIdx);
+          setStarted(true);
+        });
+        return () => { cancelled = true; };
+        // eslint-disable-next-line
+      }, [user]);
+
+      // ── Accessible response scale: each option carries a short, concrete
+      // subtitle so the label isn't the only cue (helps with ambiguity that
+      // trips up literal/ADHD/autistic readers), and equal visual weight
+      // across all five so no option "looks" like the right answer.
+      const SCALE_OPTIONS = [
+        { value:1, label:'Never',     subtitle:"This doesn't happen for me" },
+        { value:2, label:'Rarely',    subtitle:'Happens once in a while' },
+        { value:3, label:'Sometimes', subtitle:'Happens about half the time' },
+        { value:4, label:'Often',     subtitle:'Happens most of the time' },
+        { value:5, label:'Always',    subtitle:'This is true almost every time' },
+      ];
+
+      // ── Accessible design tokens (WCAG AA, dyslexia-friendly) ──────────
+      // Scoped to the assessment screens only, distinct from the app's
+      // global dark navy/gold theme used elsewhere.
+      const AC = {
+        bg: '#FFFFFF', surface: '#FFFFFF', surfaceAlt: '#F9FAFB',
+        text: '#111827', muted: '#4B5563', border: '#D1D5DB',
+        gold: '#C8A95A', goldDark: '#8A6D2F', goldTint: '#FBF3E3',
+        focus: '#8A6D2F',
+        font: "'Atkinson Hyperlegible', 'Inter', -apple-system, sans-serif",
+      };
+
+      // Inject the dyslexia-friendly font + visible keyboard focus states once.
+      useEffect(() => {
+        if (!document.getElementById('nf-a11y-font')) {
+          const link = document.createElement('link');
+          link.id = 'nf-a11y-font';
+          link.rel = 'stylesheet';
+          link.href = 'https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Inter:wght@400;600;700;800&display=swap';
+          document.head.appendChild(link);
+        }
+        if (!document.getElementById('nf-a11y-styles')) {
+          const style = document.createElement('style');
+          style.id = 'nf-a11y-styles';
+          style.textContent = `
+            .nf-a11y-scale-btn:focus-visible,
+            .nf-a11y-btn:focus-visible {
+              outline: 3px solid ${AC.focus};
+              outline-offset: 3px;
+            }
+            .nf-a11y-scale-btn:hover { border-color: ${AC.gold} !important; background: ${AC.goldTint} !important; }
+            @media (prefers-reduced-motion: reduce) {
+              .nf-a11y-fade { animation: none !important; }
+            }
+          `;
+          document.head.appendChild(style);
+        }
+      }, []);
+
+      const flow = useMemo(() => {
+        const f = [];
+        let lastDim = null;
+        CFI_ITEMS.forEach(item => {
+          if (item.dim !== lastDim) { f.push({ type:'section', dim: item.dim }); lastDim = item.dim; }
+          f.push({ type:'question', item });
+        });
+        return f;
+      }, []);
+
+      const answeredCount = Object.keys(answers).length;
+      const percent = Math.round((answeredCount / CFI_ITEMS.length) * 100);
+      const remainingQ = CFI_ITEMS.length - answeredCount;
+      const estMinutes = Math.max(1, Math.ceil((remainingQ * 12) / 60));
+      const motivation = () => {
+        if (answeredCount === 0) return "There are no wrong answers here. Go with your first instinct.";
+        if (percent < 50) return "Good start. You're building an accurate picture.";
+        if (percent < 100) return "Over halfway there. Keep going.";
+        return "Nice work.";
+      };
+
+      const finalize = (finalAnswers) => {
+        // Reverse-scored items (e.g. "focused under deadline pressure") are inverted
+        // before summing, since a high raw answer there means LESS fragmentation.
+        const effective = (item) => {
+          const v = finalAnswers[item.id];
+          return item.reversed ? (6 - v) : v;
+        };
+        const total = CFI_ITEMS.reduce((sum, item) => sum + effective(item), 0);
+        // NOTE: band thresholds and internal band values are unchanged (scoring logic).
+        // Only the `desc` / `recommendation` copy shown to the person is reframed around
+        // coordination (how well their thinking modes currently work together) rather
+        // than framing lower scores as damage or deficiency.
+        // Band thresholds are CFI-1.0's original 16-item bands, proportionally rescaled
+        // onto the canonical 13–65 range (same relative cut points, not new thresholds).
+        let band, desc, recommendation;
+        if (total<=17) { band='Integrated'; desc='Your thinking modes are already coordinating well together.'; recommendation='Maintain your daily coordination practice. Advance to Lessons 4–5 to sharpen fluency between modes.'; }
+        else if (total<=28) { band='Moderate fragmentation'; desc='Your thinking modes coordinate well some of the time. A couple of modes are underutilized in your decision process.'; recommendation='Focus on mode activation (Lesson 2). Daily mode-switching drills for 14 days to bring your underutilized modes online more often.'; }
+        else if (total<=40) { band='High fragmentation'; desc='Coordination between your thinking modes is inconsistent, especially under pressure.'; recommendation='Begin from Lesson 1. Run the Core Loop daily to build the habit of switching modes deliberately.'; }
+        else { band='Critical fragmentation'; desc='Right now your thinking modes rarely coordinate. One mode tends to dominate every decision, regardless of fit.'; recommendation='Start Lesson 1 immediately and track your CFI weekly as you build coordination.'; }
+
+        const dims = { A:[], I:[], S:[], R:[], E:[] };
+        CFI_ITEMS.forEach(item => { if (finalAnswers[item.id]) dims[item.dim].push(effective(item)); });
+        const dimScores = {};
+        Object.keys(dims).forEach(d => { dimScores[d] = dims[d].length ? Math.round(dims[d].reduce((a,b)=>a+b,0)/dims[d].length*20) : 0; });
+
+        // Dominant brain is chosen only among the four true thinking modes (A/I/S/R).
+        // E ("integration"/pressure-overload) is never a fifth brain and is excluded here —
+        // it's reported separately via integrationScore.
+        // FIX (audit finding #1): dimScores are FRAGMENTATION scores — higher = more
+        // fragmented, i.e. that mode is currently coordinating WORSE, not better. The
+        // dominant/strongest mode is therefore the one with the LOWEST score (ascending
+        // sort), matching buildCognitiveProfile()'s primaryDim logic below. A previous
+        // version of this file sorted descending here, which named the MOST fragmented
+        // mode as "Dominant" — contradicting the profile section on the same results page.
+        const brainMap = { A:'analytical', I:'intuitive', S:'associative', R:'reflective' };
+        const sortedDims = Object.entries(dimScores).filter(([d]) => d !== 'E').sort((a,b)=>a[1]-b[1]);
+        const dominantBrain = brainMap[sortedDims[0][0]] || 'analytical';
+
+        const integrationScore = cfiIntegrationScore(total);
+        const dimensionReports = {};
+        Object.keys(dimScores).forEach(d => { dimensionReports[d] = buildDimensionReport(d, dimScores[d]); });
+        const profile = buildCognitiveProfile(dimensionReports, integrationScore, band);
+        const plan = buildImprovementPlan(dimensionReports, band);
+
+        const result = { total, band, desc, recommendation, dimScores, dominantBrain, integrationScore, dimensionReports, profile, plan };
+        setCfiResult(result);
+        setShowResult(true);
+        // Finalizing updates the same in-progress row (draftId) if one exists,
+        // rather than inserting a second row for this attempt.
+        if (user) {
+          setSaveState('saving');
+          saveCFIResult(user.id, result, finalAnswers, draftId).then(({ data, error }) => {
+            if (error) {
+              // Keep draftId as-is on failure so a "Retry" click still targets
+              // the same row instead of inserting a duplicate.
+              console.error('[CFI SAVE ERROR] final result was NOT saved:', error);
+              setSaveFailed(true);
+              setSaveState('failed');
+              setSaveErrorMsg(error.message || JSON.stringify(error));
+            } else {
+              setSaveState('saved');
+              setSaveErrorMsg('row id: ' + (data && data[0] && data[0].id ? data[0].id : '(insert, id not returned)'));
+              setDraftId(null);
+            }
+          });
+        } else {
+          setSaveState('idle');
+          setSaveErrorMsg('not signed in — result was never sent to the database');
+        }
+      };
+
+      const handleAnswer = (item, val) => {
+        const newAnswers = { ...answers, [item.id]: val };
+        setAnswers(newAnswers);
+        // Persist progress as the user goes (not just at the end), so a refresh,
+        // dropped connection, or closed tab doesn't lose an authenticated attempt.
+        // Changing an earlier answer updates the same draft row rather than
+        // creating a new one.
+        const isLastQuestion = item.id === CFI_ITEMS[CFI_ITEMS.length-1].id;
+        // On the last question, skip the in-progress autosave entirely and go
+        // straight to finalize(). Previously both writes fired at once here,
+        // racing to update the same row - if the in-progress save (which only
+        // touches answers/status) landed on the server AFTER the completed
+        // save, it silently reset status back to 'in_progress' while leaving
+        // total_score/band populated, making a fully scored result vanish
+        // from admin and from the user's own Analytics view.
+        if (user && !isLastQuestion) {
+          saveCFIProgress(user.id, newAnswers, draftId).then(id => { if (id && id !== draftId) setDraftId(id); });
+        }
+        if (isLastQuestion) { finalize(newAnswers); }
+        else { setStep(s => s+1); }
+      };
+
+      const handleRetake = () => { setStarted(false); setStep(0); setAnswers({}); setShowResult(false); setDraftId(null); setSaveState('idle'); setSaveErrorMsg(''); };
+
+      // ── Results screen ──
+      if (showResult && cfiResult) {
+        return (
+          React.createElement(React.Fragment, null,
+            saveFailed && React.createElement("div", {style: { background:'#FEE2E2', borderBottom:'1px solid #FCA5A5', color:'#991B1B', padding:'12px 20px', textAlign:'center', fontSize:14, fontFamily:AC.font }},
+              "Your result is shown below, but we couldn't save it to your account. Please check your connection and retry, or contact support if this keeps happening.",
+              React.createElement("button", {className:"nf-a11y-btn", onClick: ()=>{
+                setSaveFailed(false);
+                setSaveState('saving');
+                saveCFIResult(user.id, cfiResult, answers, draftId).then(({ data, error }) => {
+                  if (error) { setSaveFailed(true); setSaveState('failed'); setSaveErrorMsg(error.message || JSON.stringify(error)); }
+                  else { setSaveState('saved'); setSaveErrorMsg('row id: ' + (data && data[0] && data[0].id ? data[0].id : '(insert, id not returned)')); setDraftId(null); }
+                });
+              }, style: { marginLeft:12, background:'none', border:'1px solid #991B1B', borderRadius:8, color:'#991B1B', padding:'4px 12px', cursor:'pointer', fontSize:13, fontWeight:700 }}, 'Retry')
+            ),
+            React.createElement(CFIResults, { cfiResult, setView, user, setShowAuth, onRetake: handleRetake, saveState })
+          )
+        );
+      }
+
+      // ── Account gate ──────────────────────────────────────────────────
+      // Shown instead of the questions when a signed-out visitor tries to begin.
+      // An unauthenticated visitor can never reach the question screens below:
+      // this is the only path from the intro into `started`, and it requires
+      // `user` to be set first.
+      if (showGate && !user) {
+        return (
+          React.createElement("div", {style: { paddingTop:80, paddingBottom:60, background:AC.bg, minHeight:'100vh', fontFamily:AC.font, display:'flex', alignItems:'center' }},
+            React.createElement("div", {style: { maxWidth:520, margin:'0 auto', padding:'32px 20px', textAlign:'center' }},
+              React.createElement("div", {style: { fontFamily:AC.font, fontSize:14, fontWeight:700, letterSpacing:'0.06em', color:AC.goldDark, marginBottom:20, textTransform:'uppercase' }}, 'Cognitive Fragmentation Index™'),
+              React.createElement("h1", {style: { fontFamily:AC.font, fontSize:'clamp(24px,5vw,30px)', fontWeight:800, color:AC.text, marginBottom:16, lineHeight:1.3 }}, 'Your CFI™ profile starts here.'),
+              React.createElement("p", {style: { fontSize:17, color:AC.text, lineHeight:1.7, marginBottom:28, maxWidth:440, margin:'0 auto 28px' }},
+                'Create your free NeuralFusion™ account before beginning the assessment.'
+              ),
+              React.createElement("div", {style: { fontSize:15, color:AC.muted, lineHeight:1.7, marginBottom:32, maxWidth:440, margin:'0 auto 32px', padding:'16px 20px', background:AC.surfaceAlt, border:`1px solid ${AC.border}`, borderRadius:16, textAlign:'left' }},
+                'Your account allows your CFI™ assessment and cognitive profile to be securely saved.'
+              ),
+              React.createElement("button", {className: "nf-a11y-btn", onClick: ()=>openAuthTab('signup'), style: {
+                fontFamily:AC.font, fontSize:18, fontWeight:700, padding:'18px 40px', minHeight:56, width:'100%', maxWidth:360,
+                background:AC.goldDark, color:'#FFFFFF', border:'none', borderRadius:16, cursor:'pointer',
+                boxShadow:'0 2px 8px rgba(138,109,47,0.35)', marginBottom:16,
+              }}, 'Create Free Account'),
+              React.createElement("div", {style: { fontSize:15, color:AC.muted }},
+                'Already have an account? ',
+                React.createElement("button", {className: "nf-a11y-btn", onClick: ()=>openAuthTab('login'), style: {
+                  background:'none', border:'none', color:AC.goldDark, fontWeight:700, fontSize:15, cursor:'pointer', textDecoration:'underline',
+                }}, 'Sign In')
+              ),
+              React.createElement("div", {style: { marginTop:28 }},
+                React.createElement("button", {className: "nf-a11y-btn", onClick: ()=>setShowGate(false), style: {
+                  background:'none', border:'none', ...mono, fontSize:12, letterSpacing:1, color:AC.muted, cursor:'pointer',
+                }}, '← Back')
+              )
+            )
+          )
+        );
+      }
+
+      // ── Post-auth transition ────────────────────────────────────────
+      // Shown once, right after signup/login completes for someone who came
+      // through the gate, before they land in the assessment itself.
+      if (justAuthed) {
+        return (
+          React.createElement("div", {style: { paddingTop:80, paddingBottom:60, background:AC.bg, minHeight:'100vh', fontFamily:AC.font, display:'flex', alignItems:'center' }},
+            React.createElement("div", {style: { maxWidth:520, margin:'0 auto', padding:'32px 20px', textAlign:'center' }},
+              React.createElement("div", {style: { fontSize:30, color:AC.goldDark, marginBottom:16 }}, '✓'),
+              React.createElement("h1", {style: { fontFamily:AC.font, fontSize:'clamp(24px,5vw,30px)', fontWeight:800, color:AC.text, marginBottom:16, lineHeight:1.3 }}, 'Your account is ready.'),
+              React.createElement("p", {style: { fontSize:17, color:AC.text, lineHeight:1.7, marginBottom:32, maxWidth:440, margin:'0 auto 32px' }},
+                'Your CFI™ assessment is waiting.'
+              ),
+              React.createElement("button", {className: "nf-a11y-btn", onClick: ()=>{ setJustAuthed(false); setStarted(true); }, style: {
+                fontFamily:AC.font, fontSize:18, fontWeight:700, padding:'18px 40px', minHeight:56,
+                background:AC.goldDark, color:'#FFFFFF', border:'none', borderRadius:16, cursor:'pointer',
+                boxShadow:'0 2px 8px rgba(138,109,47,0.35)',
+              }}, 'Begin Assessment →')
+            )
+          )
+        );
+      }
+
+      // ── Intro screen (accessible) ──
+      if (!started) {
+        return (
+          React.createElement("div", {style: { paddingTop:80, paddingBottom:60, background:AC.bg, minHeight:'100vh', fontFamily:AC.font }},
+            React.createElement("div", {style: { maxWidth:720, margin:'0 auto', padding:'32px 20px', textAlign:'center' }},
+              React.createElement("div", {style: { fontFamily:AC.font, fontSize:14, fontWeight:700, letterSpacing:'0.06em', color:AC.goldDark, marginBottom:20, textTransform:'uppercase' }}, 'Cognitive Fragmentation Index™'),
+              React.createElement("h1", {style: { fontFamily:AC.font, fontSize:'clamp(26px,5vw,34px)', fontWeight:800, color:AC.text, marginBottom:20, lineHeight:1.3 }},
+                'Discover how you think', React.createElement("br", null), React.createElement("span", {style: {color:AC.goldDark}}, 'and where it gets stuck')
+              ),
+              React.createElement("p", {style: { fontSize:19, color:AC.text, lineHeight:1.7, marginBottom:20, maxWidth:560, margin:'0 auto 20px' }},
+                `You'll answer ${CFI_ITEMS.length} short, everyday questions. No jargon, nothing tricky. It takes about 3–4 minutes.`
+              ),
+              // Neurodivergent-support note
+              React.createElement("div", {role:'note', style: { fontSize:18, color:AC.text, lineHeight:1.7, marginBottom:20, maxWidth:560, margin:'0 auto 20px', padding:'20px 22px', background:AC.goldTint, border:`1px solid ${AC.gold}`, borderRadius:16, textAlign:'left' }},
+                'This assessment is designed to support a wide range of thinking styles, including ADHD, dyslexia, autism, and other neurodivergent profiles. There are no right or wrong answers. Respond based on your typical experience, not how you think you should perform.'
+              ),
+              React.createElement("div", {style: { fontSize:16, color:AC.muted, lineHeight:1.7, marginBottom:36, maxWidth:560, margin:'0 auto 36px', padding:'16px 20px', background:AC.surfaceAlt, border:`1px solid ${AC.border}`, borderRadius:16, textAlign:'left' }},
+                'The CFI™ measures how you process information, make decisions, and combine different ways of thinking. It is not a personality test, a mental health screening, or a diagnosis of any kind.'
+              ),
+              React.createElement("div", {style: { display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(min(240px, 100%), 1fr))', gap:16, marginBottom:36, textAlign:'left' }},
+                ['A score for how clear your thinking is right now', 'Your natural strengths and blind spots, explained plainly', 'A personalized, day-by-day improvement plan', 'A radar chart comparing your four thinking modes'].map((item,i)=>(
+                  React.createElement("div", {key: i, style: { padding:'18px 20px', display:'flex', alignItems:'center', gap:14, background:AC.surface, border:`1px solid ${AC.border}`, borderRadius:16, boxShadow:'0 1px 3px rgba(17,24,39,0.06)' }},
+                    React.createElement("div", {style: { fontSize:20, color:AC.goldDark, flexShrink:0 }}, '◈'),
+                    React.createElement("div", {style: { fontSize:16, color:AC.text, lineHeight:1.6 }}, item)
+                  )
+                ))
+              ),
+              React.createElement("button", {className: "nf-a11y-btn", onClick: ()=> setStarted(true), style: {
+                fontFamily:AC.font, fontSize:18, fontWeight:700, padding:'18px 40px', minHeight:56,
+                background:AC.goldDark, color:'#FFFFFF', border:'none', borderRadius:16, cursor:'pointer',
+                boxShadow:'0 2px 8px rgba(138,109,47,0.35)',
+              }}, 'Begin CFI →'),
+              React.createElement("div", {style: { ...mono, fontSize:12, color:AC.muted, marginTop:14 }}, 'No account needed to see your results.')
+            )
+          )
+        );
+      }
+
+      const current = flow[step];
+
+      // ── Section intro screen (accessible) ──
+      if (current.type === 'section') {
+        const meta = CFI_SECTIONS[current.dim];
+        const isFirst = current.dim === 'A';
+        return (
+          React.createElement("div", {style: { paddingTop:80, paddingBottom:40, minHeight:'70vh', display:'flex', alignItems:'center', background:AC.bg, fontFamily:AC.font }},
+            React.createElement("div", {className: "nf-a11y-fade", style: { maxWidth:620, margin:'0 auto', padding:'32px 24px', width:'100%', textAlign:'center' }},
+              !isFirst && React.createElement("div", {style: { fontFamily:AC.font, fontSize:15, fontWeight:700, letterSpacing:'0.02em', color:AC.goldDark, marginBottom:24 }}, motivation(), ' · ', percent, '% done'),
+              React.createElement("div", {style: { fontSize:30, color:meta.color, marginBottom:16 }}, meta.icon),
+              React.createElement("h2", {style: { fontFamily:AC.font, fontSize:'clamp(22px,4vw,26px)', fontWeight:800, color:AC.text, marginBottom:16, lineHeight:1.3 }}, meta.title),
+              React.createElement("p", {style: { fontSize:18, color:AC.text, lineHeight:1.7, marginBottom:36, maxWidth:460, margin:'0 auto 36px' }}, meta.blurb),
+              React.createElement("button", {className: "nf-a11y-btn", onClick: ()=>setStep(s=>s+1), style: {
+                fontFamily:AC.font, fontSize:17, fontWeight:700, padding:'16px 36px', minHeight:56,
+                background:AC.goldDark, color:'#FFFFFF', border:'none', borderRadius:16, cursor:'pointer',
+                boxShadow:'0 2px 8px rgba(138,109,47,0.35)',
+              }}, isFirst ? 'Start →' : 'Continue →'),
+              step > 0 && React.createElement("div", null,
+                React.createElement("button", {className: "nf-a11y-btn", onClick: ()=>setStep(s=>Math.max(0,s-1)), style: {
+                  fontFamily:AC.font, fontSize:16, fontWeight:600, marginTop:20, padding:'12px 20px', minHeight:48,
+                  background:'transparent', color:AC.muted, border:'none', cursor:'pointer', borderRadius:12,
+                }}, '← Back')
+              )
+            )
+          )
+        );
+      }
+
+      // ── Question screen (accessible) ──
+      const item = current.item;
+      const brainInfo = C.brains[item.brain] || C.brains.analytical;
+      const qIndex = CFI_ITEMS.findIndex(q=>q.id===item.id);
+
+      return (
+        React.createElement("div", {style: { paddingTop:80, paddingBottom:60, background:AC.bg, minHeight:'100vh', fontFamily:AC.font }},
+          React.createElement("div", {style: { maxWidth:680, margin:'0 auto', padding:'32px 20px', width:'100%' }},
+            // Progress indicator
+            React.createElement("div", {style: { display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:14, flexWrap:'wrap', gap:8 }},
+              React.createElement("div", {style: { fontFamily:AC.font, fontSize:15, fontWeight:700, color:AC.text }}, 'Question ', qIndex+1, ' of ', CFI_ITEMS.length),
+              React.createElement("div", {style: { fontFamily:AC.font, fontSize:15, fontWeight:600, color:AC.goldDark }}, '~', estMinutes, ' min left')
+            ),
+            React.createElement("div", {role:'progressbar', 'aria-valuenow':percent, 'aria-valuemin':0, 'aria-valuemax':100, style: { height:10, background:AC.surfaceAlt, border:`1px solid ${AC.border}`, borderRadius:6, marginBottom:14, overflow:'hidden' }},
+              React.createElement("div", {style: { width:`${percent}%`, height:'100%', background:AC.gold, borderRadius:6, transition:'width 0.4s ease' }})
+            ),
+            React.createElement("div", {style: { fontFamily:AC.font, fontSize:15, color:AC.muted, marginBottom:36 }}, motivation()),
+            React.createElement("div", {key: item.id, className: "nf-a11y-fade"},
+              React.createElement("div", {style: { display:'flex', alignItems:'center', gap:10, marginBottom:16 }},
+                React.createElement("div", {style: { fontSize:18, color:brainInfo.color }}, brainInfo.symbol),
+                React.createElement("div", {style: { fontFamily:AC.font, fontSize:14, fontWeight:700, letterSpacing:'0.04em', color:AC.goldDark, textTransform:'uppercase' }}, CFI_SECTIONS[item.dim]?.title)
+              ),
+              React.createElement("div", {style: { fontFamily:AC.font, fontSize:'clamp(20px,4.5vw,26px)', fontWeight:700, color:AC.text, lineHeight:1.5, marginBottom:36 }}, item.text),
+              // Card-style response scale
+              React.createElement("div", {role:'radiogroup', 'aria-label':'Response', style: { display:'flex', flexDirection:'column', gap:12 }}, SCALE_OPTIONS.map((opt)=>{
+                const isSelected = answers[item.id]===opt.value;
+                return (
+                  React.createElement("button", {
+                    key: opt.value,
+                    className: "nf-a11y-scale-btn",
+                    role:'radio',
+                    'aria-checked': isSelected,
+                    onClick: ()=>handleAnswer(item, opt.value),
+                    style: {
+                      width:'100%', textAlign:'left', padding:'20px 22px', minHeight:72,
+                      borderRadius:16, border:`2px solid ${isSelected?AC.goldDark:AC.border}`,
+                      background: isSelected ? AC.goldTint : AC.surface,
+                      display:'flex', alignItems:'center', justifyContent:'space-between', gap:16,
+                      cursor:'pointer', boxShadow: isSelected ? '0 2px 8px rgba(138,109,47,0.25)' : '0 1px 2px rgba(17,24,39,0.05)',
+                      fontFamily:AC.font,
+                    }
+                  },
+                    React.createElement("div", null,
+                      React.createElement("div", {style: { fontSize:19, fontWeight:700, color:AC.text, marginBottom:4 }}, opt.label),
+                      React.createElement("div", {style: { fontSize:15, color:AC.muted, lineHeight:1.5 }}, opt.subtitle)
+                    ),
+                    React.createElement("div", {"aria-hidden":"true", style: {
+                      width:26, height:26, borderRadius:'50%', flexShrink:0,
+                      border:`2px solid ${isSelected?AC.goldDark:AC.border}`,
+                      background: isSelected ? AC.goldDark : 'transparent',
+                      display:'flex', alignItems:'center', justifyContent:'center',
+                    }}, isSelected && React.createElement("div", {style: { width:10, height:10, borderRadius:'50%', background:'#FFFFFF' }}))
+                  )
+                );
+              }))
+            ),
+            React.createElement("button", {className: "nf-a11y-btn", onClick: ()=>setStep(s=>Math.max(0,s-1)), style: {
+              fontFamily:AC.font, fontSize:16, fontWeight:600, marginTop:32, padding:'12px 18px', minHeight:48,
+              background:'transparent', color:AC.muted, border:`1px solid ${AC.border}`, cursor:'pointer', borderRadius:12,
+            }}, '← Previous')
+          )
+        )
+      );
+    }
+
+
+
+    // ═══════════════════════════════════════════════════════════════════
+    //  ANALYTICS VIEW
+    // ═══════════════════════════════════════════════════════════════════
+    // "YOUR COGNITIVE JOURNEY" — every completed CFI-1.0 attempt for this user, oldest→newest,
+    // with per-assessment numbering, change vs. the previous attempt, and band movement.
+    // A lower CFI score is less fragmentation, i.e. improvement — matches the Clarity Delta™
+    // sign convention used elsewhere on this page (baseline - latest).
+    function CFIJourney({ cfiHistory = [] }) {
+      if (cfiHistory.length < 2) return null;
+      const brainDims = ['A','I','S','R'];
+      const dimLabels = { A:'Analytical', I:'Intuitive', S:'Associative', R:'Reflective' };
+      const baseline = cfiHistory[0], latest = cfiHistory[cfiHistory.length - 1];
+      return React.createElement("div", {className: "card", style: { padding:'32px', marginBottom:40 }},
+        React.createElement("div", {style: { ...mono, fontSize:11, letterSpacing:1, color:C.cyan, marginBottom:24 }}, 'Your Cognitive Journey'),
+        React.createElement("div", {style: { display:'flex', flexDirection:'column', gap:4 }},
+          cfiHistory.map((r, i) => {
+            const prev = i > 0 ? cfiHistory[i-1] : null;
+            const change = prev ? (r.total_score - prev.total_score) : null;
+            const improved = change !== null && change < 0;
+            const worsened = change !== null && change > 0;
+            return React.createElement(React.Fragment, {key: r.id || i},
+              i > 0 && React.createElement("div", {style: { ...mono, fontSize:12, color:C.dim, paddingLeft:8 }}, '↓'),
+              React.createElement("div", {style: { display:'flex', alignItems:'center', gap:16, flexWrap:'wrap', padding:'10px 8px' }},
+                React.createElement("div", {style: { ...mono, fontSize:10, letterSpacing:1, color:C.muted, minWidth:90 }}, 'Assessment #', r.assessment_number || i+1),
+                React.createElement("div", {style: { ...syne, fontSize:16, fontWeight:800, color:C.text }}, 'CFI: ', r.total_score),
+                React.createElement("div", {style: { fontSize:12, color:C.muted }}, r.band),
+                change !== null && React.createElement("div", {style: { ...mono, fontSize:11, color: improved?'#7AAFCF':worsened?'#F87171':C.muted, marginLeft:'auto' }},
+                  'Change: ', change>0?'+':'', change),
+                React.createElement("div", {style: { ...mono, fontSize:9, color:C.dim }}, new Date(r.created_at).toLocaleDateString())
+              )
+            );
+          })
+        ),
+        React.createElement("div", {style: { marginTop:28, paddingTop:24, borderTop:`1px solid ${C.border}` }},
+          React.createElement("div", {style: { ...mono, fontSize:11, letterSpacing:1, color:C.cyan, marginBottom:16 }}, 'Four-Brain progress · baseline → latest'),
+          React.createElement("div", {style: { display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(min(160px, 100%), 1fr))', gap:16 }},
+            brainDims.map(d => {
+              const b0 = baseline.dim_scores?.[d], b1 = latest.dim_scores?.[d];
+              if (b0 === undefined || b1 === undefined) return null;
+              const delta = b1 - b0;
+              const col = C.brains[{A:'analytical',I:'intuitive',S:'associative',R:'reflective'}[d]]?.color || C.cyan;
+              return React.createElement("div", {key: d}, React.createElement("div", {style: { ...mono, fontSize:10, letterSpacing:1, color:col, marginBottom:6 }}, dimLabels[d]),
+                React.createElement("div", {style: { display:'flex', alignItems:'baseline', gap:6 }},
+                  React.createElement("div", {style: { ...mono, fontSize:13, color:C.muted }}, b0, '%'),
+                  React.createElement("div", {style: { ...mono, fontSize:11, color:C.dim }}, '→'),
+                  React.createElement("div", {style: { ...syne, fontSize:15, fontWeight:800, color:C.text }}, b1, '%'),
+                  React.createElement("div", {style: { ...mono, fontSize:10, color: delta<0?'#7AAFCF':delta>0?'#F87171':C.muted }}, delta<0?'':'+', delta)
+                )
+              );
+            })
+          )
+        )
+      );
+    }
+
+    function AnalyticsView({ cfiResult, lessonProgress, cfiHistory=[], setView }) {
+      const completedLessons = Object.values(lessonProgress).filter(v=>v===100).length;
+      const hasDelta = cfiHistory.length >= 2;
+      const baselineCFI = hasDelta ? cfiHistory[0] : null;
+      const latestCFI = hasDelta ? cfiHistory[cfiHistory.length - 1] : null;
+      const clarityDelta = hasDelta ? (baselineCFI.total_score - latestCFI.total_score) : null; // positive = less fragmentation
+
+      return (
+        React.createElement("div", {style: { paddingTop:80, paddingBottom:100 }}, React.createElement("div", {style: { maxWidth:1200, margin:'0 auto', padding:'40px 24px' }}, React.createElement("div", {style: { ...mono, fontSize:11, letterSpacing:1.5, color:C.cyan, marginBottom:16 }}, 'Analytics'), React.createElement("h1", {style: { ...syne, fontSize:17, fontWeight:800, color:C.text, marginBottom:16, overflowWrap:'break-word', minWidth:0}}, 'Your cognitive', React.createElement("br", null), 'performance map'), React.createElement("p", {style: { fontSize:15, color:C.muted, maxWidth:560, lineHeight:1.8, marginBottom:48 }}, 'Track your thinking evolution, mode balance, and training effectiveness.'), !cfiResult ? (
+              React.createElement("div", {className: "card", style: { padding:'60px', textAlign:'center' }}, React.createElement("div", {style: { ...mono, fontSize:14, color:C.dim, marginBottom:24 }}, '◎'), React.createElement("div", {style: { ...syne, fontSize:17, fontWeight:700, color:C.text, marginBottom:12, overflowWrap:'break-word', minWidth:0}}, 'No data yet'), React.createElement("div", {style: { fontSize:14, color:C.muted, marginBottom:32, maxWidth:400, margin:'0 auto 32px' }}, 'Complete the CFI assessment to generate your profile and unlock analytics.'), React.createElement("button", {className: "btn-primary", onClick: ()=>setView('cfi')}, 'Take CFI assessment →'))
+            ) : (
+              React.createElement(React.Fragment, null, React.createElement("div", {style: { display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(min(180px, 100%), 1fr))', gap:16, marginBottom:40 }}, [
+                    { label:'CFI score', value:cfiResult.total, unit:'/65', color:cfiResult.total<=17?'#7AAFCF':cfiResult.total<=28?'#C4A050':'#F87171' },
+                    { label:'Lessons', value:completedLessons, unit:`/${LESSONS.length}`, color:'#E2BE78' },
+                    { label:'Band', value:cfiResult.band.split(' ')[0], unit:'', color:'#C4A050', small:true },
+                  ].map((s,i)=>(
+                    React.createElement("div", {key: i, className: "card", style: { padding:'24px' }}, React.createElement("div", {style: { ...mono, fontSize:11, letterSpacing:1, color:C.muted, marginBottom:12 }}, s.label), React.createElement("div", {style: { display:'flex', alignItems:'baseline', gap:4 }}, React.createElement("div", {style: { ...syne, fontSize:s.small?18:32, fontWeight:800, color:s.color, overflowWrap:'break-word', minWidth:0}}, s.value), s.unit && React.createElement("div", {style: { ...mono, fontSize:10, color:C.muted }}, s.unit)))
+                  ))), React.createElement("div", {className: "card", style: { padding:'32px', marginBottom:40 }}, React.createElement("div", {style: { ...mono, fontSize:11, letterSpacing:1, color:C.cyan, marginBottom:hasDelta?24:12 }}, 'Clarity Delta™'), !hasDelta ? (
+                    React.createElement("div", {style: { fontSize:14, color:C.muted, lineHeight:1.8 }}, 'Retake the CFI™ assessment to start tracking your Clarity Delta™, the change in your fragmentation score over time.', React.createElement("br", null), React.createElement("button", {className: "btn-primary", style: { marginTop:16 }, onClick: ()=>setView('cfi')}, 'Retake CFI assessment →'))
+                  ) : (
+                    React.createElement("div", {style: { display:'flex', alignItems:'center', gap:32, flexWrap:'wrap' }},
+                      React.createElement("div", null, React.createElement("div", {style: { ...mono, fontSize:10, letterSpacing:1, color:C.muted, marginBottom:6 }}, 'Baseline'), React.createElement("div", {style: { ...syne, fontSize:22, fontWeight:800, color:C.muted }}, baselineCFI.total_score), React.createElement("div", {style: { ...mono, fontSize:9, color:C.dim, marginTop:4 }}, new Date(baselineCFI.created_at).toLocaleDateString())),
+                      React.createElement("div", {style: { ...mono, fontSize:16, color:C.dim }}, '→'),
+                      React.createElement("div", null, React.createElement("div", {style: { ...mono, fontSize:10, letterSpacing:1, color:C.muted, marginBottom:6 }}, 'Current'), React.createElement("div", {style: { ...syne, fontSize:22, fontWeight:800, color:C.text }}, latestCFI.total_score), React.createElement("div", {style: { ...mono, fontSize:9, color:C.dim, marginTop:4 }}, new Date(latestCFI.created_at).toLocaleDateString())),
+                      React.createElement("div", {style: { marginLeft:'auto' }}, React.createElement("div", {style: { ...mono, fontSize:10, letterSpacing:1, color:C.muted, marginBottom:6 }}, 'Clarity Delta™'), React.createElement("div", {style: { ...syne, fontSize:32, fontWeight:800, color:clarityDelta>0?'#7AAFCF':clarityDelta<0?'#F87171':C.muted }}, clarityDelta>0?'+':'', clarityDelta))
+                    )
+                  )), hasDelta && React.createElement(CFIJourney, { cfiHistory }), React.createElement("div", {style: { display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(min(300px, 100%), 1fr))', gap:24, marginBottom:40 }}, React.createElement("div", {className: "card", style: { padding:'32px' }}, React.createElement("div", {style: { ...mono, fontSize:11, letterSpacing:1, color:C.cyan, marginBottom:24 }}, 'Mode fragmentation'), Object.entries(cfiResult.dimScores).map(([dim,score])=>{
+                      const dimNames = {A:'Analytical',I:'Intuitive',S:'Associative',R:'Reflective',E:'Integration'};
+                      const brainKey = {A:'analytical',I:'intuitive',S:'associative',R:'reflective',E:'integration'}[dim];
+                      const col = C.brains[brainKey]?.color || C.cyan;
+                      const fragPct = score;
+                      return (
+                        React.createElement("div", {key: dim, style: { marginBottom:20 }}, React.createElement("div", {style: { display:'flex', justifyContent:'space-between', marginBottom:8 }}, React.createElement("div", {style: { display:'flex', alignItems:'center', gap:8 }}, React.createElement("div", {style: { ...mono, fontSize:10, color:col }}, C.brains[brainKey]?.symbol || '◈'), React.createElement("div", {style: { fontSize:13, color:C.muted }}, dimNames[dim])), React.createElement("div", {style: { ...mono, fontSize:9, color:col }}, fragPct, '%')), React.createElement("div", {style: { height:4, background:C.panel, borderRadius:2, overflow:'hidden' }}, React.createElement("div", {style: { width:`${fragPct}%`, height:'100%', background:col, borderRadius:2 }})))
+                      );
+                    })), React.createElement("div", {className: "card", style: { padding:'32px' }}, React.createElement("div", {style: { ...mono, fontSize:11, letterSpacing:1, color:C.cyan, marginBottom:24 }}, 'Cognitive profile'), React.createElement("div", {style: { display:'flex', justifyContent:'center', flexWrap:'wrap', gap:24 }}, Object.entries(C.brains).map(([key,b])=>{
+                        const dimKey = {analytical:'A',intuitive:'I',associative:'S',reflective:'R'}[key];
+                        const score = cfiResult.dimScores[dimKey] || 0;
+                        const strength = Math.max(0, 100-score);
+                        return (
+                          React.createElement("div", {key: key, style: { textAlign:'center' }}, React.createElement(ProgressRing, {value: strength, size: 72, color: b.color}), React.createElement("div", {style: { ...mono, fontSize:11, letterSpacing:1, color:C.muted, marginTop:8 }}, b.label.split(' ')[0].toUpperCase()))
+                        );
+                      })), React.createElement("div", {style: { marginTop:24, padding:'16px', background:C.deep, borderRadius:2, border:`1px solid ${C.border}` }}, React.createElement("div", {style: { ...mono, fontSize:11, letterSpacing:1, color:C.muted, marginBottom:8 }}, 'Dominant mode'), React.createElement("div", {style: { ...syne, fontSize:14, fontWeight:800, color:C.brains[cfiResult.dominantBrain]?.color||C.cyan, overflowWrap:'break-word', minWidth:0}}, FOUR_BRAINS[cfiResult.dominantBrain]?.label || 'N/A')))), React.createElement("div", {className: "card", style: { padding:'32px' }}, React.createElement("div", {style: { ...mono, fontSize:11, letterSpacing:1, color:C.cyan, marginBottom:24 }}, 'Lesson progress'), LESSONS.map((lesson,i)=>{
+                    const prog = lessonProgress[lesson.id] || 0;
+                    const col = lesson.level==='Foundation'?C.cyan:lesson.level==='Intermediate'?'#E2BE78':lesson.level==='Advanced'?'#C4A050':'#7AAFCF';
+                    return (
+                      React.createElement("div", {key: lesson.id, style: { marginBottom:20 }}, React.createElement("div", {style: { display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:8 }}, React.createElement("div", null, React.createElement("div", {style: { fontSize:13, color:C.text, fontWeight:500 }}, 'Lesson', lesson.id, ':', lesson.title), React.createElement("div", {style: { ...mono, fontSize:11, letterSpacing:1, color:C.muted, marginTop:4 }}, lesson.level)), React.createElement("div", {style: { ...mono, fontSize:9, color:prog===100?'#7AAFCF':C.muted }}, prog===100?'Complete':prog>0?`${prog}%`:'--')), React.createElement("div", {style: { height:3, background:C.panel, borderRadius:2, overflow:'hidden' }}, React.createElement("div", {style: { width:`${prog}%`, height:'100%', background:col, borderRadius:2, transition:'width 0.8s ease' }})))
+                    );
+                  })))
+            )))
+      );
+    }
+
+    // ═══════════════════════════════════════════════════════════════════
+    //  ACADEMY PERSONALIZATION ENGINE
+    //  CFI™ → Cognitive Profile → Development Opportunity → Recommended
+    //  Lesson → Training → Practice → Integration → Progress → Next.
+    //  Reads ONLY real cfiResult / LESSONS / lessonProgress data. Never
+    //  invents lessons, never fabricates metrics, never fakes completion.
+    // ═══════════════════════════════════════════════════════════════════
+
+    // Priority order (see master prompt "RECOMMENDATION LOGIC"):
+    // 1. Cognitive development opportunity (weakest dim → matching lesson.brain)
+    // 2. Current training progress (an in-progress lesson wins over a fresh one)
+    // 3. Lessons already completed (skip them)
+    // 4/5. Prerequisites / level progression (curriculum order, id ascending)
+    function getAcademyRecommendation(cfiResult, lessonProgress) {
+      const isComplete = id => (lessonProgress[id] || 0) === 100;
+      const inProgress = LESSONS.find(l => { const p = lessonProgress[l.id] || 0; return p > 0 && p < 100; });
+      if (inProgress) {
+        return { lesson: inProgress, opportunityDim: cfiResult?.profile?.weakestDim || null,
+          reason: `You're partway through this lesson. Finish it before starting something new — consistency matters more than coverage.` };
+      }
+      if (!cfiResult || !cfiResult.plan) {
+        const first = LESSONS.find(l => !isComplete(l.id)) || LESSONS[0];
+        return { lesson: first, opportunityDim: null,
+          reason: `This is the starting point for every NeuralFusion™ member. Take your CFI™ assessment and this recommendation will update to match how you think.` };
+      }
+      const { plan, profile } = cfiResult;
+      // plan.recommendedLessonIds = [1, <weakest-brain lesson id>]; weakest-first.
+      const ordered = [...plan.recommendedLessonIds].reverse();
+      const fromPlan = ordered.map(id => LESSONS.find(l => l.id === id)).filter(Boolean).find(l => !isComplete(l.id));
+      const nextInCurriculum = LESSONS.find(l => !isComplete(l.id));
+      const lesson = fromPlan || nextInCurriculum || LESSONS[LESSONS.length - 1];
+      const weakestName = CFI_DIM_LABELS[profile.weakestDim];
+      const matchesOpportunity = lesson.brain === profile.weakestBrain;
+      let reason;
+      if (matchesOpportunity) reason = `${weakestName} is currently your developing mode. ${plan.dailyExercise}`;
+      else if (lesson.id === 1) reason = `This lesson builds the foundation every later lesson depends on, including the training that targets ${weakestName.toLowerCase()}.`;
+      else if (!fromPlan && nextInCurriculum) reason = `You've completed your opportunity-matched training. This is your next lesson in sequence, building coordination across all four modes.`;
+      else reason = `This is the most relevant next step in your training journey right now.`;
+      return { lesson, opportunityDim: profile.weakestDim, reason };
+    }
+
+    // Five-step training path. Only marks a step complete/current when real
+    // state supports it — never a fabricated "in progress" for a step with
+    // no underlying data.
+    function getAcademySteps(cfiResult, lessonProgress) {
+      const completedCount = Object.values(lessonProgress).filter(v => v === 100).length;
+      const hasCFI = !!cfiResult;
+      const opportunityDone = cfiResult?.plan
+        ? cfiResult.plan.recommendedLessonIds.every(id => (lessonProgress[id] || 0) === 100)
+        : false;
+      const steps = [
+        { key: 'understand', step: '01', title: 'Understand', desc: 'Learn how your thinking works.', view: 'cfi',
+          status: hasCFI ? 'done' : 'current' },
+        { key: 'develop', step: '02', title: 'Develop', desc: 'Train your cognitive opportunity.', view: 'lessons',
+          status: !hasCFI ? 'locked' : opportunityDone ? 'done' : 'current' },
+        { key: 'integrate', step: '03', title: 'Integrate', desc: 'Apply multiple thinking modes together.', view: 'protocol',
+          status: !hasCFI ? 'locked' : opportunityDone ? 'current' : 'locked' },
+        { key: 'apply', step: '04', title: 'Apply', desc: 'Use NeuralFusion on real decisions and problems.', view: 'protocol',
+          status: completedCount >= LESSONS.length ? 'current' : 'locked' },
+        { key: 'improve', step: '05', title: 'Improve', desc: 'Track your development over time.', view: 'analytics',
+          status: hasCFI ? 'available' : 'locked' },
+      ];
+      return steps;
+    }
+
+    const DAILY_PRACTICE = {
+      A: { label: 'Analyze',   prompt: "Identify the facts you actually know about something on your mind right now, and separate them from your assumptions." },
+      I: { label: 'Sense',     prompt: "What are you noticing about a current situation that the available facts don't fully explain?" },
+      S: { label: 'Associate', prompt: "Name three unrelated ideas or fields that could change how you see a problem you're facing." },
+      R: { label: 'Reflect',   prompt: "What might you be overlooking in a decision you're currently working through?" },
+    };
+    function getDailyPractice(cfiResult) {
+      const dim = cfiResult?.profile?.weakestDim;
+      if (dim && DAILY_PRACTICE[dim]) return { dim, ...DAILY_PRACTICE[dim] };
+      const order = ['A', 'I', 'S', 'R'];
+      const dayIndex = Math.floor(Date.now() / 86400000) % order.length;
+      const fallbackDim = order[dayIndex];
+      return { dim: fallbackDim, ...DAILY_PRACTICE[fallbackDim] };
+    }
+
+    // ── Section 7: Today's Cognitive Practice ──────────────────────────
+    // Simplest functional version: no existing daily-practice engine to
+    // reuse, so this tracks only in-session state (no DB table exists for
+    // it yet) — an honest, un-fabricated completion marker for today.
+    function AcademyDailyPractice({ cfiResult }) {
+      const practice = getDailyPractice(cfiResult);
+      const [open, setOpen] = useState(false);
+      const [response, setResponse] = useState('');
+      const [done, setDone] = useState(false);
+      return (
+        React.createElement(CPCard, { style: { padding: '32px 26px', marginBottom: 20 } },
+          React.createElement(CPEyebrow, null, "Today's Cognitive Practice"),
+          React.createElement("div", { style: { ...syne, fontSize: 15, fontWeight: 800, color: CP.ink, marginBottom: 10 } }, practice.label),
+          React.createElement("div", { style: { fontSize: 13.5, color: CP.text, lineHeight: 1.7, marginBottom: open ? 16 : 20 } }, practice.prompt),
+          open && !done && React.createElement("div", { style: { marginBottom: 16 } },
+            React.createElement("textarea", {
+              value: response, onChange: e => setResponse(e.target.value), rows: 3, placeholder: 'Write a sentence or two…',
+              style: { width: '100%', boxSizing: 'border-box', padding: '12px 14px', borderRadius: 10, border: `1px solid ${CP.borderStrong}`, fontFamily: inter.fontFamily, fontSize: 13.5, color: CP.text, resize: 'vertical' }
+            })
+          ),
+          done && React.createElement("div", { style: { fontSize: 13, color: CP.goldDeep, marginBottom: 16 } }, "✓ Today's practice complete. Come back tomorrow for the next one."),
+          !done && React.createElement(CPButton, { onClick: () => { if (!open) { setOpen(true); } else { setDone(true); } } }, open ? 'Mark Practice Complete →' : "Start Today's Practice →")
+        )
+      );
+    }
+
+    // ── Full Academy homepage (Sections 1–10), rendered above the lesson
+    // library when the person is on the Lessons list view. ──────────────
+    function AcademyHome({ setView, user, setShowAuth, cfiResult, cfiHistory = [], lessonProgress, isPro, onStartLesson, onUpgrade }) {
+      const hasCFI = !!(cfiResult && cfiResult.dimensionReports);
+      const rec = getAcademyRecommendation(cfiResult, lessonProgress);
+      const steps = getAcademySteps(cfiResult, lessonProgress);
+      const completedCount = Object.values(lessonProgress).filter(v => v === 100).length;
+      const inProgressLesson = LESSONS.find(l => { const p = lessonProgress[l.id] || 0; return p > 0 && p < 100; });
+      const hasDelta = cfiHistory.length >= 2;
+      const clarityDelta = hasDelta ? (cfiHistory[0].total_score - cfiHistory[cfiHistory.length - 1].total_score) : null;
+
+      // A lesson is locked when it isn't free and the person isn't Pro — same
+      // rule the Academy library uses. Recommendations must never bypass it.
+      const isLessonLocked = lesson => !!lesson && !lesson.free && !isPro;
+      // Renders "Start / Continue" when unlocked, or a Pro-required prompt that
+      // routes to upgrade instead of opening the lesson, when locked.
+      const LessonCTA = ({ lesson, label }) => isLessonLocked(lesson)
+        ? React.createElement("div", null,
+            React.createElement("div", { style: { display: 'inline-flex', alignItems: 'center', gap: 8, ...mono, fontSize: 10, letterSpacing: 1, color: '#C24545', marginBottom: 14 } },
+              '⊘ PRO REQUIRED'),
+            React.createElement("div", null,
+              React.createElement(CPButton, { onClick: onUpgrade }, 'Upgrade to Unlock →'))
+          )
+        : React.createElement(CPButton, { onClick: () => onStartLesson(lesson.id) }, label);
+
+      const stepStyle = s => ({
+        textAlign: 'left', padding: '16px 14px', borderRadius: 12, border: `1px solid ${CP.border}`,
+        background: s.status === 'locked' ? CP.surface : CP.card,
+        opacity: s.status === 'locked' ? 0.55 : 1,
+        cursor: s.status === 'locked' ? 'default' : 'pointer',
+      });
+
+      return (
+        React.createElement("div", { style: { marginBottom: 56 } },
+
+          // ── Header ──
+          React.createElement("div", { style: { marginBottom: 32 } },
+            React.createElement(CPEyebrow, null, 'Your Cognitive Training Path'),
+            React.createElement("h1", { style: { ...syne, fontSize: 'clamp(20px,4.5vw,28px)', fontWeight: 800, color: CP.ink, marginBottom: 12, lineHeight: 1.15 } }, 'Develop How You Think'),
+            React.createElement("div", { style: { fontSize: 13.5, color: CP.muted, lineHeight: 1.7, maxWidth: 520, marginBottom: 20 } }, 'Your Cognitive Profile gives you a starting point. Your training path helps you develop from there.'),
+            hasCFI
+              ? React.createElement("button", { className: 'nf-cp-btn', onClick: () => setView('cfi'), style: { ...mono, fontSize: 11, letterSpacing: 1, color: CP.goldDeep, background: 'none', border: 'none', cursor: 'pointer', padding: 0 } }, 'View My Cognitive Profile →')
+              : React.createElement(CPButton, { onClick: () => setView('cfi') }, 'Take Your CFI™ Assessment →')
+          ),
+
+          // ── YOUR PROFILE ──
+          hasCFI && React.createElement("div", { style: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(150px,100%),1fr))', gap: 14, marginBottom: 32 } },
+            CP_MODE_ORDER.map(d => React.createElement(CPModeCard, { key: d, dim: d, report: cfiResult.dimensionReports[d] }))
+          ),
+
+          // ── SECTION 1 — Recommended for you ──
+          React.createElement(CPCard, { style: { padding: '32px 26px', marginBottom: 20, borderColor: CP.borderStrong } },
+            React.createElement(CPEyebrow, null, 'Recommended For You'),
+            React.createElement("div", { style: { display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap', marginBottom: 8 } },
+              React.createElement("div", { style: { ...syne, fontSize: 17, fontWeight: 800, color: CP.ink } }, rec.lesson.title),
+              isLessonLocked(rec.lesson) && React.createElement("div", { style: { ...mono, fontSize: 9.5, letterSpacing: 1, color: '#C24545', padding: '3px 8px', border: '1px solid #C2454555', borderRadius: 2 } }, 'PRO REQUIRED')
+            ),
+            React.createElement("div", { style: { fontSize: 13.5, color: CP.muted, lineHeight: 1.6, marginBottom: 18 } }, rec.lesson.sub),
+            React.createElement("div", { style: { marginBottom: 20 } },
+              React.createElement("div", { style: { ...mono, fontSize: 9, letterSpacing: 1, color: CP.faint, marginBottom: 6 } }, 'WHY THIS LESSON?'),
+              React.createElement("div", { style: { fontSize: 13.5, color: CP.text, lineHeight: 1.7 } }, rec.reason)
+            ),
+            React.createElement(LessonCTA, { lesson: rec.lesson, label: 'Start This Lesson →' })
+          ),
+
+          // ── SECTION 2 — Learning path ──
+          React.createElement("div", { style: { marginBottom: 20 } },
+            React.createElement(CPEyebrow, null, 'Your Learning Path'),
+            React.createElement("div", { style: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(140px,100%),1fr))', gap: 12 } },
+              steps.map(s => (
+                React.createElement("button", { key: s.key, className: 'nf-cp-row', disabled: s.status === 'locked', onClick: () => setView(s.view), style: stepStyle(s) },
+                  React.createElement("div", { style: { ...mono, fontSize: 10, letterSpacing: 1, color: CP.gold, marginBottom: 8 } }, s.step),
+                  React.createElement("div", { style: { ...syne, fontSize: 13, fontWeight: 800, color: CP.ink, marginBottom: 4 } }, s.title),
+                  React.createElement("div", { style: { fontSize: 11.5, color: CP.muted, lineHeight: 1.5, marginBottom: 8 } }, s.desc),
+                  React.createElement("div", { style: { ...mono, fontSize: 10, letterSpacing: 0.5, color: s.status === 'done' ? '#3E7CA6' : s.status === 'current' ? CP.goldDeep : CP.faint } },
+                    s.status === 'done' ? '✓ Complete' : s.status === 'current' ? '→ Current' : s.status === 'available' ? 'Available' : 'Locked')
+                )
+              ))
+            )
+          ),
+
+          // ── SECTION 3 — Continue where you left off ──
+          React.createElement(CPCard, { style: { padding: '28px 26px', marginBottom: 20 } },
+            React.createElement(CPEyebrow, null, inProgressLesson ? 'Continue Training' : 'Begin Your First Training Session'),
+            inProgressLesson
+              ? React.createElement(React.Fragment, null,
+                  React.createElement("div", { style: { ...syne, fontSize: 15, fontWeight: 800, color: CP.ink, marginBottom: 8 } }, inProgressLesson.title),
+                  React.createElement("div", { style: { display: 'flex', alignItems: 'center', gap: 12, marginBottom: 18 } },
+                    React.createElement("div", { style: { flex: 1, height: 6, background: CP.goldTint, borderRadius: 3, overflow: 'hidden' } },
+                      React.createElement("div", { style: { width: `${lessonProgress[inProgressLesson.id]}%`, height: '100%', background: CP.gold } })
+                    ),
+                    React.createElement("div", { style: { ...mono, fontSize: 11, color: CP.muted } }, `${lessonProgress[inProgressLesson.id]}% complete`)
+                  ),
+                  React.createElement(LessonCTA, { lesson: inProgressLesson, label: 'Continue Lesson →' })
+                )
+              : React.createElement(React.Fragment, null,
+                  React.createElement("div", { style: { fontSize: 13.5, color: CP.muted, lineHeight: 1.7, marginBottom: 18 } }, "You haven't started a lesson yet. Your recommended lesson above is the best place to begin."),
+                  React.createElement(LessonCTA, { lesson: rec.lesson, label: 'Start Recommended Lesson →' })
+                )
+          ),
+
+          // ── SECTION 4 — Four Thinking Modes ──
+          React.createElement("div", { style: { marginBottom: 20 } },
+            React.createElement(CPEyebrow, null, 'The Four Thinking Modes'),
+            React.createElement("div", { style: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(220px,100%),1fr))', gap: 14 } },
+              CP_MODE_ORDER.map(d => {
+                const brainKey = CFI_DIMENSION_META[d].brainKey;
+                const modeLessons = LESSONS.filter(l => l.brain === brainKey);
+                const modeCompleted = modeLessons.filter(l => (lessonProgress[l.id] || 0) === 100).length;
+                const avgProgress = modeLessons.length ? Math.round(modeLessons.reduce((s, l) => s + (lessonProgress[l.id] || 0), 0) / modeLessons.length) : null;
+                return (
+                  React.createElement(CPCard, { key: d, style: { padding: '20px 18px' } },
+                    React.createElement("div", { style: { ...syne, fontSize: 13, fontWeight: 800, color: CP.ink, marginBottom: 4 } }, CP_MODE_META[d].name),
+                    React.createElement("div", { style: { ...mono, fontSize: 9.5, letterSpacing: 0.4, color: CP.faint, marginBottom: 14 } }, CP_MODE_META[d].tagline),
+                    hasCFI && React.createElement("div", { style: { ...syne, fontSize: 20, fontWeight: 800, color: CP.goldDeep, marginBottom: 4 } }, cfiResult.dimensionReports[d].integrationScore, React.createElement("span", { style: { fontSize: 11, color: CP.faint, fontWeight: 500 } }, '% current level')),
+                    React.createElement("div", { style: { fontSize: 11.5, color: CP.muted } }, `${modeLessons.length} lesson${modeLessons.length === 1 ? '' : 's'}`, avgProgress !== null && avgProgress > 0 ? `, ${avgProgress}% training progress` : '')
+                  )
+                );
+              })
+            )
+          ),
+
+          // ── SECTION 5 — Train your development area ──
+          hasCFI && React.createElement(CPCard, { style: { padding: '32px 26px', marginBottom: 20 } },
+            React.createElement(CPEyebrow, null, 'Your Current Cognitive Opportunity'),
+            React.createElement("div", { style: { ...syne, fontSize: 16, fontWeight: 800, color: CP.ink, marginBottom: 10 } }, CFI_DIM_LABELS[cfiResult.profile.weakestDim]),
+            React.createElement("div", { style: { fontSize: 13.5, color: CP.muted, lineHeight: 1.7, marginBottom: 20 } }, 'This is an area where deliberate practice may help you create greater balance across your thinking process.'),
+            React.createElement("div", { style: { padding: '16px 18px', background: CP.surface, borderRadius: 12, border: `1px solid ${CP.border}`, marginBottom: 18 } },
+              React.createElement("div", { style: { ...mono, fontSize: 9, letterSpacing: 1, color: CP.faint, marginBottom: 6 } }, 'RECOMMENDED TRAINING'),
+              React.createElement("div", { style: { ...syne, fontSize: 13.5, fontWeight: 700, color: CP.ink } }, rec.lesson.title)
+            ),
+            React.createElement(LessonCTA, { lesson: rec.lesson, label: 'Train This Area →' })
+          ),
+
+          // ── SECTION 7 — Daily practice ──
+          React.createElement(AcademyDailyPractice, { cfiResult }),
+
+          // ── SECTION 8 — Integration Protocol ──
+          completedCount > 0 && React.createElement(CPCard, { style: { padding: '32px 26px', marginBottom: 20 } },
+            React.createElement(CPEyebrow, null, 'Put Your Thinking to Work'),
+            React.createElement("div", { style: { fontSize: 13.5, color: CP.muted, lineHeight: 1.7, marginBottom: 20 } }, 'Knowledge becomes useful when you apply it to something real.'),
+            React.createElement(CPButton, { onClick: () => setView('protocol') }, 'Start an Integration Session →')
+          ),
+
+          // ── SECTION 9 — Progress ──
+          React.createElement(CPCard, { style: { padding: '28px 26px', marginBottom: 20 } },
+            React.createElement(CPEyebrow, null, 'Your Cognitive Development'),
+            hasCFI
+              ? React.createElement("div", { style: { display: 'flex', gap: 28, flexWrap: 'wrap' } },
+                  React.createElement("div", null, React.createElement("div", { style: { ...syne, fontSize: 22, fontWeight: 800, color: CP.ink } }, completedCount, '/', LESSONS.length), React.createElement("div", { style: { ...mono, fontSize: 9.5, letterSpacing: 0.6, color: CP.faint } }, 'LESSONS COMPLETED')),
+                  React.createElement("div", null, React.createElement("div", { style: { ...syne, fontSize: 22, fontWeight: 800, color: CP.ink } }, cfiResult.integrationScore ?? '—'), React.createElement("div", { style: { ...mono, fontSize: 9.5, letterSpacing: 0.6, color: CP.faint } }, 'CFI™ COORDINATION SCORE'))
+                )
+              : React.createElement("div", { style: { fontSize: 13.5, color: CP.muted, lineHeight: 1.7 } }, 'Your baseline has been established. Complete your CFI™ assessment to begin tracking your journey.')
+          ),
+
+          // ── SECTION 10 — Clarity Delta ──
+          React.createElement(CPCard, { style: { padding: '28px 26px', marginBottom: 20 } },
+            React.createElement(CPEyebrow, null, 'Your Progress Over Time'),
+            hasDelta
+              ? React.createElement(React.Fragment, null,
+                  React.createElement("div", { style: { ...syne, fontSize: 26, fontWeight: 800, color: clarityDelta > 0 ? '#3E7CA6' : clarityDelta < 0 ? '#C24545' : CP.muted, marginBottom: 8 } }, clarityDelta > 0 ? '+' : '', clarityDelta),
+                  React.createElement("div", { style: { fontSize: 13, color: CP.muted, marginBottom: 16 } }, 'Change in Clarity Delta™ since your first CFI™.'),
+                  React.createElement(CPButton, { variant: 'outline', onClick: () => setView('analytics') }, 'View Full Progress →')
+                )
+              : React.createElement(React.Fragment, null,
+                  React.createElement("div", { style: { fontSize: 13.5, color: CP.muted, lineHeight: 1.7, marginBottom: 16 } }, hasCFI ? 'Your first CFI™ establishes your baseline. Retake it as you train to see your Clarity Delta™ over time.' : 'Take your CFI™ assessment to establish your starting point.'),
+                  React.createElement(CPButton, { variant: 'outline', onClick: () => setView('cfi') }, hasCFI ? 'Retake CFI™ →' : 'Take CFI™ →')
+                )
+          )
+        )
+      );
+    }
+
+    // ═══════════════════════════════════════════════════════════════════
+    //  LESSONS VIEW
+    // ═══════════════════════════════════════════════════════════════════
+    function LessonsView({ setView, user, session, paystackKey, setShowAuth, isPro, setIsPro, isEnterprise, cfiResult, cfiHistory, lessonProgress, setLessonProgress, proPrice = 600000 }) {
+      const [activeLesson, setActiveLesson] = useState(null);
+      const [page, setPage] = useState(0);
+      const [paystackLoading, setPaystackLoading] = useState(false);
+      const paystackHandlerRef = React.useRef(null);
+
+      // Load Paystack script dynamically then open popup
+      const loadPaystackScript = () => new Promise((resolve, reject) => {
+        if (typeof PaystackPop !== 'undefined') { resolve(); return; }
+        const s = document.createElement('script');
+        s.src = 'https://js.paystack.co/v1/inline.js';
+        s.onload = resolve;
+        s.onerror = reject;
+        document.head.appendChild(s);
+      });
+
+      const handleProPayment = () => {
+        if (!user) { setShowAuth(true); return; }
+        const PAYSTACK_KEY = paystackKey || 'pk_live_dfa71eca29f942cadc337cb8e41834857e2b129b';
+        setPaystackLoading(true);
+        loadPaystackScript().then(() => {
+          const handler = PaystackPop.setup({
+            key: PAYSTACK_KEY,
+            email: user.email,
+            amount: proPrice,
+            currency: 'NGN',
+            ref: 'nf_pro_' + Date.now() + '_' + user.id.slice(0, 8),
+            metadata: { user_id: user.id, plan: 'pro' },
+            onSuccess: async (transaction) => {
+              setPaystackLoading(false);
+              try {
+                const res = await fetch(SUPABASE_URL + '/functions/v1/verify-payment', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + session.access_token },
+                  body: JSON.stringify({ reference: transaction.reference, plan: 'pro' }),
+                });
+                const data = await res.json();
+                if (res.ok && data.success) { setIsPro(true); }
+                else { alert('Payment received but verification failed. Contact support with ref: ' + transaction.reference); }
+              } catch(e) { alert('Network error during verification. Contact support with ref: ' + transaction.reference); }
+            },
+            onCancel: () => { setPaystackLoading(false); },
+          });
+          handler.openIframe();
+        }).catch(() => { setPaystackLoading(false); alert('Could not load payment system. Check your connection and try again.'); });
+      };
+
+      const levelColors = { Foundation:C.cyan, Intermediate:'#E2BE78', Advanced:'#C4A050', Mastery:'#7AAFCF', Reference:'#4CF7C0' };
+
+      if (activeLesson) {
+        const lesson = LESSONS.find(l=>l.id===activeLesson);
+        const content = LESSON_CONTENT[activeLesson];
+        const pageData = content.pages[page];
+        const isLast = page === content.pages.length-1;
+        const col = levelColors[lesson.level] || C.cyan;
+
+        const handleComplete = () => {
+          const updated = {...lessonProgress, [activeLesson]:100};
+          setLessonProgress(updated);
+          if (user) upsertLessonProgress(user.id, activeLesson, 100);
+          setActiveLesson(null);
+          setPage(0);
+        };
+
+        return (
+          React.createElement("div", {style: { paddingTop:80, paddingBottom:60, minHeight:'100vh' }}, React.createElement("div", {style: { maxWidth:760, margin:'0 auto', padding:'40px 24px' }}, React.createElement("div", {style: { display:'flex', alignItems:'center', gap:16, marginBottom:32 }}, React.createElement("button", {className: "btn-ghost", onClick: ()=>{ setActiveLesson(null); setPage(0); }}, '← Manuals'), React.createElement("div", {style: { flex:1, height:1, background:C.border }}), React.createElement("div", {style: { ...mono, fontSize:11, letterSpacing:1, color:C.muted }}, page+1, '/', content.pages.length)), React.createElement("div", {style: { height:2, background:C.panel, borderRadius:2, marginBottom:20, overflow:'hidden' }}, React.createElement("div", {style: { width:`${((page+1)/content.pages.length)*100}%`, height:'100%', background:col, borderRadius:2, transition:'width 0.4s ease' }})), React.createElement("div", {key: `${activeLesson}-${page}`, style: { animation:'fadeUp 0.4s ease both' }}, React.createElement("div", {style: { ...mono, fontSize:11, letterSpacing:1, color:col, marginBottom:12 }}, 'Lesson', activeLesson, '·', lesson.level.toUpperCase()), React.createElement("h1", {style: { ...syne, fontSize:15, fontWeight:800, color:C.text, marginBottom:32, lineHeight:1.1, overflowWrap:'break-word', minWidth:0}}, pageData.title), React.createElement("div", {className: "card", style: { padding:'32px 36px', position:'relative', overflow:'hidden' }}, React.createElement("div", {style: { position:'absolute', top:0, left:0, width:2, height:'100%', background:col }}), pageData.body.split('\n\n').map((para,i)=>(
+                    React.createElement("p", {key: i, style: { fontSize:15, color:para.startsWith('◰')||para.startsWith('◱')||para.startsWith('◲')||para.startsWith('◳')||para.startsWith('1.')||para.startsWith('·') ? C.text : C.muted,
+                      lineHeight:1.9, marginBottom:i<pageData.body.split('\n\n').length-1?20:0,
+                      fontFamily: para.startsWith('◰')||para.startsWith('◱')||para.startsWith('◲')||para.startsWith('◳') ? "'Space Mono'" : "'DM Sans'",
+                      fontSize: para.startsWith('◰')||para.startsWith('◱')||para.startsWith('◲')||para.startsWith('◳') ? 13 : 15,
+                      whiteSpace:'pre-line', overflowWrap:'break-word',
+                    }}, para)
+                  ))), React.createElement("div", {style: { display:'flex', justifyContent:'space-between', marginTop:32, alignItems:'center' }}, React.createElement("button", {className: "btn-ghost", disabled: page===0, onClick: ()=>setPage(p=>p-1), style: { opacity:page===0?0.3:1 }}, '← Previous'), isLast ? (
+                    React.createElement("button", {className: "btn-primary", style: { background:col }, onClick: handleComplete}, 'Complete ✓')
+                  ) : (
+                    React.createElement("button", {className: "btn-primary", style: { background:col }, onClick: ()=>setPage(p=>p+1)}, 'Continue →')
+                  )))))
+        );
+      }
+
+      // ── Section 6: Explore the Academy — categorize real lessons only,
+      // never rename or fabricate. A lesson lands in the first category it
+      // matches; nothing is duplicated or invented. ──
+      const ACADEMY_CATEGORIES = [
+        { name: 'Foundations', match: l => l.level === 'Foundation' },
+        { name: 'Analytical Thinking', match: l => l.brain === 'analytical' },
+        { name: 'Intuitive Thinking', match: l => l.brain === 'intuitive' },
+        { name: 'Associative Thinking', match: l => l.brain === 'associative' },
+        { name: 'Reflective Thinking', match: l => l.brain === 'reflective' },
+        { name: 'Reference & Certification', match: l => l.level === 'Reference' },
+      ];
+      const assigned = new Set();
+      const categorized = ACADEMY_CATEGORIES.map(cat => {
+        const items = LESSONS.filter(l => !assigned.has(l.id) && cat.match(l));
+        items.forEach(l => assigned.add(l.id));
+        return { ...cat, items };
+      }).filter(cat => cat.items.length > 0);
+
+      return (
+        React.createElement("div", {style: { paddingTop:80, paddingBottom:100, background:CP.bg }},
+          React.createElement("div", {style: { maxWidth:1200, margin:'0 auto', padding:'40px 24px' }},
+
+            React.createElement(AcademyHome, { setView, user, setShowAuth, cfiResult, cfiHistory, lessonProgress, isPro,
+              onStartLesson: (id) => { const l = LESSONS.find(x=>x.id===id); if (l && (l.free || isPro)) { setActiveLesson(id); setPage(0); } },
+              onUpgrade: handleProPayment }),
+
+            React.createElement(CPEyebrow, null, 'Explore the Academy'),
+            React.createElement("h2", {style: { ...syne, fontSize:'clamp(18px,4vw,24px)', fontWeight:800, color:CP.ink, marginBottom:16, lineHeight:1.15 }}, 'The complete NeuralFusion™ curriculum'),
+            React.createElement("p", {style: { fontSize:14, color:CP.muted, maxWidth:560, lineHeight:1.8, marginBottom:40 }}, 'Structured manuals that form the complete NeuralFusion™ curriculum. Each is a cognitive transformation, not just information.'),
+
+            categorized.map(cat => (
+              React.createElement("div", {key: cat.name, style: { marginBottom:36 }},
+                React.createElement("div", {style: { ...mono, fontSize:10.5, letterSpacing:1, color:CP.goldDeep, marginBottom:14, textTransform:'uppercase' }}, cat.name),
+                React.createElement("div", {style: { display:'flex', flexDirection:'column', gap:14 }}, cat.items.map((lesson) => {
+                  const col = levelColors[lesson.level] || CP.gold;
+                  const prog = lessonProgress[lesson.id] || 0;
+                  const isLocked = !lesson.free && !isPro;
+                  const idx = LESSONS.findIndex(l => l.id === lesson.id);
+                  return (
+                    React.createElement(CPCard, {key: lesson.id, style: {
+                      padding:'24px 26px', position:'relative', overflow:'hidden',
+                      opacity: isLocked ? 0.65 : 1, cursor: isLocked ? 'default' : 'pointer',
+                    }, onClick: ()=>{ if(!isLocked){ setActiveLesson(lesson.id); setPage(0); } }},
+                      React.createElement("div", {style: { position:'absolute', top:0, left:0, width:3, height:'100%', background:prog===100?'#3E7CA6':prog>0?col:CP.border }}),
+                      React.createElement("div", {style: { display:'grid', gridTemplateColumns:'auto 1fr auto', gap:20, alignItems:'center' }},
+                        React.createElement("div", {style: { ...syne, fontSize:13, fontWeight:800, color:CP.faint }}, String(idx+1).padStart(2,'0')),
+                        React.createElement("div", null,
+                          React.createElement("div", {style: { display:'flex', gap:8, marginBottom:10, flexWrap:'wrap' }},
+                            React.createElement("div", {style: { ...mono, fontSize:10, letterSpacing:1, color:col, padding:'3px 8px', border:`1px solid ${col}55`, borderRadius:2 }}, lesson.level.toUpperCase()),
+                            React.createElement("div", {style: { ...mono, fontSize:10, letterSpacing:1, color:CP.muted, padding:'3px 8px', border:`1px solid ${CP.border}`, borderRadius:2 }}, lesson.duration.toUpperCase()),
+                            lesson.free && React.createElement("div", {style: { ...mono, fontSize:10, letterSpacing:1, color:'#3E7CA6', padding:'3px 8px', border:'1px solid #3E7CA655', borderRadius:2 }}, 'Free'),
+                            isLocked && React.createElement("div", {style: { ...mono, fontSize:10, letterSpacing:1, color:'#C24545', padding:'3px 8px', border:'1px solid #C2454555', borderRadius:2 }}, 'Pro required'),
+                            prog===100 && React.createElement("div", {style: { ...mono, fontSize:10, letterSpacing:1, color:'#3E7CA6', padding:'3px 8px', border:'1px solid #3E7CA655', borderRadius:2 }}, '✓ Complete')
+                          ),
+                          React.createElement("div", {style: { ...syne, fontSize:13.5, fontWeight:700, color:CP.ink, marginBottom:6 }}, lesson.title),
+                          React.createElement("div", {style: { fontSize:12.5, color:CP.muted }}, lesson.sub)
+                        ),
+                        React.createElement("div", {style: { ...mono, fontSize:14, color:CP.faint }}, isLocked ? '⊘' : prog===100 ? '✓' : '→')
+                      ),
+                      prog>0 && prog<100 && React.createElement("div", {style: { marginTop:14, height:4, background:CP.goldTint, borderRadius:2, overflow:'hidden' }},
+                        React.createElement("div", {style: { width:`${prog}%`, height:'100%', background:col, borderRadius:2 }}))
+                    )
+                  );
+                }))
+              )
+            )),
+
+            !isPro && React.createElement(CPCard, {style: { marginTop:24, padding:'40px', textAlign:'center' }},
+              React.createElement(CPEyebrow, null, 'Unlock all lessons'),
+              React.createElement("div", {style: { ...syne, fontSize:15, fontWeight:800, color:CP.ink, marginBottom:8 }}, 'Pro access'),
+              React.createElement("div", {style: { ...syne, fontSize:14, fontWeight:800, color:CP.goldDeep, marginBottom:2 }}, `₦${(proPrice/100).toLocaleString()}`),
+              React.createElement("div", {style: { fontSize:12, color:CP.faint, marginBottom:16 }}, usdApprox(proPrice), ' · billed in Naira'),
+              React.createElement("div", {style: { fontSize:14, color:CP.muted, marginBottom:32, maxWidth:400, margin:'0 auto 32px' }}, 'One-time payment. Unlocks Lessons 2–6 and the full training system.'),
+              React.createElement(CPButton, {onClick: handleProPayment, style: paystackLoading ? { opacity:0.6, pointerEvents:'none' } : {}}, paystackLoading ? 'Opening...' : `Upgrade to Pro: ₦${(proPrice/100).toLocaleString()} →`)
+            ),
+            !isEnterprise && React.createElement(CPCard, {style: { marginTop:20, padding:'40px', textAlign:'center', borderColor:'#3E7CA655', background:'#F5F9FB' }},
+              React.createElement(CPEyebrow, {color: '#3E7CA6'}, 'NeuralFusion™ Enterprise'),
+              React.createElement("div", {style: { ...syne, fontSize:15, fontWeight:800, color:CP.ink, marginBottom:8 }}, 'Deploy it across your organisation'),
+              React.createElement("div", {style: { ...syne, fontSize:14, fontWeight:800, color:'#3E7CA6', marginBottom:2 }}, '₦', ENTERPRISE_PRICE_DISPLAY),
+              React.createElement("div", {style: { fontSize:12, color:CP.faint, marginBottom:16 }}, usdApprox(ENTERPRISE_PRICE_KOBO), ' · billed in Naira'),
+              React.createElement("div", {style: { fontSize:14, color:CP.muted, marginBottom:32, maxWidth:480, margin:'0 auto 32px', lineHeight:1.8 }}, 'Cohort management · CFI data entry · Facilitator dashboard · 5-lesson programme · Clarity Delta™ reporting'),
+              React.createElement(CPButton, {onClick: ()=>setView('enterprise'), style: { background:'#3E7CA6', border:'1px solid #3E7CA6', color:'#FFFFFF' }}, 'Explore enterprise →')
+            )
+          )
+        )
+      );
+    }
+    // ═══════════════════════════════════════════════════════════════════
+    function AboutView({ setView }) {
+      const faqs = [
+        { q:'What is NeuralFusion™?', a:'NeuralFusion™ is the world\'s first Cognitive Performance Operating System (OS). It measures, trains, and optimizes how you think across the brain\'s four natural thinking modes. Not a productivity tool, not a wellness app. A trainable cognitive skill system.' },
+        { q:'What are the four thinking modes?', a:'NeuralFusion™ trains four natural thinking modes: Analytical, Intuitive, Associative, Reflective. Most people default to one or two. NeuralFusion™ teaches deliberate activation and coordination of all four.' },
+        { q:'What is the CFI assessment?', a:'The Cognitive Fragmentation Index (CFI™) identifies fragmented thinking across five cognitive dimensions. It produces a score, a band rating, and a personalized training recommendation to improve decision-making, collaboration, and performance.' },
+        { q:'How long before I see results?', a:'Most users report increased clarity within 1–3 sessions. The Core Integration Loop runs in under 90 seconds once trained. Full cognitive fluency typically installs within 21–42 days of daily practice.' },
+        { q:'How is this different from therapy or mindfulness?', a:'Therapy addresses psychological history. Mindfulness addresses present-moment awareness. NeuralFusion™ addresses cognitive architecture: the operating system behind how you think. A skill system, not a wellness practice.' },
+      ];
+      const [openFaq, setOpenFaq] = useState(null);
+
+      return (
+        React.createElement("div", {style: { paddingTop:80, paddingBottom:100 }}, React.createElement("div", {style: { maxWidth:1200, margin:'0 auto', padding:'60px 24px' }}, React.createElement("div", {style: { display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(min(300px, 100%), 1fr))', gap:64, alignItems:'center', marginBottom:80 }}, React.createElement("div", null, React.createElement("div", {style: { ...mono, fontSize:11, letterSpacing:1.5, color:C.cyan, marginBottom:20 }}, 'About NeuralFusion™'), React.createElement("h1", {style: { ...syne, fontSize:17, fontWeight:800, color:C.text, marginBottom:24, lineHeight:1.05, overflowWrap:'break-word', minWidth:0}}, 'Teaching humanity', React.createElement("br", null), React.createElement("span", {style: {color:C.cyan}}, 'how to think.')), React.createElement("p", {style: { fontSize:15, color:C.muted, lineHeight:1.9, marginBottom:20 }}, 'NeuralFusion™ is the world\'s first Cognitive Performance Operating System (OS) that measures, trains, and optimizes how people think across the brain\'s four natural thinking modes.'), React.createElement("p", {style: { fontSize:15, color:C.muted, lineHeight:1.9 }}, 'Using our Cognitive Fragmentation Index (CFI™), we identify fragmented thinking and deliver personalized cognitive training to improve decision-making, collaboration, innovation, and performance for individuals and organizations.')), React.createElement("div", {className: "card", style: { padding:'40px', position:'relative', overflow:'hidden' }}, React.createElement(ScanLine, null), React.createElement("div", {style: { ...mono, fontSize:11, letterSpacing:1, color:C.cyan, marginBottom:24 }}, 'Mission'), React.createElement("div", {style: { ...syne, fontSize:14, fontWeight:800, color:C.text, lineHeight:1.2, marginBottom:24, overflowWrap:'break-word', minWidth:0}}, '"Teach people how to think using structured cognitive systems."'), React.createElement("div", {style: { ...mono, fontSize:10, letterSpacing:1, color:C.muted }}, 'Life Edet, creator of NeuralFusion™'), React.createElement("div", {style: { marginTop:40 }}, [
+                    { label:'Cognitive modes', value:'4' },
+                    { label:'CFI dimensions', value:'5' },
+                    { label:'Training protocols', value:'6+' },
+                    { label:'Lesson manuals', value:'5' },
+                  ].map((s,i)=>(
+                    React.createElement("div", {key: i, style: { display:'flex', justifyContent:'space-between', padding:'12px 0', borderBottom:`1px solid ${C.border}` }}, React.createElement("div", {style: { fontSize:13, color:C.muted }}, s.label), React.createElement("div", {style: { ...syne, fontSize:15, fontWeight:800, color:C.cyan, overflowWrap:'break-word', minWidth:0}}, s.value))
+                  ))))), React.createElement("div", null, React.createElement("div", {style: { ...mono, fontSize:11, letterSpacing:1, color:C.cyan, marginBottom:32 }}, 'Frequently asked'), React.createElement("div", {style: { display:'flex', flexDirection:'column', gap:4 }}, faqs.map((faq,i)=>(
+                  React.createElement("div", {key: i, className: "card", style: { overflow:'hidden' }}, React.createElement("button", {onClick: ()=>setOpenFaq(openFaq===i?null:i), style: {
+                      width:'100%', padding:'20px 24px', background:'none', border:'none',
+                      display:'flex', justifyContent:'space-between', alignItems:'center',
+                      cursor:'pointer', textAlign:'left', gap:16,
+                    }}, React.createElement("div", {style: { ...syne, fontSize:14, fontWeight:600, color:C.text }}, faq.q), React.createElement("div", {style: { ...mono, fontSize:14, color:C.cyan, flexShrink:0, transition:'transform 0.2s', transform:openFaq===i?'rotate(45deg)':'none' }}, '+')), openFaq===i && (
+                      React.createElement("div", {style: { padding:'0 24px 24px', fontSize:14, color:C.muted, lineHeight:1.8, animation:'fadeIn 0.3s ease' }}, faq.a)
+                    ))
+                )))), React.createElement("div", {style: { marginTop:80, padding:'60px', textAlign:'center', background:C.deep, border:`1px solid ${C.border}`, borderRadius:4, position:'relative', overflow:'hidden' }}, React.createElement("div", {className: "grid-bg", style: { position:'absolute', inset:0 }}), React.createElement("div", {style: { position:'relative', zIndex:1 }}, React.createElement("div", {style: { ...mono, fontSize:11, letterSpacing:1.5, color:C.cyan, marginBottom:20 }}, 'Begin your evolution'), React.createElement("h2", {style: { ...syne, fontSize:14, fontWeight:800, color:C.text, marginBottom:16, lineHeight:1.1, overflowWrap:'break-word', minWidth:0}}, 'Your thinking is about to', React.createElement("br", null), React.createElement("span", {style: {color:C.cyan}}, 'change permanently.')), React.createElement("p", {style: { fontSize:14, color:C.muted, marginBottom:40, maxWidth:480, margin:'0 auto 40px' }}, 'Start with the CFI to measure where your cognition stands, then begin the training system.'), React.createElement("div", {style: { display:'flex', gap:16, justifyContent:'center', flexWrap:'wrap' }}, React.createElement("button", {className: "btn-primary", onClick: ()=>setView('cfi')}, 'Begin CFI →'), React.createElement("button", {className: "btn-outline", onClick: ()=>setView('four-brains')}, 'Explore the Four Brains'))))))
+      );
+    }
+
+    // ═══════════════════════════════════════════════════════════════════
+    //  LEGAL VIEW: Privacy, Terms & Data Protection
+    // ═══════════════════════════════════════════════════════════════════
+    // ═══════════════════════════════════════════════════════════════════
+    //  RESOURCES VIEW
+    // ═══════════════════════════════════════════════════════════════════
+    function ResourcesView() {
+      const products = [
+        {
+          tag: 'Cognitive Training',
+          icon: '◎',
+          title: '30 Days NeuralFusion™ Cognitive Training',
+          description: 'A structured 30-day programme engineered to rebuild how you think. Not motivation. Not mindset. A repeatable cognitive system that installs clarity, decisiveness, and integrated thinking, permanently.',
+          price: 'Get Access',
+          url: 'https://selar.com/72b11e1167',
+          highlights: ['30-day structured programme', 'Four Brains activation system', 'Daily cognitive drills', 'Pressure stabilisation protocols'],
+        },
+        {
+          tag: 'Ebook',
+          icon: '◱',
+          title: 'The Integrated Mind',
+          description: 'A practical system for better thinking, smarter decisions, and stronger leadership. You don\'t struggle because you lack intelligence, you struggle because your thinking is fragmented. This book fixes that.',
+          price: 'Get the Book',
+          url: 'https://selar.com/6846128584',
+          highlights: ['Four Modes Framework explained', 'Decision architecture system', 'Leadership cognition model', 'Practical integration exercises'],
+        },
+      ];
+
+      return (
+        React.createElement('div', { style: { paddingTop: 80, paddingBottom: 100 } },
+          React.createElement('div', { style: { maxWidth: 1100, margin: '0 auto', padding: '60px 24px' } },
+
+            // Header
+            React.createElement('div', { style: { marginBottom: 64 } },
+              React.createElement('div', { style: { ...mono, fontSize: 11, letterSpacing: 1.5, color: C.cyan, marginBottom: 16 } }, 'NeuralFusion™ Resources'),
+              React.createElement('h1', { style: { ...syne, fontSize: 17, fontWeight: 800, color: C.text, marginBottom: 16, lineHeight: 1.05 } },
+                'Tools for the ', React.createElement('span', { style: { color: C.cyan } }, 'integrated mind.')
+              ),
+              React.createElement('p', { style: { fontSize: 14, color: C.muted, lineHeight: 1.9, maxWidth: 560 } },
+                'Companion resources built to extend your NeuralFusion™ training, designed for depth, not distraction.'
+              )
+            ),
+
+            // Product cards
+            React.createElement('div', { style: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(340px, 100%), 1fr))', gap: 28 } },
+              products.map((p, i) =>
+                React.createElement('div', {
+                  key: i,
+                  className: 'card',
+                  style: { padding: '40px 36px', display: 'flex', flexDirection: 'column', position: 'relative', overflow: 'hidden', borderTop: `2px solid ${C.cyan}` }
+                },
+                  React.createElement(ScanLine, null),
+
+                  // Tag + icon
+                  React.createElement('div', { style: { display: 'flex', alignItems: 'center', gap: 10, marginBottom: 24 } },
+                    React.createElement('div', { style: { ...mono, fontSize: 18, color: C.cyan } }, p.icon),
+                    React.createElement('div', { style: { ...mono, fontSize: 10, letterSpacing: 1.5, color: C.cyan, textTransform: 'uppercase' } }, p.tag)
+                  ),
+
+                  // Title
+                  React.createElement('h2', { style: { ...syne, fontSize: 15, fontWeight: 800, color: C.text, marginBottom: 16, lineHeight: 1.2 } }, p.title),
+
+                  // Description
+                  React.createElement('p', { style: { fontSize: 13, color: C.muted, lineHeight: 1.85, marginBottom: 28, flex: 1 } }, p.description),
+
+                  // Highlights
+                  React.createElement('div', { style: { marginBottom: 32 } },
+                    p.highlights.map((h, j) =>
+                      React.createElement('div', { key: j, style: { display: 'flex', alignItems: 'center', gap: 10, padding: '9px 0', borderBottom: `1px solid ${C.border}` } },
+                        React.createElement('div', { style: { width: 4, height: 4, background: C.cyan, flexShrink: 0, opacity: 0.7 } }),
+                        React.createElement('div', { style: { fontSize: 12, color: C.muted } }, h)
+                      )
+                    )
+                  ),
+
+                  // CTA button
+                  React.createElement('a', {
+                    href: p.url,
+                    target: '_blank',
+                    rel: 'noopener noreferrer',
+                    className: 'btn-primary',
+                    style: { textAlign: 'center', textDecoration: 'none', display: 'block' }
+                  }, p.price + ' →')
+                )
+              )
+            ),
+
+            // Bottom note
+            React.createElement('div', { style: { marginTop: 64, padding: '32px 40px', background: C.deep, border: `1px solid ${C.border}`, display: 'flex', alignItems: 'center', gap: 20, flexWrap: 'wrap' } },
+              React.createElement('div', { style: { ...mono, fontSize: 18, color: C.cyan } }, '◈'),
+              React.createElement('div', null,
+                React.createElement('div', { style: { ...syne, fontSize: 13, fontWeight: 700, color: C.text, marginBottom: 4 } }, 'All resources are built on the NeuralFusion™ Four Brains Framework'),
+                React.createElement('div', { style: { fontSize: 12, color: C.muted } }, 'Analytical · Intuitive · Associative · Reflective, fully integrated.')
+              )
+            )
+          )
+        )
+      );
+    }
+
+    function LegalView({ setView }) {
+      const [tab, setTab] = React.useState('privacy');
+
+      const tabStyle = (id) => ({
+        background: 'none', border: 'none', cursor: 'pointer',
+        padding: '10px 20px',
+        fontFamily: "'Space Mono', monospace",
+        fontSize: 10, letterSpacing: 2, textTransform: 'uppercase',
+        color: tab === id ? C.cyan : C.muted,
+        borderBottom: tab === id ? `1px solid ${C.cyan}` : '1px solid transparent',
+        transition: 'color 0.2s, border-color 0.2s',
+      });
+
+      const Section = ({ num, title, children }) => (
+        React.createElement("div", {style: { marginBottom: 48, paddingBottom: 48, borderBottom: `1px solid ${C.border}` }}, React.createElement("div", {style: { display: 'flex', alignItems: 'flex-start', gap: 18, marginBottom: 20 }}, React.createElement("div", {style: { ...mono, fontSize: 9, letterSpacing: 2, color: C.cyan, opacity: 0.6, paddingTop: 5, minWidth: 26 }}, num), React.createElement("div", {style: { ...syne, fontSize: 20, fontWeight: 700, color: C.text, letterSpacing: '-0.02em', lineHeight: 1.2 }}, title)), React.createElement("div", {style: { paddingLeft: 44 }}, children))
+      );
+
+      const P = ({ children }) => (
+        React.createElement("p", {style: { fontSize: 14, color: C.muted, lineHeight: 1.85, marginBottom: 14 }}, children)
+      );
+
+      const UL = ({ items }) => (
+        React.createElement("ul", {style: { listStyle: 'none', padding: 0, margin: '0 0 14px' }}, items.map((item, i) => (
+            React.createElement("li", {key: i, style: { position: 'relative', paddingLeft: 18, fontSize: 14, color: C.muted, marginBottom: 8, lineHeight: 1.7 }}, React.createElement("span", {style: { position: 'absolute', left: 0, top: 6, width: 6, height: 1, background: C.cyan, opacity: 0.5 }}), item)
+          )))
+      );
+
+      const HB = ({ title: t, children }) => (
+        React.createElement("div", {style: { background: 'rgba(196,160,80,0.06)', border: `1px solid rgba(196,160,80,0.18)`, borderLeft: `3px solid ${C.cyan}`, padding: '18px 22px', margin: '20px 0', fontSize: 14, color: C.muted, lineHeight: 1.8 }}, t && React.createElement("div", {style: { ...syne, fontSize: 12, fontWeight: 700, color: C.cyan, marginBottom: 6, textTransform: 'uppercase', letterSpacing: 1 }}, t), children)
+      );
+
+      const DataTable = ({ rows }) => (
+        React.createElement("div", {style: { overflowX: 'auto', margin: '20px 0' }}, React.createElement("table", {style: { width: '100%', borderCollapse: 'collapse', fontSize: 13 }}, React.createElement("thead", null, React.createElement("tr", null, ['Data category','Purpose','Legal basis'].map(h => (
+                  React.createElement("th", {key: h, style: { ...mono, fontSize: 9, letterSpacing: 2, textTransform: 'uppercase', color: C.muted, padding: '10px 14px', textAlign: 'left', borderBottom: `1px solid ${C.border}`, background: C.deep }}, h)
+                )))), React.createElement("tbody", null, rows.map((r,i) => (
+                React.createElement("tr", {key: i, style: { borderBottom: `1px solid rgba(196,160,80,0.06)` }}, React.createElement("td", {style: { padding: '12px 14px', color: C.cyan, fontWeight: 600, fontSize: 13, verticalAlign: 'top' }}, r[0]), React.createElement("td", {style: { padding: '12px 14px', color: C.muted, fontSize: 13, verticalAlign: 'top', lineHeight: 1.6 }}, r[1]), React.createElement("td", {style: { padding: '12px 14px', color: C.muted, fontSize: 13, verticalAlign: 'top', lineHeight: 1.6 }}, r[2]))
+              )))))
+      );
+
+      const ContactCard = ({ items }) => (
+        React.createElement("div", {style: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px,1fr))', gap: 20, background: C.deep, border: `1px solid ${C.border}`, padding: 28, margin: '20px 0' }}, items.map((item,i) => (
+            React.createElement("div", {key: i}, React.createElement("div", {style: { ...mono, fontSize: 9, letterSpacing: 2, color: C.muted, textTransform: 'uppercase', marginBottom: 4 }}, item.label), React.createElement("div", {style: { fontSize: 13, color: C.cyan, fontWeight: 500 }}, item.value))
+          )))
+      );
+
+      const tabs = [
+        { id: 'privacy', label: 'Privacy policy' },
+        { id: 'terms', label: 'Terms & conditions' },
+        { id: 'data', label: 'Data protection' },
+      ];
+
+      const PrivacyContent = () => (
+        React.createElement("div", null, React.createElement(Section, {num: "01", title: "Who we are"}, React.createElement(P, null, 'NeuralFusion™ is a cognitive performance platform developed and operated by', React.createElement("strong", {style: {color:C.text}}, 'Life Edet'), ', accessible at tryneuralfusion.com. The platform delivers a structured cognitive training programme teaching participants to work across four thinking modes through a curriculum delivered to individual users and organisational cohorts.'), React.createElement(P, null, '"We," "us," and "our" refer to NeuralFusion™ and its operator. "You" refers to any individual who accesses or uses the platform, including individual subscribers, enterprise participants, and facilitators.')), React.createElement(Section, {num: "02", title: "Information we collect"}, React.createElement(P, null, 'We collect the following categories of personal information:'), React.createElement(UL, {items: [
+              'Account Information: Name, email address, and password when you register.',
+              'Assessment Data: CFI responses, scoring results across five cognitive dimensions (Decision Latency, Mode Rigidity, Emotional Reactivity, Thought Interruption, Cognitive Overload), and composite scores.',
+              'Learning Progress: Lesson completion records, module progress, and programme milestone data.',
+              'Enterprise Data: Cohort codes, participant IDs, facilitator activity, pre- and post-assessment records.',
+              'Payment Information: Transaction records processed through Paystack. Full card details are not stored on our systems.',
+              'Usage Data: IP address, browser type, device type, pages visited, and session data collected automatically.',
+            ]})), React.createElement(Section, {num: "03", title: "How we use your information"}, React.createElement(UL, {items: [
+              'To create and manage your account and provide access to the platform.',
+              'To deliver the NeuralFusion™ cognitive training programme and track your progress.',
+              'To generate your cognitive profile and provide personalised insights from CFI assessments.',
+              'To facilitate enterprise cohort management, enabling facilitators to view cohort-level data.',
+              'To process payments and manage subscription or enterprise access.',
+              'To send transactional and, where consented, promotional communications.',
+              'To improve the platform through analysis of aggregated, anonymised usage data.',
+              'To comply with legal obligations.',
+            ]})), React.createElement(Section, {num: "04", title: "Legal bases for processing"}, React.createElement(UL, {items: [
+              'Contract performance: Processing necessary to deliver the platform services you have engaged.',
+              'Legitimate interests: Platform security, fraud prevention, and service improvement where these do not override your rights.',
+              'Consent: For marketing communications and any processing where we have sought your explicit consent.',
+              'Legal obligation: Compliance with applicable Nigerian law and regulatory requirements.',
+            ]})), React.createElement(Section, {num: "05", title: "Sharing your information"}, React.createElement(P, null, 'We do not sell your personal information. We may share data only in these circumstances:'), React.createElement(UL, {items: [
+              'Service Providers: Supabase (database/authentication) and Paystack (payment processing), each bound to use your data only to deliver their services.',
+              'Enterprise Facilitators: If you participate in an organisational cohort, your assessment results may be accessible to designated facilitator(s) of that cohort.',
+              'Legal Requirements: Where required by law, court order, or government authority.',
+              'Business Transfers: In the event of a merger or acquisition, subject to equivalent privacy protections.',
+            ]}), React.createElement(HB, {title: "Enterprise Participants"}, 'Your cohort facilitator has access to your assessment results and progress data for the duration of the programme. If you have concerns, please contact your organisation before completing assessments.')), React.createElement(Section, {num: "06", title: "Data storage & security"}, React.createElement(P, null, 'Your data is stored on Supabase infrastructure. We implement appropriate technical and organisational measures including TLS/HTTPS encryption in transit, row-level security and access control policies, and secure session management via Supabase Auth.'), React.createElement(P, null, 'We retain your personal data for as long as your account is active or as necessary to fulfil the purposes described here, and thereafter as required by applicable law.')), React.createElement(Section, {num: "07", title: "Your rights"}, React.createElement(P, null, 'Under the Nigeria Data Protection Act 2023, you have the right of access, rectification, erasure, restriction, data portability, and the right to object to certain processing. To exercise any right, contact us at the details below. We will respond within 30 days.')), React.createElement(Section, {num: "08", title: "Children's privacy"}, React.createElement(P, null, 'NeuralFusion™ is designed for professional and organisational use and is not directed at children under 13. We do not knowingly collect personal information from children.')), React.createElement(Section, {num: "09", title: "Changes & contact"}, React.createElement(P, null, 'We may update this policy from time to time. Continued use after changes constitutes acceptance. For privacy queries, contact us:'), React.createElement(ContactCard, {items: [
+              { label: 'Platform', value: 'NeuralFusion™' },
+              { label: 'Operator', value: 'Life Edet' },
+              { label: 'Website', value: 'tryneuralfusion.com' },
+              { label: 'Subject Line', value: 'Privacy Request: NeuralFusion' },
+            ]})))
+      );
+
+      const TermsContent = () => (
+        React.createElement("div", null, React.createElement(Section, {num: "01", title: "Acceptance of terms"}, React.createElement(P, null, 'By accessing or using the NeuralFusion™ platform at tryneuralfusion.com, you agree to be bound by these Terms and Conditions. If you do not agree, you must not access or use the platform.'), React.createElement(P, null, 'These Terms constitute a legally binding agreement between you and', React.createElement("strong", {style: {color:C.text}}, 'Life Edet'), ', the developer and operator of NeuralFusion™. If using the platform on behalf of an organisation, you represent that you have authority to bind that organisation.')), React.createElement(Section, {num: "02", title: "Description of service"}, React.createElement(P, null, 'NeuralFusion™ is a cognitive performance platform delivering:'), React.createElement(UL, {items: [
+              'A structured 5-lesson, 7-week cognitive curriculum.',
+              'The Cognitive Fragmentation Index (CFI) Edition 2.0 assessment.',
+              'Individual cognitive profiling across five dimensions.',
+              'An Enterprise Portal for organisational cohort management, facilitator dashboards, and pre/post assessment tracking.',
+            ]})), React.createElement(Section, {num: "03", title: "Account Registration"}, React.createElement(P, null, 'You agree to provide accurate information, maintain the security of your credentials, notify us promptly of any unauthorised access, and accept responsibility for all activity under your account.')), React.createElement(Section, {num: "04", title: "Subscription & Payments"}, React.createElement(P, null, React.createElement("strong", {style: {color:C.text}}, 'Pro Access:'), 'Full access requires payment of the current Pro fee, as displayed on the platform. Payments are processed via Paystack. Pricing may be updated by the platform administrator with reasonable notice.'), React.createElement(P, null, React.createElement("strong", {style: {color:C.text}}, 'Refunds:'), 'Due to the digital nature of platform content, all sales are generally final. Refund requests are considered on a case-by-case basis within 7 days of purchase where the platform has not been substantially accessed.')), React.createElement(Section, {num: "05", title: "Enterprise Access"}, React.createElement(P, null, 'Enterprise facilitators agree to use the platform for legitimate organisational training purposes, manage cohort codes responsibly, protect the facilitator PIN, and comply with all applicable employment, data protection, and privacy laws when administering assessments.'), React.createElement(HB, {title: "Participant Consent"}, 'Facilitators are responsible for obtaining appropriate consent from participants before administering CFI assessments and for complying with any applicable workplace data collection obligations in their jurisdiction.')), React.createElement(Section, {num: "06", title: "Permitted Use & Restrictions"}, React.createElement(P, null, 'You must not:'), React.createElement(UL, {items: [
+              'Reproduce, distribute, or create derivative works of the platform content without written permission.',
+              'Reverse engineer, decompile, or extract the source code of the platform.',
+              'Use the platform to train competing AI or machine learning systems.',
+              'Share, resell, or sublicense your account access to third parties.',
+              'Use automated tools, bots, or scripts to access or interact with the platform.',
+              'Use the platform for any unlawful purpose.',
+            ]})), React.createElement(Section, {num: "07", title: "Intellectual property"}, React.createElement(P, null, 'All content on the NeuralFusion™ platform, including the curriculum, CFI assessment, cognitive framework, scoring methodologies, interface design, and software, is the intellectual property of', React.createElement("strong", {style: {color:C.text}}, 'Life Edet'), 'and is protected by Nigerian and international copyright law.'), React.createElement(P, null, 'The NeuralFusion™ name and logo are trademarks of Life Edet. You may not use these marks without prior written consent.')), React.createElement(Section, {num: "08", title: "Assessment Content & Accuracy"}, React.createElement("div", {style: { background: 'rgba(200,60,60,0.06)', border: '1px solid rgba(200,60,60,0.2)', borderLeft: '3px solid rgba(200,80,80,0.6)', padding: '18px 22px', margin: '0 0 16px', fontSize: 14, color: C.muted, lineHeight: 1.8 }}, React.createElement("div", {style: { ...syne, fontSize: 12, fontWeight: 700, color: 'rgba(240,160,160,0.85)', marginBottom: 6, textTransform: 'uppercase', letterSpacing: 1 }}, 'Not Clinical or Diagnostic'), 'NeuralFusion™ assessments are not clinical, psychological, or diagnostic tools. Results should not be used as a basis for medical or clinical evaluation. If you have concerns about your cognitive health, consult a qualified healthcare professional.'), React.createElement(P, null, 'We make no warranty that assessment results are accurate, complete, or suitable for any specific purpose beyond the developmental and training context for which they are designed.')), React.createElement(Section, {num: "09", title: "Disclaimers & Limitation of Liability"}, React.createElement(P, null, 'The platform is provided on an "as is" and "as available" basis. We disclaim all warranties, express or implied. To the maximum extent permitted by Nigerian law, our total aggregate liability shall not exceed the amount paid by you in the 12 months preceding any claim.')), React.createElement(Section, {num: "10", title: "Governing Law, Changes & Contact"}, React.createElement(P, null, 'These Terms are governed by the laws of the', React.createElement("strong", {style: {color:C.text}}, 'Federal Republic of Nigeria'), '. We may modify these Terms from time to time; continued use after changes constitutes acceptance.'), React.createElement(ContactCard, {items: [
+              { label: 'Platform', value: 'NeuralFusion™' },
+              { label: 'Operator', value: 'Life Edet' },
+              { label: 'Website', value: 'tryneuralfusion.com' },
+              { label: 'Subject Line', value: 'Terms Query: NeuralFusion' },
+            ]})))
+      );
+
+      const DataContent = () => (
+        React.createElement("div", null, React.createElement(Section, {num: "01", title: "Our Commitment"}, React.createElement(P, null, 'NeuralFusion™ is committed to protecting the personal data of every individual who interacts with the platform. We process personal data lawfully, fairly, and transparently in accordance with the', React.createElement("strong", {style: {color:C.text}}, 'Nigeria Data Protection Act 2023 (NDPA)'), 'and regulations issued by the Nigeria Data Protection Commission (NDPC).'), React.createElement(HB, {title: "Regulatory Framework"}, 'This policy is written in compliance with the NDPA 2023. Where enterprise clients operate across jurisdictions subject to additional frameworks (such as GDPR), this policy is designed to be compatible with those requirements.')), React.createElement(Section, {num: "02", title: "Data controller"}, React.createElement(ContactCard, {items: [
+              { label: 'Controller', value: 'Life Edet' },
+              { label: 'Trading As', value: 'NeuralFusion™' },
+              { label: 'Platform', value: 'tryneuralfusion.com' },
+              { label: 'Jurisdiction', value: 'Federal Republic of Nigeria' },
+            ]})), React.createElement(Section, {num: "03", title: "Data we process"}, React.createElement(DataTable, {rows: [
+              ['Name & Email', 'Account creation, authentication, communications', 'Contract performance'],
+              ['CFI Assessment Responses', 'Cognitive profiling and personalised insights', 'Contract performance / Consent'],
+              ['Lesson Progress', 'Curriculum delivery and completion tracking', 'Contract performance'],
+              ['Enterprise Cohort Data', 'Cohort management and reporting', 'Contract performance / Legitimate interests'],
+              ['Payment Records', 'Transaction processing and fraud prevention', 'Contract performance / Legal obligation'],
+              ['Usage & Device Data', 'Platform security, analytics, improvements', 'Legitimate interests'],
+            ]})), React.createElement(Section, {num: "04", title: "Data Retention"}, React.createElement(UL, {items: [
+              'Active account data: Retained for the lifetime of your account until you request deletion.',
+              'CFI assessment results: Retained for the duration of your account. Enterprise cohort results retained for 12 months after cohort end unless otherwise agreed.',
+              'Payment records: Retained for 7 years in accordance with Nigerian financial record-keeping obligations.',
+              'Usage/log data: Retained for up to 12 months for security and analytics purposes.',
+            ]})), React.createElement(Section, {num: "05", title: "Third-Party Processors"}, React.createElement(P, null, 'We engage the following third-party processors, each contracted to process data only on our instruction:'), [
+              { name: 'Supabase', role: 'Database & Authentication', desc: 'Provides database infrastructure, authentication, and row-level security. SOC 2 Type II compliant.' },
+              { name: 'Paystack', role: 'Payment Processing', desc: 'Processes subscription payments. PCI-DSS compliant and regulated by the Central Bank of Nigeria.' },
+              { name: 'Vercel', role: 'Platform Hosting', desc: 'Hosts the web application. May process request metadata (IP addresses, headers) as part of CDN operations.' },
+            ].map((p,i) => (
+              React.createElement("div", {key: i, style: { background: C.deep, border: `1px solid ${C.border}`, padding: '18px 22px', marginBottom: 10, display: 'grid', gridTemplateColumns: '140px 1fr', gap: 16, alignItems: 'start' }}, React.createElement("div", null, React.createElement("div", {style: { ...syne, fontSize: 14, fontWeight: 700, color: C.cyan }}, p.name), React.createElement("div", {style: { ...mono, fontSize: 9, letterSpacing: 1, color: C.muted, marginTop: 3, textTransform: 'uppercase' }}, p.role)), React.createElement("div", {style: { fontSize: 13, color: C.muted, lineHeight: 1.7 }}, p.desc))
+            ))), React.createElement(Section, {num: "06", title: "Security Measures"}, React.createElement(UL, {items: [
+              'Encryption in transit: All data is encrypted using TLS 1.2 or higher (HTTPS).',
+              'Access control: Row-level security policies in Supabase ensure users can only access their own data. Enterprise data is segmented by cohort code.',
+              'Authentication: Secure session-based authentication via Supabase Auth with password hashing and token management.',
+              'Administrative access: Restricted and subject to strong credential requirements.',
+            ]})), React.createElement(Section, {num: "07", title: "Your data rights"}, React.createElement(P, null, 'Under the NDPA 2023, you have the right to be informed, the right of access, rectification, erasure, restriction of processing, data portability, and the right to object to certain processing. To exercise any right, contact us at the details below. We will respond within', React.createElement("strong", {style: {color:C.text}}, '30 days'), '.')), React.createElement(Section, {num: "08", title: "Data Breach Response"}, React.createElement(P, null, 'In the event of a personal data breach, we will assess the breach without undue delay, notify the NDPC within 72 hours where required, notify affected individuals where there is high risk to their rights, and take appropriate remedial action.')), React.createElement(Section, {num: "09", title: "Contact & Complaints"}, React.createElement(P, null, 'For all data protection enquiries or to report a security concern:'), React.createElement(ContactCard, {items: [
+              { label: 'Data Controller', value: 'Life Edet / NeuralFusion™' },
+              { label: 'Website', value: 'tryneuralfusion.com' },
+              { label: 'Subject Line', value: 'Data Protection: NeuralFusion' },
+              { label: 'Response Time', value: 'Within 30 days' },
+            ]}), React.createElement(P, null, 'If unsatisfied with our response, you may lodge a complaint with the', React.createElement("strong", {style: {color:C.text}}, 'Nigeria Data Protection Commission (NDPC)'), 'at ndpc.gov.ng.')))
+      );
+
+      return (
+        React.createElement("div", {style: { paddingTop: 80, paddingBottom: 120, minHeight: '100vh' }}, React.createElement("div", {style: { maxWidth: 900, margin: '0 auto', padding: '60px 24px 0' }}, React.createElement("div", {style: { marginBottom: 48 }}, React.createElement("div", {style: { ...mono, fontSize: 9, letterSpacing: 4, color: C.cyan, marginBottom: 16, textTransform: 'uppercase', display: 'flex', alignItems: 'center', gap: 12 }}, React.createElement("span", {style: { width: 28, height: 1, background: C.cyan, opacity: 0.5, display: 'inline-block' }}), 'Legal Documentation'), React.createElement("h1", {style: { ...syne, fontSize: 'clamp(16px,1.5vw,20px)', fontWeight: 800, color: C.text, letterSpacing: '-0.04em', lineHeight: 0.96, marginBottom: 16 }}, 'Legal &', React.createElement("span", {style: { color: C.cyan }}, 'Compliance')), React.createElement("p", {style: { fontSize: 14, color: C.muted, maxWidth: 520, lineHeight: 1.8 }}, 'Our commitments to your privacy, the terms governing your use of NeuralFusion™, and our data protection practices under the Nigeria Data Protection Act 2023.'), React.createElement("div", {style: { display: 'flex', gap: 32, marginTop: 24, paddingTop: 24, borderTop: `1px solid ${C.border}`, flexWrap: 'wrap' }}, [{ label: 'Effective', value: '4 June 2026' }, { label: 'Governing Law', value: 'Nigeria (NDPA 2023)' }, { label: 'Controller', value: 'Life Edet' }].map((m,i) => (
+                  React.createElement("div", {key: i}, React.createElement("div", {style: { ...mono, fontSize: 9, letterSpacing: 2, color: C.muted, textTransform: 'uppercase', marginBottom: 3 }}, m.label), React.createElement("div", {style: { fontSize: 13, color: C.cyan, fontWeight: 500 }}, m.value))
+                )))), React.createElement("div", {style: { borderBottom: `1px solid ${C.border}`, marginBottom: 48, display: 'flex', gap: 4, overflowX: 'auto' }}, tabs.map(t => (
+                React.createElement("button", {key: t.id, style: tabStyle(t.id), onClick: () => setTab(t.id)}, t.label)
+              ))), tab === 'privacy' && React.createElement(PrivacyContent, null), tab === 'terms'   && React.createElement(TermsContent, null), tab === 'data'    && React.createElement(DataContent, null)))
+      );
+    }
+
+    // ═══════════════════════════════════════════════════════════════════
+    //  FOOTER
+    // ═══════════════════════════════════════════════════════════════════
+    function Footer({ setView }) {
+      const links = [
+        { label:'Home', v:'home' },
+        { label:'Assess', v:'cfi' },{ label:'Architecture', v:'four-brains' },
+        { label:'Analytics', v:'analytics' },{ label:'Integration Protocol', v:'protocol' },
+        { label:'Academy', v:'lessons' },{ label:'Resources', v:'resources' },
+        { label:'Enterprise', v:'enterprise' },
+      ];
+      const legalLinks = [
+        { label:'About', href:'/about' },
+        { label:'Research', href:'/research' },
+        { label:'Methodology', href:'/methodology' },
+        { label:'Contact', href:'/contact' },
+        { label:'Privacy policy', href:'/privacy' },
+        { label:'Terms & conditions', href:'/terms' },
+      ];
+      return (
+        React.createElement("footer", {style: { borderTop:`1px solid ${C.border}`, padding:'48px 24px 32px', textAlign:'center' }}, React.createElement("div", {style: { maxWidth:1200, margin:'0 auto' }}, React.createElement("div", {style: { display:'flex', alignItems:'center', justifyContent:'center', marginBottom:32 }}, React.createElement(NFLogoLockup, {iconSize: 26, gap: 10, wordmarkColor: C.text})), React.createElement("div", {style: { display:'flex', justifyContent:'center', flexWrap:'wrap', gap:24, marginBottom:20 }}, links.map(l=>(
+                React.createElement("button", {key: l.v, onClick: ()=>setView(l.v), style: { background:'none', border:'none', color:C.muted, fontSize:12, cursor:'pointer' }}, l.label)
+              ))), React.createElement("div", {style: { display:'flex', justifyContent:'center', flexWrap:'wrap', gap:20, marginBottom:32, paddingTop:16, borderTop:`1px solid ${C.border}` }}, legalLinks.map(l=>(
+                React.createElement("a", {key: l.label, href: l.href, style: { background:'none', border:'none', color:C.dim, fontSize:10, cursor:'pointer', fontFamily:"'Space Mono', monospace", letterSpacing:1, textDecoration:'none' }}, l.label)
+              ))), React.createElement("div", {style: { ...mono, fontSize:11, letterSpacing:1, color:C.dim }}, '© 2026 LIFE EDET · NEURALFUSION™ COGNITIVE PERFORMANCE OS · ALL RIGHTS RESERVED')))
+      );
+    }
+
+    // ═══════════════════════════════════════════════════════════════════
+    //  ADMIN PORTAL: Full Platform Management
+    // ═══════════════════════════════════════════════════════════════════
+    function AdminView({ user, setView, onPriceChange, onEntPriceChange }) {
+      const [tab, setTab]           = useState('overview');
+
+      // Data
+      const [users,      setUsers]      = useState([]);
+      const [cfiData,    setCfiData]    = useState([]);
+      const [entResults, setEntResults] = useState([]);
+      const [cohorts,    setCohorts]    = useState([]);
+      const [loading,    setLoading]    = useState(false);
+      const [actionMsg,  setActionMsg]  = useState('');
+      const [actionType, setActionType] = useState('info'); // info | success | error
+      const [lastLoaded, setLastLoaded] = useState(null);
+
+      // Pricing
+      const [proPrice,    setProPrice]    = useState(() => parseInt(localStorage.getItem('nf_pro_price') || '600000'));
+      const [priceInput,  setPriceInput]  = useState(() => String(parseInt(localStorage.getItem('nf_pro_price') || '600000') / 100));
+      const [priceSaved,  setPriceSaved]  = useState(false);
+      const [entPrice,    setEntPrice]    = useState(() => parseInt(localStorage.getItem('nf_ent_price') || '5000000'));
+      const [entPriceInput, setEntPriceInput] = useState(() => String(parseInt(localStorage.getItem('nf_ent_price') || '5000000') / 100));
+      const [paystackKeyInput, setPaystackKeyInput] = useState(() => localStorage.getItem('nf_paystack_key') || '');
+      const [keySaved, setKeySaved] = useState(false);
+
+      // Users search / filter
+      const [userSearch, setUserSearch] = useState('');
+      const [proFilter,  setProFilter]  = useState('all');
+
+      // CFI filter
+      const [cfiFilter, setCfiFilter] = useState('all');
+
+      // Settings toggles
+      const [maintenanceMode, setMaintenanceMode] = useState(false);
+      const [registrationOpen, setRegistrationOpen] = useState(true);
+
+      // Lessons editor
+      const [editingLesson, setEditingLesson] = useState(null);
+      const [lessonDraft, setLessonDraft] = useState({});
+
+      // Cohort manager
+      const [newCohort, setNewCohort] = useState({ name:'', org:'', facilitator:'', startDate:'', maxParticipants:'' });
+      const [localCohorts, setLocalCohorts] = useState(() => {
+        try { return JSON.parse(localStorage.getItem('nf_cohorts') || '[]'); } catch(_) { return []; }
+      });
+
+      // Broadcast
+      const [broadcastMsg, setBroadcastMsg] = useState('');
+      const [broadcastTarget, setBroadcastTarget] = useState('all');
+      const [broadcasts, setBroadcasts] = useState(() => {
+        try { return JSON.parse(localStorage.getItem('nf_broadcasts') || '[]'); } catch(_) { return []; }
+      });
+
+      // Branding
+      const [brandSettings, setBrandSettings] = useState(() => {
+        try { return JSON.parse(localStorage.getItem('nf_brand') || 'null') || { tagline:'The World\'s First Cognitive Performance Operating System', ctaText:'Begin Your Assessment', heroTitle:'Most people were never taught HOW to think.', announcementBar:'', announcementActive:false }; } catch(_) { return { tagline:'The World\'s First Cognitive Performance Operating System', ctaText:'Begin Your Assessment', heroTitle:'Most people were never taught HOW to think.', announcementBar:'', announcementActive:false }; }
+      });
+
+      // Enterprise results filter
+      const [entCohortFilter, setEntCohortFilter] = useState('all');
+
+      const showMsg = (msg, type='info') => {
+        setActionMsg(msg); setActionType(type);
+        setTimeout(() => setActionMsg(''), 4000);
+      };
+
+      // Load admin data on mount, access is already gated server-side via profiles.is_admin
+      useEffect(() => { loadAdminData(); }, []);
+
+      const loadAdminData = async () => {
+        setLoading(true);
+        try {
+          const [usersRes, cfiRes] = await Promise.all([
+            sb.from('profiles').select('*').order('created_at', { ascending: false }),
+            sb.from('cfi_results').select('*').order('created_at', { ascending: false }),
+          ]);
+          // Surface load errors instead of silently showing empty/stale data —
+          // a blocked select (e.g. an RLS policy issue) previously failed silently
+          // here, making the dashboard look correct while quietly showing nothing.
+          if (usersRes.error) { console.error('[ADMIN LOAD ERROR] profiles select failed:', usersRes.error); showMsg('Could not load users: ' + usersRes.error.message, 'error'); }
+          if (cfiRes.error)   { console.error('[ADMIN LOAD ERROR] cfi_results select failed:', cfiRes.error);   showMsg('Could not load CFI results: ' + cfiRes.error.message, 'error'); }
+          setUsers(usersRes.data || []);
+          setCfiData(cfiRes.data || []);
+          setLastLoaded(new Date());
+          try {
+            const { data: s } = await sb.from('platform_settings').select('*').eq('key','pro_price').maybeSingle();
+            if (s?.value) { setProPrice(s.value); setPriceInput(String(s.value/100)); }
+          } catch(_) {}
+          try {
+            const { data: pk } = await sb.from('platform_settings').select('text_value').eq('key','paystack_public_key').maybeSingle();
+            if (pk?.text_value) { setPaystackKeyInput(pk.text_value); localStorage.setItem('nf_paystack_key', pk.text_value); }
+          } catch(_) {}
+        } catch(e) { showMsg('Error loading data: ' + e.message, 'error'); }
+        setLoading(false);
+      };
+
+      const togglePro = async (uid, current) => {
+        const { error } = await sb.from('profiles').update({ is_pro: !current }).eq('id', uid);
+        if (!error) {
+          setUsers(u => u.map(x => x.id === uid ? {...x, is_pro: !current} : x));
+          showMsg(`Pro status ${!current ? 'granted' : 'revoked'}.`, 'success');
+        }
+      };
+
+      const toggleEnterprise = async (uid, current) => {
+        const { error } = await sb.from('profiles').update({ is_enterprise: !current }).eq('id', uid);
+        if (!error) {
+          setUsers(u => u.map(x => x.id === uid ? {...x, is_enterprise: !current} : x));
+          showMsg(`Enterprise access ${!current ? 'granted' : 'revoked'}.`, 'success');
+        }
+      };
+
+      const deleteUser = async (uid) => {
+        if (!window.confirm('Delete this user profile? This cannot be undone.')) return;
+        const { error } = await sb.from('profiles').delete().eq('id', uid);
+        if (!error) { setUsers(u => u.filter(x => x.id !== uid)); showMsg('User deleted.', 'success'); }
+      };
+
+      const savePrice = async () => {
+        const raw = parseFloat(priceInput);
+        if (isNaN(raw) || raw < 100) { showMsg('Enter a valid price (minimum ₦100).', 'error'); return; }
+        const kobo = Math.round(raw * 100);
+        localStorage.setItem('nf_pro_price', kobo.toString());
+        setProPrice(kobo);
+        if (onPriceChange) onPriceChange(kobo);
+        try { await sb.from('platform_settings').upsert({ key:'pro_price', value:kobo }, { onConflict:'key' }); } catch(_) {}
+        setPriceSaved(true);
+        setTimeout(() => setPriceSaved(false), 3000);
+        showMsg('Pro price saved.', 'success');
+      };
+
+      const saveEntPrice = async () => {
+        const raw = parseFloat(entPriceInput);
+        if (isNaN(raw) || raw < 100) { showMsg('Invalid enterprise price.', 'error'); return; }
+        const kobo = Math.round(raw * 100);
+        localStorage.setItem('nf_ent_price', kobo.toString());
+        setEntPrice(kobo);
+        if (onEntPriceChange) onEntPriceChange(kobo);
+        // Persist server-side (platform_settings) so the price actually charged
+        // at checkout - not just this admin's local browser - reflects the change.
+        try { await sb.from('platform_settings').upsert({ key:'enterprise_price', value:kobo }, { onConflict:'key' }); } catch(_) {}
+        showMsg('Enterprise price saved.', 'success');
+      };
+
+      const savePaystackKey = async () => {
+        const key = paystackKeyInput.trim();
+        if (!key.startsWith('pk_')) { showMsg('Invalid Paystack public key. Must start with pk_', 'error'); return; }
+        localStorage.setItem('nf_paystack_key', key);
+        try { await setTextSetting('paystack_public_key', key); } catch(_) {}
+        setKeySaved(true);
+        setTimeout(() => setKeySaved(false), 3000);
+        showMsg('Paystack key saved.', 'success');
+      };
+
+      const deleteCFIResult = async (id) => {
+        const { error } = await sb.from('cfi_results').delete().eq('id', id);
+        if (!error) { setCfiData(d => d.filter(x => x.id !== id)); showMsg('CFI result deleted.', 'success'); }
+      };
+
+      // Lessons editor
+      const startEditLesson = (lesson) => {
+        setEditingLesson(lesson.id);
+        setLessonDraft({ ...lesson });
+      };
+      const saveLesson = () => {
+        const saved = JSON.parse(localStorage.getItem('nf_lessons_overrides') || '{}');
+        saved[lessonDraft.id] = lessonDraft;
+        localStorage.setItem('nf_lessons_overrides', JSON.stringify(saved));
+        setEditingLesson(null);
+        showMsg('Lesson saved. Reload app to see changes.', 'success');
+      };
+
+      // Cohorts
+      const createCohort = () => {
+        if (!newCohort.name || !newCohort.org) { showMsg('Name and org required.', 'error'); return; }
+        const c = { ...newCohort, id: Date.now(), code: `${newCohort.org.toUpperCase().slice(0,4)}-${Date.now().toString().slice(-4)}`, created: new Date().toISOString(), status:'active', participants:[] };
+        const updated = [c, ...localCohorts];
+        setLocalCohorts(updated);
+        localStorage.setItem('nf_cohorts', JSON.stringify(updated));
+        setNewCohort({ name:'', org:'', facilitator:'', startDate:'', maxParticipants:'' });
+        showMsg(`Cohort "${c.name}" created. Code: ${c.code}`, 'success');
+      };
+      const archiveCohort = (id) => {
+        const updated = localCohorts.map(c => c.id === id ? { ...c, status: c.status==='active' ? 'archived' : 'active' } : c);
+        setLocalCohorts(updated);
+        localStorage.setItem('nf_cohorts', JSON.stringify(updated));
+        showMsg('Cohort status updated.', 'success');
+      };
+      const deleteCohort = (id) => {
+        if (!window.confirm('Delete this cohort?')) return;
+        const updated = localCohorts.filter(c => c.id !== id);
+        setLocalCohorts(updated);
+        localStorage.setItem('nf_cohorts', JSON.stringify(updated));
+        showMsg('Cohort deleted.', 'success');
+      };
+
+      // Broadcast
+      const sendBroadcast = () => {
+        if (!broadcastMsg.trim()) { showMsg('Message cannot be empty.', 'error'); return; }
+        const b = { id: Date.now(), message: broadcastMsg, target: broadcastTarget, sent: new Date().toISOString(), sentBy: user?.email };
+        const updated = [b, ...broadcasts];
+        setBroadcasts(updated);
+        localStorage.setItem('nf_broadcasts', JSON.stringify(updated));
+        setBroadcastMsg('');
+        showMsg(`Broadcast sent to ${broadcastTarget === 'all' ? 'all users' : broadcastTarget + ' users'}.`, 'success');
+      };
+      const deleteBroadcast = (id) => {
+        const updated = broadcasts.filter(b => b.id !== id);
+        setBroadcasts(updated);
+        localStorage.setItem('nf_broadcasts', JSON.stringify(updated));
+      };
+
+      // Branding
+      const saveBranding = () => {
+        localStorage.setItem('nf_brand', JSON.stringify(brandSettings));
+        showMsg('Branding saved. Reload app to see changes.', 'success');
+      };
+
+      /* ── LOADING ── */
+      if (loading && users.length === 0) return (
+        React.createElement("div", {style: { paddingTop:80, minHeight:'100vh', display:'flex', alignItems:'center', justifyContent:'center' }}, React.createElement("div", {style: { textAlign:'center' }}, React.createElement("div", {style: { ...mono, fontSize:15, color:C.cyan, animation:'neuralPulse 2s ease-in-out infinite' }}, '◈'), React.createElement("div", {style: { ...mono, fontSize:11, letterSpacing:1, color:C.muted, marginTop:16 }}, 'LOADING ADMIN DATA...')))
+      );
+
+      /* ── TABS ── */
+      const tabs = [
+        { id:'overview',   label:'Overview',    icon:'◈' },
+        { id:'users',      label:'Users',        icon:'◱' },
+        { id:'cfi',        label:'CFI Results',  icon:'◎' },
+        { id:'pro',        label:'Pro Subs',     icon:'★' },
+        { id:'cohorts',    label:'Cohorts',      icon:'⊞' },
+        { id:'ent-results',label:'Ent Results',  icon:'◇' },
+        { id:'lessons',    label:'Lessons',      icon:'▤' },
+        { id:'broadcast',  label:'Broadcast',    icon:'◉' },
+        { id:'branding',   label:'Branding',     icon:'◐' },
+        { id:'pricing',    label:'Pricing',      icon:'₦' },
+        { id:'settings',   label:'Settings',     icon:'⚙' },
+      ];
+
+      const proUsers     = users.filter(u => u.is_pro);
+      const entUsers     = users.filter(u => u.is_enterprise);
+      const filteredUsers = users.filter(u => {
+        const matchSearch = !userSearch || (u.full_name||'').toLowerCase().includes(userSearch.toLowerCase()) || (u.email||'').toLowerCase().includes(userSearch.toLowerCase());
+        const matchPro = proFilter === 'all' || (proFilter === 'pro' ? u.is_pro : proFilter === 'enterprise' ? u.is_enterprise : !u.is_pro);
+        return matchSearch && matchPro;
+      });
+      // completedCFI excludes in-progress drafts (status:'in_progress') so counts
+      // and band distribution only reflect finished, scored assessments.
+      // Historical rows saved before the `status` column existed default to
+      // 'completed' (see migration notes), so they're included here too.
+      // Treat a row as a real result if it actually has a score, not only if
+      // status says 'completed'. A row can be fully scored client-side but
+      // still carry a stale/incorrect status (e.g. a partial write during
+      // save), which previously made it vanish from this view entirely
+      // even though the data was sitting right there.
+      const completedCFI     = cfiData.filter(r => r.status === 'completed' || (r.status !== 'in_progress' && r.total_score != null));
+      const uniqueCFIUserIds = new Set(completedCFI.map(r => r.user_id).filter(Boolean));
+      // NeuralFusion 100 = count of unique authenticated users with at least one
+      // completed CFI assessment, capped for display at the campaign target.
+      // Computed dynamically from cfi_results every load, never hard-coded.
+      const nf100Count = uniqueCFIUserIds.size;
+      const filteredCFI = completedCFI.filter(r => cfiFilter === 'all' || r.band === cfiFilter);
+      // IMPORTANT: rows saved before this correction (assessment_version is null/legacy) used a
+      // different item set and a ~16–80 raw range — they are NOT on the CFI-1.0 13–65 scale.
+      // "Completed CFI assessments" / "Unique CFI participants" above are legitimate headcounts
+      // across all versions, but any *scored* aggregate (band distribution, average/median CFI,
+      // retest deltas, band movement) must never mix scales, so those are scoped to CFI-1.0 only.
+      const cfiV1 = completedCFI.filter(r => r.assessment_version === CFI_VERSION);
+      const legacyCFICount = completedCFI.length - cfiV1.length;
+      const bandCounts  = cfiV1.reduce((a,r) => { a[r.band] = (a[r.band]||0)+1; return a; }, {});
+      const bandColors  = { 'Integrated':'#7AAFCF','Moderate fragmentation':'#C4A050','High fragmentation':'#FB8C00','Critical fragmentation':'#F87171' };
+      const msgColor = actionType === 'success' ? '#7AAFCF' : actionType === 'error' ? '#F87171' : '#C4A050';
+
+      // ── Longitudinal admin stats (avg/median CFI, retest outcomes, band movement) ──
+      // Uses only completed CFI-1.0 rows with a real total_score. Participants with
+      // multiple assessments are counted once each in "retested"; every row after their
+      // first counts toward improved/no-change/worsened by comparing score_change (falls
+      // back to a direct diff against the row's own previous_assessment_id if unset).
+      const scores = cfiV1.map(r => r.total_score).filter(v => v != null).sort((a,b)=>a-b);
+      const avgCFI = scores.length ? Math.round((scores.reduce((a,b)=>a+b,0)/scores.length)*10)/10 : null;
+      const medianCFI = scores.length ? (scores.length % 2 ? scores[(scores.length-1)/2] : Math.round(((scores[scores.length/2-1]+scores[scores.length/2])/2)*10)/10) : null;
+      const byUser = {};
+      cfiV1.forEach(r => { (byUser[r.user_id] = byUser[r.user_id] || []).push(r); });
+      const retestedUserIds = Object.keys(byUser).filter(uid => byUser[uid].length > 1);
+      let improved = 0, noChange = 0, worsened = 0, changeSum = 0, changeCount = 0;
+      let bandImproved = 0, bandWorsened = 0, bandSame = 0;
+      const bandRank = { 'Integrated':0, 'Moderate fragmentation':1, 'High fragmentation':2, 'Critical fragmentation':3 };
+      Object.values(byUser).forEach(rows => {
+        const sorted = [...rows].sort((a,b)=> new Date(a.created_at) - new Date(b.created_at));
+        for (let i=1; i<sorted.length; i++) {
+          const change = sorted[i].score_change != null ? sorted[i].score_change : (sorted[i].total_score - sorted[i-1].total_score);
+          if (change < 0) improved++; else if (change > 0) worsened++; else noChange++;
+          changeSum += change; changeCount++;
+          const r0 = bandRank[sorted[i-1].band], r1 = bandRank[sorted[i].band];
+          if (r0 != null && r1 != null) { if (r1 < r0) bandImproved++; else if (r1 > r0) bandWorsened++; else bandSame++; }
+        }
+      });
+      const avgChangeRetested = changeCount ? Math.round((changeSum/changeCount)*10)/10 : null;
+
+      return (
+        React.createElement("div", {style: { paddingTop:80, paddingBottom:60, minHeight:'100vh' }}, React.createElement("div", {style: { maxWidth:1280, margin:'0 auto', padding:'32px 24px' }}, React.createElement("div", {style: { display:'flex', alignItems:'flex-start', justifyContent:'space-between', flexWrap:'wrap', gap:16, marginBottom:32 }}, React.createElement("div", null, React.createElement("div", {style: { ...mono, fontSize:11, letterSpacing:1, color:C.cyan, marginBottom:8 }}, 'ADMIN PORTAL · NEURALFUSION™'), React.createElement("div", {style: { ...syne, fontSize:14, fontWeight:800, color:C.text, marginBottom:4, overflowWrap:'break-word', minWidth:0}}, 'Control Dashboard'), React.createElement("div", {style: { fontSize:13, color:C.muted }}, 'Signed in as', React.createElement("span", {style: { color:C.cyan }}, user?.email))), React.createElement("div", {style: { display:'flex', gap:10, alignItems:'center' }}, actionMsg && (
+                  React.createElement("div", {style: { padding:'8px 16px', background:`rgba(${actionType==='error'?'248,113,113':actionType==='success'?'122,175,207':'196,160,80'},0.1)`, border:`1px solid rgba(${actionType==='error'?'248,113,113':actionType==='success'?'122,175,207':'196,160,80'},0.3)`, borderRadius:2, ...mono, fontSize:10, color:msgColor }}, actionMsg)
+                ), React.createElement("button", {className: "btn-outline", style: { fontSize:10 }, onClick: loadAdminData}, '↺ Refresh'), React.createElement("button", {className: "btn-ghost", style: { fontSize:10 }, onClick: () => setView('home')}, '← Exit Admin'))), React.createElement("div", {style: { display:'flex', gap:4, marginBottom:32, background:C.deep, padding:4, borderRadius:4, flexWrap:'wrap' }}, tabs.map(t => (
+                React.createElement("button", {key: t.id, onClick: () => setTab(t.id), style: {
+                  flex:'1 1 auto', padding:'10px 16px',
+                  background: tab===t.id ? C.surface : 'transparent',
+                  border: tab===t.id ? `1px solid ${C.borderBright}` : '1px solid transparent',
+                  color: tab===t.id ? C.cyan : C.muted,
+                  ...mono, fontSize:9, letterSpacing:1, cursor:'pointer', borderRadius:3,
+                  display:'flex', alignItems:'center', justifyContent:'center', gap:6,
+                  transition:'all 0.2s',
+                }}, React.createElement("span", null, t.icon), React.createElement("span", null, t.label.toUpperCase()))
+              ))), loading && (
+              React.createElement("div", {style: { textAlign:'center', padding:'60px', color:C.muted }}, React.createElement("div", {style: { ...mono, fontSize:17, color:C.cyan, animation:'neuralPulse 2s ease-in-out infinite' }}, '◈'), React.createElement("div", {style: { ...mono, fontSize:11, letterSpacing:1, marginTop:16 }}, 'LOADING DATA...'))
+            ), !loading && (
+              React.createElement(React.Fragment, null, tab === 'overview' && (
+                  React.createElement("div", {style: { display:'flex', justifyContent:'flex-end', alignItems:'center', gap:10, marginBottom:12 }},
+                    React.createElement("div", {style: { ...mono, fontSize:10, letterSpacing:0.5, color:C.dim }},
+                      lastLoaded ? `Last refreshed ${lastLoaded.toLocaleTimeString()}` : ''
+                    ),
+                    React.createElement("button", {className:"btn-outline", style:{ fontSize:10, padding:'6px 12px' }, onClick: loadAdminData}, '↺ Refresh')
+                  ),
+                  React.createElement("div", {className: "card bento-shimmer", style: { padding:'24px 28px', marginBottom:20, borderColor:'rgba(212,175,106,0.3)' }}, React.createElement("div", {style: { display:'flex', justifyContent:'space-between', alignItems:'center', flexWrap:'wrap', gap:12 }}, React.createElement("div", null, React.createElement("div", {style: { ...mono, fontSize:11, letterSpacing:1, color:'#D4AF6A', marginBottom:8 }}, 'NEURALFUSION 100 · unique authenticated participants'), React.createElement("div", {style: { ...syne, fontSize:32, fontWeight:800, color:'#D4AF6A' }}, nf100Count, ' / 100')), React.createElement("div", {style: { textAlign:'right' }}, React.createElement("div", {style: { ...mono, fontSize:10, letterSpacing:1, color:C.muted, marginBottom:4 }}, 'Completed assessments'), React.createElement("div", {style: { ...syne, fontSize:16, fontWeight:700, color:C.text }}, completedCFI.length), React.createElement("div", {style: { ...mono, fontSize:10, letterSpacing:1, color:C.muted, marginTop:8, marginBottom:4 }}, 'Total attempts (incl. drafts)'), React.createElement("div", {style: { ...syne, fontSize:16, fontWeight:700, color:C.muted }}, cfiData.length)))), React.createElement("div", null, React.createElement("div", {style: { display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(min(180px,100%),1fr))', gap:16, marginBottom:32 }}, [
+                        { label:'Total users',       value:users.length,         color:'#C4A050', icon:'◱' },
+                        { label:'PRO subscribers',   value:proUsers.length,       color:'#E2BE78', icon:'★' },
+                        { label:'Enterprise users',  value:entUsers.length,       color:'#7AAFCF', icon:'⊞' },
+                        { label:'Unique CFI participants', value:uniqueCFIUserIds.size, color:'#D4AF6A', icon:'◈' },
+                        { label:'Completed CFI assessments', value:completedCFI.length, color:'#4CF7C0', icon:'◇' },
+                        { label:'Active cohorts',    value:localCohorts.filter(c=>c.status==='active').length, color:'#4CF7C0', icon:'◇' },
+                        { label:'FREE users',        value:users.filter(u=>!u.is_pro).length, color:'#9A8A6A', icon:'◰' },
+                      ].map((s,i) => (
+                        React.createElement("div", {key: i, className: "card bento-shimmer", style: { padding:'24px 20px' }}, React.createElement("div", {style: { display:'flex', justifyContent:'space-between', alignItems:'flex-start', marginBottom:12 }}, React.createElement("div", {style: { ...mono, fontSize:11, letterSpacing:1, color:'#8A7A5A' }}, s.label), React.createElement("div", {style: { ...mono, fontSize:14, color:s.color, textShadow:`0 0 12px ${s.color}66` }}, s.icon)), React.createElement("div", {style: { ...syne, fontSize:15, fontWeight:800, color:s.color, lineHeight:1.2, letterSpacing:'-0.02em', overflowWrap:'break-word', minWidth:0}}, s.value))
+                      ))), React.createElement("div", {style: { display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(min(320px,100%),1fr))', gap:24, marginBottom:24 }}, React.createElement("div", {className: "card", style: { padding:'28px' }}, React.createElement("div", {style: { ...mono, fontSize:11, letterSpacing:1, color:C.cyan, marginBottom:20 }}, 'CFI band distribution'), Object.keys(bandColors).map(band => {
+                          const count = bandCounts[band] || 0;
+                          const pct   = cfiV1.length ? Math.round(count/cfiV1.length*100) : 0;
+                          return (
+                            React.createElement("div", {key: band, style: { marginBottom:16 }}, React.createElement("div", {style: { display:'flex', justifyContent:'space-between', marginBottom:6 }}, React.createElement("div", {style: { fontSize:12, color:C.muted }}, band), React.createElement("div", {style: { ...mono, fontSize:10, color:bandColors[band] }}, count, '(', pct, '%)')), React.createElement("div", {style: { height:4, background:C.panel, borderRadius:2 }}, React.createElement("div", {style: { width:`${pct}%`, height:'100%', background:bandColors[band], borderRadius:2, transition:'width 0.8s ease' }})))
+                          );
+                        }), cfiV1.length === 0 && React.createElement("div", {style: { color:C.dim, fontSize:13 }}, 'No CFI-1.0 data yet.'), legacyCFICount > 0 && React.createElement("div", {style: { marginTop:12, ...mono, fontSize:10, color:C.dim }}, legacyCFICount, ' legacy (pre-correction) assessment(s) excluded — different scale, not shown here.')), React.createElement("div", {className: "card", style: { padding:'28px' }}, React.createElement("div", {style: { ...mono, fontSize:11, letterSpacing:1, color:C.cyan, marginBottom:20 }}, 'Retest outcomes · CFI-1.0'), [
+                          { label:'Average CFI', value: avgCFI ?? '—' },
+                          { label:'Median CFI', value: medianCFI ?? '—' },
+                          { label:'Participants with multiple assessments', value: retestedUserIds.length },
+                          { label:'Average change among retested', value: avgChangeRetested != null ? (avgChangeRetested>0?'+':'')+avgChangeRetested : '—' },
+                          { label:'Improved (lower CFI)', value: improved, color:'#7AAFCF' },
+                          { label:'No change', value: noChange, color:C.muted },
+                          { label:'Worsened (higher CFI)', value: worsened, color:'#F87171' },
+                          { label:'Band improved', value: bandImproved, color:'#7AAFCF' },
+                          { label:'Band unchanged', value: bandSame, color:C.muted },
+                          { label:'Band worsened', value: bandWorsened, color:'#F87171' },
+                        ].map((s,i) => (
+                          React.createElement("div", {key: i, style: { display:'flex', justifyContent:'space-between', padding:'6px 0', borderBottom: i<9?`1px solid ${C.border}`:'none' }}, React.createElement("div", {style: { fontSize:12, color:C.muted }}, s.label), React.createElement("div", {style: { ...mono, fontSize:12, color: s.color || C.text }}, s.value))
+                        ))), React.createElement("div", {className: "card", style: { padding:'28px' }}, React.createElement("div", {style: { ...mono, fontSize:11, letterSpacing:1, color:C.cyan, marginBottom:20 }}, 'Recent signups'), users.slice(0,8).map((u,i) => (
+                          React.createElement("div", {key: u.id, style: { display:'flex', alignItems:'center', gap:12, padding:'10px 0', borderBottom:`1px solid ${C.border}` }}, React.createElement("div", {style: {
+                              width:32, height:32, borderRadius:'50%',
+                              background:`radial-gradient(circle, ${C.cyan}20, transparent)`,
+                              border:`1px solid ${C.border}`,
+                              display:'flex', alignItems:'center', justifyContent:'center',
+                              ...mono, fontSize:11, color:C.cyan, flexShrink:0,
+                            }}, (u.full_name||u.email||'?')[0].toUpperCase()), React.createElement("div", {style: { flex:1, minWidth:0 }}, React.createElement("div", {style: { fontSize:13, color:C.text, fontWeight:500, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}, u.full_name || 'Unnamed'), React.createElement("div", {style: { ...mono, fontSize:9, color:C.muted, letterSpacing:1 }}, u.email || u.id?.slice(0,12))), u.is_pro && React.createElement("div", {style: { ...mono, fontSize:8, color:'#E2BE78', background:'rgba(226,190,120,0.1)', border:'1px solid rgba(226,190,120,0.25)', padding:'3px 8px', borderRadius:100 }}, 'Pro'), u.is_enterprise && React.createElement("div", {style: { ...mono, fontSize:8, color:'#7AAFCF', background:'rgba(122,175,207,0.1)', border:'1px solid rgba(122,175,207,0.25)', padding:'3px 8px', borderRadius:100 }}, 'ENT'))
+                        )), users.length === 0 && React.createElement("div", {style: { color:C.dim, fontSize:13 }}, 'No users yet.')), React.createElement("div", {className: "card", style: { padding:'28px' }}, React.createElement("div", {style: { ...mono, fontSize:11, letterSpacing:1, color:C.cyan, marginBottom:20 }}, 'Quick actions'), React.createElement("div", {style: { display:'flex', flexDirection:'column', gap:10 }}, [
+                            { label:'Manage Users', desc:'Grant/revoke pro & enterprise', tab:'users', icon:'◱' },
+                            { label:'View CFI Results', desc:'Filter and delete assessments', tab:'cfi', icon:'◎' },
+                            { label:'Create Cohort', desc:'Launch enterprise cohort', tab:'cohorts', icon:'⊞' },
+                            { label:'Send Broadcast', desc:'Message to all users', tab:'broadcast', icon:'◉' },
+                            { label:'Edit Pricing', desc:'Pro & enterprise prices', tab:'pricing', icon:'₦' },
+                            { label:'Edit Branding', desc:'CTA text, hero content', tab:'branding', icon:'◐' },
+                          ].map((a,i) => (
+                            React.createElement("button", {key: i, onClick: () => setTab(a.tab), style: {
+                              display:'flex', alignItems:'center', gap:12,
+                              padding:'12px 14px', background:C.deep,
+                              border:`1px solid ${C.border}`, borderRadius:4,
+                              cursor:'pointer', textAlign:'left', transition:'border-color 0.2s',
+                            }, onMouseEnter: e => e.currentTarget.style.borderColor=C.borderBright, onMouseLeave: e => e.currentTarget.style.borderColor=C.border}, React.createElement("span", {style: { ...mono, fontSize:14, color:C.cyan }}, a.icon), React.createElement("div", null, React.createElement("div", {style: { fontSize:13, color:C.text, fontWeight:500 }}, a.label), React.createElement("div", {style: { ...mono, fontSize:9, color:C.muted, letterSpacing:1 }}, a.desc)))
+                          )))), React.createElement("div", {className: "card", style: { padding:'28px', borderColor:'rgba(196,160,80,0.25)' }}, React.createElement("div", {style: { ...mono, fontSize:11, letterSpacing:1, color:C.cyan, marginBottom:20 }}, 'Revenue snapshot'), [
+                          { label:'Pro Price', value:`₦${(proPrice/100).toLocaleString()}`, color:C.cyan },
+                          { label:'Est. Pro Revenue', value:`₦${((proUsers.length * proPrice)/100).toLocaleString()}`, color:'#E2BE78' },
+                          { label:'Enterprise Price', value:`₦${(entPrice/100).toLocaleString()}`, color:'#7AAFCF' },
+                          { label:'Est. Ent Revenue', value:`₦${((entUsers.length * entPrice)/100).toLocaleString()}`, color:'#4CF7C0' },
+                          { label:'Pro Conversion', value:`${users.length ? Math.round(proUsers.length/users.length*100) : 0}%`, color:'#D4AF6A' },
+                        ].map((r,i) => (
+                          React.createElement("div", {key: i, style: { display:'flex', justifyContent:'space-between', padding:'10px 0', borderBottom:`1px solid ${C.border}` }}, React.createElement("div", {style: { ...mono, fontSize:9, color:C.muted, letterSpacing:1.5 }}, r.label.toUpperCase()), React.createElement("div", {style: { ...syne, fontSize:15, fontWeight:700, color:r.color, overflowWrap:'break-word', minWidth:0}}, r.value))
+                        )), React.createElement("button", {className: "btn-outline", style: { fontSize:10, marginTop:16 }, onClick: () => setTab('pricing')}, 'Edit Pricing →'))))
+                ), tab === 'users' && (
+                  React.createElement("div", null, React.createElement("div", {style: { display:'flex', gap:12, marginBottom:20, flexWrap:'wrap', alignItems:'center' }}, React.createElement("input", {value: userSearch, onChange: e => setUserSearch(e.target.value), placeholder: "Search by name or email...", style: { flex:1, minWidth:200, fontSize:13 }}), React.createElement("div", {style: { display:'flex', gap:4, background:C.deep, padding:4, borderRadius:3 }}, ['all','pro','enterprise','free'].map(f => (
+                          React.createElement("button", {key: f, onClick: () => setProFilter(f), style: {
+                            padding:'8px 14px', background:proFilter===f?C.surface:'transparent',
+                            border:proFilter===f?`1px solid ${C.borderBright}`:'1px solid transparent',
+                            color:proFilter===f?C.cyan:C.muted,
+                            ...mono, fontSize:9, letterSpacing:1, cursor:'pointer', borderRadius:2,
+                          }}, f)
+                        ))), React.createElement("div", {style: { ...mono, fontSize:9, color:C.muted, letterSpacing:2 }}, filteredUsers.length, 'USERS')), React.createElement("div", {className: "card", style: { overflow:'hidden' }}, React.createElement("div", {style: { display:'grid', gridTemplateColumns:'1fr 1.5fr 70px 70px 80px 150px', gap:12, padding:'14px 20px', borderBottom:`1px solid ${C.border}`, background:C.deep }}, ['NAME','EMAIL','Pro','ENT','JOINED','ACTIONS'].map(h => (
+                          React.createElement("div", {key: h, style: { ...mono, fontSize:11, letterSpacing:1, color:C.muted }}, h)
+                        ))), React.createElement("div", {style: { maxHeight:560, overflowY:'auto' }}, filteredUsers.length === 0 && (
+                          React.createElement("div", {style: { padding:'40px', textAlign:'center', color:C.dim, fontSize:13 }}, 'No users match filter.')
+                        ), filteredUsers.map((u,i) => (
+                          React.createElement("div", {key: u.id, style: {
+                            display:'grid', gridTemplateColumns:'1fr 1.5fr 70px 70px 80px 150px', gap:12,
+                            padding:'12px 20px', borderBottom:`1px solid ${C.border}`,
+                            transition:'background 0.15s',
+                          }, onMouseEnter: e => e.currentTarget.style.background=C.deep, onMouseLeave: e => e.currentTarget.style.background='transparent'}, React.createElement("div", {style: { fontSize:12, color:C.text, fontWeight:500, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}, u.full_name || 'N/A'), React.createElement("div", {style: { ...mono, fontSize:9, color:C.muted, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}, u.email || u.id?.slice(0,16)+'...'), React.createElement("div", null, u.is_pro
+                                ? React.createElement("span", {style: { ...mono, fontSize:8, color:'#E2BE78', background:'rgba(226,190,120,0.1)', border:'1px solid rgba(226,190,120,0.25)', padding:'3px 8px', borderRadius:100 }}, 'Pro')
+                                : React.createElement("span", {style: { ...mono, fontSize:8, color:C.dim, background:C.deep, border:`1px solid ${C.border}`, padding:'3px 8px', borderRadius:100 }}, '--')
+                              ), React.createElement("div", null, u.is_enterprise
+                                ? React.createElement("span", {style: { ...mono, fontSize:8, color:'#7AAFCF', background:'rgba(122,175,207,0.1)', border:'1px solid rgba(122,175,207,0.25)', padding:'3px 8px', borderRadius:100 }}, 'ENT')
+                                : React.createElement("span", {style: { ...mono, fontSize:8, color:C.dim, background:C.deep, border:`1px solid ${C.border}`, padding:'3px 8px', borderRadius:100 }}, '--')
+                              ), React.createElement("div", {style: { ...mono, fontSize:9, color:C.dim }}, u.created_at ? new Date(u.created_at).toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'2-digit'}) : '--'), React.createElement("div", {style: { display:'flex', gap:6, flexWrap:'wrap' }}, React.createElement("button", {onClick: () => togglePro(u.id, u.is_pro), style: {
+                                ...mono, fontSize:8, padding:'4px 10px', borderRadius:2, cursor:'pointer',
+                                background: u.is_pro ? 'rgba(248,113,113,0.1)' : 'rgba(226,190,120,0.1)',
+                                border: u.is_pro ? '1px solid rgba(248,113,113,0.3)' : '1px solid rgba(226,190,120,0.3)',
+                                color: u.is_pro ? '#F87171' : '#E2BE78',
+                              }}, u.is_pro ? 'Revoke Pro' : 'Pro +'), React.createElement("button", {onClick: () => toggleEnterprise(u.id, u.is_enterprise), style: {
+                                ...mono, fontSize:8, padding:'4px 10px', borderRadius:2, cursor:'pointer',
+                                background: u.is_enterprise ? 'rgba(248,113,113,0.1)' : 'rgba(122,175,207,0.1)',
+                                border: u.is_enterprise ? '1px solid rgba(248,113,113,0.3)' : '1px solid rgba(122,175,207,0.3)',
+                                color: u.is_enterprise ? '#F87171' : '#7AAFCF',
+                              }}, u.is_enterprise ? 'Revoke Ent' : 'Ent +'), React.createElement("button", {onClick: () => deleteUser(u.id), style: {
+                                ...mono, fontSize:8, padding:'4px 10px', borderRadius:2, cursor:'pointer',
+                                background:'rgba(248,113,113,0.06)', border:'1px solid rgba(248,113,113,0.2)', color:'#F87171',
+                              }}, '✕')))
+                        )))))
+                ), tab === 'cfi' && (
+                  React.createElement("div", null, React.createElement("div", {style: { display:'flex', gap:12, marginBottom:20, flexWrap:'wrap', alignItems:'center' }}, React.createElement("div", {style: { display:'flex', gap:4, background:C.deep, padding:4, borderRadius:3, flexWrap:'wrap' }}, ['all','Integrated','Moderate fragmentation','High fragmentation','Critical fragmentation'].map(f => (
+                          React.createElement("button", {key: f, onClick: () => setCfiFilter(f), style: {
+                            padding:'7px 12px', background:cfiFilter===f?C.surface:'transparent',
+                            border:cfiFilter===f?`1px solid ${C.borderBright}`:'1px solid transparent',
+                            color:cfiFilter===f?C.cyan:C.muted,
+                            ...mono, fontSize:8, letterSpacing:1.5, cursor:'pointer', borderRadius:2,
+                          }}, f === 'all' ? 'ALL' : f.toUpperCase().split(' ')[0])
+                        ))), React.createElement("div", {style: { ...mono, fontSize:9, color:C.muted, letterSpacing:2 }}, filteredCFI.length, 'RESULTS')), React.createElement("div", {className: "card", style: { overflow:'hidden' }}, React.createElement("div", {style: { display:'grid', gridTemplateColumns:'1.5fr 80px 160px 120px 100px 80px', gap:12, padding:'14px 20px', borderBottom:`1px solid ${C.border}`, background:C.deep }}, ['USER ID','SCORE','BAND','DOMINANT','DATE','ACTION'].map(h => (
+                          React.createElement("div", {key: h, style: { ...mono, fontSize:11, letterSpacing:1, color:C.muted }}, h)
+                        ))), React.createElement("div", {style: { maxHeight:520, overflowY:'auto' }}, filteredCFI.length === 0 && (
+                          React.createElement("div", {style: { padding:'40px', textAlign:'center', color:C.dim, fontSize:13 }}, 'No CFI results', cfiFilter !== 'all' ? ' for this band' : '', '.')
+                        ), filteredCFI.map((r,i) => {
+                          const bColor = bandColors[r.band] || C.cyan;
+                          return (
+                            React.createElement("div", {key: r.id, style: {
+                              display:'grid', gridTemplateColumns:'1.5fr 80px 160px 120px 100px 80px', gap:12,
+                              padding:'14px 20px', borderBottom:`1px solid ${C.border}`,
+                              transition:'background 0.15s',
+                            }, onMouseEnter: e => e.currentTarget.style.background=C.deep, onMouseLeave: e => e.currentTarget.style.background='transparent'}, React.createElement("div", {style: { ...mono, fontSize:9, color:C.muted, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}, r.user_id?.slice(0,18), '...'), React.createElement("div", {style: { ...syne, fontSize:15, fontWeight:800, color:bColor, overflowWrap:'break-word', minWidth:0}}, r.total_score), React.createElement("div", null, React.createElement("span", {style: { ...mono, fontSize:8, color:bColor, background:`${bColor}12`, border:`1px solid ${bColor}30`, padding:'3px 8px', borderRadius:100 }}, r.band?.split(' ')[0])), React.createElement("div", {style: { fontSize:12, color:C.muted, textTransform:'capitalize' }}, r.dominant_brain || r.dominantBrain || 'N/A'), React.createElement("div", {style: { ...mono, fontSize:9, color:C.dim }}, r.created_at ? new Date(r.created_at).toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'2-digit'}) : '--'), React.createElement("div", null, React.createElement("button", {onClick: () => deleteCFIResult(r.id), style: {
+                                  ...mono, fontSize:8, padding:'4px 10px', cursor:'pointer',
+                                  background:'rgba(248,113,113,0.08)', border:'1px solid rgba(248,113,113,0.2)',
+                                  color:'#F87171', borderRadius:2,
+                                }}, 'Delete')))
+                          );
+                        }))))
+                ), tab === 'pro' && (
+                  React.createElement("div", null, React.createElement("div", {style: { display:'flex', gap:16, marginBottom:24, flexWrap:'wrap' }}, React.createElement("div", {className: "card", style: { padding:'24px 28px', flex:'none' }}, React.createElement("div", {style: { ...mono, fontSize:11, letterSpacing:1, color:'#8A7A5A', marginBottom:10 }}, 'PRO subscribers'), React.createElement("div", {style: { ...syne, fontSize:40, fontWeight:800, color:'#E2BE78', overflowWrap:'break-word', minWidth:0}}, proUsers.length)), React.createElement("div", {className: "card", style: { padding:'24px 28px', flex:'none' }}, React.createElement("div", {style: { ...mono, fontSize:11, letterSpacing:1, color:'#8A7A5A', marginBottom:10 }}, 'Conversion rate'), React.createElement("div", {style: { ...syne, fontSize:40, fontWeight:800, color:C.cyan, overflowWrap:'break-word', minWidth:0}}, users.length ? Math.round(proUsers.length/users.length*100) : 0, '%')), React.createElement("div", {className: "card", style: { padding:'24px 28px', flex:'none' }}, React.createElement("div", {style: { ...mono, fontSize:11, letterSpacing:1, color:'#8A7A5A', marginBottom:10 }}, 'EST. REVENUE'), React.createElement("div", {style: { ...syne, fontSize:40, fontWeight:800, color:'#7AAFCF', overflowWrap:'break-word', minWidth:0}}, `₦${((proUsers.length * proPrice / 100)).toLocaleString()}`))), React.createElement("div", {className: "card", style: { overflow:'hidden' }}, React.createElement("div", {style: { display:'grid', gridTemplateColumns:'1fr 1.5fr 100px 120px', gap:16, padding:'14px 20px', borderBottom:`1px solid ${C.border}`, background:C.deep }}, ['NAME','EMAIL','STATUS','ACTION'].map(h => (
+                          React.createElement("div", {key: h, style: { ...mono, fontSize:11, letterSpacing:1, color:C.muted }}, h)
+                        ))), React.createElement("div", {style: { maxHeight:480, overflowY:'auto' }}, proUsers.length === 0 && (
+                          React.createElement("div", {style: { padding:'40px', textAlign:'center', color:C.dim, fontSize:13 }}, 'No Pro subscribers yet.')
+                        ), proUsers.map((u,i) => (
+                          React.createElement("div", {key: u.id, style: {
+                            display:'grid', gridTemplateColumns:'1fr 1.5fr 100px 120px', gap:16,
+                            padding:'14px 20px', borderBottom:`1px solid ${C.border}`,
+                            transition:'background 0.15s',
+                          }, onMouseEnter: e => e.currentTarget.style.background=C.deep, onMouseLeave: e => e.currentTarget.style.background='transparent'}, React.createElement("div", {style: { fontSize:13, color:C.text, fontWeight:500 }}, u.full_name || 'N/A'), React.createElement("div", {style: { ...mono, fontSize:10, color:C.muted, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}, u.email || u.id?.slice(0,16)), React.createElement("div", null, React.createElement("span", {style: { ...mono, fontSize:8, color:'#E2BE78', background:'rgba(226,190,120,0.1)', border:'1px solid rgba(226,190,120,0.25)', padding:'3px 8px', borderRadius:100 }}, 'Active PRO')), React.createElement("div", null, React.createElement("button", {onClick: () => togglePro(u.id, true), style: {
+                                ...mono, fontSize:8, padding:'5px 12px', cursor:'pointer',
+                                background:'rgba(248,113,113,0.1)', border:'1px solid rgba(248,113,113,0.3)',
+                                color:'#F87171', borderRadius:2,
+                              }}, 'Revoke')))
+                        )))))
+                ), tab === 'cohorts' && (
+                  React.createElement("div", null, React.createElement("div", {style: { display:'grid', gridTemplateColumns:'repeat(auto-fit,minmax(300px,1fr))', gap:24, marginBottom:32 }}, React.createElement("div", {className: "card", style: { padding:'28px', borderColor:'rgba(76,247,192,0.2)' }}, React.createElement("div", {style: { ...mono, fontSize:11, letterSpacing:1, color:'#4CF7C0', marginBottom:16 }}, 'Create new cohort'), React.createElement("div", {style: { display:'flex', flexDirection:'column', gap:12 }}, [
+                            { key:'name', label:'Cohort Name', placeholder:'e.g. Leadership Cohort A' },
+                            { key:'org', label:'Organisation', placeholder:'e.g. Acme Corp' },
+                            { key:'facilitator', label:'Facilitator Name', placeholder:'e.g. Jane Smith' },
+                            { key:'startDate', label:'Start Date', placeholder:'', type:'date' },
+                            { key:'maxParticipants', label:'Max Participants', placeholder:'e.g. 20', type:'number' },
+                          ].map(f => (
+                            React.createElement("div", {key: f.key}, React.createElement("div", {style: { ...mono, fontSize:11, letterSpacing:1, color:C.muted, marginBottom:5 }}, f.label.toUpperCase()), React.createElement("input", {type: f.type || 'text', value: newCohort[f.key], onChange: e => setNewCohort(p => ({...p, [f.key]: e.target.value})), placeholder: f.placeholder, style: { fontSize:13, width:'100%' }}))
+                          )), React.createElement("button", {className: "btn-primary", onClick: createCohort, style: { marginTop:8 }}, 'Create Cohort →'))), React.createElement("div", {style: { display:'flex', flexDirection:'column', gap:16 }}, [
+                          { label:'Total cohorts', value:localCohorts.length, color:'#C4A050' },
+                          { label:'ACTIVE', value:localCohorts.filter(c=>c.status==='active').length, color:'#4CF7C0' },
+                          { label:'ARCHIVED', value:localCohorts.filter(c=>c.status==='archived').length, color:C.muted },
+                        ].map((s,i) => (
+                          React.createElement("div", {key: i, className: "card", style: { padding:'20px 24px', display:'flex', justifyContent:'space-between', alignItems:'center' }}, React.createElement("div", {style: { ...mono, fontSize:9, letterSpacing:1, color:C.muted }}, s.label), React.createElement("div", {style: { ...syne, fontSize:17, fontWeight:800, color:s.color, overflowWrap:'break-word', minWidth:0}}, s.value))
+                        )))), React.createElement("div", {className: "card", style: { overflow:'hidden' }}, React.createElement("div", {style: { display:'grid', gridTemplateColumns:'1.5fr 1fr 1fr 100px 80px 150px', gap:12, padding:'14px 20px', borderBottom:`1px solid ${C.border}`, background:C.deep }}, ['NAME','ORG','CODE','STARTED','STATUS','ACTIONS'].map(h => (
+                          React.createElement("div", {key: h, style: { ...mono, fontSize:11, letterSpacing:1, color:C.muted }}, h)
+                        ))), React.createElement("div", {style: { maxHeight:480, overflowY:'auto' }}, localCohorts.length === 0 && (
+                          React.createElement("div", {style: { padding:'40px', textAlign:'center', color:C.dim, fontSize:13 }}, 'No cohorts yet. Create one above.')
+                        ), localCohorts.map((c,i) => (
+                          React.createElement("div", {key: c.id, style: {
+                            display:'grid', gridTemplateColumns:'1.5fr 1fr 1fr 100px 80px 150px', gap:12,
+                            padding:'14px 20px', borderBottom:`1px solid ${C.border}`, transition:'background 0.15s',
+                          }, onMouseEnter: e => e.currentTarget.style.background=C.deep, onMouseLeave: e => e.currentTarget.style.background='transparent'}, React.createElement("div", {style: { fontSize:13, color:C.text, fontWeight:500 }}, c.name), React.createElement("div", {style: { fontSize:12, color:C.muted }}, c.org), React.createElement("div", {style: { ...mono, fontSize:10, color:'#4CF7C0' }}, c.code), React.createElement("div", {style: { ...mono, fontSize:9, color:C.dim }}, c.startDate || '--'), React.createElement("div", null, React.createElement("span", {style: { ...mono, fontSize:8, padding:'3px 8px', borderRadius:100,
+                                color: c.status==='active' ? '#4CF7C0' : C.dim,
+                                background: c.status==='active' ? 'rgba(76,247,192,0.1)' : C.cyanDim,
+                                border: `1px solid ${c.status==='active' ? 'rgba(76,247,192,0.3)' : C.border}`,
+                              }}, c.status?.toUpperCase())), React.createElement("div", {style: { display:'flex', gap:6 }}, React.createElement("button", {onClick: () => archiveCohort(c.id), style: { ...mono, fontSize:8, padding:'4px 10px', borderRadius:2, cursor:'pointer', background:'rgba(196,160,80,0.08)', border:`1px solid rgba(196,160,80,0.2)`, color:C.cyan }}, c.status==='active' ? 'Archive' : 'Restore'), React.createElement("button", {onClick: () => deleteCohort(c.id), style: { ...mono, fontSize:8, padding:'4px 10px', borderRadius:2, cursor:'pointer', background:'rgba(248,113,113,0.06)', border:'1px solid rgba(248,113,113,0.2)', color:'#F87171' }}, '✕')))
+                        )))))
+                ), tab === 'ent-results' && (
+                  React.createElement("div", null, React.createElement("div", {style: { display:'flex', gap:16, marginBottom:24, flexWrap:'wrap', alignItems:'center' }}, React.createElement("div", {style: { display:'flex', gap:4, background:C.deep, padding:4, borderRadius:3, flexWrap:'wrap' }}, ['all', ...localCohorts.map(c=>c.code)].map(f => (
+                          React.createElement("button", {key: f, onClick: () => setEntCohortFilter(f), style: {
+                            padding:'7px 12px', background:entCohortFilter===f?C.surface:'transparent',
+                            border:entCohortFilter===f?`1px solid ${C.borderBright}`:'1px solid transparent',
+                            color:entCohortFilter===f?C.cyan:C.muted,
+                            ...mono, fontSize:8, letterSpacing:1.5, cursor:'pointer', borderRadius:2,
+                          }}, f === 'all' ? 'All cohorts' : f)
+                        )))), React.createElement("div", {style: { display:'grid', gridTemplateColumns:'repeat(auto-fit,minmax(160px,1fr))', gap:16, marginBottom:24 }}, [
+                        { label:'Enterprise users', value:entUsers.length, color:'#7AAFCF' },
+                        { label:'Active cohorts', value:localCohorts.filter(c=>c.status==='active').length, color:'#4CF7C0' },
+                        { label:'Avg CFI score', value: completedCFI.length ? Math.round(completedCFI.reduce((a,r)=>a+(r.total_score||0),0)/completedCFI.length) : 'N/A', color:'#C4A050' },
+                      ].map((s,i) => (
+                        React.createElement("div", {key: i, className: "card", style: { padding:'20px 24px' }}, React.createElement("div", {style: { ...mono, fontSize:11, letterSpacing:1, color:C.muted, marginBottom:8 }}, s.label), React.createElement("div", {style: { ...syne, fontSize:17, fontWeight:800, color:s.color, overflowWrap:'break-word', minWidth:0}}, s.value))
+                      ))), React.createElement("div", {className: "card", style: { padding:'28px' }}, React.createElement("div", {style: { ...mono, fontSize:11, letterSpacing:1, color:C.cyan, marginBottom:20 }}, 'Enterprise users by cohort'), entUsers.length === 0 && (
+                        React.createElement("div", {style: { color:C.dim, fontSize:13, textAlign:'center', padding:'40px 0' }}, 'No enterprise users found. Grant enterprise access in the Users tab.')
+                      ), entUsers.map((u,i) => {
+                        const userCFI = completedCFI.find(r => r.user_id === u.id);
+                        const bColor = userCFI ? (bandColors[userCFI.band] || C.cyan) : C.dim;
+                        return (
+                          React.createElement("div", {key: u.id, style: { display:'flex', alignItems:'center', gap:16, padding:'14px 0', borderBottom:`1px solid ${C.border}` }}, React.createElement("div", {style: { width:36, height:36, borderRadius:'50%', background:'rgba(76,247,192,0.08)', border:'1px solid rgba(76,247,192,0.2)', display:'flex', alignItems:'center', justifyContent:'center', ...mono, fontSize:12, color:'#4CF7C0', flexShrink:0 }}, (u.full_name||u.email||'?')[0].toUpperCase()), React.createElement("div", {style: { flex:1, minWidth:0 }}, React.createElement("div", {style: { fontSize:13, color:C.text, fontWeight:500 }}, u.full_name || 'Unnamed'), React.createElement("div", {style: { ...mono, fontSize:9, color:C.muted }}, u.email || u.id?.slice(0,16))), userCFI ? (
+                              React.createElement("div", {style: { textAlign:'right', flexShrink:0 }}, React.createElement("div", {style: { ...syne, fontSize:14, fontWeight:800, color:bColor, overflowWrap:'break-word', minWidth:0}}, userCFI.total_score), React.createElement("div", {style: { ...mono, fontSize:8, color:bColor }}, userCFI.band?.split(' ')[0]))
+                            ) : (
+                              React.createElement("div", {style: { ...mono, fontSize:8, color:C.dim }}, 'No CFI data')
+                            ), React.createElement("button", {onClick: () => toggleEnterprise(u.id, true), style: { ...mono, fontSize:8, padding:'4px 10px', borderRadius:2, cursor:'pointer', background:'rgba(248,113,113,0.08)', border:'1px solid rgba(248,113,113,0.2)', color:'#F87171', flexShrink:0 }}, 'Revoke'))
+                        );
+                      })))
+                ), tab === 'lessons' && (
+                  React.createElement("div", null, React.createElement("div", {style: { ...mono, fontSize:11, letterSpacing:1, color:C.muted, marginBottom:20 }}, 'Edits are saved to localStorage. Changes take effect on next app reload. The core lesson data in code is not modified.'), editingLesson !== null ? (
+                      React.createElement("div", {className: "card", style: { padding:'32px' }}, React.createElement("div", {style: { ...mono, fontSize:11, letterSpacing:1, color:C.cyan, marginBottom:16 }}, 'EDITING: LESSON', lessonDraft.id), React.createElement("div", {style: { display:'flex', flexDirection:'column', gap:16 }}, [
+                            { key:'title', label:'Title' },
+                            { key:'sub', label:'Subtitle' },
+                            { key:'level', label:'Level' },
+                            { key:'duration', label:'Duration' },
+                          ].map(f => (
+                            React.createElement("div", {key: f.key}, React.createElement("div", {style: { ...mono, fontSize:11, letterSpacing:1, color:C.muted, marginBottom:5 }}, f.label.toUpperCase()), React.createElement("input", {value: lessonDraft[f.key] || '', onChange: e => setLessonDraft(p => ({...p, [f.key]: e.target.value})), style: { fontSize:13, width:'100%' }}))
+                          )), React.createElement("div", null, React.createElement("div", {style: { ...mono, fontSize:11, letterSpacing:1, color:C.muted, marginBottom:5 }}, 'Free'), React.createElement("div", {style: { display:'flex', gap:10 }}, [true, false].map(v => (
+                                React.createElement("button", {key: String(v), onClick: () => setLessonDraft(p => ({...p, free: v})), style: {
+                                  ...mono, fontSize:9, padding:'6px 16px', borderRadius:2, cursor:'pointer',
+                                  background: lessonDraft.free === v ? (v ? 'rgba(76,247,192,0.15)' : 'rgba(248,113,113,0.1)') : 'transparent',
+                                  border: lessonDraft.free === v ? `1px solid ${v ? '#4CF7C0' : '#F87171'}` : `1px solid ${C.border}`,
+                                  color: lessonDraft.free === v ? (v ? '#4CF7C0' : '#F87171') : C.muted,
+                                }}, v ? 'Free' : 'Pro Only')
+                              )))), React.createElement("div", {style: { display:'flex', gap:12, marginTop:8 }}, React.createElement("button", {className: "btn-primary", onClick: saveLesson}, 'Save Lesson'), React.createElement("button", {className: "btn-ghost", onClick: () => setEditingLesson(null)}, 'Cancel'))))
+                    ) : (
+                      React.createElement("div", {style: { display:'flex', flexDirection:'column', gap:12 }}, LESSONS.map(lesson => (
+                          React.createElement("div", {key: lesson.id, className: "card", style: { padding:'20px 24px', display:'flex', alignItems:'center', gap:16 }}, React.createElement("div", {style: { ...mono, fontSize:11, color:C.cyan, flexShrink:0 }}, '#', lesson.id), React.createElement("div", {style: { flex:1, minWidth:0 }}, React.createElement("div", {style: { fontSize:14, color:C.text, fontWeight:600 }}, lesson.title), React.createElement("div", {style: { fontSize:12, color:C.muted, marginTop:2 }}, lesson.sub), React.createElement("div", {style: { display:'flex', gap:10, marginTop:6 }}, React.createElement("span", {style: { ...mono, fontSize:8, color:C.muted }}, lesson.level), React.createElement("span", {style: { ...mono, fontSize:8, color:C.muted }}, '·'), React.createElement("span", {style: { ...mono, fontSize:8, color:C.muted }}, lesson.duration), React.createElement("span", {style: { ...mono, fontSize:8, color:lesson.free ? '#4CF7C0' : '#E2BE78', background: lesson.free ? 'rgba(76,247,192,0.1)' : 'rgba(226,190,120,0.1)', border: `1px solid ${lesson.free ? 'rgba(76,247,192,0.3)' : 'rgba(226,190,120,0.3)'}`, padding:'1px 6px', borderRadius:100 }}, lesson.free ? 'Free' : 'Pro'))), React.createElement("button", {onClick: () => startEditLesson(lesson), style: { ...mono, fontSize:9, padding:'6px 16px', borderRadius:2, cursor:'pointer', background:C.cyanDim, border:`1px solid ${C.borderBright}`, color:C.cyan, flexShrink:0 }}, 'Edit'))
+                        )))
+                    ))
+                ), tab === 'broadcast' && (
+                  React.createElement("div", {style: { maxWidth:800 }}, React.createElement("div", {className: "card", style: { padding:'32px', marginBottom:20, borderColor:'rgba(196,160,80,0.25)' }}, React.createElement("div", {style: { ...mono, fontSize:11, letterSpacing:1, color:C.cyan, marginBottom:16 }}, 'Send platform announcement'), React.createElement("div", {style: { marginBottom:16 }}, React.createElement("div", {style: { ...mono, fontSize:11, letterSpacing:1, color:C.muted, marginBottom:8 }}, 'Target audience'), React.createElement("div", {style: { display:'flex', gap:8, flexWrap:'wrap' }}, [['all','All users'],['pro','Pro Users'],['free','Free Users'],['enterprise','Enterprise Users']].map(([val,label]) => (
+                            React.createElement("button", {key: val, onClick: () => setBroadcastTarget(val), style: {
+                              ...mono, fontSize:9, padding:'6px 14px', borderRadius:2, cursor:'pointer',
+                              background: broadcastTarget===val ? C.cyanDim : 'transparent',
+                              border: broadcastTarget===val ? `1px solid ${C.borderBright}` : `1px solid ${C.border}`,
+                              color: broadcastTarget===val ? C.cyan : C.muted,
+                            }}, label)
+                          )))), React.createElement("div", {style: { marginBottom:16 }}, React.createElement("div", {style: { ...mono, fontSize:11, letterSpacing:1, color:C.muted, marginBottom:8 }}, 'MESSAGE'), React.createElement("textarea", {value: broadcastMsg, onChange: e => setBroadcastMsg(e.target.value), placeholder: "Enter your announcement or message...", rows: 4, style: { fontSize:13, width:'100%', resize:'vertical', background:C.deep, border:`1px solid ${C.border}`, color:C.text, padding:'12px 14px', borderRadius:4, fontFamily:'inherit', lineHeight:1.6 }})), React.createElement("div", {style: { display:'flex', gap:12, alignItems:'center' }}, React.createElement("button", {className: "btn-primary", onClick: sendBroadcast, disabled: !broadcastMsg.trim()}, 'Send Broadcast →'), React.createElement("div", {style: { ...mono, fontSize:9, color:C.muted }}, 'Will reach:', broadcastTarget==='all' ? users.length : broadcastTarget==='pro' ? proUsers.length : broadcastTarget==='enterprise' ? entUsers.length : users.filter(u=>!u.is_pro).length, 'users'))), React.createElement("div", {style: { ...mono, fontSize:11, letterSpacing:1, color:C.muted, marginBottom:12 }}, 'BROADCAST HISTORY (', broadcasts.length, ')'), broadcasts.length === 0 && (
+                      React.createElement("div", {className: "card", style: { padding:'32px', textAlign:'center', color:C.dim, fontSize:13 }}, 'No broadcasts sent yet.')
+                    ), broadcasts.map(b => (
+                      React.createElement("div", {key: b.id, className: "card", style: { padding:'20px 24px', marginBottom:10 }}, React.createElement("div", {style: { display:'flex', justifyContent:'space-between', alignItems:'flex-start', marginBottom:8 }}, React.createElement("div", {style: { display:'flex', gap:10, alignItems:'center' }}, React.createElement("span", {style: { ...mono, fontSize:8, color:'#4CF7C0', background:'rgba(76,247,192,0.1)', border:'1px solid rgba(76,247,192,0.2)', padding:'2px 8px', borderRadius:100 }}, b.target?.toUpperCase()), React.createElement("span", {style: { ...mono, fontSize:9, color:C.dim }}, new Date(b.sent).toLocaleString('en-GB',{day:'2-digit',month:'short',year:'2-digit',hour:'2-digit',minute:'2-digit'}))), React.createElement("button", {onClick: () => deleteBroadcast(b.id), style: { ...mono, fontSize:9, color:'#F87171', background:'none', border:'none', cursor:'pointer' }}, '✕')), React.createElement("div", {style: { fontSize:13, color:C.text, lineHeight:1.6 }}, b.message))
+                    )))
+                ), tab === 'branding' && (
+                  React.createElement("div", {style: { maxWidth:720 }}, React.createElement("div", {style: { ...mono, fontSize:11, letterSpacing:1, color:C.muted, marginBottom:20 }}, 'Edit platform copy and messaging. Changes saved to localStorage and apply on reload.'), React.createElement("div", {className: "card", style: { padding:'32px', marginBottom:16 }}, React.createElement("div", {style: { ...mono, fontSize:11, letterSpacing:1, color:C.cyan, marginBottom:20 }}, 'Platform copy'), React.createElement("div", {style: { display:'flex', flexDirection:'column', gap:16 }}, [
+                          { key:'heroTitle', label:'Hero Title', placeholder:'e.g. Most people were never taught HOW to think.' },
+                          { key:'tagline', label:'Tagline / Subheadline', placeholder:'e.g. The World\'s First Cognitive Performance Operating System' },
+                          { key:'ctaText', label:'Primary CTA Button Text', placeholder:'e.g. Begin Your Assessment' },
+                        ].map(f => (
+                          React.createElement("div", {key: f.key}, React.createElement("div", {style: { ...mono, fontSize:11, letterSpacing:1, color:C.muted, marginBottom:6 }}, f.label.toUpperCase()), React.createElement("input", {value: brandSettings[f.key] || '', onChange: e => setBrandSettings(p => ({...p, [f.key]: e.target.value})), placeholder: f.placeholder, style: { fontSize:13, width:'100%' }}))
+                        )))), React.createElement("div", {className: "card", style: { padding:'32px', marginBottom:16 }}, React.createElement("div", {style: { ...mono, fontSize:11, letterSpacing:1, color:C.cyan, marginBottom:20 }}, 'Announcement bar'), React.createElement("div", {style: { display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:16 }}, React.createElement("div", null, React.createElement("div", {style: { fontSize:13, color:C.text, fontWeight:500 }}, 'Show Announcement Bar'), React.createElement("div", {style: { fontSize:12, color:C.muted }}, 'Displays a banner at the top of the platform')), React.createElement("button", {onClick: () => setBrandSettings(p => ({...p, announcementActive: !p.announcementActive})), style: {
+                          ...mono, fontSize:9, padding:'8px 16px', borderRadius:2, cursor:'pointer',
+                          background: brandSettings.announcementActive ? 'rgba(76,247,192,0.1)' : 'rgba(122,175,207,0.1)',
+                          border: brandSettings.announcementActive ? '1px solid rgba(76,247,192,0.3)' : `1px solid ${C.border}`,
+                          color: brandSettings.announcementActive ? '#4CF7C0' : C.muted,
+                        }}, brandSettings.announcementActive ? 'ON: Disable' : 'OFF: Enable')), React.createElement("div", {style: { ...mono, fontSize:11, letterSpacing:1, color:C.muted, marginBottom:6 }}, 'Announcement text'), React.createElement("input", {value: brandSettings.announcementBar || '', onChange: e => setBrandSettings(p => ({...p, announcementBar: e.target.value})), placeholder: "e.g. New enterprise cohorts now available. Contact us to enrol your team.", style: { fontSize:13, width:'100%' }})), React.createElement("button", {className: "btn-primary", onClick: saveBranding}, 'Save Branding Changes →'))
+                ), tab === 'pricing' && (
+                  React.createElement("div", {style: { display:'grid', gridTemplateColumns:'repeat(auto-fit,minmax(min(400px,100%),1fr))', gap:20 }}, React.createElement("div", {className: "card", style: { padding:'40px', position:'relative', overflow:'hidden', borderColor:'rgba(196,160,80,0.3)' }}, React.createElement(ScanLine, null), React.createElement("div", {style: { ...mono, fontSize:11, letterSpacing:1, color:C.cyan, marginBottom:16 }}, 'PRO plan pricing'), React.createElement("div", {style: { ...syne, fontSize:17, fontWeight:800, color:C.text, marginBottom:8, overflowWrap:'break-word', minWidth:0}}, 'Edit Pro Price'), React.createElement("div", {style: { fontSize:13, color:C.muted, marginBottom:28, lineHeight:1.7 }}, 'Updates the price shown on the platform and passed to Paystack for payment processing.'), React.createElement("div", {style: { marginBottom:20 }}, React.createElement("div", {style: { ...mono, fontSize:9, letterSpacing:1, color:C.muted, marginBottom:8 }}, 'CURRENT PRICE (NAIRA)'), React.createElement("div", {style: { ...syne, fontSize:14, fontWeight:800, color:C.cyan, lineHeight:1.2, marginBottom:4, overflowWrap:'break-word', minWidth:0}}, `₦${(proPrice/100).toLocaleString()}`), React.createElement("div", {style: { ...mono, fontSize:9, color:C.muted }}, '=', proPrice.toLocaleString(), 'kobo')), React.createElement("div", {style: { marginBottom:20 }}, React.createElement("div", {style: { ...mono, fontSize:9, letterSpacing:1, color:C.muted, marginBottom:8 }}, 'NEW PRICE (₦)'), React.createElement("div", {style: { display:'flex', gap:12, alignItems:'center' }}, React.createElement("div", {style: { position:'relative', flex:1 }}, React.createElement("div", {style: { position:'absolute', left:16, top:'50%', transform:'translateY(-50%)', ...syne, fontSize:14, fontWeight:700, color:C.muted, overflowWrap:'break-word', minWidth:0}}, '₦'), React.createElement("input", {type: "number", value: priceInput, onChange: e => setPriceInput(e.target.value), style: { paddingLeft:36, fontSize:14, ...syne, fontWeight:700, overflowWrap:'break-word', minWidth:0}, min: "100", step: "100"})), React.createElement("button", {className: "btn-primary", onClick: savePrice, style: { whiteSpace:'nowrap' }}, priceSaved ? '✓ Saved!' : 'Save Price'))), React.createElement("div", {style: { padding:'20px', background:C.deep, borderRadius:2, border:`1px solid ${C.border}` }}, React.createElement("div", {style: { ...mono, fontSize:11, letterSpacing:1, color:C.muted, marginBottom:8 }}, 'Paystack integration'), React.createElement("div", {style: { fontSize:13, color:C.muted, lineHeight:1.7 }}, 'Live key:', React.createElement("span", {style: { color:C.cyan, fontFamily:'monospace' }}, 'loaded from platform_settings at runtime'), React.createElement("br", null), 'Currency: NGN · Gateway: Paystack inline · Verified server-side'))), React.createElement("div", {className: "card", style: { padding:'40px', position:'relative', overflow:'hidden', borderColor:'rgba(76,247,192,0.2)' }}, React.createElement("div", {style: { ...mono, fontSize:11, letterSpacing:1, color:'#4CF7C0', marginBottom:16 }}, 'Enterprise plan pricing'), React.createElement("div", {style: { ...syne, fontSize:17, fontWeight:800, color:C.text, marginBottom:8, overflowWrap:'break-word', minWidth:0}}, 'Edit Enterprise Price'), React.createElement("div", {style: { fontSize:13, color:C.muted, marginBottom:28, lineHeight:1.7 }}, 'Sets the displayed price for enterprise cohort enrolment on the platform.'), React.createElement("div", {style: { marginBottom:20 }}, React.createElement("div", {style: { ...mono, fontSize:9, letterSpacing:1, color:C.muted, marginBottom:8 }}, 'CURRENT PRICE (NAIRA)'), React.createElement("div", {style: { ...syne, fontSize:14, fontWeight:800, color:'#4CF7C0', lineHeight:1.2, marginBottom:4, overflowWrap:'break-word', minWidth:0}}, `₦${(entPrice/100).toLocaleString()}`), React.createElement("div", {style: { ...mono, fontSize:9, color:C.muted }}, '=', entPrice.toLocaleString(), 'kobo')), React.createElement("div", {style: { marginBottom:20 }}, React.createElement("div", {style: { ...mono, fontSize:9, letterSpacing:1, color:C.muted, marginBottom:8 }}, 'NEW PRICE (₦)'), React.createElement("div", {style: { display:'flex', gap:12, alignItems:'center' }}, React.createElement("div", {style: { position:'relative', flex:1 }}, React.createElement("div", {style: { position:'absolute', left:16, top:'50%', transform:'translateY(-50%)', ...syne, fontSize:14, fontWeight:700, color:C.muted, overflowWrap:'break-word', minWidth:0}}, '₦'), React.createElement("input", {type: "number", value: entPriceInput, onChange: e => setEntPriceInput(e.target.value), style: { paddingLeft:36, fontSize:14, ...syne, fontWeight:700, overflowWrap:'break-word', minWidth:0}, min: "100", step: "1000"})), React.createElement("button", {className: "btn-primary", onClick: saveEntPrice, style: { whiteSpace:'nowrap' }}, 'Save Price'))), React.createElement("div", {style: { padding:'16px 20px', background:C.deep, borderRadius:2, border:`1px solid ${C.border}`, ...mono, fontSize:10, color:C.muted }}, 'Grant enterprise access manually in the', React.createElement("button", {onClick: () => setTab('users'), style: { background:'none', border:'none', color:C.cyan, cursor:'pointer', ...mono, fontSize:10, padding:0 }}, 'Users tab →'))),
+                  React.createElement("div", {className: "card", style: { padding:'40px', position:'relative', overflow:'hidden', borderColor:'rgba(196,160,80,0.2)', gridColumn:'1 / -1' }}, React.createElement(ScanLine, null), React.createElement("div", {style: { ...mono, fontSize:11, letterSpacing:1, color:'#E2BE78', marginBottom:16 }}, 'Payment gateway'), React.createElement("div", {style: { ...syne, fontSize:17, fontWeight:800, color:C.text, marginBottom:8, overflowWrap:'break-word', minWidth:0}}, 'Paystack Public Key'), React.createElement("div", {style: { fontSize:13, color:C.muted, marginBottom:28, lineHeight:1.7 }}, 'Your Paystack public key (pk_live_... or pk_test_...). Stored in platform_settings and loaded at runtime, so no redeploy is needed.'), React.createElement("div", {style: { display:'flex', gap:12, alignItems:'center' }}, React.createElement("input", {type: "text", value: paystackKeyInput, onChange: e => setPaystackKeyInput(e.target.value), placeholder: 'pk_live_...', style: { flex:1, fontSize:13, fontFamily:'monospace', letterSpacing:'0.02em', overflowWrap:'break-word', minWidth:0 }}), React.createElement("button", {className: "btn-primary", onClick: savePaystackKey, style: { whiteSpace:'nowrap' }}, keySaved ? '✓ Saved!' : 'Save Key')), paystackKeyInput && React.createElement("div", {style: { marginTop:16, padding:'12px 16px', background:C.deep, borderRadius:2, border:`1px solid ${C.border}`, ...mono, fontSize:10, color:C.muted }}, 'Active: ', React.createElement("span", {style: { color:'#E2BE78' }}, paystackKeyInput.slice(0,12), '...', paystackKeyInput.slice(-6)))))
+                ), tab === 'settings' && (
+                  React.createElement("div", {style: { maxWidth:680 }}, React.createElement("div", {className: "card", style: { padding:'36px', marginBottom:16 }}, React.createElement("div", {style: { ...mono, fontSize:11, letterSpacing:1, color:C.cyan, marginBottom:16 }}, 'Platform info'), [
+                        { label:'Platform',      value:'NeuralFusion™ Cognitive OS' },
+                        { label:'Admin Access',   value:'Supabase RLS · profiles.is_admin' },
+                        { label:'Supabase URL',   value:'ckrxgbosyohcmjtemrvu.supabase.co' },
+                        { label:'Supabase Ref',   value:'ckrxgbosyohcmjtemrvu' },
+                        { label:'Live App',       value:'tryneuralfusion.com' },
+                      ].map((r,i) => (
+                        React.createElement("div", {key: i, style: { display:'flex', justifyContent:'space-between', padding:'12px 0', borderBottom:`1px solid ${C.border}`, gap:16 }}, React.createElement("div", {style: { ...mono, fontSize:9, letterSpacing:1, color:C.muted, flexShrink:0 }}, r.label.toUpperCase()), React.createElement("div", {style: { fontSize:12, color:C.text, fontFamily:'monospace', textAlign:'right', wordBreak:'break-all' }}, r.value))
+                      ))), React.createElement("div", {className: "card", style: { padding:'36px', marginBottom:16 }}, React.createElement("div", {style: { ...mono, fontSize:11, letterSpacing:1, color:C.cyan, marginBottom:16 }}, 'Platform controls'), React.createElement("div", {style: { display:'flex', flexDirection:'column', gap:0 }}, [
+                          {
+                            label:'Maintenance Mode',
+                            desc:'Shows maintenance message to users (session only)',
+                            value:maintenanceMode,
+                            onToggle:()=>setMaintenanceMode(m=>!m),
+                            onColor:'#F87171', offColor:'#7AAFCF',
+                          },
+                          {
+                            label:'Open Registration',
+                            desc:'Allow new users to sign up (session only)',
+                            value:registrationOpen,
+                            onToggle:()=>setRegistrationOpen(r=>!r),
+                            onColor:'#4CF7C0', offColor:'#F87171',
+                          },
+                        ].map((ctrl,i) => (
+                          React.createElement("div", {key: i, style: { display:'flex', justifyContent:'space-between', alignItems:'center', padding:'14px 0', borderBottom:`1px solid ${C.border}` }}, React.createElement("div", null, React.createElement("div", {style: { fontSize:13, color:C.text, fontWeight:500 }}, ctrl.label), React.createElement("div", {style: { fontSize:12, color:C.muted }}, ctrl.desc)), React.createElement("button", {onClick: ctrl.onToggle, style: {
+                              ...mono, fontSize:9, padding:'8px 16px', cursor:'pointer', borderRadius:2, flexShrink:0,
+                              background: ctrl.value ? `rgba(${ctrl.onColor==='#F87171'?'248,113,113':'76,247,192'},0.1)` : `rgba(${ctrl.offColor==='#F87171'?'248,113,113':'122,175,207'},0.1)`,
+                              border: `1px solid ${ctrl.value ? ctrl.onColor : ctrl.offColor}44`,
+                              color: ctrl.value ? ctrl.onColor : ctrl.offColor,
+                            }}, ctrl.value ? 'ON: Disable' : 'OFF: Enable'))
+                        )), React.createElement("div", {style: { display:'flex', justifyContent:'space-between', alignItems:'center', padding:'14px 0', borderBottom:`1px solid ${C.border}` }}, React.createElement("div", null, React.createElement("div", {style: { fontSize:13, color:C.text, fontWeight:500 }}, 'Refresh All Data'), React.createElement("div", {style: { fontSize:12, color:C.muted }}, 'Pull latest from Supabase')), React.createElement("button", {className: "btn-outline", style: { fontSize:10 }, onClick: loadAdminData}, '↺ Refresh')), React.createElement("div", {style: { display:'flex', justifyContent:'space-between', alignItems:'center', padding:'14px 0', borderBottom:`1px solid ${C.border}` }}, React.createElement("div", null, React.createElement("div", {style: { fontSize:13, color:C.text, fontWeight:500 }}, 'Reset localStorage Overrides'), React.createElement("div", {style: { fontSize:12, color:C.muted }}, 'Clear all admin edits (lessons, CFI items, branding)')), React.createElement("button", {onClick: () => {
+                            ['nf_lessons_overrides','nf_cfi_items','nf_brand','nf_cohorts','nf_broadcasts'].forEach(k => localStorage.removeItem(k)); // nf_cfi_items kept here to clean up any leftover key from before this editor was removed
+                            showMsg('localStorage overrides cleared. Reload to see effect.', 'success');
+                          }, style: { ...mono, fontSize:9, padding:'8px 16px', cursor:'pointer', borderRadius:2, background:'rgba(248,113,113,0.08)', border:'1px solid rgba(248,113,113,0.2)', color:'#F87171' }}, 'Clear Overrides')), React.createElement("div", {style: { display:'flex', justifyContent:'space-between', alignItems:'center', padding:'14px 0' }}, React.createElement("div", null, React.createElement("div", {style: { fontSize:13, color:C.text, fontWeight:500 }}, 'Lock Admin Portal'), React.createElement("div", {style: { fontSize:12, color:C.muted }}, 'Re-lock this session')), React.createElement("button", {onClick: () => { setView('home'); }, style: { ...mono, fontSize:9, padding:'8px 16px', cursor:'pointer', borderRadius:2, background:'rgba(248,113,113,0.1)', border:'1px solid rgba(248,113,113,0.3)', color:'#F87171' }}, 'Exit Admin')))), React.createElement("div", {className: "card", style: { padding:'28px' }}, React.createElement("div", {style: { ...mono, fontSize:11, letterSpacing:1, color:C.cyan, marginBottom:12 }}, 'Supabase tables'), ['profiles','cfi_results','lesson_progress','platform_settings'].map((t,i) => (
+                        React.createElement("div", {key: i, style: { display:'flex', alignItems:'center', gap:10, padding:'8px 0', borderBottom:`1px solid ${C.border}` }}, React.createElement("div", {style: { width:6, height:6, borderRadius:'50%', background:'#7AAFCF', flexShrink:0 }}), React.createElement("div", {style: { fontFamily:'monospace', fontSize:13, color:C.text }}, t))
+                      ))))
+                ))
+            )))
+      );
+    }
+
+    // ═══════════════════════════════════════════════════════════════════
+    //  ENTERPRISE SYSTEM: Components, Data & Views
+    // ═══════════════════════════════════════════════════════════════════
+
+    // ── Enterprise Colors ──────────────────────────────────────────────
+    const EC = {
+      bg: '#050C1A', bg2: '#0A1428', bg3: '#0F1E38',
+      accent: '#4CF7C0', accent2: '#1AEFFF', gold: '#F5C842',
+      red: '#FF5252', muted: 'rgba(255,255,255,0.45)', text: 'rgba(255,255,255,0.88)',
+      border: 'rgba(255,255,255,0.07)', border2: 'rgba(255,255,255,0.13)',
+    };
+
+    // ── Enterprise CFI Items ───────────────────────────────────────────
+    const ENT_CFI_ITEMS = [
+      { id:1, dim:'A', label:'Decision Latency', text:'I delay making decisions even when I have sufficient information.', reversed:false },
+      { id:2, dim:'A', label:'Decision Latency', text:'I reconsider decisions I have already made even when no new information is available.', reversed:false },
+      { id:3, dim:'A', label:'Decision Latency', text:'When facing a decision under time pressure, my thinking becomes unclear.', reversed:false },
+      { id:4, dim:'B', label:'Mode Rigidity', text:'I rely on facts and logic alone, even when something tells me to think differently.', reversed:false },
+      { id:5, dim:'B', label:'Mode Rigidity', text:'I act on gut feelings without pausing to examine the evidence behind them.', reversed:false },
+      { id:6, dim:'B', label:'Mode Rigidity', text:'I find it difficult to shift my thinking approach once I have started working on a problem.', reversed:false },
+      { id:7, dim:'C', label:'Emotional Reactivity', text:'Strong emotions make my thinking less clear.', reversed:false },
+      { id:8, dim:'C', label:'Emotional Reactivity', text:'I make decisions I later regret when I am under emotional pressure.', reversed:false },
+      { id:9, dim:'C', label:'Emotional Reactivity', text:'I am able to remain mentally focused even when the situation feels stressful.', reversed:true },
+      { id:10, dim:'D', label:'Thought Interruption', text:'My thinking gets interrupted by unrelated thoughts when I am trying to focus.', reversed:false },
+      { id:11, dim:'D', label:'Thought Interruption', text:'I experience competing thoughts when trying to reach a clear conclusion.', reversed:false },
+      { id:12, dim:'D', label:'Thought Interruption', text:'After completing a task, my thoughts feel organised and settled.', reversed:true },
+      { id:13, dim:'E', label:'Cognitive Overload', text:'When I am presented with too much information at once, my thinking becomes disorganised.', reversed:false, isNew:true },
+    ];
+    const ENT_SCALE  = [{val:1,label:'Never'},{val:2,label:'Rarely'},{val:3,label:'Sometimes'},{val:4,label:'Often'},{val:5,label:'Very often'}];
+    // FIX (audit finding #2): these bands previously used different cut points than the
+    // consumer app's bands (15/29/43/56 vs 17/28/40) over the SAME 13–65 CFI-1.0 scale, so
+    // the same raw score (e.g. 29) could be labeled "High fragmentation" for a consumer
+    // and "Low Fragmentation" for an enterprise participant. Now sharing one threshold
+    // table with CFIView's finalize() so a given score always gets the same label.
+    const ENT_BANDS  = [
+      {min:41,max:65,label:'Critical fragmentation',color:'#FF5252'},
+      {min:29,max:40,label:'High fragmentation',color:'#FF8C42'},
+      {min:18,max:28,label:'Moderate fragmentation',color:'#F5C842'},
+      {min:0, max:17,label:'Integrated',color:'#4CF7C0'},
+    ];
+    const ENT_LESSONS = [
+      { num:1, week:2, title:'Foundation of Integrated Thinking', skill:'Cognitive Mode Awareness', level:'Beginner', duration:90,
+        framing:'Lesson One creates the cognitive baseline from which everything else builds. Your job is not to convince participants NeuralFusion™ works; give them their first conscious experience of a NeuralFusion™ cycle and let the experience do the convincing. By the end, every participant should have completed the Core Loop at least once with a real problem.',
+        plan:[
+          {t:'0–10 min',act:'Welcome & Programme Context',detail:'Explain 7-week structure, what the CFI measures, and what participants will be able to do by Week 5. Do NOT reveal CFI pre-scores.'},
+          {t:'10–20 min',act:'Read Lesson One aloud',detail:'Cover: What is NeuralFusion™, the Problem it Solves, the Four Modes, the Core Loop. Speak slowly and clearly.'},
+          {t:'20–30 min',act:'Pair Discussion',detail:'"Which thinking mode do you default to most? When does that cause problems?" (8 min pairs + 2 min group feedback).'},
+          {t:'30–55 min',act:'Guided Practice (Group Format)',detail:'Walk the whole cohort through the First Guided Practice simultaneously. 25 minutes.'},
+          {t:'55–70 min',act:'Group Debrief',detail:'Use the debrief prompts. Capture key responses on the whiteboard.'},
+          {t:'70–80 min',act:'Key Insight Delivery',detail:'Read the Key Insight of Lesson One. Ask each participant to write it in their own words.'},
+          {t:'80–90 min',act:'Assignment Brief',detail:'Issue the 24-hour assignment. Set expectation for Lesson Two.'},
+        ],
+        practice:["'Sit comfortably, feet flat, pen in hand. We are going to run NeuralFusion™ together for the first time.'","'Think of a simple challenge you are currently facing at work, in your studies, or in a decision. Write it in one sentence. You have 90 seconds.'","'Now write only the FACTS about this challenge. No opinions, no feelings; only what is provably true.' [Pause 2 min]","'Put your pen down. Close your eyes for 30 seconds. What does your gut tell you about this situation?' [After 30 sec] 'Open your eyes and write that down in one sentence.'","'Write three ideas or connections this situation brings to mind, even unusual or unrelated ones.' [Pause 2 min]","'Finally, what does this challenge mean for you? What lesson is it offering? Write one sentence.' [Pause 2 min]","'Look at your page. You have just completed one NeuralFusion™ cycle. You activated all four modes in sequence. Notice how your relationship with the challenge has shifted.'"],
+        debrief:['What was the most uncomfortable mode to enter? Why?','Which mode felt most natural to you? What does that tell you about your default?','Did the challenge feel different after completing the cycle? How?','What surprised you about the exercise?','Where in your daily work do you skip one of these modes entirely?'],
+        watchpoints:["Participants who say they 'don't have gut feelings'; redirect: gut feeling is any immediate non-analytical response. It does not have to feel dramatic.","Those who overthink the Associative mode step; reassure them: unusual connections are the point.","Participants writing nothing during Reflective mode are stuck in Analysis. Prompt: 'What is one word that describes what this experience means for you?'","If someone shares something very personal, acknowledge briefly and redirect to cognitive mechanics: 'That is exactly what Lesson Four addresses.'"],
+        assignment:'24-hour assignment: Observe which thinking mode you default to in at least three situations today. Record the situation, the mode, and what happened as a result.',
+        keyInsight:'Cognitive clarity is not an absence of complexity; it is the ability to move through complexity using all four modes in sequence.',
+      },
+      { num:2, week:2, title:'Mode Activation & Mental Control', skill:'Deliberate Mode Switching', level:'Beginner–Intermediate', duration:90,
+        framing:"Lesson Two moves from awareness to control. The key shift is: from 'I notice what mode I am in' to 'I choose what mode I enter.' Many participants will arrive with the 24-hour assignment incomplete; that is acceptable. Any observation is usable in today's session.",
+        plan:[
+          {t:'0–10 min',act:'Assignment Review',detail:'Ask 3–4 participants to share one observation from the 24-hour assignment. Record the dominant modes identified on the whiteboard.'},
+          {t:'10–20 min',act:'Read Lesson Two content',detail:'Core Truth of Mental Control, the Four Modes revisited with risks, Mode Activation Signals. Emphasise: "Questions are switches."'},
+          {t:'20–40 min',act:'The Switching Drill: Group Format',detail:'Run the full 7-minute drill as a group, facilitator-led, then repeat once independently.'},
+          {t:'40–55 min',act:'Pair Exercise: Emergency Reset Practice',detail:'Each pair walks through a recalled stressful moment and applies the Emergency Reset protocol together.'},
+          {t:'55–70 min',act:'Group Debrief',detail:'Use prompts below.'},
+          {t:'70–80 min',act:'Key Insight Delivery',detail:"Ask participants: 'What does mental freedom mean to you now, vs what it meant before this lesson?'"},
+          {t:'80–90 min',act:'Assignment Brief',detail:'48-hour assignment. Explain that Lesson Three requires participants to arrive with at least one real decision they are currently facing.'},
+        ],
+        practice:["'Sit upright. We are going to move through all four thinking modes in sequence. I will time each one. Your topic is your day so far: what has happened since you woke up.'","ANALYTICAL: 60 sec: 'Facts only. What happened today? No feelings, no interpretations.' [60 sec silence] 'Stop.'","INTUITIVE: 60 sec: 'Gut only. What does today feel like overall? One word or one sentence.' [60 sec] 'Stop.'","ASSOCIATIVE: 60 sec: 'Connections. What does today remind you of? What ideas or images come to mind?' [60 sec] 'Stop.'","REFLECTIVE: 60 sec: 'Meaning. What is today teaching you?' [60 sec] 'Stop.'","'Notice what that felt like. Each mode has a different mental texture. Now repeat the drill silently and independently. Same topic. 7 minutes total.'","After the independent drill, ask: 'Was the second time faster? Did any mode feel different the second time?'"],
+        debrief:['Which mode is hardest for you to enter deliberately? Which is hardest to exit?','What happened in your body when you shifted from Analytical to Intuitive?','Can you identify one situation this week where the Emergency Reset would have helped?','What is the difference between "thinking" and "reacting" now that you have experienced it?','Where in your professional role do you need the most mode control?'],
+        watchpoints:['Participants from highly analytical environments (engineering, finance, law) may resist the Intuitive step. Let the discomfort stand as data; it is Mode Rigidity (Dim B on the CFI).','If group energy drops during the independent drill, that is not failure; it is concentration. Silence is productive.','The Emergency Reset pair exercise may surface real distress. Monitor the room. If visibly distressed, acknowledge privately after the session.','Some will try to combine all four modes simultaneously; sequential activation is the point. Fusion comes later. Control comes first.'],
+        assignment:'48-hour assignment: Practice the Switching Drill once daily. Identify one moment where you used the Emergency Reset protocol. Arrive to Lesson Three with a real decision you are currently facing.',
+        keyInsight:'Mental freedom is not doing whatever you feel; it is choosing which faculty of your mind to lead with in any given moment.',
+      },
+      { num:3, week:3, title:'Synthesis & Decision Mastery', skill:'Multi-mode Integration', level:'Intermediate', duration:90,
+        framing:"Lesson Three is the technical core of NeuralFusion™. This is where the framework moves from interesting to practical, and where visible behaviour change is most likely to emerge. Ask at the start: 'Did you bring a real decision?' If not, invite them to identify one in the first 5 minutes.",
+        plan:[
+          {t:'0–10 min',act:'Assignment Review',detail:'Ask who practiced mode-switching. Ask for one example of a mode shift that changed an outcome. Validate and reinforce.'},
+          {t:'10–25 min',act:'Read Lesson Three content',detail:'Why Decisions Fail, What Synthesis Means, The Synthesis Framework (Extract → Align → Compress → Decide). Slow and clear.'},
+          {t:'25–55 min',act:'Full Synthesis Drill',detail:'30 minutes with a real decision. Facilitator-led.'},
+          {t:'55–65 min',act:'Commitment Lock Discussion',detail:'"When do you revisit decisions that don\'t need revisiting? What triggers that?" Map on whiteboard.'},
+          {t:'65–75 min',act:'Group Debrief',detail:'Use prompts below.'},
+          {t:'75–85 min',act:'Key Insight',detail:'"Write and discuss: \'Clarity is not finding the right answer; it is unifying the mind.\'"'},
+          {t:'85–90 min',act:'Assignment Brief',detail:'72-hour assignment: apply full synthesis to one real decision and act on it.'},
+        ],
+        practice:['Phase 1: Individual Extraction (12 min): Each participant writes their decision at the top of a page.','ANALYTICAL (2.5 min): "List the facts and constraints of this decision only."','INTUITIVE (2.5 min): "What is your strongest gut signal about this? One sentence."','ASSOCIATIVE (2.5 min): "What is the most useful idea or angle you have not yet considered?"','REFLECTIVE (2.5 min): "What does your deepest value or lesson tell you here?"','Phase 2: Synthesis (10 min): "Underline the single most powerful output from each mode. What is the common direction they are pointing to? Write one sentence beginning with: My decision is..."','Phase 3: Commitment Lock (8 min): Ask 3–4 volunteers to read their decision sentence to the group. After each one, ask the group: "Is that a clear, committed decision or is it still a question?"'],
+        debrief:['What did your four modes agree on? Where did they conflict?','Was the decision you wrote at the end different from what you expected at the start?','What happened when you read the decision sentence aloud?','Has anyone experienced the opposite: making a decision and then endlessly revisiting it? What mode was driving that?','How would your team or department operate differently if this process was normal?'],
+        watchpoints:['Decision sentences that are still questions ("I think I might need to..."); push: "Rephrase that as a committed statement."','If someone cannot produce a one-sentence decision: "Your mind is still negotiating. What mode is blocking synthesis?"','The Commitment Lock discussion can provoke strong reactions in corporate environments where decisions are frequently revisited.','Watch for "decisions" about someone else\'s behaviour. Redirect: "NeuralFusion™ synthesises YOUR thinking. What is YOUR decision here?"'],
+        assignment:'72-hour assignment: Apply the full Synthesis Framework to one real decision you are currently facing. Make the decision. Notice what happens.',
+        keyInsight:'Clarity is not finding the right answer; it is unifying the mind.',
+      },
+      { num:4, week:4, title:'Stabilization Under Pressure', skill:'Cognitive Stability', level:'Intermediate–Advanced', duration:90,
+        framing:'Lesson Four is the pressure test. Participants have learned to think clearly in calm conditions; this session trains the same clarity to survive stress, urgency, and emotional activation. It is arguably the most practically valuable lesson for corporate, leadership, and government cohorts. Deliver this lesson with a calmer, more grounded energy than previous sessions.',
+        plan:[
+          {t:'0–10 min',act:'Assignment Review',detail:'Who applied full synthesis to a real decision? Invite 2–3 brief accounts. Focus on what changed emotionally or mentally, not just the decision outcome.'},
+          {t:'10–25 min',act:'Read Lesson Four content',detail:'Why Clarity Collapses, Stabilization Principle, Three Stabilizers: Cognitive Anchor, Temporal Compression, Mode Containment.'},
+          {t:'25–45 min',act:'Pressure Simulation: Group Format',detail:'20 minutes.'},
+          {t:'45–60 min',act:'Relapse Prevention Discussion',detail:'"What are your personal relapse triggers? When do you abandon a fused decision?" Map on whiteboard.'},
+          {t:'60–72 min',act:'Group Debrief',detail:'Use prompts below.'},
+          {t:'72–82 min',act:'Key Insight',detail:'"Mental mastery is not calm thinking; it is stable thinking." Ask: What is the difference?'},
+          {t:'82–90 min',act:'Assignment Brief',detail:'72-hour assignment: apply stabilization during one real stressful event.'},
+        ],
+        practice:['Part A: Individual Recall (8 min): "Think of a recent stressful situation where your thinking became unclear or you acted in a way you later questioned."','"Write: (1) What was the situation. (2) Which mode dominated your thinking at the time. (3) What did you do or decide as a result." [6 min silent writing]','Part B: Retroactive Stabilization (8 min): "Now re-run that situation through NeuralFusion™ stabilization."','"Apply ONE cognitive anchor; write a short internal statement that would have locked your clarity."','"Apply temporal compression; what mattered most in the next 10 minutes of that situation?"','"Apply mode containment; name the mode that was flaring and write: I acknowledge [mode] and return authority to synthesis."','Part C: Forward Application (4 min): "Write one upcoming situation where you predict you will need stabilization. Write your cognitive anchor for it now, in advance."'],
+        debrief:['What mode most commonly dominates your thinking under pressure?','Has anyone been in a situation where one person\'s emotional reactivity destabilized an entire team? What mode were they in?','What does a cognitive anchor feel like compared to positive thinking or affirmations?','Where in your role does temporal compression have the most practical value?','What are your top two personal relapse triggers? What do you now know to do?'],
+        watchpoints:['This session can surface genuine workplace trauma. Stay alert. If anyone becomes visibly distressed, offer a private break. Do not allow the session to become a group debriefing of workplace grievances.','Some conflate stabilization with emotional suppression. Be clear: "Stabilization does not mean you stop feeling. It means the feeling does not take over your cognitive process."','Participants wanting to apply this to others; redirect: "Your assignment is your own stability first. Leading others with NeuralFusion™ is a Level Two competency."','Cognitive anchors should be short, personal, and grounded. If someone writes a long statement, help them compress: "What is the one sentence that locks clarity for you?"'],
+        assignment:'72-hour assignment: Apply at least one stabilizer (Cognitive Anchor, Temporal Compression, or Mode Containment) during one real stressful event this week. Record what happened.',
+        keyInsight:'Mental mastery is not calm thinking; it is stable thinking.',
+      },
+      { num:5, week:5, title:'Automatic Integration & Cognitive Fluency', skill:'Cognitive Automation', level:'Advanced', duration:90,
+        framing:'Lesson Five completes the programme. The tone shifts from training to installation; you are not teaching new content, you are consolidating a cognitive habit. Many participants will arrive differently from how they arrived to Lesson One. Acknowledge that shift without dramatising it.',
+        plan:[
+          {t:'0–15 min',act:'Assignment Review & Reflection',detail:'Ask who applied stabilization in a stressful event. Invite 3–4 to share briefly. Then ask the whole group: "How has your thinking changed across the five weeks?"'},
+          {t:'15–30 min',act:'Read Lesson Five content',detail:'Cognitive Fluency, From Skill to Instinct (three stages), The Automatic Fusion Trigger, Living NeuralFusion™.'},
+          {t:'30–50 min',act:'Fluency Installation: Group Format',detail:'20 minutes.'},
+          {t:'50–65 min',act:'Signs of Completion Discussion',detail:'Read the five signs of completion aloud one by one. Ask the group to mark which they recognise in themselves.'},
+          {t:'65–75 min',act:'Group Debrief',detail:'Use prompts below.'},
+          {t:'75–82 min',act:'Final Insight Delivery',detail:'Read the Final Insight slowly and allow silence after.'},
+          {t:'82–90 min',act:'Programme Closing',detail:'Announce CFI post-assessment (Week 6), Clarity Delta report and certification (Week 7). Thank the cohort.'},
+        ],
+        practice:['Part A: One Word Fusion (6 min): "Sit calmly and comfortably. Eyes open or closed, your choice."','"Think of any current situation: work, a relationship, a project, a decision, whatever is live in your mind right now."','"Internally, say the word: Fuse."','"Do not force anything. Just allow the mind to begin organising itself. Trust the four lessons you have completed. Observe what happens." [2 min silence]','"Write down one sentence, whatever arrived. It might be a clarity, a decision, a feeling, an insight." [90 seconds]','Part B: Group Fluency Round (8 min): Ask each table group to share their one sentence. 4 min. Then invite 2–3 from the room to share with the full group.','Part C: Lifetime Protocol Installation (6 min): "Write three personal commitments: (1) Use NeuralFusion™ daily; in what context specifically? (2) Teach it through behaviour; what behaviour will change first? (3) Return to structure when clarity fades; what is your first early warning signal?"'],
+        debrief:['What does "thinking with structure" feel like differently from how you thought before this programme?','Which of the five Signs of Completion resonates most strongly for you right now?','What is the most important thing you are taking out of this programme?','Where in your professional or personal life will NeuralFusion™ have the most immediate impact?','What would you say to someone beginning this programme tomorrow?'],
+        watchpoints:['Do not allow Lesson Five to become a celebration. The completion is real but the programme is a beginning; Level Two exists.','If participants say they "don\'t feel different", do not force it. The CFI will show the data.','Some participants will want to continue the conversation after the session. Invite them to the Week 7 certification session and encourage peer practice groups.','Remind clearly: Week 6 is the CFI post-assessment. Same format as Week 1. Same conditions.'],
+        assignment:'Lifetime Protocol: three personal commitments for how you will use NeuralFusion™ going forward.',
+        keyInsight:'You do not control the mind by force. You train it by structure.',
+      },
+    ];
+
+    // ── Enterprise Helper Functions ────────────────────────────────────
+    function entScoreItem(id, raw) {
+      const item = ENT_CFI_ITEMS.find(i => i.id === id);
+      return item && item.reversed ? 6 - raw : raw;
+    }
+    function entCalcComposite(responses) {
+      return ENT_CFI_ITEMS.reduce((sum, item) => {
+        const raw = responses[item.id];
+        if (!raw) return sum;
+        return sum + entScoreItem(item.id, raw);
+      }, 0);
+    }
+    function entCalcDimScores(responses) {
+      const dims = { A:0, B:0, C:0, D:0, E:0 };
+      ENT_CFI_ITEMS.forEach(item => {
+        const raw = responses[item.id];
+        if (raw) dims[item.dim] += entScoreItem(item.id, raw);
+      });
+      return dims;
+    }
+    function entGetBand(score) {
+      return ENT_BANDS.find(b => score >= b.min && score <= b.max) || ENT_BANDS[ENT_BANDS.length-1];
+    }
+
+    // ── Enterprise Styles ──────────────────────────────────────────────
+    const ES = {
+      tag: { fontSize:'0.6rem', letterSpacing:'0.2em', color:EC.muted, marginBottom:'0.75rem' },
+      h1: { fontFamily:"'DM Serif Display', serif", fontSize:'clamp(1.1rem,1.6vw,1.5rem)', lineHeight:1.05, letterSpacing:'-0.02em', marginBottom:'1.5rem', color:EC.text },
+      h2: { fontFamily:"'DM Serif Display', serif", fontSize:'clamp(0.95rem,1.3vw,1.25rem)', lineHeight:1.1, marginBottom:'1rem', color:EC.text },
+      h3: { fontFamily:"'DM Serif Display', serif", fontSize:'1.2rem', lineHeight:1.2, marginBottom:'0.75rem', color:EC.text },
+      mono: (extra={}) => ({ fontFamily:"'Space Mono', monospace", fontSize:'0.72rem', lineHeight:1.8, color:EC.muted, ...extra }),
+      card: (extra={}) => ({ background:EC.bg2, border:`1px solid ${EC.border}`, padding:'2rem', ...extra }),
+      accentCard: (extra={}) => ({ background:EC.bg3, borderLeft:`2px solid ${EC.accent}`, padding:'1.5rem 2rem', ...extra }),
+      btnPrimary: { fontFamily:"'Space Mono', monospace", fontSize:'0.68rem', letterSpacing:'0.15em', color:EC.bg, background:EC.accent, border:'none', padding:'0.9rem 1.75rem', cursor:'pointer' },
+      btnGhost:   { fontFamily:"'Space Mono', monospace", fontSize:'0.68rem', letterSpacing:'0.15em', color:EC.accent, background:'transparent', border:`1px solid rgba(76,247,192,0.4)`, padding:'0.9rem 1.75rem', cursor:'pointer' },
+      btnGold:    { fontFamily:"'Space Mono', monospace", fontSize:'0.68rem', letterSpacing:'0.15em', color:EC.bg, background:EC.gold, border:'none', padding:'0.9rem 1.75rem', cursor:'pointer' },
+      input:      { fontFamily:"'Space Mono', monospace", fontSize:'0.72rem', background:EC.bg3, border:`1px solid ${EC.border2}`, color:EC.text, padding:'0.75rem 1rem', outline:'none', width:'100%' },
+      label:      { fontSize:'0.6rem', letterSpacing:'0.15em', color:EC.muted, display:'block', marginBottom:'0.4rem' },
+      navTab: (active) => ({ fontSize:'0.62rem', letterSpacing:'0.12em', padding:'0.5rem 1rem', border:`1px solid ${active?EC.accent:EC.border}`, background:active?'rgba(76,247,192,0.1)':'transparent', color:active?EC.accent:EC.muted, cursor:'pointer', transition:'all 0.2s' }),
+    };
+
+    // ── Enterprise BandPill ────────────────────────────────────────────
+    function EntBandPill({ score }) {
+      const band = entGetBand(score);
+      return React.createElement("span", {style: { fontSize:'0.6rem', letterSpacing:'0.1em', color:band.color, border:`1px solid ${band.color}50`, padding:'0.2rem 0.6rem' }}, band.label);
+    }
+
+    // ── Enterprise ProgressBar ─────────────────────────────────────────
+    function EntProgressBar({ value, max=65 }) {
+      const pct = Math.min(100,(value/max)*100);
+      return (
+        React.createElement("div", {style: { background:EC.border, height:4, borderRadius:2, overflow:'hidden' }}, React.createElement("div", {style: { height:'100%', width:`${pct}%`, background:EC.accent, transition:'width 0.5s ease' }}))
+      );
+    }
+
+    // ── Enterprise NavBar ──────────────────────────────────────────────
+    function EntNavBar({ view, setView, role, onExit }) {
+      const tabs = role==='facilitator'
+        ? [['dashboard','Dashboard'],['lessons','Lessons'],['cfi','CFI Data'],['results','Results']]
+        : [['assessment','Assessment'],['programme','Programme']];
+      return (
+        React.createElement("nav", {style: { position:'fixed', top:0, left:0, right:0, zIndex:200, display:'flex', alignItems:'center', justifyContent:'space-between', padding:'1rem 2rem', background:'rgba(5,12,26,0.95)', backdropFilter:'blur(20px)', borderBottom:`1px solid ${EC.border}` }}, React.createElement("div", {style: { display:'flex', alignItems:'center', gap:10 }}, React.createElement(NFMark, {size: 20}), React.createElement("div", {style: { ...ES.mono({ color:EC.accent }), letterSpacing:'0.2em' }}, 'NEURALFUSION™', React.createElement("span", {style: { color:EC.muted }}, ' / Enterprise'))), React.createElement("div", {style: { display:'flex', gap:'0.25rem' }}, tabs.map(([id,label]) => (
+              React.createElement("button", {key: id, style: ES.navTab(view===id), onClick: ()=>setView(id)}, label)
+            ))), React.createElement("button", {style: { ...ES.mono({ color:EC.muted }), background:'none', border:`1px solid ${EC.border}`, padding:'0.4rem 0.9rem', cursor:'pointer' }, onClick: onExit}, '← Exit'))
+      );
+    }
+
+    // ── Enterprise RoleGate ────────────────────────────────────────────
+    function EntRoleGate({ onSelect, onExit }) {
+      const [cohort, setCohort] = useState('');
+      const [pid, setPid] = useState('');
+      const [facPin, setFacPin] = useState('');
+      const [facPinError, setFacPinError] = useState('');
+      const FACILITATOR_PIN = 'NF-FAC-2026';
+
+      function handleFacilitatorEnter() {
+        if (!cohort) { setFacPinError('Please enter a cohort code.'); return; }
+        if (facPin !== FACILITATOR_PIN) { setFacPinError('Incorrect facilitator PIN.'); return; }
+        setFacPinError('');
+        onSelect('facilitator', { cohort });
+      }
+      return (
+        React.createElement("div", {style: { minHeight:'100vh', display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', padding:'2rem', paddingTop:'5rem', background:EC.bg }}, React.createElement("div", {style: { position:'fixed', inset:0, backgroundImage:`linear-gradient(${EC.accent}08 1px,transparent 1px),linear-gradient(90deg,${EC.accent}08 1px,transparent 1px)`, backgroundSize:'60px 60px', pointerEvents:'none' }}), React.createElement("div", {style: { position:'relative', zIndex:1, width:'100%', maxWidth:700, display:'flex', flexDirection:'column', alignItems:'center' }}, React.createElement("div", {style: { ...ES.tag, textAlign:'center' }}, '◈ Enterprise Cohort System · Active'), React.createElement("h1", {style: { ...ES.h1, textAlign:'center', maxWidth:600, marginBottom:'0.75rem' }}, 'NeuralFusion™', React.createElement("br", null), React.createElement("em", {style: { color:EC.accent }}, 'Enterprise Portal')), React.createElement("p", {style: { ...ES.mono(), textAlign:'center', maxWidth:480, marginBottom:'3rem' }}, 'Select your role to enter the programme. Facilitators access session controls, CFI data entry, and live cohort results. Participants complete assessments and access lesson materials.'), React.createElement("div", {style: { display:'grid', gridTemplateColumns:'1fr 1fr', gap:'1.5rem', width:'100%', marginBottom:'2rem' }}, React.createElement("div", {style: { ...ES.card(), borderTop:`2px solid ${EC.gold}`, display:'flex', flexDirection:'column', gap:'1rem' }}, React.createElement("div", {style: { fontSize:'0.6rem', letterSpacing:'0.15em', color:EC.gold }}, 'Facilitator'), React.createElement("div", {style: ES.h3}, 'Run the programme'), React.createElement("p", {style: ES.mono()}, 'Deliver sessions, manage CFI data entry, view live cohort scores and Clarity Delta reports.'), React.createElement("input", {style: ES.input, placeholder: "Cohort code (e.g. ORG2026-A)", value: cohort, onChange: e=>setCohort(e.target.value)}), React.createElement("input", {style: ES.input, type: "password", placeholder: "Facilitator PIN", value: facPin, onChange: e=>{ setFacPin(e.target.value); setFacPinError(''); }}), facPinError && React.createElement("div", {style: { fontSize:'0.65rem', color:EC.red, fontFamily:"'Space Mono', monospace" }}, facPinError), React.createElement("button", {style: ES.btnGold, onClick: handleFacilitatorEnter}, 'Enter as Facilitator →')), React.createElement("div", {style: { ...ES.card(), borderTop:`2px solid ${EC.accent}`, display:'flex', flexDirection:'column', gap:'1rem' }}, React.createElement("div", {style: { fontSize:'0.6rem', letterSpacing:'0.15em', color:EC.accent }}, 'Participant'), React.createElement("div", {style: ES.h3}, 'Complete the programme'), React.createElement("p", {style: ES.mono()}, 'Take the CFI assessment, access lesson materials, and track your cognitive progress.'), React.createElement("input", {style: ES.input, placeholder: "Participant ID (e.g. NF-AB12)", value: pid, onChange: e=>setPid(e.target.value.toUpperCase())}), React.createElement("input", {style: ES.input, placeholder: "Cohort code", value: cohort, onChange: e=>setCohort(e.target.value)}), React.createElement("button", {style: ES.btnPrimary, onClick: ()=>pid&&cohort&&onSelect('participant',{pid,cohort})}, 'Enter Programme →'))), React.createElement("button", {style: { ...ES.mono({ color:EC.muted, cursor:'pointer' }), background:'none', border:'none', marginTop:'1rem' }, onClick: onExit}, '← Return to Platform')))
+      );
+    }
+
+    // ── Enterprise CFI Assessment ──────────────────────────────────────
+    function EntCFIAssessment({ session, onComplete }) {
+      const [step, setStep] = useState('intro');
+      const [responses, setResponses] = useState({});
+      const [phase, setPhase] = useState(session?.phase||'pre');
+      const current = Object.keys(responses).length;
+      const total = ENT_CFI_ITEMS.length;
+      const allDone = current === total;
+
+      function handleSubmit() {
+        const composite = entCalcComposite(responses);
+        const dims = entCalcDimScores(responses);
+        const result = { pid:session.pid, cohort:session.cohort, phase, responses, composite, dims, ts:Date.now() };
+        onComplete(result);
+        saveEnterpriseResult(result);
+        setStep('done');
+      }
+
+      if (step==='intro') return (
+        React.createElement("div", {style: { maxWidth:700, margin:'0 auto', padding:'5rem 2rem 2rem' }}, React.createElement("div", {style: ES.tag}, 'Cognitive Fusion Index · Edition 2.0'), React.createElement("h1", {style: ES.h1}, 'CFI', React.createElement("em", {style: { color:EC.accent }}, 'Assessment')), React.createElement("div", {style: ES.accentCard({ marginBottom:'2rem' })}, React.createElement("div", {style: { ...ES.mono({ color:EC.text }), marginBottom:'1rem' }}, 'Instructions to Participant'), React.createElement("p", {style: ES.mono()}, 'Read each statement below and select the number that best describes how often you experience this, based on the', React.createElement("strong", {style: { color:EC.text }}, 'past two weeks'), '.'), React.createElement("div", {style: { display:'flex', gap:'1rem', flexWrap:'wrap', marginTop:'1.25rem' }}, ENT_SCALE.map(s=>React.createElement("span", {key: s.val, style: { fontSize:'0.65rem', color:EC.text, background:EC.bg3, padding:'0.3rem 0.75rem', border:`1px solid ${EC.border2}` }}, s.val, '=', s.label)))), React.createElement("div", {style: { display:'flex', gap:'1rem', marginBottom:'1.5rem' }}, ['pre','post'].map(p=>React.createElement("button", {key: p, style: p===phase?ES.btnPrimary:ES.btnGhost, onClick: ()=>setPhase(p)}, p==='pre'?'Pre-Assessment (Week 1)':'Post-Assessment (Week 6)'))), React.createElement("div", {style: ES.mono({ marginBottom:'2rem' })}, 'Participant ID:', React.createElement("strong", {style: { color:EC.accent }}, session.pid), '· Cohort:', React.createElement("strong", {style: { color:EC.accent }}, session.cohort)), React.createElement("button", {style: ES.btnPrimary, onClick: ()=>setStep('items')}, 'Begin Assessment →'))
+      );
+
+      if (step==='done') return (
+        React.createElement("div", {style: { maxWidth:600, margin:'0 auto', padding:'5rem 2rem 2rem', textAlign:'center' }}, React.createElement("div", {style: { fontSize:'3rem', marginBottom:'1rem' }}, '◈'), React.createElement("div", {style: ES.tag}, 'Assessment Complete'), React.createElement("h2", {style: ES.h2}, 'Your responses have', React.createElement("br", null), React.createElement("em", {style: { color:EC.accent }}, 'been recorded.')), React.createElement("p", {style: ES.mono()}, 'Your facilitator will share cohort-level results at Week 7. Individual scores are not disclosed during the programme.'))
+      );
+
+      const dimGroups = ['A','B','C','D','E'];
+      const dimNames = { A:'Decision Latency', B:'Mode Rigidity', C:'Emotional Reactivity', D:'Thought Interruption', E:'Cognitive Overload' };
+
+      return (
+        React.createElement("div", {style: { maxWidth:760, margin:'0 auto', padding:'5rem 2rem 4rem' }}, React.createElement("div", {style: { display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'2rem' }}, React.createElement("div", {style: ES.mono()}, 'CFI Edition 2.0 ·', phase==='pre'?'Pre-Assessment':'Post-Assessment'), React.createElement("div", {style: ES.mono()}, React.createElement("span", {style: { color:EC.accent }}, current), '/', total, 'items')), React.createElement(EntProgressBar, {value: current, max: total}), React.createElement("div", {style: { height:'2rem' }}), dimGroups.map(dim=>{
+            const items = ENT_CFI_ITEMS.filter(i=>i.dim===dim);
+            return (
+              React.createElement("div", {key: dim, style: { marginBottom:'3rem' }}, React.createElement("div", {style: { ...ES.tag, color:EC.accent, marginBottom:'1.5rem' }}, 'Dimension', dim, ':', dimNames[dim], dim==='E'?' ★ New in Edition 2.0':''), items.map(item=>(
+                  React.createElement("div", {key: item.id, style: { ...ES.card({ marginBottom:'1rem', padding:'1.5rem' }), borderLeft:responses[item.id]?`2px solid ${EC.accent}`:`2px solid transparent` }}, React.createElement("div", {style: { display:'flex', gap:'1rem', marginBottom:'1.25rem', alignItems:'flex-start' }}, React.createElement("span", {style: { ...ES.mono({ color:EC.muted, flexShrink:0 }) }}, String(item.id).padStart(2,'0'), item.reversed?' ★':''), React.createElement("span", {style: ES.mono({ color:EC.text, lineHeight:1.7 })}, item.text)), React.createElement("div", {style: { display:'flex', gap:'0.5rem', flexWrap:'wrap' }}, ENT_SCALE.map(s=>{
+                        const sel = responses[item.id]===s.val;
+                        return (
+                          React.createElement("button", {key: s.val, onClick: ()=>setResponses(r=>({...r,[item.id]:s.val})), style: { fontFamily:"'Space Mono', monospace", fontSize:'0.6rem', letterSpacing:'0.1em', padding:'0.5rem 0.75rem', border:`1px solid ${sel?EC.accent:EC.border2}`, background:sel?'rgba(76,247,192,0.12)':'transparent', color:sel?EC.accent:EC.muted, cursor:'pointer', transition:'all 0.15s' }}, s.val, React.createElement("br", null), React.createElement("span", {style: { fontSize:'0.5rem' }}, s.label))
+                        );
+                      })))
+                )))
+            );
+          }), React.createElement("div", {style: { marginTop:'2rem', paddingTop:'2rem', borderTop:`1px solid ${EC.border}`, display:'flex', justifyContent:'space-between', alignItems:'center' }}, React.createElement("span", {style: ES.mono()}, allDone?'All items complete. Ready to submit.':`${total-current} items remaining.`), React.createElement("button", {style: allDone?ES.btnPrimary:{...ES.btnPrimary,opacity:0.4,cursor:'not-allowed'}, disabled: !allDone, onClick: handleSubmit}, 'Submit Assessment →')))
+      );
+    }
+
+    // ── Enterprise Programme View ──────────────────────────────────────
+    function EntProgrammeView({ session }) {
+      const [activeLesson, setActiveLesson] = useState(null);
+      const [lessonTab, setLessonTab] = useState('plan');
+
+      if (activeLesson!==null) {
+        const L = ENT_LESSONS[activeLesson];
+        const tabs = [['plan','Session Plan'],['practice','Practice Script'],['debrief','Debrief Prompts'],['watchpoints','Watch-Points']];
+        return (
+          React.createElement("div", {style: { maxWidth:880, margin:'0 auto', padding:'5rem 2rem 4rem' }}, React.createElement("button", {style: { ...ES.mono({ color:EC.accent }), background:'none', border:'none', cursor:'pointer', marginBottom:'2rem' }, onClick: ()=>setActiveLesson(null)}, '← Back to Programme'), React.createElement("div", {style: ES.tag}, 'Lesson', L.num, '· Week', L.week, '·', L.level), React.createElement("h1", {style: ES.h1}, L.title), React.createElement("div", {style: ES.accentCard({ marginBottom:'2rem' })}, React.createElement("div", {style: { ...ES.mono({ color:EC.accent, marginBottom:'0.5rem' }) }}, 'Facilitator Framing'), React.createElement("p", {style: ES.mono({ color:EC.text, lineHeight:1.9 })}, L.framing)), React.createElement("div", {style: { display:'flex', gap:'0.5rem', marginBottom:'2rem', flexWrap:'wrap' }}, tabs.map(([id,label])=>React.createElement("button", {key: id, style: ES.navTab(lessonTab===id), onClick: ()=>setLessonTab(id)}, label))), lessonTab==='plan'&&(
+              React.createElement("div", null, L.plan.map((row,i)=>(
+                  React.createElement("div", {key: i, style: { display:'grid', gridTemplateColumns:'100px 1fr', gap:'1.5rem', padding:'1.25rem 0', borderBottom:`1px solid ${EC.border}` }}, React.createElement("span", {style: ES.mono({ color:EC.accent })}, row.t), React.createElement("div", null, React.createElement("div", {style: { ...ES.mono({ color:EC.text, marginBottom:'0.3rem' }) }}, row.act), React.createElement("div", {style: ES.mono()}, row.detail)))
+                )), React.createElement("div", {style: { marginTop:'2rem', ...ES.card({ borderLeft:`2px solid ${EC.gold}` }) }}, React.createElement("div", {style: { fontSize:'0.6rem', letterSpacing:'0.15em', color:EC.gold, marginBottom:'0.5rem' }}, 'Assignment'), React.createElement("p", {style: ES.mono({ color:EC.text })}, L.assignment)))
+            ), lessonTab==='practice'&&(
+              React.createElement("div", {style: { display:'flex', flexDirection:'column', gap:'1rem' }}, L.practice.map((step,i)=>(
+                  React.createElement("div", {key: i, style: { ...ES.card({ padding:'1.25rem 1.5rem' }), borderLeft:`2px solid ${EC.accent2}`, display:'flex', gap:'1.25rem' }}, React.createElement("span", {style: { ...ES.mono({ color:EC.accent, flexShrink:0 }) }}, String(i+1).padStart(2,'0')), React.createElement("span", {style: ES.mono({ color:EC.text, fontStyle:step.startsWith("'")?'italic':'normal', lineHeight:1.9 })}, step))
+                )))
+            ), lessonTab==='debrief'&&(
+              React.createElement("div", {style: { display:'flex', flexDirection:'column', gap:'0.75rem' }}, L.debrief.map((q,i)=>(
+                  React.createElement("div", {key: i, style: { ...ES.card({ padding:'1.25rem 1.5rem' }), display:'flex', gap:'1.25rem' }}, React.createElement("span", {style: { ...ES.mono({ color:EC.accent }) }}, '→'), React.createElement("span", {style: ES.mono({ color:EC.text })}, q))
+                )))
+            ), lessonTab==='watchpoints'&&(
+              React.createElement("div", {style: { display:'grid', gridTemplateColumns:'repeat(auto-fit,minmax(min(340px,100%),1fr))', gap:'1rem' }}, L.watchpoints.map((w,i)=>(
+                  React.createElement("div", {key: i, style: { ...ES.card({ padding:'1.25rem' }), display:'flex', gap:'1rem' }}, React.createElement("span", {style: { width:6, height:6, borderRadius:'50%', background:EC.gold, flexShrink:0, marginTop:6 }}), React.createElement("span", {style: ES.mono({ color:EC.muted, lineHeight:1.8 })}, w))
+                )))
+            ), React.createElement("div", {style: { ...ES.card({ marginTop:'2.5rem', background:EC.bg3, textAlign:'center', padding:'2rem' }) }}, React.createElement("div", {style: { fontSize:'0.6rem', letterSpacing:'0.15em', color:EC.accent, marginBottom:'0.75rem' }}, 'Key Insight: Lesson', L.num), React.createElement("div", {style: { fontFamily:"'DM Serif Display', serif", fontSize:'1.3rem', fontStyle:'italic', color:EC.text, lineHeight:1.6 }}, L.keyInsight)))
+        );
+      }
+
+      return (
+        React.createElement("div", {style: { maxWidth:880, margin:'0 auto', padding:'5rem 2rem 4rem' }}, React.createElement("div", {style: ES.tag}, '5-Lesson Programme · 7 Weeks'), React.createElement("h1", {style: ES.h1}, 'Your', React.createElement("em", {style: { color:EC.accent }}, 'Programme')), React.createElement("div", {style: { display:'flex', flexDirection:'column', borderTop:`1px solid ${EC.border}` }}, ENT_LESSONS.map((L,i)=>(
+              React.createElement("button", {key: i, onClick: ()=>setActiveLesson(i), style: { display:'grid', gridTemplateColumns:'3rem 1fr auto', gap:'2rem', alignItems:'center', padding:'1.75rem 0', borderBottom:`1px solid ${EC.border}`, background:'none', border:'none', borderTop:'none', textAlign:'left', cursor:'pointer', color:EC.text, width:'100%', transition:'padding-left 0.2s' }, onMouseEnter: e=>e.currentTarget.style.paddingLeft='1rem', onMouseLeave: e=>e.currentTarget.style.paddingLeft='0'}, React.createElement("span", {style: ES.mono({ color:EC.muted })}, String(L.num).padStart(2,'0')), React.createElement("div", null, React.createElement("div", {style: { fontFamily:"'DM Serif Display', serif", fontSize:'1.3rem', marginBottom:'0.3rem', color:EC.text }}, L.title), React.createElement("div", {style: ES.mono({ fontSize:'0.62rem' })}, L.skill, '· Week', L.week, '·', L.duration, 'min')), React.createElement("span", {style: ES.mono({ color:EC.accent })}, L.level, '→'))
+            ))))
+      );
+    }
+
+    // ── Enterprise Facilitator Dashboard ───────────────────────────────
+    function EntFacilitatorDashboard({ session, allResults }) {
+      const cohortResults = allResults.filter(r=>r.cohort===session.cohort);
+      const preResults  = cohortResults.filter(r=>r.phase==='pre');
+      const postResults = cohortResults.filter(r=>r.phase==='post');
+      const meanScore = arr => arr.length ? Math.round(arr.reduce((s,r)=>s+r.composite,0)/arr.length) : null;
+      const preMean = meanScore(preResults);
+      const postMean = meanScore(postResults);
+      const delta = preMean!==null&&postMean!==null ? postMean-preMean : null;
+      const threshold = delta!==null && delta<=-15;
+      const dimNames = { A:'Decision Latency', B:'Mode Rigidity', C:'Emotional Reactivity', D:'Thought Interruption', E:'Cognitive Overload' };
+      const dimMax   = { A:15, B:15, C:15, D:15, E:5 };
+
+      return (
+        React.createElement("div", {style: { maxWidth:1100, margin:'0 auto', padding:'5rem 2rem 4rem' }}, React.createElement("div", {style: ES.tag}, 'Cohort:', session.cohort), React.createElement("h1", {style: ES.h1}, 'Facilitator', React.createElement("em", {style: { color:EC.accent }}, 'Dashboard')), React.createElement("div", {style: { display:'grid', gridTemplateColumns:'repeat(auto-fit,minmax(min(200px,100%),1fr))', gap:'1rem', marginBottom:'2.5rem' }}, [
+              { label:'Pre-assessments', val:preResults.length },
+              { label:'Post-assessments', val:postResults.length },
+              { label:'Mean Pre CFI', val:preMean!==null?preMean:'N/A' },
+              { label:'Clarity Delta', val:delta!==null?(delta>0?'+':'')+delta:'N/A', color:threshold?EC.accent:delta!==null?EC.red:EC.muted },
+            ].map((s,i)=>(
+              React.createElement("div", {key: i, style: ES.card({ padding:'1.5rem' })}, React.createElement("div", {style: ES.mono({ fontSize:'0.6rem', marginBottom:'0.4rem' })}, s.label), React.createElement("div", {style: { fontFamily:"'DM Serif Display', serif", fontSize:'2rem', color:s.color||EC.text }}, s.val))
+            ))), threshold&&(
+            /* FIX (audit finding #4): a within-subject pre/post self-report change, with no
+               control/waitlist group, cannot support a causal "the programme has demonstrated
+               measurable cognitive improvement" claim on its own — retest familiarity,
+               regression to the mean, and demand characteristics are all live alternative
+               explanations. Restated to describe only what was actually measured. */
+            React.createElement("div", {style: { ...ES.accentCard({ marginBottom:'2rem', borderLeft:`2px solid ${EC.accent}` }) }}, React.createElement("div", {style: { ...ES.mono({ color:EC.accent }) }}, '◈ Clarity Delta threshold met (≤–15). Self-reported fragmentation dropped by at least 15 points pre-to-post. This reflects a within-subject self-report change, not an independently measured or controlled outcome.'))
+          ), preResults.length>0&&(
+            React.createElement("div", {style: ES.card({ padding:'2rem' })}, React.createElement("div", {style: { ...ES.tag, marginBottom:'1.5rem' }}, 'Dimension Breakdown: Pre-Assessment Means'), React.createElement("div", {style: { display:'grid', gridTemplateColumns:'repeat(5,1fr)', gap:'1rem' }}, ['A','B','C','D','E'].map(dim=>{
+                  const dimItems = ENT_CFI_ITEMS.filter(i=>i.dim===dim);
+                  const mean = preResults.length ? Math.round(preResults.reduce((s,r)=>s+(r.dims?.[dim]||0),0)/preResults.length) : 0;
+                  return (
+                    React.createElement("div", {key: dim, style: { textAlign:'center', padding:'1rem', border:`1px solid ${EC.border}` }}, React.createElement("div", {style: { fontFamily:"'DM Serif Display', serif", fontSize:'2rem', color:EC.accent, marginBottom:'0.25rem' }}, mean), React.createElement("div", {style: ES.mono({ fontSize:'0.55rem' })}, '/', dimMax[dim]), React.createElement("div", {style: { ...ES.mono({ fontSize:'0.58rem', color:EC.text, marginTop:'0.3rem' }) }}, 'Dim', dim), React.createElement("div", {style: ES.mono({ fontSize:'0.55rem' })}, dimNames[dim]))
+                  );
+                })))
+          ), preResults.length===0&&(
+            React.createElement("div", {style: ES.accentCard({ textAlign:'center', padding:'3rem' })}, React.createElement("div", {style: ES.mono()}, 'No assessment data yet for cohort', React.createElement("strong", {style: { color:EC.accent }}, session.cohort), '.', React.createElement("br", null), 'Participants must complete the CFI assessment to populate this dashboard.'))
+          ))
+      );
+    }
+
+    // ── Enterprise CFI Data Entry ──────────────────────────────────────
+    function EntCFIDataEntry({ session, onSave }) {
+      const [pid, setPid]     = useState('');
+      const [group, setGroup] = useState('T');
+      const [phaseEntry, setPhaseEntry] = useState('pre');
+      const [responses, setResponses] = useState({});
+      const [submitted, setSubmitted] = useState(false);
+      const allFilled = ENT_CFI_ITEMS.every(i=>responses[i.id]>=1&&responses[i.id]<=5);
+
+      function handleSubmit() {
+        const composite = entCalcComposite(responses);
+        const dims = entCalcDimScores(responses);
+        const result = { pid, cohort:session.cohort, group, phase:phaseEntry, responses, composite, dims, ts:Date.now(), enteredBy:'facilitator' };
+        onSave(result);
+        saveEnterpriseResult(result);
+        setSubmitted(true);
+        setTimeout(()=>{ setSubmitted(false); setPid(''); setResponses({}); }, 2000);
+      }
+
+      const dimNames = { A:'Decision Latency', B:'Mode Rigidity', C:'Emotional Reactivity', D:'Thought Interruption', E:'Cognitive Overload' };
+      return (
+        React.createElement("div", {style: { maxWidth:900, margin:'0 auto', padding:'5rem 2rem 4rem' }}, React.createElement("div", {style: ES.tag}, 'Manual CFI Data Entry · Cohort', session.cohort), React.createElement("h1", {style: ES.h1}, 'Enter', React.createElement("em", {style: { color:EC.accent }}, 'CFI Responses')), React.createElement("p", {style: ES.mono({ marginBottom:'2rem' })}, 'Enter raw responses (1–5) exactly as given by the participant. Reversal for reversed items is applied automatically.'), React.createElement("div", {style: { display:'grid', gridTemplateColumns:'1fr 1fr 1fr', gap:'1rem', marginBottom:'2rem' }}, React.createElement("div", null, React.createElement("label", {style: ES.label}, 'Participant ID'), React.createElement("input", {style: ES.input, value: pid, onChange: e=>setPid(e.target.value.toUpperCase()), placeholder: "NF-XXXX"})), React.createElement("div", null, React.createElement("label", {style: ES.label}, 'Group'), React.createElement("div", {style: { display:'flex', gap:'0.5rem' }}, ['T','C'].map(g=>React.createElement("button", {key: g, style: g===group?ES.btnPrimary:ES.btnGhost, onClick: ()=>setGroup(g)}, g==='T'?'Treatment (T)':'Control (C)')))), React.createElement("div", null, React.createElement("label", {style: ES.label}, 'Phase'), React.createElement("div", {style: { display:'flex', gap:'0.5rem' }}, ['pre','post'].map(p=>React.createElement("button", {key: p, style: p===phaseEntry?ES.btnPrimary:ES.btnGhost, onClick: ()=>setPhaseEntry(p)}, p==='pre'?'Pre (Wk 1)':'Post (Wk 6)'))))), ['A','B','C','D','E'].map(dim=>{
+            const items = ENT_CFI_ITEMS.filter(i=>i.dim===dim);
+            return (
+              React.createElement("div", {key: dim, style: { marginBottom:'2rem' }}, React.createElement("div", {style: { ...ES.tag, color:EC.accent, marginBottom:'1rem' }}, 'Dimension', dim, ':', dimNames[dim]), items.map(item=>(
+                  React.createElement("div", {key: item.id, style: { display:'grid', gridTemplateColumns:'2rem 1fr auto', gap:'1.25rem', alignItems:'center', padding:'0.75rem 0', borderBottom:`1px solid ${EC.border}` }}, React.createElement("span", {style: ES.mono({ color:EC.muted, fontSize:'0.65rem' })}, 'Q', item.id, item.reversed?'*':'', item.isNew?' ★':''), React.createElement("span", {style: ES.mono({ color:EC.text, lineHeight:1.6 })}, item.text), React.createElement("div", {style: { display:'flex', gap:'0.35rem' }}, [1,2,3,4,5].map(v=>(
+                        React.createElement("button", {key: v, onClick: ()=>setResponses(r=>({...r,[item.id]:v})), style: { width:32, height:32, fontFamily:"'Space Mono', monospace", fontSize:'0.65rem', border:`1px solid ${responses[item.id]===v?EC.accent:EC.border2}`, background:responses[item.id]===v?'rgba(76,247,192,0.15)':'transparent', color:responses[item.id]===v?EC.accent:EC.muted, cursor:'pointer' }}, v)
+                      ))))
+                )))
+            );
+          }), allFilled&&(
+            React.createElement("div", {style: { ...ES.card({ marginBottom:'1.5rem' }), display:'flex', justifyContent:'space-between', alignItems:'center', flexWrap:'wrap', gap:'1rem' }}, React.createElement("div", null, React.createElement("div", {style: ES.mono({ color:EC.text })}, 'Composite Score:', React.createElement("strong", {style: { color:EC.accent }}, entCalcComposite(responses)), '/ 65'), React.createElement(EntBandPill, {score: entCalcComposite(responses)})), React.createElement("div", {style: { display:'flex', gap:'1.5rem', flexWrap:'wrap' }}, ['A','B','C','D','E'].map(d=>{
+                  const ds = entCalcDimScores(responses);
+                  return React.createElement("span", {key: d, style: ES.mono({ fontSize:'0.65rem' })}, 'Dim', d, ':', React.createElement("strong", {style: { color:EC.accent }}, ds[d]));
+                })))
+          ), React.createElement("button", {style: allFilled&&pid?ES.btnPrimary:{...ES.btnPrimary,opacity:0.4,cursor:'not-allowed'}, disabled: !allFilled||!pid, onClick: handleSubmit}, submitted?'✓ Saved':'Save Participant Record →'))
+      );
+    }
+
+    // ── Enterprise Results View ────────────────────────────────────────
+    function EntResultsView({ session, allResults }) {
+      const cohortResults = allResults.filter(r=>r.cohort===session.cohort);
+      const [filterPhase, setFilterPhase] = useState('all');
+      const filtered = filterPhase==='all' ? cohortResults : cohortResults.filter(r=>r.phase===filterPhase);
+      return (
+        React.createElement("div", {style: { maxWidth:1100, margin:'0 auto', padding:'5rem 2rem 4rem' }}, React.createElement("div", {style: ES.tag}, 'Cohort Results ·', session.cohort), React.createElement("h1", {style: ES.h1}, 'CFI', React.createElement("em", {style: { color:EC.accent }}, 'Records')), React.createElement("div", {style: { display:'flex', gap:'0.5rem', marginBottom:'2rem', flexWrap:'wrap' }}, [['all','All Records'],['pre','Pre-Assessment'],['post','Post-Assessment']].map(([id,label])=>(
+              React.createElement("button", {key: id, style: ES.navTab(filterPhase===id), onClick: ()=>setFilterPhase(id)}, label)
+            ))), filtered.length===0 ? (
+            React.createElement("div", {style: ES.accentCard({ textAlign:'center', padding:'3rem' })}, React.createElement("p", {style: ES.mono()}, 'No records found for this filter.'))
+          ) : (
+            React.createElement("div", null, React.createElement("div", {style: { display:'grid', gridTemplateColumns:'120px 60px 60px 60px 60px 60px 60px 60px 60px 1fr', gap:'0.75rem', padding:'0.75rem 0', borderBottom:`1px solid ${EC.border}`, overflowX:'auto' }}, ['Participant','Group','Phase','Date','Dim A','Dim B','Dim C','Dim D','Dim E','Composite'].map(h=>(
+                  React.createElement("span", {key: h, style: { fontSize:'0.55rem', letterSpacing:'0.12em', color:EC.muted }}, h)
+                ))), filtered.map((r,i)=>{
+                const band = entGetBand(r.composite);
+                return (
+                  React.createElement("div", {key: i, style: { display:'grid', gridTemplateColumns:'120px 60px 60px 60px 60px 60px 60px 60px 60px 1fr', gap:'0.75rem', padding:'1rem 0', borderBottom:`1px solid ${EC.border}`, alignItems:'center' }}, React.createElement("span", {style: ES.mono({ color:EC.accent, fontSize:'0.65rem' })}, r.pid), React.createElement("span", {style: ES.mono({ fontSize:'0.65rem' })}, r.group||'N/A'), React.createElement("span", {style: { ...ES.mono({ fontSize:'0.65rem' }), color:r.phase==='pre'?EC.gold:EC.accent2 }}, r.phase), React.createElement("span", {style: ES.mono({ fontSize:'0.6rem' })}, new Date(r.ts).toLocaleDateString('en-GB',{day:'2-digit',month:'short'})), ['A','B','C','D','E'].map(d=>React.createElement("span", {key: d, style: ES.mono({ fontSize:'0.65rem' })}, r.dims?.[d]||'--')), React.createElement("div", {style: { display:'flex', alignItems:'center', gap:'0.75rem' }}, React.createElement("span", {style: { fontFamily:"'DM Serif Display', serif", fontSize:'1.3rem', color:band.color }}, r.composite), React.createElement(EntBandPill, {score: r.composite})))
+                );
+              }))
+          ))
+      );
+    }
+
+    // ── Enterprise Main View (wraps entire Enterprise system) ──────────
+    function EnterpriseView({ user, session, paystackKey, setShowAuth, isEnterprise, setIsEnterprise, proPrice, entPrice, setView }) {
+      const [entRole, setEntRole]       = useState(null);
+      const [entSession, setEntSession] = useState(null);
+      const [entView, setEntView]       = useState(null);
+      const [entResults, setEntResults] = useState([]);
+      const [paystackLoading, setPaystackLoading] = useState(false);
+      const paystackHandlerRef = React.useRef(null);
+
+      // (pre-warm removed: initiate-payment is called on click)
+
+      // Load persisted results from Supabase when a session is established
+      useEffect(()=>{
+        if (entSession?.cohort) {
+          loadEnterpriseResults(entSession.cohort).then(results=>{
+            if (results.length > 0) setEntResults(results);
+          });
+        }
+      },[entSession?.cohort]);
+
+      // Open Paystack popup synchronously on click (Enterprise)
+      // NOTE: openIframe() must be called in the same synchronous call stack as the
+      // user gesture; any await before it causes browsers to block the popup.
+      const loadPaystackScript = () => new Promise((resolve, reject) => {
+        if (typeof PaystackPop !== 'undefined') { resolve(); return; }
+        const s = document.createElement('script');
+        s.src = 'https://js.paystack.co/v1/inline.js';
+        s.onload = resolve; s.onerror = reject;
+        document.head.appendChild(s);
+      });
+
+      const handleUnlock = () => {
+        if (!user) { setShowAuth(true); return; }
+        const PAYSTACK_KEY = paystackKey || 'pk_live_dfa71eca29f942cadc337cb8e41834857e2b129b';
+        setPaystackLoading(true);
+        loadPaystackScript().then(() => {
+          const handler = PaystackPop.setup({
+            key: PAYSTACK_KEY,
+            email: user.email,
+            amount: entPrice || ENTERPRISE_PRICE_KOBO,
+            currency: 'NGN',
+            ref: 'nf_ent_' + Date.now() + '_' + user.id.slice(0, 8),
+            metadata: { user_id: user.id, plan: 'enterprise' },
+            onSuccess: async (transaction) => {
+              setPaystackLoading(false);
+              try {
+                const res = await fetch(SUPABASE_URL + '/functions/v1/verify-payment', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + session.access_token },
+                  body: JSON.stringify({ reference: transaction.reference, plan: 'enterprise' }),
+                });
+                const data = await res.json();
+                if (res.ok && data.success) { setIsEnterprise(true); }
+                else { alert('Payment received but verification failed. Contact support with ref: ' + transaction.reference); }
+              } catch(e) { alert('Network error during verification. Contact support with ref: ' + transaction.reference); }
+            },
+            onCancel: ()=>{ setPaystackLoading(false); },
+          });
+          handler.openIframe();
+        }).catch(() => { setPaystackLoading(false); alert('Could not load payment system. Check your connection and try again.'); });
+      };
+
+      // If not enterprise, show paywall
+      if (!isEnterprise) {
+        return (
+          React.createElement("div", {style: { paddingTop:80, paddingBottom:80, background:C.void, minHeight:'100vh' }}, React.createElement("div", {style: { maxWidth:800, margin:'0 auto', padding:'60px 24px', textAlign:'center' }}, React.createElement("div", {style: { ...mono, fontSize:11, letterSpacing:1.5, color:C.cyan, marginBottom:20 }}, 'NEURALFUSION™ · ENTERPRISE SYSTEM'), React.createElement("div", {style: {
+                width:100, height:100, borderRadius:'50%',
+                background:`radial-gradient(circle, rgba(76,247,192,0.15), transparent)`,
+                border:'1px solid rgba(76,247,192,0.3)',
+                display:'flex', alignItems:'center', justifyContent:'center',
+                ...mono, fontSize:26, color:'#4CF7C0',
+                margin:'0 auto 32px',
+                boxShadow:'0 0 60px rgba(76,247,192,0.15)',
+                animation:'neuralPulse 3s ease-in-out infinite',
+              }}, '◈'), React.createElement("h1", {style: { ...syne, fontSize:'clamp(14px,1.3vw,17px)', fontWeight:900, color:C.text, marginBottom:16, lineHeight:1.05 }}, 'NeuralFusion™', React.createElement("br", null), React.createElement("span", {style: { color:'#4CF7C0' }}, 'Enterprise')), React.createElement("p", {style: { ...inter, fontSize:14, color:C.muted, maxWidth:520, margin:'0 auto 48px', lineHeight:1.8 }}, 'The complete organisational delivery system. Run NeuralFusion™ with your teams, cohorts, and clients. Includes facilitator tools, CFI data management, Clarity Delta reporting, and the full 5-lesson programme.'), React.createElement("div", {style: { display:'grid', gridTemplateColumns:'repeat(auto-fit,minmax(min(240px,100%),1fr))', gap:20, marginBottom:56, textAlign:'left' }}, [
+                  { icon:'◈', title:'Cohort Management', desc:'Run multiple cohorts simultaneously. Full participant tracking.' },
+                  { icon:'◰', title:'CFI Data Entry', desc:'Manual and participant-led CFI assessments. Edition 2.0 with Dim E.' },
+                  { icon:'◱', title:'Facilitator Dashboard', desc:'Live cohort scores, dimension breakdown, Clarity Delta reports.' },
+                  { icon:'◲', title:'5-Lesson Programme', desc:'Complete session plans, practice scripts, debrief prompts, watchpoints.' },
+                  { icon:'◳', title:'Results Archive', desc:'Full participant records with pre/post comparison.' },
+                  { icon:'★', title:'Certification Track', desc:'7-week programme with Week 7 certification session.' },
+                ].map((f,i)=>(
+                  React.createElement("div", {key: i, style: {
+                    padding:'24px', borderRadius:2,
+                    background:'rgba(10,22,40,0.6)',
+                    border:'1px solid rgba(76,247,192,0.12)',
+                    backdropFilter:'blur(8px)',
+                  }}, React.createElement("div", {style: { ...mono, fontSize:17, color:'#4CF7C0', marginBottom:12 }}, f.icon), React.createElement("div", {style: { ...syne, fontSize:15, fontWeight:700, color:C.text, marginBottom:8, overflowWrap:'break-word', minWidth:0}}, f.title), React.createElement("div", {style: { ...inter, fontSize:13, color:C.muted, lineHeight:1.6 }}, f.desc))
+                ))), React.createElement("div", {style: {
+                padding:'48px', borderRadius:4,
+                background:'rgba(10,22,40,0.8)',
+                border:'1px solid rgba(76,247,192,0.25)',
+                backdropFilter:'blur(20px)',
+                marginBottom:32,
+              }}, React.createElement("div", {style: { ...mono, fontSize:11, letterSpacing:1.5, color:'#4CF7C0', marginBottom:16 }}, 'ENTERPRISE ACCESS · ONE-TIME'), React.createElement("div", {style: { ...syne, fontSize:52, fontWeight:900, color:'#4CF7C0', marginBottom:4, letterSpacing:'-0.02em' }}, '₦', ((entPrice || ENTERPRISE_PRICE_KOBO)/100).toLocaleString()), React.createElement("div", {style: { ...mono, fontSize:12, color:C.muted, marginBottom:16 }}, usdApprox(entPrice || ENTERPRISE_PRICE_KOBO), ' · billed in Naira'), React.createElement("div", {style: { ...inter, fontSize:14, color:C.muted, marginBottom:40 }}, 'One-time payment · Permanent access · All cohorts · All features'), React.createElement("button", {onClick: handleUnlock, disabled: paystackLoading, style: {
+                    ...syne, fontSize:14, fontWeight:700, letterSpacing:'0.05em',
+                    padding:'18px 48px', background:'#4CF7C0', color:'#050C1A',
+                    border:'none', cursor: paystackLoading ? 'default' : 'pointer', borderRadius:2,
+                    transition:'all 0.2s', boxShadow:'0 0 40px rgba(76,247,192,0.3)', overflowWrap:'break-word', minWidth:0, opacity: paystackLoading ? 0.7 : 1}, onMouseEnter: e=>{ if(!paystackLoading){ e.currentTarget.style.background='#6FFAD0'; e.currentTarget.style.transform='translateY(-2px)'; } }, onMouseLeave: e=>{ e.currentTarget.style.background='#4CF7C0'; e.currentTarget.style.transform='translateY(0)'; }}, paystackLoading ? 'Opening...' : (user ? `Unlock Enterprise: ₦${((entPrice || ENTERPRISE_PRICE_KOBO)/100).toLocaleString()} →` : 'Sign In to Unlock Enterprise →')), !user&&React.createElement("div", {style: { ...mono, fontSize:10, color:C.muted, marginTop:16 }}, 'Create a free account to proceed with payment.')), React.createElement("div", {style: { ...mono, fontSize:9, letterSpacing:1, color:C.dim }}, 'NeuralFusion™ Enterprise · Edition 2.0 · Life Edet · 2026 · Confidential')))
+        );
+      }
+
+      // If enterprise, show the app
+      if (!entRole) return (
+        React.createElement(EntRoleGate, {onSelect: (role,info)=>{ setEntRole(role); setEntSession({...info}); setEntView(role==='facilitator'?'dashboard':'programme'); }, onExit: ()=>{ setView('home'); }})
+      );
+
+      return (
+        React.createElement("div", {style: { background:EC.bg, minHeight:'100vh', fontFamily:"'Space Mono', monospace", color:EC.text }}, React.createElement("div", {style: { position:'fixed', inset:0, backgroundImage:`linear-gradient(${EC.accent}08 1px,transparent 1px),linear-gradient(90deg,${EC.accent}08 1px,transparent 1px)`, backgroundSize:'60px 60px', pointerEvents:'none', zIndex:0 }}), React.createElement("div", {style: { position:'relative', zIndex:1 }}, React.createElement(EntNavBar, {view: entView, setView: setEntView, role: entRole, onExit: ()=>setEntRole(null)}), entRole==='participant'&&(
+              React.createElement(React.Fragment, null, entView==='assessment'&&React.createElement(EntCFIAssessment, {session: entSession, onComplete: r=>{setEntResults(p=>[...p,r]);}}), entView==='programme'&&React.createElement(EntProgrammeView, {session: entSession}))
+            ), entRole==='facilitator'&&(
+              React.createElement(React.Fragment, null, entView==='dashboard'&&React.createElement(EntFacilitatorDashboard, {session: entSession, allResults: entResults}), entView==='lessons'&&React.createElement(EntProgrammeView, {session: entSession}), entView==='cfi'&&React.createElement(EntCFIDataEntry, {session: entSession, onSave: r=>{setEntResults(p=>{const idx=p.findIndex(x=>x.pid===r.pid&&x.cohort===r.cohort&&x.phase===r.phase);if(idx>=0){const u=[...p];u[idx]=r;return u;}return [...p,r];});}}), entView==='results'&&React.createElement(EntResultsView, {session: entSession, allResults: entResults}))
+            )))
+      );
+    }
+
+    // ═══════════════════════════════════════════════════════════════════
+    //  MAIN APP
+    // ═══════════════════════════════════════════════════════════════════
+    function App() {
+      const [view, setView] = useState('home');
+      const [showAuth, setShowAuth] = useState(false);
+      const [authInitialTab, setAuthInitialTab] = useState('login');
+
+      const [user, setUser] = useState(null);
+      const [profile, setProfile] = useState(null);
+      const [authLoading, setAuthLoading] = useState(false);
+      const [session, setSession] = useState(null);       // JWT session for Edge Function calls
+
+      const [isPro, setIsPro] = useState(false);
+      const [isEnterprise, setIsEnterprise] = useState(false);
+      const [cfiResult, setCfiResult] = useState(null);
+      const [cfiHistory, setCfiHistory] = useState([]);   // full CFI attempt history, oldest→newest, for Clarity Delta™
+      const [lessonProgress, setLessonProgress] = useState({});
+      const [proPrice, setProPrice] = useState(() => parseInt(localStorage.getItem('nf_pro_price') || '600000'));
+      const [entPrice, setEntPrice] = useState(() => parseInt(localStorage.getItem('nf_ent_price') || '5000000'));
+      const [paystackKey, setPaystackKey] = useState(() => localStorage.getItem('nf_paystack_key') || 'pk_live_dfa71eca29f942cadc337cb8e41834857e2b129b');
+
+      // Load platform settings from Supabase on mount
+      useEffect(()=>{
+        getPlatformSetting('pro_price').then(val=>{
+          if (val) {
+            const p = parseInt(val);
+            if (!isNaN(p)) { setProPrice(p); localStorage.setItem('nf_pro_price', p); }
+          }
+        });
+        getPlatformSetting('paystack_public_key').then(val=>{
+          if (val) { setPaystackKey(val); localStorage.setItem('nf_paystack_key', val); }
+        });
+        getPlatformSetting('enterprise_price').then(val=>{
+          if (val) {
+            const p = parseInt(val);
+            if (!isNaN(p)) { setEntPrice(p); localStorage.setItem('nf_ent_price', p); }
+          }
+        });
+      },[]);
+
+      // Auth
+      useEffect(()=>{
+        sb.auth.getSession().then(({ data })=>{
+          const u = data?.session?.user || null;
+          setUser(u);
+          setSession(data?.session || null);
+          if (u) loadUser(u);
+          else setAuthLoading(false);
+        }).catch(()=>{
+          // Supabase unreachable (paused project, network error, etc.)
+          // Always unblock the app so users can still access the platform
+          setAuthLoading(false);
+        });
+        const { data:{ subscription } } = sb.auth.onAuthStateChange((event, session)=>{
+          if (event === 'PASSWORD_RECOVERY') {
+            // User clicked the reset link: show update-password screen immediately
+            setAuthInitialTab('update-password');
+            setShowAuth(true);
+            setAuthLoading(false);
+            return;
+          }
+          if (event === 'USER_UPDATED') {
+            // Password was successfully updated: close modal, sign them in normally
+            setShowAuth(false);
+            setAuthInitialTab('login');
+          }
+          if (event === 'SIGNED_IN' && session?.user) {
+            // Upsert profile on first confirmed sign-in (covers email confirmation flow)
+            const u = session.user;
+            const name = u.user_metadata?.full_name || '';
+            sb.from('profiles').upsert({ id: u.id, full_name: name, is_pro: false }, { onConflict: 'id' }).then(()=>{});
+          }
+          const u = session?.user || null;
+          setSession(session || null);
+          setUser(u);
+          if (u) loadUser(u);
+          else { setIsPro(false); setLessonProgress({}); setAuthLoading(false); }
+        });
+        return ()=>subscription.unsubscribe();
+      },[]);
+
+      const loadUser = async (u) => {
+        setAuthLoading(true);
+        try {
+          const [prof, lp] = await Promise.all([getProfile(u.id), loadLessonProgress(u.id)]);
+          if (prof) { setProfile(prof); setIsPro(!!prof.is_pro); setIsEnterprise(!!prof.is_enterprise); }
+          setLessonProgress(lp);
+          // Load full CFI history from Supabase (needed for Clarity Delta™, not just the latest result)
+          // IMPORTANT: only 'completed' rows have total_score/band/dim_scores populated.
+          // 'in_progress' draft rows (auto-saved while taking the assessment) do not,
+          // and including them here was causing Analytics to render blank whenever the
+          // most recent row for a user happened to be an unfinished attempt.
+          const { data: cfiRows, error: cfiErr } = await sb.from('cfi_results').select('*').eq('user_id', u.id).eq('status', 'completed').order('created_at', { ascending: false });
+          if (cfiErr) console.error('[ANALYTICS LOAD ERROR] cfi_results fetch failed:', cfiErr);
+          if (cfiRows && cfiRows.length > 0) {
+            setCfiHistory([...cfiRows].reverse()); // oldest → newest
+            const r = cfiRows[0];
+            const dimScores = r.dim_scores || {};
+            // Keys here are the A/I/S/R/E dimension letters (matches dimScores as stored
+            // by finalize()), not brain names — and E is excluded, same as the fresh-quiz path.
+            const brainMap = { A:'analytical', I:'intuitive', S:'associative', R:'reflective' };
+            // FIX (audit finding #1): ascending sort — see matching comment in finalize()
+            // above. Lowest fragmentation score = dominant mode, consistently everywhere.
+            const sortedDims = Object.entries(dimScores).filter(([d]) => d !== 'E').sort((a,b)=>a[1]-b[1]);
+            const dominantBrain = brainMap[sortedDims[0]?.[0]] || 'analytical';
+            const total = r.total_score;
+            // Same CFI-1.0 bands (13–65 scale) as the fresh-quiz path.
+            let desc, recommendation;
+            if (total<=17) { desc='Low fragmentation. Your thinking modes are well-coordinated.'; recommendation='Maintain your daily integration protocol. Advance to Lessons 4–5 for fluency installation.'; }
+            else if (total<=28) { desc='Some fragmentation detected. Specific modes need targeted training.'; recommendation='Focus on mode activation (Lesson 2). Daily mode-switching drills for 14 days.'; }
+            else if (total<=40) { desc='Significant fragmentation. Integration is inconsistent under pressure.'; recommendation='Begin from Lesson 1. Run the Core Loop daily.'; }
+            else { desc='Severe fragmentation. Decision-making and clarity are compromised.'; recommendation='Start Lesson 1 immediately and track your CFI weekly.'; }
+            // Rebuild the same enriched fields the fresh-quiz path builds (integrationScore,
+            // dimensionReports, profile, plan) so personalization works on every reload, not
+            // only immediately after finishing the assessment.
+            let integrationScore, dimensionReports, profile, plan;
+            try {
+              integrationScore = cfiIntegrationScore(total);
+              dimensionReports = {};
+              Object.keys(dimScores).forEach(d => { dimensionReports[d] = buildDimensionReport(d, dimScores[d]); });
+              profile = buildCognitiveProfile(dimensionReports, integrationScore, r.band);
+              plan = buildImprovementPlan(dimensionReports, r.band);
+            } catch(e) { console.error('[CFI ENRICH ON LOAD ERROR]', e); }
+            setCfiResult({ total, band: r.band, desc, recommendation, dimScores, dominantBrain, integrationScore, dimensionReports, profile, plan });
+          }
+        } catch(e){ console.error('[LOAD USER ERROR]', e); }
+        setAuthLoading(false);
+      };
+
+      const handleSignOut = async () => {
+        await sb.auth.signOut();
+        setUser(null); setProfile(null); setIsPro(false); setIsEnterprise(false); setLessonProgress({});
+      };
+
+      // Opens the auth modal on a specific tab (e.g. 'signup' or 'login'). Used by
+      // the CFI™ account gate so "Create Free Account" and "Sign In" land on the
+      // right tab instead of always defaulting to login.
+      const openAuth = (tab='login') => { setAuthInitialTab(tab); setShowAuth(true); };
+
+      const viewProps = { setView, user, session, paystackKey, setShowAuth, openAuth, isPro, setIsPro, isEnterprise, setIsEnterprise, cfiResult, setCfiResult, cfiHistory, lessonProgress, setLessonProgress, proPrice };
+
+      return (
+        React.createElement("div", {style: { background:C.void, minHeight:'100vh', color:C.text }}, showAuth && React.createElement(AuthModal, {initialTab: authInitialTab, onClose: ()=>{ setShowAuth(false); setAuthInitialTab('login'); }, onSuccess: ()=>{ setShowAuth(false); setAuthInitialTab('login'); }}), React.createElement(Navbar, {view: view, setView: setView, user: user, profile: profile, setShowAuth: setShowAuth, onSignOut: handleSignOut, authLoading: authLoading}), React.createElement("main", null, view==='home'        && React.createElement(HomeView, viewProps), view==='four-brains' && React.createElement(FourBrainsView, viewProps), view==='cfi'         && React.createElement(CFIView, viewProps), view==='protocol'    && React.createElement(ProtocolView, viewProps), view==='analytics'   && React.createElement(AnalyticsView, viewProps), view==='lessons'     && React.createElement(LessonsView, viewProps), view==='about'       && React.createElement(AboutView, viewProps), view==='resources'   && React.createElement(ResourcesView, viewProps), view==='legal'       && React.createElement(LegalView, {setView: setView}), view==='enterprise'  && React.createElement(EnterpriseView, {user: user, session: session, paystackKey: paystackKey, setShowAuth: setShowAuth, isEnterprise: isEnterprise, setIsEnterprise: setIsEnterprise, proPrice: proPrice, entPrice: entPrice, setView: setView}), view==='admin'       && profile?.is_admin === true && React.createElement(AdminView, {user: user, setView: setView, onPriceChange: setProPrice, onEntPriceChange: setEntPrice})), React.createElement(Footer, {setView: setView}), view !== 'enterprise' && React.createElement(BottomNav, {view: view, setView: setView}))
+      );
+    }
+
+    // Mount
+    const root = ReactDOM.createRoot(document.getElementById('root'));
+    root.render(React.createElement(App));
+
+    // Hide splash
+    window.addEventListener('load', ()=>{
+      setTimeout(()=>{
+        const s = document.getElementById('splash');
+        if (s) { s.classList.add('hidden'); setTimeout(()=>s.remove(), 500); }
+      }, 600);
+    });
+
+    // Service worker disabled for performance
