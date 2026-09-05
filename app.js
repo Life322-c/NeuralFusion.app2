@@ -139,7 +139,7 @@ const { useState, useEffect, useCallback, useRef, useMemo } = React;
       },
     };
 
-    // ── CFI Assessment Items — CFI-1.0, canonical 13-item instrument ──
+    // ── CFI Assessment Items — CFI-1.0, canonical 13-item instrument 
     // Source of truth: the Enterprise instrument (ENT_CFI_ITEMS below), which predates
     // the consumer app's since-drifted 15/16-item versions. Dimension letters are kept
     // in the app's original A/I/S/R/E scheme (not the Enterprise A/B/C/D/E scheme) so
@@ -183,7 +183,7 @@ const { useState, useEffect, useCallback, useRef, useMemo } = React;
       R: { title:'Emotional Clarity Under Pressure', icon:'◳', color:'#D4AF6A',
            blurb:"These questions look at how much strong emotions affect your clarity and decisions, and whether you can stay focused when things feel stressful." },
       E: { title:'Staying Steady Under Pressure', icon:'◈', color:'#F5EDD8',
-           blurb:"Last section — just one question. It looks at how your thinking holds up when you're given a lot of information at once. Because it's a single question, treat this section as a narrow snapshot, not a full picture." },
+           blurb:"Last section, just one question. It looks at how your thinking holds up when you're given a lot of information at once. Because it's a single question, treat this section as a narrow snapshot, not a full picture." },
     };
     const CFI_SECTION_ORDER = ['A','I','S','R','E'];
 
