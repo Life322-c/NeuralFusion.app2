@@ -17,7 +17,7 @@ const { useState, useEffect, useCallback, useRef, useMemo } = React;
         intuitive:  { color: '#E2BE78', dim: 'rgba(226,190,120,0.12)', label: 'Intuitive Brain',  code: 'I', symbol: '◱' },
         associative:{ color: '#7AAFCF', dim: 'rgba(122,175,207,0.12)', label: 'Associative Brain',code: 'S', symbol: '◲' },
         reflective: { color: '#D4AF6A', dim: 'rgba(212,175,106,0.12)', label: 'Reflective Brain', code: 'R', symbol: '◳' },
-        // Not a fifth brain — the CFI's pressure/overload item (dim E). Kept visually distinct
+        // Not a fifth brain: the CFI's pressure/overload item (dim E). Kept visually distinct
         // so it's never mistaken for the Analytical brain it used to silently fall back to.
         integration:{ color: '#8B8FA3', dim: 'rgba(139,143,163,0.12)',  label: 'Integration',     code: 'E', symbol: '◈' },
       }
@@ -139,7 +139,7 @@ const { useState, useEffect, useCallback, useRef, useMemo } = React;
       },
     };
 
-    // ── CFI Assessment Items — CFI-1.0, canonical 13-item instrument 
+    // ── CFI Assessment Items: CFI-1.0, canonical 13-item instrument 
     // Source of truth: the Enterprise instrument (ENT_CFI_ITEMS below), which predates
     // the consumer app's since-drifted 15/16-item versions. Dimension letters are kept
     // in the app's original A/I/S/R/E scheme (not the Enterprise A/B/C/D/E scheme) so
@@ -148,7 +148,7 @@ const { useState, useEffect, useCallback, useRef, useMemo } = React;
     //   Ent B "Mode Rigidity"         → I "intuitive"
     //   Ent C "Emotional Reactivity"  → R "reflective"
     //   Ent D "Thought Interruption"  → S "associative"
-    //   Ent E "Cognitive Overload"    → E "integration" (not a fifth brain — see dominantBrain calc)
+    //   Ent E "Cognitive Overload"    → E "integration" (not a fifth brain, see dominantBrain calc)
     const CFI_ITEMS = [
       { id:1,  dim:'A', brain:'analytical',  text:'I delay making decisions even when I have sufficient information.' },
       { id:2,  dim:'A', brain:'analytical',  text:'I reconsider decisions I have already made even when no new information is available.' },
@@ -191,7 +191,7 @@ const { useState, useEffect, useCallback, useRef, useMemo } = React;
     // Every dimension score is paired with plain-language meaning, strengths,
     // blind spots, decision style, behaviour under pressure, and 3 practical actions.
     // FIX (audit findings B/#5/#6/#7/#10): every block below was rewritten to describe
-    // only what its 3 items (or, for E, its single item) actually ask about — decision
+    // only what its 3 items (or, for E, its single item) actually ask about: decision
     // delay/reconsideration/clarity-under-pressure for A, logic-vs-gut rigidity for I,
     // attentional interruption for S, and emotional reactivity for R. Claims about
     // reasoning ability, creativity, intuition quality, and metacognition that the old
@@ -230,7 +230,7 @@ const { useState, useEffect, useCallback, useRef, useMemo } = React;
         meaning: {
           high: "You can move between logic and instinct depending on the situation, without getting stuck committed to one approach.",
           moderate: "You lean more on one of logic or instinct, and sometimes find it hard to switch once you've started.",
-          low: "Right now you tend to get stuck in one mode — either overriding useful signals with pure logic, or acting on gut feelings without checking them — and switching approach mid-problem is difficult.",
+          low: "Right now you tend to get stuck in one mode, either overriding useful signals with pure logic, or acting on gut feelings without checking them, and switching approach mid-problem is difficult.",
         },
         decisionStyle: {
           high: "You bring in whichever of logic or instinct fits the decision, and adjust if your first approach isn't working.",
@@ -303,12 +303,12 @@ const { useState, useEffect, useCallback, useRef, useMemo } = React;
         // 3 like the others. It previously carried six distinct claims (integration,
         // staying steady under pressure, mode-switching, perspective, recovery, mode
         // selection) that a single 5-point question cannot support. Content below is
-        // narrowed to only what the item actually asks — reaction to high information
-        // volume — with an explicit single-item caveat kept in every string so the
+        // narrowed to only what the item actually asks: reaction to high information
+        // volume, with an explicit single-item caveat kept in every string so the
         // limitation travels with the text wherever it's displayed.
         name: 'Handling Information Overload (single-item snapshot)', brainKey:null,
-        strengths: ["Reported feeling relatively organized when given a lot of information at once — based on one question, treat as a rough signal only"],
-        blindSpots: ["Reported feeling disorganized when given a lot of information at once — based on one question, treat as a rough signal only"],
+        strengths: ["Reported feeling relatively organized when given a lot of information at once; based on one question, treat as a rough signal only"],
+        blindSpots: ["Reported feeling disorganized when given a lot of information at once; based on one question, treat as a rough signal only"],
         meaning: {
           high: "Based on a single question, you reported feeling relatively organized even when given a lot of information at once. This is a narrow, single-item signal, not a full profile of how you handle pressure.",
           moderate: "Based on a single question, you reported some disorganization when given a lot of information at once. Treat this as a rough signal rather than a firm conclusion.",
@@ -373,14 +373,14 @@ const { useState, useEffect, useCallback, useRef, useMemo } = React;
 
     // Generic explainer for any score, independent of dimension; never show a bare number.
     // FIX (audit finding H): previously framed around how OFTEN / how RELIABLY a mode
-    // "contributes to decisions" — no CFI item asks about frequency of use or reliability
+    // "contributes to decisions"; no CFI item asks about frequency of use or reliability
     // of contribution; every item asks about self-reported DIFFICULTY in a domain. Reworded
     // to describe only what was actually measured. Never implies a "broken" brain, and
     // never implies 100% is the goal for every mode.
     function cfiScoreMeaning(score) {
       if (score >= 90) return "90%+ means you reported very little difficulty in this area on this assessment.";
       if (score >= 75) return "75–89% means you reported occasional difficulty here, with most responses on the easier end.";
-      if (score >= 50) return "50–74% means you reported noticeable difficulty in this area, especially under pressure — this is a self-report, not a frequency count.";
+      if (score >= 50) return "50–74% means you reported noticeable difficulty in this area, especially under pressure; this is a self-report, not a frequency count.";
       if (score >= 25) return "25–49% means you reported frequent difficulty in this area on this assessment.";
       return "Below 25% means you reported significant difficulty in this area right now. This reflects today's self-report, not a fixed trait.";
     }
@@ -439,12 +439,12 @@ const { useState, useEffect, useCallback, useRef, useMemo } = React;
 
         // ── Legacy fields (kept for backward compatibility with any existing consumers) ──
         // FIX (audit finding #9 / C): no CFI item measures communication, leadership, or
-        // learning behavior at all — these are coaching inferences drawn from whichever
+        // learning behavior at all: these are coaching inferences drawn from whichever
         // dimension has the lowest fragmentation score, not measured findings. Labeled
         // as such inline so the caveat travels with the text wherever it's displayed.
-        communicationStyle: `${pStyle.communication} (Coaching interpretation based on your primary mode — not directly measured by the CFI.)`,
-        leadershipStyle: `${pStyle.leadership} (Coaching interpretation based on your primary mode — not directly measured by the CFI.)`,
-        learningStyle: `${pStyle.learning} (Coaching interpretation based on your primary mode — not directly measured by the CFI.)`,
+        communicationStyle: `${pStyle.communication} (Coaching interpretation based on your primary mode, not directly measured by the CFI.)`,
+        leadershipStyle: `${pStyle.leadership} (Coaching interpretation based on your primary mode, not directly measured by the CFI.)`,
+        learningStyle: `${pStyle.learning} (Coaching interpretation based on your primary mode, not directly measured by the CFI.)`,
         decisionProfile: `You lead with ${CFI_DIM_LABELS[primaryDim]}, backed up by ${CFI_DIM_LABELS[secondaryDim]}. ${dimReports[primaryDim].decisionStyle}`,
         biggestStrength: `${CFI_DIM_LABELS[primaryDim]}: ${CFI_DIMENSION_META[primaryDim].strengths[0]}`,
         biggestBlindSpot: `${CFI_DIM_LABELS[weakestDim]}: ${CFI_DIMENSION_META[weakestDim].blindSpots[0]}`,
@@ -1257,11 +1257,105 @@ Most learners take four to six weeks working through the lessons at the suggeste
     const getProfile = async (id) => { try { const {data} = await sb.from('profiles').select('*').eq('id',id).maybeSingle(); return data; } catch(_){ return null; } };
     const upsertProfile = async (id, u) => { try { await sb.from('profiles').upsert({id,...u},{onConflict:'id'}); } catch(_){} };
 
+    // ── Decision Vault Helpers ──────────────────────────────────────────
+    // Backs the Decision Room / Decision Vault (persisted Integration
+    // Protocol sessions). Table: decision_sessions, RLS-scoped to owner.
+    const saveDecisionSession = async (userId, payload) => {
+      try {
+        const { data, error } = await sb.from('decision_sessions').insert({ user_id: userId, ...payload }).select().single();
+        if (error) throw error;
+        return data;
+      } catch (e) { console.error('[DECISION SAVE ERROR]', e); return null; }
+    };
+    const listDecisionSessions = async (userId) => {
+      try {
+        const { data, error } = await sb.from('decision_sessions').select('*').eq('user_id', userId).order('created_at', { ascending: false });
+        if (error) throw error;
+        return data || [];
+      } catch (e) { console.error('[DECISION LIST ERROR]', e); return []; }
+    };
+    const updateDecisionSession = async (id, patch) => {
+      try {
+        const { data, error } = await sb.from('decision_sessions').update(patch).eq('id', id).select().single();
+        if (error) throw error;
+        return data;
+      } catch (e) { console.error('[DECISION UPDATE ERROR]', e); return null; }
+    };
+
+    // ── Facilitator Cohort Membership Helpers ───────────────────────────
+    // Replaces the old client-side facilitator PIN. A user can only act as
+    // facilitator for a cohort if an admin has explicitly linked them to it
+    // in facilitator_cohorts (RLS-enforced server-side, not a shared secret
+    // shipped in the JS bundle).
+    const listFacilitatorCohorts = async (userId) => {
+      try {
+        const { data, error } = await sb.from('facilitator_cohorts').select('*').eq('user_id', userId);
+        if (error) throw error;
+        return data || [];
+      } catch (e) { console.error('[FACILITATOR COHORTS LIST ERROR]', e); return []; }
+    };
+    const addFacilitatorCohort = async (userId, cohort) => {
+      try {
+        const { data, error } = await sb.from('facilitator_cohorts').insert({ user_id: userId, cohort }).select().single();
+        if (error) throw error;
+        return data;
+      } catch (e) { console.error('[FACILITATOR COHORTS ADD ERROR]', e); return null; }
+    };
+    const removeFacilitatorCohort = async (id) => {
+      try {
+        const { error } = await sb.from('facilitator_cohorts').delete().eq('id', id);
+        if (error) throw error;
+        return true;
+      } catch (e) { console.error('[FACILITATOR COHORTS REMOVE ERROR]', e); return false; }
+    };
+
+    // ── Cohort Helpers ───────────────────────────────────────────────
+    // Backs the Admin → Cohorts tab. Previously stored in localStorage
+    // (nf_cohorts), which only existed in one admin's browser. Field names
+    // are mapped to camelCase to match the existing Admin UI unchanged.
+    const mapCohortRow = r => ({
+      id: r.id, name: r.name, org: r.org, facilitator: r.facilitator_name || '',
+      code: r.code, startDate: r.start_date || '', maxParticipants: r.max_participants,
+      status: r.status, created: r.created_at,
+    });
+    const listCohorts = async () => {
+      try {
+        const { data, error } = await sb.from('cohorts').select('*').order('created_at', { ascending: false });
+        if (error) throw error;
+        return (data || []).map(mapCohortRow);
+      } catch (e) { console.error('[COHORTS LIST ERROR]', e); return []; }
+    };
+    const createCohortRow = async (c, createdBy) => {
+      try {
+        const { data, error } = await sb.from('cohorts').insert({
+          name: c.name, org: c.org, facilitator_name: c.facilitator || null, code: c.code,
+          start_date: c.startDate || null, max_participants: c.maxParticipants ? parseInt(c.maxParticipants, 10) : null,
+          status: 'active', created_by: createdBy || null,
+        }).select().single();
+        if (error) throw error;
+        return mapCohortRow(data);
+      } catch (e) { console.error('[COHORTS CREATE ERROR]', e); return null; }
+    };
+    const setCohortStatus = async (id, status) => {
+      try {
+        const { error } = await sb.from('cohorts').update({ status }).eq('id', id);
+        if (error) throw error;
+        return true;
+      } catch (e) { console.error('[COHORTS UPDATE ERROR]', e); return false; }
+    };
+    const deleteCohortRow = async (id) => {
+      try {
+        const { error } = await sb.from('cohorts').delete().eq('id', id);
+        if (error) throw error;
+        return true;
+      } catch (e) { console.error('[COHORTS DELETE ERROR]', e); return false; }
+    };
+
     const CFI_VERSION = 'CFI-1.0'; // the canonical 13-item instrument. Never mix with older 15/16-item data.
 
     // Defensive server-side-equivalent validation, mirrored client-side since this app has
     // no server layer of its own. Frontend can't be trusted alone (item 18 of the CFI
-    // correction spec) — this is the actual gate a completed attempt must pass before saveCFIResult
+    // correction spec): this is the actual gate a completed attempt must pass before saveCFIResult
     // will submit it.
     function validateCFISubmission(answers) {
       const errors = [];
@@ -1280,8 +1374,8 @@ Most learners take four to six weeks working through the lessons at the suggeste
     }
 
     // Looks up this user's prior completed CFI-1.0 attempts (most recent first) so a new
-    // submission can be numbered and linked correctly. Per-user numbering only — never global,
-    // never reset by logout/refresh/new session — and only rows on the current CFI_VERSION count,
+    // submission can be numbered and linked correctly. Per-user numbering only, never global,
+    // never reset by logout/refresh/new session, and only rows on the current CFI_VERSION count,
     // so historical 15/16-item attempts never get silently mixed into CFI-1.0's numbering or deltas.
     const getPriorCFIResults = async (id) => {
       const { data, error } = await sb.from('cfi_results').select('*')
@@ -1295,7 +1389,7 @@ Most learners take four to six weeks working through the lessons at the suggeste
     // in_progress row created via saveCFIProgress) is passed, it updates that
     // row in place instead of inserting a new one, so a single attempt never
     // produces two rows.
-    // NOTE: supabase-js does NOT throw on a failed query — it resolves with
+    // NOTE: supabase-js does NOT throw on a failed query: it resolves with
     // { data, error }. Every call here checks .error explicitly and logs it,
     // so a failed save is visible in the console instead of silently vanishing.
     const saveCFIResult = async (id, r, a, draftId) => {
@@ -1326,8 +1420,8 @@ Most learners take four to six weeks working through the lessons at the suggeste
         reflective_score: r.dimScores?.R ?? null,
         integration_score: r.dimScores?.E ?? null,
         // Persists the (now-corrected) dominant-mode calculation so AdminView's per-row
-        // table — which reads r.dominant_brain straight from the DB rather than
-        // recomputing it — actually has a value to show instead of always falling
+        // table, which reads r.dominant_brain straight from the DB rather than
+        // recomputing it, actually has a value to show instead of always falling
         // back to 'N/A'. REQUIRES a `dominant_brain` text column on `cfi_results`
         // (see migration note below) or this insert/update will fail.
         dominant_brain: r.dominantBrain ?? null,
@@ -1633,11 +1727,22 @@ Most learners take four to six weeks working through the lessons at the suggeste
     // ── NAVBAR ────────────────────────────────────────────────────────
     function Navbar({ view, setView, user, profile, setShowAuth, onSignOut, authLoading }) {
       const [menuOpen, setMenuOpen] = useState(false);
+      // Awaiting-review indicator: a quiet dot next to "Decisions" when a
+      // saved decision's review date has arrived. No push, no popups;
+      // just visible where the person already looks.
+      const [awaitingReview, setAwaitingReview] = useState(0);
+      useEffect(() => {
+        if (!user) { setAwaitingReview(0); return; }
+        listDecisionSessions(user.id).then(rows => {
+          setAwaitingReview(rows.filter(d => d.status === 'open' && d.review_date && new Date(d.review_date) <= new Date()).length);
+        });
+      }, [user]);
       const navItems = [
         { v:'cfi', label:'Assess' },
         { v:'four-brains', label:'Architecture' },
         { v:'analytics', label:'Analytics' },
         { v:'protocol', label:'Integration Protocol' },
+        { v:'decisions', label: awaitingReview > 0 ? 'Decisions ●' : 'Decisions' },
         { v:'lessons', label:'Academy' },
         { v:'resources', label:'Resources' },
         { v:'enterprise', label:'Enterprise' },
@@ -1724,14 +1829,22 @@ Most learners take four to six weeks working through the lessons at the suggeste
     }
 
     // ── BOTTOM NAV ────────────────────────────────────────────────────
-    function BottomNav({ view, setView }) {
+    function BottomNav({ view, setView, user }) {
       const items = [
         { v:'home', symbol:'⌂', label:'Home' },
         { v:'cfi', symbol:'◎', label:'CFI' },
         { v:'four-brains', symbol:'◈', label:'Brains' },
-        { v:'protocol', symbol:'▲', label:'Protocol' },
+        { v:'protocol', symbol:'▲', label:'Think' },
+        { v:'decisions', symbol:'◈', label:'Decisions' },
         { v:'enterprise', symbol:'⬡', label:'Enterprise' },
       ];
+      const [awaitingReview, setAwaitingReview] = useState(0);
+      useEffect(() => {
+        if (!user) { setAwaitingReview(0); return; }
+        listDecisionSessions(user.id).then(rows => {
+          setAwaitingReview(rows.filter(d => d.status === 'open' && d.review_date && new Date(d.review_date) <= new Date()).length);
+        });
+      }, [user]);
       return (
         React.createElement("div", {className: "bottom-nav", style: {
           position:'fixed', bottom:0, left:0, right:0, zIndex:90,
@@ -1741,7 +1854,7 @@ Most learners take four to six weeks working through the lessons at the suggeste
             React.createElement("button", {key: item.v, onClick: ()=>setView(item.v), style: {
               flex:1, padding:'10px 4px 14px', background:'none', border:'none',
               display:'flex', flexDirection:'column', alignItems:'center', gap:4, cursor:'pointer',
-            }}, React.createElement("div", {style: { ...mono, fontSize:14, color:view===item.v?C.cyan:C.dim, transition:'color 0.2s' }}, item.symbol), React.createElement("div", {style: { ...inter, fontSize:9, letterSpacing:1, color:view===item.v?C.cyan:C.dim, fontWeight:view===item.v?600:400, transition:'color 0.2s' }}, item.label))
+            }}, React.createElement("div", {style: { position:'relative', ...mono, fontSize:14, color:view===item.v?C.cyan:C.dim, transition:'color 0.2s' }}, item.symbol, item.v==='decisions' && awaitingReview>0 && React.createElement("div", {style: { position:'absolute', top:-2, right:-6, width:6, height:6, borderRadius:'50%', background:'#E2BE78' }})), React.createElement("div", {style: { ...inter, fontSize:9, letterSpacing:1, color:view===item.v?C.cyan:C.dim, fontWeight:view===item.v?600:400, transition:'color 0.2s' }}, item.label))
           )))
       );
     }
@@ -1919,7 +2032,7 @@ function BentoStepList({ steps, setView }) {
 }
 
 // ═══════════════════════════════════════════════════════════════════
-//  HOME VIEW — "You Are the Intelligence."
+//  HOME VIEW: "You Are the Intelligence."
 //  Cognitive Performance OS homepage. White / gold editorial system,
 //  visually aligned with the CFI™ assessment (AC tokens in CFIView).
 //  Scoped styles live under .nf-home so the rest of the app (which
@@ -1927,7 +2040,7 @@ function BentoStepList({ steps, setView }) {
 //  is completely unaffected.
 // ═══════════════════════════════════════════════════════════════════
 
-// ── Homepage design tokens — now mapped onto the same dark navy/gold
+// ── Homepage design tokens: now mapped onto the same dark navy/gold
 // "bento" system (C) used by the Four Brains section, so the two feel
 // like one continuous product instead of two different skins. ──────
 const H = {
@@ -1949,7 +2062,7 @@ const HOME_MODES = [
   { key:'reflective',  name:'Reflective',  symbol:'◳', color:C.brains.reflective.color, desc:'Steps back, evaluates meaning and examines the thinking itself.' },
 ];
 
-// Feature set for the homepage bento grid (Section 1.5) — mirrors the
+// Feature set for the homepage bento grid (Section 1.5), mirrors the
 // card language of the Four Brains / bento system elsewhere in the app.
 const HOME_BENTO = [
   { title:'Four Brains Framework', desc:'Understand the four cognitive modes your mind already uses, every day, mostly unconsciously.', symbol:'◈', color:C.cyan, big:true },
@@ -1994,6 +2107,41 @@ function HomeCognitiveField({ size = 220, centerLabel = 'YOU', interactive, setV
 /** Small uppercase mono label used as a recurring section marker. */
 function HomeLabel({ children, color }) {
   return React.createElement("div", { className: "nf-home-fade", style: { ...hMono, fontSize:11, letterSpacing:'0.18em', textTransform:'uppercase', color: color || H.goldDeep, marginBottom:16 } }, children);
+}
+
+// Logged-in recurring-use panel: "What are you trying to figure out?"
+// Shown only to signed-in users on Home, right under the hero. Not part
+// of the anonymous marketing funnel (which still leads with the CFI).
+function HomeDecisionPanel({ user, setView }) {
+  const [decisions, setDecisions] = useState([]);
+  useEffect(() => {
+    if (!user) return;
+    listDecisionSessions(user.id).then(rows => setDecisions(rows.slice(0, 3)));
+  }, [user]);
+  if (!user) return null;
+  return (
+    React.createElement("section", { style: { maxWidth: 1280, margin: '0 auto', padding: '0 24px 56px' } },
+      React.createElement("div", { style: { background: C.surface, border: `1px solid ${C.border}`, borderRadius: 8, padding: '32px 28px' } },
+        React.createElement("div", { style: { ...hMono, fontSize: 11, letterSpacing: '0.14em', color: H.gold, marginBottom: 12 } }, 'WHAT ARE YOU TRYING TO FIGURE OUT?'),
+        React.createElement("div", { style: { display: 'flex', flexWrap: 'wrap', gap: 12, marginBottom: decisions.length ? 24 : 0 } },
+          React.createElement("button", { className: "nf-home-cta-primary", onClick: () => setView('protocol') }, 'Think Through a Decision', React.createElement("span", null, '→')),
+          React.createElement("button", { className: "nf-home-cta-outline", onClick: () => setView('decisions') }, 'Open Decision Vault'),
+          React.createElement("button", { className: "nf-home-cta-outline", onClick: () => setView('pressure') }, 'Under Pressure')
+        ),
+        decisions.some(d => d.status === 'open' && d.review_date && new Date(d.review_date) <= new Date()) && React.createElement("div", { style: { fontSize: 13, color: H.gold, marginBottom: 16 } },
+          '◈ A decision is ready for review.'
+        ),
+        decisions.length > 0 && React.createElement("div", null,
+          React.createElement("div", { style: { ...hMono, fontSize: 10, letterSpacing: '0.08em', color: H.faint, marginBottom: 10 } }, 'RECENT DECISIONS'),
+          React.createElement("div", { style: { display: 'flex', flexDirection: 'column', gap: 8 } },
+            decisions.map(d => React.createElement("button", { key: d.id, className: "nf-home-link", style: { textAlign: 'left' }, onClick: () => setView('decisions') },
+              (d.title || d.decision || 'Untitled decision'), ' · ', (d.status || 'open').replace('_', ' ')
+            ))
+          )
+        )
+      )
+    )
+  );
 }
 
 function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
@@ -2058,7 +2206,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
     `),
 
     // ══════════════════════════════════════════════════════════
-    // SECTION 1 — HERO
+    // SECTION 1: HERO
     // ══════════════════════════════════════════════════════════
     React.createElement("section", { style: { maxWidth:1280, margin:'0 auto', padding:'56px 24px 72px', display:'grid', gap:48, alignItems:'center' }, className: "nf-home-hero" },
       React.createElement("div", null,
@@ -2078,8 +2226,10 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
       )
     ),
 
+    React.createElement(HomeDecisionPanel, { user, setView }),
+
     // ══════════════════════════════════════════════════════════
-    // SECTION 1.5 — BENTO OVERVIEW
+    // SECTION 1.5: BENTO OVERVIEW
     // ══════════════════════════════════════════════════════════
     React.createElement("section", { style: { maxWidth:1280, margin:'0 auto', padding:'0 24px 72px' } },
       React.createElement("div", { className: "nf-home-bento" },
@@ -2104,7 +2254,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
     ),
 
     // ══════════════════════════════════════════════════════════
-    // SECTION 2 — THE HUMAN PROBLEM
+    // SECTION 2: THE HUMAN PROBLEM
     // ══════════════════════════════════════════════════════════
     React.createElement("section", { style: { maxWidth:820, margin:'0 auto', padding:'64px 24px', borderTop:`1px solid ${H.border}` } },
       React.createElement("h2", { style: { ...hDisplay, fontWeight:600, fontSize:'clamp(24px,3vw,34px)', lineHeight:1.25, color:H.ink, marginBottom:24 } }, 'Your problem may not be intelligence.'),
@@ -2116,7 +2266,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
     ),
 
     // ══════════════════════════════════════════════════════════
-    // SECTION 3 — FOUR THINKING MODES
+    // SECTION 3: FOUR THINKING MODES
     // ══════════════════════════════════════════════════════════
     React.createElement("section", { style: { maxWidth:1280, margin:'0 auto', padding:'64px 24px' } },
       React.createElement("div", { style: { maxWidth:640, marginBottom:40 } },
@@ -2139,7 +2289,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
     ),
 
     // ══════════════════════════════════════════════════════════
-    // SECTION 4 — CFI™ ASSESSMENT (primary entry point)
+    // SECTION 4: CFI™ ASSESSMENT (primary entry point)
     // ══════════════════════════════════════════════════════════
     React.createElement("section", { style: { background:H.bgAlt, borderTop:`1px solid ${H.border}`, borderBottom:`1px solid ${H.border}` } },
       React.createElement("div", { style: { maxWidth:920, margin:'0 auto', padding:'72px 24px' } },
@@ -2149,10 +2299,10 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
         React.createElement("p", { style: { ...hBody, fontSize:16, lineHeight:1.75, color:H.muted, maxWidth:560, marginBottom:40 } },
           'A 13-item cognitive assessment designed to help you identify patterns in how your thinking coordinates across different cognitive modes.'),
 
-        // Simple, honest CFI visualization — a radial spread across the
+        // Simple, honest CFI visualization: a radial spread across the
         // four modes, not a dashboard mockup with invented numbers.
         React.createElement("div", { className: "card", style: { background:C.surface, border:`1px solid ${H.border}`, borderRadius:6, padding:'40px 24px', marginBottom:28 } },
-          React.createElement("div", { style: { ...hMono, fontSize:10, letterSpacing:'0.12em', color:H.faint, marginBottom:24 } }, 'CFI™ COGNITIVE PROFILE — EXAMPLE'),
+          React.createElement("div", { style: { ...hMono, fontSize:10, letterSpacing:'0.12em', color:H.faint, marginBottom:24 } }, 'CFI™ COGNITIVE PROFILE · EXAMPLE'),
           React.createElement("div", { style: { display:'flex', justifyContent:'center', gap:'clamp(16px,4vw,40px)', flexWrap:'wrap' } },
             HOME_MODES.map(m => React.createElement("div", { key:m.key, style: { display:'flex', flexDirection:'column', alignItems:'center', gap:10 } },
               React.createElement("div", { style: { width:6, height:76, borderRadius:3, background:H.border, position:'relative', overflow:'hidden' } },
@@ -2170,7 +2320,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
     ),
 
     // ══════════════════════════════════════════════════════════
-    // SECTION 4.5 — FAQ
+    // SECTION 4.5: FAQ
     // ══════════════════════════════════════════════════════════
     React.createElement("section", { style: { borderBottom:`1px solid ${H.border}` } },
       React.createElement("div", { style: { maxWidth:680, margin:'0 auto', padding:'64px 24px' } },
@@ -2197,7 +2347,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
     ),
 
     // ══════════════════════════════════════════════════════════
-    // SECTION 5 — FRAGMENTATION TO INTEGRATION
+    // SECTION 5: FRAGMENTATION TO INTEGRATION
     // ══════════════════════════════════════════════════════════
     React.createElement("section", { style: { maxWidth:820, margin:'0 auto', padding:'72px 24px' } },
       React.createElement("h2", { style: { ...hDisplay, fontWeight:600, fontSize:'clamp(20px,2.4vw,26px)', color:H.ink, marginBottom:24 } }, 'Fragmented thinking feels like this.'),
@@ -2216,7 +2366,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
     ),
 
     // ══════════════════════════════════════════════════════════
-    // SECTION 6 — CORE LOOP (training)
+    // SECTION 6: CORE LOOP (training)
     // ══════════════════════════════════════════════════════════
     React.createElement("section", { style: { background:H.bgAlt, borderTop:`1px solid ${H.border}`, borderBottom:`1px solid ${H.border}` } },
       React.createElement("div", { style: { maxWidth:900, margin:'0 auto', padding:'72px 24px' } },
@@ -2236,7 +2386,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
     ),
 
     // ══════════════════════════════════════════════════════════
-    // SECTION 7 — DECISION-MAKING
+    // SECTION 7: DECISION-MAKING
     // ══════════════════════════════════════════════════════════
     React.createElement("section", { style: { maxWidth:820, margin:'0 auto', padding:'72px 24px' } },
       React.createElement("h2", { style: { ...hDisplay, fontWeight:600, fontSize:'clamp(22px,2.6vw,28px)', color:H.ink, marginBottom:10 } }, "Better decisions don't come from thinking harder."),
@@ -2255,7 +2405,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
     ),
 
     // ══════════════════════════════════════════════════════════
-    // SECTION 8 — HUMAN COGNITIVE AGENCY + AI (dark contrast section)
+    // SECTION 8: HUMAN COGNITIVE AGENCY + AI (dark contrast section)
     // ══════════════════════════════════════════════════════════
     React.createElement("section", { style: { background:H.charcoal, color:H.charcoalText, padding:'80px 24px' } },
       React.createElement("div", { style: { maxWidth:760, margin:'0 auto' } },
@@ -2276,7 +2426,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
     ),
 
     // ══════════════════════════════════════════════════════════
-    // SECTION 9 — CLARITY DELTA™
+    // SECTION 9: CLARITY DELTA™
     // ══════════════════════════════════════════════════════════
     React.createElement("section", { style: { maxWidth:820, margin:'0 auto', padding:'72px 24px' } },
       React.createElement("h2", { style: { ...hDisplay, fontWeight:600, fontSize:'clamp(20px,2.4vw,26px)', color:H.ink, lineHeight:1.3, marginBottom:8 } }, 'Thinking can be trained.'),
@@ -2302,7 +2452,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
     ),
 
     // ══════════════════════════════════════════════════════════
-    // SECTION 10 — ENTERPRISE
+    // SECTION 10: ENTERPRISE
     // ══════════════════════════════════════════════════════════
     React.createElement("section", { style: { background:H.bgAlt, borderTop:`1px solid ${H.border}`, borderBottom:`1px solid ${H.border}` } },
       React.createElement("div", { style: { maxWidth:1000, margin:'0 auto', padding:'72px 24px' } },
@@ -2325,7 +2475,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
     ),
 
     // ══════════════════════════════════════════════════════════
-    // SECTION 11 — RESEARCH + CREDIBILITY
+    // SECTION 11: RESEARCH + CREDIBILITY
     // ══════════════════════════════════════════════════════════
     React.createElement("section", { style: { maxWidth:760, margin:'0 auto', padding:'72px 24px' } },
       React.createElement("h2", { style: { ...hDisplay, fontWeight:600, fontSize:'clamp(20px,2.4vw,26px)', color:H.ink, marginBottom:20 } }, 'Built on a simple principle.'),
@@ -2343,7 +2493,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
     ),
 
     // ══════════════════════════════════════════════════════════
-    // SECTION 11.5 — CLIENT REVIEW
+    // SECTION 11.5: CLIENT REVIEW
     // ══════════════════════════════════════════════════════════
     React.createElement("section", { style: { borderTop:`1px solid ${H.border}` } },
       React.createElement("div", { style: { maxWidth:640, margin:'0 auto', padding:'64px 24px', textAlign:'center' } },
@@ -2357,7 +2507,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
     ),
 
     // ══════════════════════════════════════════════════════════
-    // SECTION 12 — FOUNDER
+    // SECTION 12: FOUNDER
     // ══════════════════════════════════════════════════════════
     React.createElement("section", { style: { borderTop:`1px solid ${H.border}` } },
       React.createElement("div", { style: { maxWidth:640, margin:'0 auto', padding:'64px 24px' } },
@@ -2606,6 +2756,70 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
       );
     }
 
+    // ── Save This Decision (persists the Fuse output to the Decision Vault) ──
+    function DecisionSavePanel({ problem, answers, synthesis, user, setShowAuth, setView }) {
+      const AC = PROTOCOL_AC;
+      const [title, setTitle] = useState('');
+      const [confidence, setConfidence] = useState(60);
+      const [nextAction, setNextAction] = useState('');
+      const [reviewDate, setReviewDate] = useState(() => {
+        const d = new Date(); d.setDate(d.getDate() + 30); return d.toISOString().slice(0, 10);
+      });
+      const [saving, setSaving] = useState(false);
+      const [saved, setSaved] = useState(null);
+      const [error, setError] = useState('');
+
+      const handleSave = async () => {
+        if (!user) { setShowAuth(true); return; }
+        if (!title.trim()) { setError('Give this decision a short title.'); return; }
+        setSaving(true); setError('');
+        const row = await saveDecisionSession(user.id, {
+          title: title.trim(),
+          problem,
+          decompose_response: answers.decompose,
+          sense_response: answers.sense,
+          expand_response: answers.expand,
+          reflect_response: answers.reflect,
+          fuse_response: synthesis.insight,
+          decision: title.trim(),
+          confidence,
+          key_uncertainty: synthesis.hasTension ? `${synthesis.divergentLogical.join(', ')} vs ${synthesis.divergentSignal.join(', ')}` : null,
+          next_action: nextAction.trim() || null,
+          review_date: reviewDate || null,
+          status: 'open',
+        });
+        setSaving(false);
+        if (row) setSaved(row); else setError("Couldn't save right now. Check your connection and try again.");
+      };
+
+      if (saved) {
+        return (
+          React.createElement("div", { role: 'status', style: { padding: '24px', background: AC.goldTint, border: `1px solid ${AC.gold}`, borderRadius: 16, marginBottom: 24, textAlign: 'center' } },
+            React.createElement("div", { style: { fontFamily: AC.font, fontSize: 16, fontWeight: 700, color: AC.text, marginBottom: 6 } }, 'Saved to your Decision Vault'),
+            React.createElement("div", { style: { fontSize: 14, color: AC.muted, marginBottom: 16 } }, saved.review_date ? `You'll be prompted to review this on ${saved.review_date}.` : 'You can reopen this any time.'),
+            React.createElement("button", { className: "nf-a11y-btn", onClick: () => setView('decisions'), style: { fontFamily: AC.font, fontSize: 15, fontWeight: 700, padding: '14px 24px', minHeight: 48, background: AC.goldDark, color: '#FFFFFF', border: 'none', borderRadius: 14, cursor: 'pointer' } }, 'Open Decision Vault →')
+          )
+        );
+      }
+
+      return (
+        React.createElement("div", { style: { padding: '26px 24px', background: AC.surface, border: `2px solid ${AC.goldDark}`, borderRadius: 16, marginBottom: 24 } },
+          React.createElement("div", { style: { fontFamily: AC.font, fontSize: 14, fontWeight: 700, letterSpacing: '0.04em', color: AC.goldDark, marginBottom: 6, textTransform: 'uppercase' } }, 'Save This Decision'),
+          React.createElement("p", { style: { fontSize: 13.5, color: AC.muted, lineHeight: 1.6, marginBottom: 18 } }, 'Turn this session into a decision record you can revisit, review, and learn from.'),
+          React.createElement("label", { style: { display: 'block', fontSize: 13, fontWeight: 700, color: AC.text, marginBottom: 6 } }, 'Decision, in one line'),
+          React.createElement("input", { type: 'text', value: title, onChange: e => setTitle(e.target.value), placeholder: 'e.g. Leave my job to build my company', className: "nf-a11y-textarea", style: { width: '100%', padding: '12px 14px', fontSize: 15, border: `2px solid ${AC.border}`, borderRadius: 12, marginBottom: 16, fontFamily: AC.font, color: AC.text } }),
+          React.createElement("label", { style: { display: 'block', fontSize: 13, fontWeight: 700, color: AC.text, marginBottom: 6 } }, `Confidence: ${confidence}%`),
+          React.createElement("input", { type: 'range', min: 0, max: 100, value: confidence, onChange: e => setConfidence(parseInt(e.target.value, 10)), style: { width: '100%', marginBottom: 16, accentColor: AC.goldDark } }),
+          React.createElement("label", { style: { display: 'block', fontSize: 13, fontWeight: 700, color: AC.text, marginBottom: 6 } }, 'Next action'),
+          React.createElement("input", { type: 'text', value: nextAction, onChange: e => setNextAction(e.target.value), placeholder: 'What happens next?', className: "nf-a11y-textarea", style: { width: '100%', padding: '12px 14px', fontSize: 15, border: `2px solid ${AC.border}`, borderRadius: 12, marginBottom: 16, fontFamily: AC.font, color: AC.text } }),
+          React.createElement("label", { style: { display: 'block', fontSize: 13, fontWeight: 700, color: AC.text, marginBottom: 6 } }, 'Review this on'),
+          React.createElement("input", { type: 'date', value: reviewDate, onChange: e => setReviewDate(e.target.value), className: "nf-a11y-textarea", style: { padding: '12px 14px', fontSize: 15, border: `2px solid ${AC.border}`, borderRadius: 12, marginBottom: 16, fontFamily: AC.font, color: AC.text } }),
+          error && React.createElement("div", { role: 'alert', style: { fontSize: 13, color: '#B42318', marginBottom: 12 } }, error),
+          React.createElement("button", { className: "nf-a11y-btn", onClick: handleSave, disabled: saving, style: { fontFamily: AC.font, fontSize: 16, fontWeight: 700, padding: '16px 28px', minHeight: 52, background: AC.goldDark, color: '#FFFFFF', border: 'none', borderRadius: 16, cursor: saving ? 'wait' : 'pointer', opacity: saving ? 0.7 : 1 } }, saving ? 'Saving…' : (user ? 'Save to Decision Vault' : 'Sign in to Save →'))
+        )
+      );
+    }
+
     // ── Fuse / Result screen ────────────────────────────────────────────
     function ProtocolResult({ problem, answers, setView, user, setShowAuth, onRestart }) {
       useProtocolA11yStyles();
@@ -2703,6 +2917,9 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
                 )
               ))
             ),
+
+            // Save this decision to the persistent Decision Vault
+            React.createElement(DecisionSavePanel, { problem, answers, synthesis, user, setShowAuth, setView }),
 
             // CTA after experience
             React.createElement("div", {style: { padding:'32px 24px', background:AC.goldTint, border:`1px solid ${AC.gold}`, borderRadius:16, marginBottom:24, textAlign:'center' }},
@@ -2887,6 +3104,230 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
 
 
     // ═══════════════════════════════════════════════════════════════════
+    //  UNDER PRESSURE: a fast (60-90s) cognitive stabilization protocol.
+    //  Not therapy, not mental-health treatment: a compressed pass through
+    //  the same Decompose/Sense/Expand/Reflect logic, for when there isn't
+    //  time for the full Decision Room. Saves into the same Decision Vault.
+    // ═══════════════════════════════════════════════════════════════════
+    function PressureModeView({ user, setShowAuth, setView }) {
+      const STEPS = [
+        { key: 'facts', q: 'What are the facts?' },
+        { key: 'sense', q: 'What are you sensing?' },
+        { key: 'possibility', q: 'What else could be true?' },
+        { key: 'matters', q: 'What matters most?' },
+        { key: 'next', q: 'What needs to happen next?' },
+      ];
+      const [i, setI] = useState(0);
+      const [answers, setAnswers] = useState({});
+      const [saving, setSaving] = useState(false);
+      const [saved, setSaved] = useState(null);
+      const step = STEPS[i];
+      const val = answers[step.key] || '';
+
+      const finish = async () => {
+        if (!user) { setShowAuth(true); return; }
+        setSaving(true);
+        const row = await saveDecisionSession(user.id, {
+          title: (answers.matters || 'Under Pressure').slice(0, 120),
+          problem: answers.matters || null,
+          decompose_response: answers.facts || null,
+          sense_response: answers.sense || null,
+          expand_response: answers.possibility || null,
+          reflect_response: answers.matters || null,
+          decision: answers.matters || null,
+          next_action: answers.next || null,
+          status: 'open',
+        });
+        setSaving(false);
+        if (row) setSaved(row);
+      };
+      const goNext = () => { if (i < STEPS.length - 1) setI(i + 1); else finish(); };
+
+      if (saved) {
+        return (
+          React.createElement("div", { style: { maxWidth: 480, margin: '0 auto', padding: '120px 24px 60px', textAlign: 'center' } },
+            React.createElement("div", { style: { ...mono, fontSize: 11, letterSpacing: 1.5, color: C.cyan, marginBottom: 16 } }, 'Your next step'),
+            React.createElement("div", { style: { ...syne, fontSize: 20, fontWeight: 800, color: C.text, lineHeight: 1.5, marginBottom: 32 } }, saved.next_action || 'Take the next small, concrete action.'),
+            React.createElement("div", { style: { display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap' } },
+              React.createElement("button", { className: "btn-primary", onClick: () => setView('decisions') }, 'Open Decision Vault →'),
+              React.createElement("button", { onClick: () => { setSaved(null); setAnswers({}); setI(0); }, style: { padding: '12px 20px', fontSize: 13, background: 'transparent', border: `1px solid ${C.border}`, borderRadius: 4, color: C.muted, cursor: 'pointer' } }, 'Run it again')
+            )
+          )
+        );
+      }
+
+      return (
+        React.createElement("div", { style: { maxWidth: 520, margin: '0 auto', padding: '100px 24px 60px' } },
+          React.createElement("div", { style: { ...mono, fontSize: 11, letterSpacing: 1.5, color: C.cyan, marginBottom: 8 } }, `UNDER PRESSURE · ${i + 1}/${STEPS.length}`),
+          React.createElement("div", { style: { height: 3, background: C.panel, borderRadius: 2, marginBottom: 32, overflow: 'hidden' } },
+            React.createElement("div", { style: { width: `${((i + 1) / STEPS.length) * 100}%`, height: '100%', background: C.cyan, transition: 'width 0.3s ease' } })
+          ),
+          React.createElement("h1", { style: { ...syne, fontSize: 22, fontWeight: 800, color: C.text, marginBottom: 20, overflowWrap: 'break-word' } }, step.q),
+          React.createElement("textarea", {
+            autoFocus: true, value: val, rows: 4, placeholder: 'A few words is enough.',
+            onChange: e => setAnswers({ ...answers, [step.key]: e.target.value }),
+            style: { width: '100%', boxSizing: 'border-box', padding: '14px', fontSize: 16, background: C.panel, border: `1px solid ${C.border}`, borderRadius: 2, color: C.text, marginBottom: 24, fontFamily: 'inherit' }
+          }),
+          React.createElement("button", { className: "btn-primary", onClick: goNext, disabled: saving }, saving ? 'Saving…' : (i < STEPS.length - 1 ? 'Next →' : 'Get My Next Step →'))
+        )
+      );
+    }
+
+    // ═══════════════════════════════════════════════════════════════════
+    //  DECISION VAULT
+    // ═══════════════════════════════════════════════════════════════════
+    function DecisionStatusBadge({ status }) {
+      const map = {
+        open: { label: 'Open', color: '#7AAFCF' },
+        awaiting_review: { label: 'Awaiting Review', color: '#E2BE78' },
+        reviewed: { label: 'Reviewed', color: '#7AAFCF' },
+      };
+      const s = map[status] || map.open;
+      return React.createElement("span", { style: { ...mono, fontSize: 9, letterSpacing: 1, color: s.color, border: `1px solid ${s.color}`, borderRadius: 20, padding: '3px 10px', textTransform: 'uppercase', flexShrink: 0 } }, s.label);
+    }
+
+    function DecisionOutcomeForm({ decision, onSaved }) {
+      const [outcome, setOutcome] = useState('');
+      const [lesson, setLesson] = useState('');
+      const [saving, setSaving] = useState(false);
+      const options = ['Better than expected', 'As expected', 'Worse than expected', 'Still unfolding'];
+      const submit = async () => {
+        if (!outcome) return;
+        setSaving(true);
+        const status = outcome === 'Still unfolding' ? decision.status : 'reviewed';
+        const row = await updateDecisionSession(decision.id, {
+          outcome, outcome_rating: outcome, lesson_learned: lesson.trim() || null,
+          status, reviewed_at: new Date().toISOString(),
+        });
+        setSaving(false);
+        if (row) onSaved(row);
+      };
+      return (
+        React.createElement("div", { style: { padding: '20px', background: C.deep, borderRadius: 2, border: `1px solid ${C.border}`, marginTop: 16 } },
+          React.createElement("div", { style: { ...mono, fontSize: 11, letterSpacing: 1, color: C.cyan, marginBottom: 14 } }, 'What happened?'),
+          React.createElement("div", { style: { display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 16 } },
+            options.map(o => React.createElement("button", {
+              key: o, onClick: () => setOutcome(o), style: {
+                padding: '10px 14px', fontSize: 12, borderRadius: 20, cursor: 'pointer',
+                border: `1px solid ${outcome === o ? C.cyan : C.border}`, background: outcome === o ? C.cyanDim : 'transparent', color: outcome === o ? C.cyan : C.muted,
+              }
+            }, o))
+          ),
+          React.createElement("div", { style: { fontSize: 12, color: C.muted, marginBottom: 8 } }, 'What did you learn? What would you do differently?'),
+          React.createElement("textarea", { value: lesson, onChange: e => setLesson(e.target.value), rows: 3, style: { width: '100%', padding: '12px', fontSize: 14, background: C.panel, border: `1px solid ${C.border}`, borderRadius: 2, color: C.text, marginBottom: 14, fontFamily: 'inherit' } }),
+          React.createElement("button", { className: "btn-primary", disabled: !outcome || saving, onClick: submit, style: { opacity: (!outcome || saving) ? 0.5 : 1 } }, saving ? 'Saving…' : 'Save Outcome')
+        )
+      );
+    }
+
+    function DecisionCard({ d, expanded, onToggle, onOutcomeSaved }) {
+      return (
+        React.createElement("div", { className: "card", style: { padding: '22px 24px', marginBottom: 16 } },
+          React.createElement("div", { style: { display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 12, cursor: 'pointer' }, onClick: onToggle },
+            React.createElement("div", { style: { flex: 1, minWidth: 0 } },
+              React.createElement("div", { style: { ...syne, fontSize: 15, fontWeight: 700, color: C.text, marginBottom: 6, overflowWrap: 'break-word' } }, d.title || d.decision || 'Untitled decision'),
+              React.createElement("div", { style: { ...mono, fontSize: 10, color: C.dim } }, new Date(d.created_at).toLocaleDateString(), d.review_date ? ` · review ${d.review_date}` : '')
+            ),
+            React.createElement(DecisionStatusBadge, { status: d.status })
+          ),
+          typeof d.confidence === 'number' && React.createElement("div", { style: { ...mono, fontSize: 11, color: C.muted, marginTop: 8 } }, 'Confidence: ', d.confidence, '%'),
+          d.next_action && React.createElement("div", { style: { fontSize: 13, color: C.muted, marginTop: 6 } }, 'Next: ', d.next_action),
+          expanded && React.createElement("div", { style: { marginTop: 18, paddingTop: 18, borderTop: `1px solid ${C.border}` } },
+            [
+              ['Decompose', d.decompose_response], ['Sense', d.sense_response],
+              ['Expand', d.expand_response], ['Reflect', d.reflect_response],
+            ].map(([label, text]) => text && React.createElement("div", { key: label, style: { marginBottom: 14 } },
+              React.createElement("div", { style: { ...mono, fontSize: 10, letterSpacing: 1, color: C.cyan, marginBottom: 4 } }, label.toUpperCase()),
+              React.createElement("div", { style: { fontSize: 13, color: C.muted, lineHeight: 1.7, whiteSpace: 'pre-wrap' } }, text)
+            )),
+            d.fuse_response && React.createElement("div", { style: { marginBottom: 14 } },
+              React.createElement("div", { style: { ...mono, fontSize: 10, letterSpacing: 1, color: C.cyan, marginBottom: 4 } }, 'FUSE'),
+              React.createElement("div", { style: { fontSize: 13, color: C.text, lineHeight: 1.7 } }, d.fuse_response)
+            ),
+            d.outcome && React.createElement("div", { style: { padding: '14px', background: C.deep, borderRadius: 2, border: `1px solid ${C.border}`, marginBottom: 8 } },
+              React.createElement("div", { style: { ...mono, fontSize: 10, letterSpacing: 1, color: C.cyan, marginBottom: 6 } }, 'OUTCOME'),
+              React.createElement("div", { style: { fontSize: 13, color: C.text, marginBottom: d.lesson_learned ? 6 : 0 } }, d.outcome),
+              d.lesson_learned && React.createElement("div", { style: { fontSize: 13, color: C.muted, lineHeight: 1.6 } }, d.lesson_learned)
+            ),
+            (d.status !== 'reviewed') && React.createElement(DecisionOutcomeForm, { decision: d, onSaved: onOutcomeSaved })
+          )
+        )
+      );
+    }
+
+    function DecisionVaultView({ user, setShowAuth, setView }) {
+      const [decisions, setDecisions] = useState([]);
+      const [loading, setLoading] = useState(true);
+      const [filter, setFilter] = useState('all');
+      const [expandedId, setExpandedId] = useState(null);
+
+      const load = useCallback(async () => {
+        if (!user) { setLoading(false); return; }
+        setLoading(true);
+        const rows = await listDecisionSessions(user.id);
+        setDecisions(rows);
+        setLoading(false);
+      }, [user]);
+
+      useEffect(() => { load(); }, [load]);
+
+      if (!user) {
+        return (
+          React.createElement("div", { style: { paddingTop: 100, paddingBottom: 100, textAlign: 'center' } },
+            React.createElement("div", { className: "card", style: { maxWidth: 440, margin: '0 auto', padding: '48px 32px' } },
+              React.createElement("div", { style: { ...mono, fontSize: 14, color: C.dim, marginBottom: 20 } }, '◈'),
+              React.createElement("div", { style: { ...syne, fontSize: 18, fontWeight: 700, color: C.text, marginBottom: 12 } }, 'Your Decision Vault'),
+              React.createElement("div", { style: { fontSize: 14, color: C.muted, marginBottom: 28, lineHeight: 1.7 } }, 'Sign in to save and revisit decisions you think through.'),
+              React.createElement("button", { className: "btn-primary", onClick: () => setShowAuth(true) }, 'Sign in →')
+            )
+          )
+        );
+      }
+
+      const isAwaitingReview = d => d.status === 'open' && d.review_date && new Date(d.review_date) <= new Date();
+      const filtered = decisions.filter(d => {
+        if (filter === 'all') return true;
+        if (filter === 'awaiting_review') return isAwaitingReview(d);
+        return d.status === filter;
+      });
+      const filters = [
+        { v: 'all', label: 'All' }, { v: 'open', label: 'Open' },
+        { v: 'awaiting_review', label: 'Awaiting Review' }, { v: 'reviewed', label: 'Reviewed' },
+      ];
+
+      return (
+        React.createElement("div", { style: { paddingTop: 80, paddingBottom: 100 } },
+          React.createElement("div", { style: { maxWidth: 820, margin: '0 auto', padding: '40px 24px' } },
+            React.createElement("div", { style: { ...mono, fontSize: 11, letterSpacing: 1.5, color: C.cyan, marginBottom: 16 } }, 'Decision Vault'),
+            React.createElement("h1", { style: { ...syne, fontSize: 20, fontWeight: 800, color: C.text, marginBottom: 16, overflowWrap: 'break-word' } }, 'Your real decisions, thought through and remembered.'),
+            React.createElement("div", { style: { marginBottom: 28 } },
+              React.createElement("button", { className: "btn-primary", onClick: () => setView('protocol') }, 'Think Through a Decision')
+            ),
+            React.createElement("div", { style: { display: 'flex', gap: 8, marginBottom: 28, flexWrap: 'wrap' } },
+              filters.map(f => React.createElement("button", {
+                key: f.v, onClick: () => setFilter(f.v), style: {
+                  padding: '8px 16px', fontSize: 12, borderRadius: 20, cursor: 'pointer',
+                  border: `1px solid ${filter === f.v ? C.cyan : C.border}`, background: filter === f.v ? C.cyanDim : 'transparent', color: filter === f.v ? C.cyan : C.muted,
+                }
+              }, f.label))
+            ),
+            loading ? React.createElement("div", { style: { color: C.muted, fontSize: 14 } }, 'Loading…') :
+            filtered.length === 0 ? (
+              React.createElement("div", { className: "card", style: { padding: '48px', textAlign: 'center' } },
+                React.createElement("div", { style: { fontSize: 14, color: C.muted, marginBottom: 20 } }, decisions.length === 0 ? "You haven't saved a decision yet." : 'Nothing in this filter yet.'),
+                decisions.length === 0 && React.createElement("button", { className: "btn-primary", onClick: () => setView('protocol') }, 'Think Through Your First Decision →')
+              )
+            ) : filtered.map(d => React.createElement(DecisionCard, {
+              key: d.id, d, expanded: expandedId === d.id,
+              onToggle: () => setExpandedId(expandedId === d.id ? null : d.id),
+              onOutcomeSaved: (row) => { setDecisions(prev => prev.map(x => x.id === row.id ? row : x)); },
+            }))
+          )
+        )
+      );
+    }
+
+    // ═══════════════════════════════════════════════════════════════════
     //  CFI ASSESSMENT VIEW
     // ═══════════════════════════════════════════════════════════════════
     //  CFI ASSESSMENT VIEW
@@ -3021,11 +3462,11 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
     }
 
     // ═══════════════════════════════════════════════════════════════════
-    //  COGNITIVE PROFILE — white-first results experience
+    //  COGNITIVE PROFILE: white-first results experience
     //  Scoped light theme, distinct from the app's global dark navy/gold
     //  theme (same pattern as the accessible assessment screens above).
     //  Every number and sentence below is pulled from the real CFI
-    //  scoring pipeline (dimensionReports / profile / plan) — nothing on
+    //  scoring pipeline (dimensionReports / profile / plan): nothing on
     //  this page is hard-coded per user.
     // ═══════════════════════════════════════════════════════════════════
     const CP = {
@@ -3130,7 +3571,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
       );
     }
 
-    // Tap to expand a mode's full dimensional detail — keeps the page scannable
+    // Tap to expand a mode's full dimensional detail: keeps the page scannable
     // on mobile while still surfacing the real strengths/blind-spot data.
     function CPModeDetail({ dim, report }) {
       const [open, setOpen] = useState(false);
@@ -3204,7 +3645,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
 
       const shareUrl = 'https://tryneuralfusion.com/cfi';
       const shareText = hasEnrichedData
-        ? `My NeuralFusion Cognitive Profile — Analytical ${dimensionReports.A.integrationScore}%, Intuitive ${dimensionReports.I.integrationScore}%, Associative ${dimensionReports.S.integrationScore}%, Reflective ${dimensionReports.R.integrationScore}%. Discover how you think.`
+        ? `My NeuralFusion Cognitive Profile: Analytical ${dimensionReports.A.integrationScore}%, Intuitive ${dimensionReports.I.integrationScore}%, Associative ${dimensionReports.S.integrationScore}%, Reflective ${dimensionReports.R.integrationScore}%. Discover how you think.`
         : '';
       const handleShare = async () => {
         if (navigator.share) {
@@ -3255,7 +3696,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
               React.createElement("div", { style: { fontSize: 13.5, color: CP.muted, lineHeight: 1.7, maxWidth: 480, margin: '0 auto' } }, "The CFI™ measures thinking clarity and how well your four thinking modes work together. It is not a personality test, mental health screening, or medical evaluation.")
             ),
 
-            // ── SECTION 1 — Profile overview ──
+            // ── SECTION 1: Profile overview ──
             React.createElement(CPCard, { style: { padding: '36px 28px', marginBottom: 20 } },
               React.createElement("div", { style: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(240px,100%),1fr))', gap: 32, alignItems: 'center' } },
                 React.createElement("div", { style: { display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', gap: 14 } },
@@ -3272,7 +3713,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
               )
             ),
 
-            // ── SECTION 2 — Four thinking modes ──
+            // ── SECTION 2: Four thinking modes ──
             React.createElement("div", { style: { marginBottom: 28 } },
               React.createElement(CPEyebrow, null, 'The Four Thinking Modes'),
               React.createElement("div", { style: { fontSize: 12.5, color: CP.muted, lineHeight: 1.6, marginBottom: 16, maxWidth: 560 } }, "These scores reflect how often each mode currently contributes to your decisions, not how intelligent or capable you are in that area."),
@@ -3281,7 +3722,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
               )
             ),
 
-            // ── SECTION 3 — How you tend to think ──
+            // ── SECTION 3: How you tend to think ──
             React.createElement(CPCard, { style: { padding: '32px 26px', marginBottom: 20 } },
               React.createElement(CPEyebrow, null, 'Your Thinking Profile'),
               React.createElement("h2", { style: { ...syne, fontSize: 18, fontWeight: 800, color: CP.ink, marginBottom: 18 } }, 'How You Tend to Think'),
@@ -3300,7 +3741,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
               React.createElement("div", { style: { fontSize: 14.5, color: CP.text, lineHeight: 1.8 } }, profile.summary)
             ),
 
-            // ── SECTION 4 — Your dominant thinking pattern ──
+            // ── SECTION 4: Your dominant thinking pattern ──
             React.createElement(CPCard, { style: { padding: '32px 26px', marginBottom: 20 } },
               React.createElement(CPEyebrow, null, 'Your Thinking Pattern'),
               React.createElement("h2", { style: { ...syne, fontSize: 18, fontWeight: 800, color: CP.ink, marginBottom: 14 } }, 'Your Dominant Thinking Pattern'),
@@ -3311,7 +3752,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
               )
             ),
 
-            // ── SECTION 5 — Where your thinking may get stuck ──
+            // ── SECTION 5: Where your thinking may get stuck ──
             React.createElement(CPCard, { style: { padding: '32px 26px', marginBottom: 20 } },
               React.createElement(CPEyebrow, null, 'Potential Blind Spot'),
               React.createElement("h2", { style: { ...syne, fontSize: 18, fontWeight: 800, color: CP.ink, marginBottom: 14 } }, 'Where Your Thinking May Get Stuck'),
@@ -3321,7 +3762,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
               )
             ),
 
-            // ── SECTION 6 — Where you can grow ──
+            // ── SECTION 6: Where you can grow ──
             React.createElement(CPCard, { style: { padding: '32px 26px', marginBottom: 20, borderColor: CP.borderStrong } },
               React.createElement(CPEyebrow, null, 'Your Cognitive Opportunity'),
               React.createElement("h2", { style: { ...syne, fontSize: 18, fontWeight: 800, color: CP.ink, marginBottom: 6 } }, 'Where You Can Grow'),
@@ -3329,7 +3770,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
               React.createElement("div", { style: { fontSize: 14.5, color: CP.text, lineHeight: 1.8 } }, profile.suggestedCoordinationExercise)
             ),
 
-            // ── SECTION 7 — Integration session ──
+            // ── SECTION 7: Integration session ──
             React.createElement(CPCard, { style: { padding: '36px 26px', marginBottom: 20, background: CP.ink } },
               React.createElement("div", { style: { ...mono, fontSize: 11, letterSpacing: 1.5, color: CP.gold, marginBottom: 12, textTransform: 'uppercase' } }, "Your First Integration Session"),
               React.createElement("h2", { style: { ...syne, fontSize: 19, fontWeight: 800, color: '#FFFFFF', marginBottom: 10 } }, "Let's Put Your Thinking to Work."),
@@ -3348,7 +3789,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
               React.createElement(CPButton, { onClick: () => setView('protocol'), style: { width: '100%', justifyContent: 'center' } }, 'Start Your Integration Session →')
             ),
 
-            // ── SECTION 8 — Academy recommendation ──
+            // ── SECTION 8: Academy recommendation ──
             React.createElement(CPCard, { style: { padding: '32px 26px', marginBottom: 20 } },
               React.createElement(CPEyebrow, null, "Your Recommended NeuralFusion™ Lesson"),
               React.createElement("div", { style: { fontSize: 13, color: CP.muted, lineHeight: 1.7, marginBottom: 22, maxWidth: 480 } }, "Your Cognitive Profile gives you a starting point. The Academy helps you train from there."),
@@ -3367,7 +3808,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
               )
             ),
 
-            // ── SECTION 9 — Training path ──
+            // ── SECTION 9: Training path ──
             React.createElement("div", { style: { marginBottom: 20 } },
               React.createElement(CPEyebrow, null, 'Your Cognitive Development Path'),
               React.createElement("div", { style: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(130px,100%),1fr))', gap: 12 } },
@@ -3387,7 +3828,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
               CP_MODE_ORDER.map(d => React.createElement(CPModeDetail, { key: d, dim: d, report: dimensionReports[d] }))
             ),
 
-            // ── SECTION 10 — Clarity Delta ──
+            // ── SECTION 10: Clarity Delta ──
             React.createElement(CPCard, { style: { padding: '28px 26px', marginBottom: 20 } },
               React.createElement(CPEyebrow, null, 'Track Your Progress'),
               React.createElement("div", { style: { ...syne, fontSize: 15, fontWeight: 800, color: CP.ink, marginBottom: 8 } }, 'Clarity Delta™ · Starting Point'),
@@ -3395,7 +3836,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
               React.createElement(CPButton, { variant: 'outline', onClick: () => setView('analytics') }, 'Continue Training →')
             ),
 
-            // ── SECTION 11 — Shareable profile ──
+            // ── SECTION 11: Shareable profile ──
             React.createElement(CPCard, { style: { padding: '28px 26px', marginBottom: 20, textAlign: 'center' } },
               React.createElement(CPEyebrow, null, 'Share Your Cognitive Profile'),
               React.createElement("div", { style: { fontSize: 13.5, color: CP.muted, lineHeight: 1.7, marginBottom: 18, maxWidth: 440, margin: '0 auto 18px' } }, "You discovered how you think. Now invite someone else to discover theirs."),
@@ -3423,7 +3864,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
               ),
               React.createElement("div", { style: { fontSize: 13, color: CP.muted, marginBottom: 20, maxWidth: 440, margin: '0 auto 20px', lineHeight: 1.7 } },
                 !user ? 'Create a free account to save this report, track your Clarity Delta™ over time, and unlock your personalized learning path.'
-                  : saveState === 'failed' ? 'See the notice above — retry the save, or it will be lost when you leave this page.'
+                  : saveState === 'failed' ? 'See the notice above: retry the save, or it will be lost when you leave this page.'
                   : 'Retake the CFI™ over time to watch your Clarity Delta™ grow.'
               ),
               !user && React.createElement(CPButton, { onClick: () => setShowAuth(true) }, 'Create free account')
@@ -3601,14 +4042,14 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
         Object.keys(dims).forEach(d => { dimScores[d] = dims[d].length ? Math.round(dims[d].reduce((a,b)=>a+b,0)/dims[d].length*20) : 0; });
 
         // Dominant brain is chosen only among the four true thinking modes (A/I/S/R).
-        // E ("integration"/pressure-overload) is never a fifth brain and is excluded here —
+        // E ("integration"/pressure-overload) is never a fifth brain and is excluded here:
         // it's reported separately via integrationScore.
-        // FIX (audit finding #1): dimScores are FRAGMENTATION scores — higher = more
+        // FIX (audit finding #1): dimScores are FRAGMENTATION scores: higher = more
         // fragmented, i.e. that mode is currently coordinating WORSE, not better. The
         // dominant/strongest mode is therefore the one with the LOWEST score (ascending
         // sort), matching buildCognitiveProfile()'s primaryDim logic below. A previous
         // version of this file sorted descending here, which named the MOST fragmented
-        // mode as "Dominant" — contradicting the profile section on the same results page.
+        // mode as "Dominant", contradicting the profile section on the same results page.
         const brainMap = { A:'analytical', I:'intuitive', S:'associative', R:'reflective' };
         const sortedDims = Object.entries(dimScores).filter(([d]) => d !== 'E').sort((a,b)=>a[1]-b[1]);
         const dominantBrain = brainMap[sortedDims[0][0]] || 'analytical';
@@ -3642,7 +4083,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
           });
         } else {
           setSaveState('idle');
-          setSaveErrorMsg('not signed in — result was never sent to the database');
+          setSaveErrorMsg('not signed in: result was never sent to the database');
         }
       };
 
@@ -3887,9 +4328,9 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
     // ═══════════════════════════════════════════════════════════════════
     //  ANALYTICS VIEW
     // ═══════════════════════════════════════════════════════════════════
-    // "YOUR COGNITIVE JOURNEY" — every completed CFI-1.0 attempt for this user, oldest→newest,
+    // "YOUR COGNITIVE JOURNEY": every completed CFI-1.0 attempt for this user, oldest→newest,
     // with per-assessment numbering, change vs. the previous attempt, and band movement.
-    // A lower CFI score is less fragmentation, i.e. improvement — matches the Clarity Delta™
+    // A lower CFI score is less fragmentation, i.e. improvement; matches the Clarity Delta™
     // sign convention used elsewhere on this page (baseline - latest).
     function CFIJourney({ cfiHistory = [] }) {
       if (cfiHistory.length < 2) return null;
@@ -3939,15 +4380,61 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
       );
     }
 
-    function AnalyticsView({ cfiResult, lessonProgress, cfiHistory=[], setView }) {
+    function AnalyticsView({ cfiResult, lessonProgress, cfiHistory=[], setView, user }) {
       const completedLessons = Object.values(lessonProgress).filter(v=>v===100).length;
       const hasDelta = cfiHistory.length >= 2;
       const baselineCFI = hasDelta ? cfiHistory[0] : null;
       const latestCFI = hasDelta ? cfiHistory[cfiHistory.length - 1] : null;
       const clarityDelta = hasDelta ? (baselineCFI.total_score - latestCFI.total_score) : null; // positive = less fragmentation
 
+      // ── Decision data (Your Cognitive Journey) ──────────────────────
+      const [decisions, setDecisions] = useState([]);
+      useEffect(() => { if (user) listDecisionSessions(user.id).then(setDecisions); }, [user]);
+      const decisionsProcessed = decisions.length;
+      const reviewedDecisions = decisions.filter(d => d.status === 'reviewed');
+      const decisionsReviewed = reviewedDecisions.length;
+      const outcomesAsExpectedOrBetter = reviewedDecisions.filter(d => d.outcome === 'Better than expected' || d.outcome === 'As expected').length;
+      const avgConfidence = decisions.length ? Math.round(decisions.reduce((s,d)=>s+(d.confidence||0),0) / decisions.filter(d=>typeof d.confidence==='number').length) : null;
+
       return (
-        React.createElement("div", {style: { paddingTop:80, paddingBottom:100 }}, React.createElement("div", {style: { maxWidth:1200, margin:'0 auto', padding:'40px 24px' }}, React.createElement("div", {style: { ...mono, fontSize:11, letterSpacing:1.5, color:C.cyan, marginBottom:16 }}, 'Analytics'), React.createElement("h1", {style: { ...syne, fontSize:17, fontWeight:800, color:C.text, marginBottom:16, overflowWrap:'break-word', minWidth:0}}, 'Your cognitive', React.createElement("br", null), 'performance map'), React.createElement("p", {style: { fontSize:15, color:C.muted, maxWidth:560, lineHeight:1.8, marginBottom:48 }}, 'Track your thinking evolution, mode balance, and training effectiveness.'), !cfiResult ? (
+        React.createElement("div", {style: { paddingTop:80, paddingBottom:100 }}, React.createElement("div", {style: { maxWidth:1200, margin:'0 auto', padding:'40px 24px' }}, React.createElement("div", {style: { ...mono, fontSize:11, letterSpacing:1.5, color:C.cyan, marginBottom:16 }}, 'Analytics'), React.createElement("h1", {style: { ...syne, fontSize:17, fontWeight:800, color:C.text, marginBottom:16, overflowWrap:'break-word', minWidth:0}}, 'Your cognitive', React.createElement("br", null), 'performance map'), React.createElement("p", {style: { fontSize:15, color:C.muted, maxWidth:560, lineHeight:1.8, marginBottom:48 }}, 'Track your thinking evolution, mode balance, and training effectiveness.'),
+
+              user && decisionsProcessed > 0 && React.createElement("div", { className: "card", style: { padding: '32px', marginBottom: 40 } },
+                React.createElement("div", { style: { ...mono, fontSize: 11, letterSpacing: 1, color: C.cyan, marginBottom: 24 } }, 'Your Cognitive Journey'),
+                React.createElement("div", { style: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(150px, 100%), 1fr))', gap: 20, marginBottom: decisionsReviewed > 0 ? 20 : 0 } },
+                  [
+                    { label: 'Decisions processed', value: decisionsProcessed },
+                    { label: 'Decisions reviewed', value: decisionsReviewed },
+                    avgConfidence !== null && { label: 'Avg. confidence', value: `${avgConfidence}%` },
+                  ].filter(Boolean).map((s, i) => React.createElement("div", { key: i },
+                    React.createElement("div", { style: { ...syne, fontSize: 26, fontWeight: 800, color: C.text } }, s.value),
+                    React.createElement("div", { style: { ...mono, fontSize: 10, letterSpacing: 1, color: C.muted, marginTop: 4 } }, s.label)
+                  ))
+                ),
+                decisionsReviewed > 0 && React.createElement("div", { style: { fontSize: 13.5, color: C.muted, lineHeight: 1.7, paddingTop: 20, borderTop: `1px solid ${C.border}` } },
+                  `Observation: ${outcomesAsExpectedOrBetter} of ${decisionsReviewed} reviewed decision${decisionsReviewed===1?'':'s'} turned out as expected or better.`
+                )
+              ),
+
+              // ── Milestones: derived only from real recorded data, never fabricated ──
+              (cfiResult || decisionsProcessed > 0 || completedLessons > 0) && React.createElement("div", { className: "card", style: { padding: '32px', marginBottom: 40 } },
+                React.createElement("div", { style: { ...mono, fontSize: 11, letterSpacing: 1, color: C.cyan, marginBottom: 20 } }, 'Milestones'),
+                React.createElement("div", { style: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(260px, 100%), 1fr))', gap: 12 } },
+                  [
+                    { key: 'cfi', label: 'First CFI assessment', done: !!cfiResult },
+                    { key: 'session', label: 'First integration session', done: decisionsProcessed >= 1 },
+                    { key: 'reviewed', label: 'First decision reviewed', done: decisionsReviewed >= 1 },
+                    { key: 'ten', label: '10 decisions processed', done: decisionsProcessed >= 10 },
+                    { key: 'delta', label: 'First Clarity Delta™ improvement', done: hasDelta && clarityDelta > 0 },
+                    { key: 'lesson', label: 'First lesson completed', done: completedLessons >= 1 },
+                  ].map(m => React.createElement("div", { key: m.key, style: { display: 'flex', alignItems: 'center', gap: 10, padding: '10px 0' } },
+                    React.createElement("div", { style: { width: 18, height: 18, borderRadius: '50%', flexShrink: 0, border: `1px solid ${m.done ? '#7AAFCF' : C.border}`, background: m.done ? 'rgba(122,175,207,0.15)' : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center', ...mono, fontSize: 10, color: '#7AAFCF' } }, m.done ? '✓' : ''),
+                    React.createElement("div", { style: { fontSize: 13, color: m.done ? C.text : C.muted } }, m.label)
+                  ))
+                )
+              ),
+
+              !cfiResult ? (
               React.createElement("div", {className: "card", style: { padding:'60px', textAlign:'center' }}, React.createElement("div", {style: { ...mono, fontSize:14, color:C.dim, marginBottom:24 }}, '◎'), React.createElement("div", {style: { ...syne, fontSize:17, fontWeight:700, color:C.text, marginBottom:12, overflowWrap:'break-word', minWidth:0}}, 'No data yet'), React.createElement("div", {style: { fontSize:14, color:C.muted, marginBottom:32, maxWidth:400, margin:'0 auto 32px' }}, 'Complete the CFI assessment to generate your profile and unlock analytics.'), React.createElement("button", {className: "btn-primary", onClick: ()=>setView('cfi')}, 'Take CFI assessment →'))
             ) : (
               React.createElement(React.Fragment, null, React.createElement("div", {style: { display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(min(180px, 100%), 1fr))', gap:16, marginBottom:40 }}, [
@@ -4009,7 +4496,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
       const inProgress = LESSONS.find(l => { const p = lessonProgress[l.id] || 0; return p > 0 && p < 100; });
       if (inProgress) {
         return { lesson: inProgress, opportunityDim: cfiResult?.profile?.weakestDim || null,
-          reason: `You're partway through this lesson. Finish it before starting something new — consistency matters more than coverage.` };
+          reason: `You're partway through this lesson. Finish it before starting something new: consistency matters more than coverage.` };
       }
       if (!cfiResult || !cfiResult.plan) {
         const first = LESSONS.find(l => !isComplete(l.id)) || LESSONS[0];
@@ -4033,7 +4520,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
     }
 
     // Five-step training path. Only marks a step complete/current when real
-    // state supports it — never a fabricated "in progress" for a step with
+    // state supports it: never a fabricated "in progress" for a step with
     // no underlying data.
     function getAcademySteps(cfiResult, lessonProgress) {
       const completedCount = Object.values(lessonProgress).filter(v => v === 100).length;
@@ -4074,7 +4561,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
     // ── Section 7: Today's Cognitive Practice ──────────────────────────
     // Simplest functional version: no existing daily-practice engine to
     // reuse, so this tracks only in-session state (no DB table exists for
-    // it yet) — an honest, un-fabricated completion marker for today.
+    // it yet): an honest, un-fabricated completion marker for today.
     function AcademyDailyPractice({ cfiResult }) {
       const practice = getDailyPractice(cfiResult);
       const [open, setOpen] = useState(false);
@@ -4108,7 +4595,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
       const hasDelta = cfiHistory.length >= 2;
       const clarityDelta = hasDelta ? (cfiHistory[0].total_score - cfiHistory[cfiHistory.length - 1].total_score) : null;
 
-      // A lesson is locked when it isn't free and the person isn't Pro — same
+      // A lesson is locked when it isn't free and the person isn't Pro; same
       // rule the Academy library uses. Recommendations must never bypass it.
       const isLessonLocked = lesson => !!lesson && !lesson.free && !isPro;
       // Renders "Start / Continue" when unlocked, or a Pro-required prompt that
@@ -4147,7 +4634,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
             CP_MODE_ORDER.map(d => React.createElement(CPModeCard, { key: d, dim: d, report: cfiResult.dimensionReports[d] }))
           ),
 
-          // ── SECTION 1 — Recommended for you ──
+          // ── SECTION 1: Recommended for you ──
           React.createElement(CPCard, { style: { padding: '32px 26px', marginBottom: 20, borderColor: CP.borderStrong } },
             React.createElement(CPEyebrow, null, 'Recommended For You'),
             React.createElement("div", { style: { display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap', marginBottom: 8 } },
@@ -4162,7 +4649,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
             React.createElement(LessonCTA, { lesson: rec.lesson, label: 'Start This Lesson →' })
           ),
 
-          // ── SECTION 2 — Learning path ──
+          // ── SECTION 2: Learning path ──
           React.createElement("div", { style: { marginBottom: 20 } },
             React.createElement(CPEyebrow, null, 'Your Learning Path'),
             React.createElement("div", { style: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(140px,100%),1fr))', gap: 12 } },
@@ -4178,7 +4665,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
             )
           ),
 
-          // ── SECTION 3 — Continue where you left off ──
+          // ── SECTION 3: Continue where you left off ──
           React.createElement(CPCard, { style: { padding: '28px 26px', marginBottom: 20 } },
             React.createElement(CPEyebrow, null, inProgressLesson ? 'Continue Training' : 'Begin Your First Training Session'),
             inProgressLesson
@@ -4198,7 +4685,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
                 )
           ),
 
-          // ── SECTION 4 — Four Thinking Modes ──
+          // ── SECTION 4: Four Thinking Modes ──
           React.createElement("div", { style: { marginBottom: 20 } },
             React.createElement(CPEyebrow, null, 'The Four Thinking Modes'),
             React.createElement("div", { style: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(220px,100%),1fr))', gap: 14 } },
@@ -4219,7 +4706,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
             )
           ),
 
-          // ── SECTION 5 — Train your development area ──
+          // ── SECTION 5: Train your development area ──
           hasCFI && React.createElement(CPCard, { style: { padding: '32px 26px', marginBottom: 20 } },
             React.createElement(CPEyebrow, null, 'Your Current Cognitive Opportunity'),
             React.createElement("div", { style: { ...syne, fontSize: 16, fontWeight: 800, color: CP.ink, marginBottom: 10 } }, CFI_DIM_LABELS[cfiResult.profile.weakestDim]),
@@ -4231,28 +4718,28 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
             React.createElement(LessonCTA, { lesson: rec.lesson, label: 'Train This Area →' })
           ),
 
-          // ── SECTION 7 — Daily practice ──
+          // ── SECTION 7: Daily practice ──
           React.createElement(AcademyDailyPractice, { cfiResult }),
 
-          // ── SECTION 8 — Integration Protocol ──
+          // ── SECTION 8: Integration Protocol ──
           completedCount > 0 && React.createElement(CPCard, { style: { padding: '32px 26px', marginBottom: 20 } },
             React.createElement(CPEyebrow, null, 'Put Your Thinking to Work'),
             React.createElement("div", { style: { fontSize: 13.5, color: CP.muted, lineHeight: 1.7, marginBottom: 20 } }, 'Knowledge becomes useful when you apply it to something real.'),
             React.createElement(CPButton, { onClick: () => setView('protocol') }, 'Start an Integration Session →')
           ),
 
-          // ── SECTION 9 — Progress ──
+          // ── SECTION 9: Progress ──
           React.createElement(CPCard, { style: { padding: '28px 26px', marginBottom: 20 } },
             React.createElement(CPEyebrow, null, 'Your Cognitive Development'),
             hasCFI
               ? React.createElement("div", { style: { display: 'flex', gap: 28, flexWrap: 'wrap' } },
                   React.createElement("div", null, React.createElement("div", { style: { ...syne, fontSize: 22, fontWeight: 800, color: CP.ink } }, completedCount, '/', LESSONS.length), React.createElement("div", { style: { ...mono, fontSize: 9.5, letterSpacing: 0.6, color: CP.faint } }, 'LESSONS COMPLETED')),
-                  React.createElement("div", null, React.createElement("div", { style: { ...syne, fontSize: 22, fontWeight: 800, color: CP.ink } }, cfiResult.integrationScore ?? '—'), React.createElement("div", { style: { ...mono, fontSize: 9.5, letterSpacing: 0.6, color: CP.faint } }, 'CFI™ COORDINATION SCORE'))
+                  React.createElement("div", null, React.createElement("div", { style: { ...syne, fontSize: 22, fontWeight: 800, color: CP.ink } }, cfiResult.integrationScore ?? '-'), React.createElement("div", { style: { ...mono, fontSize: 9.5, letterSpacing: 0.6, color: CP.faint } }, 'CFI™ COORDINATION SCORE'))
                 )
               : React.createElement("div", { style: { fontSize: 13.5, color: CP.muted, lineHeight: 1.7 } }, 'Your baseline has been established. Complete your CFI™ assessment to begin tracking your journey.')
           ),
 
-          // ── SECTION 10 — Clarity Delta ──
+          // ── SECTION 10: Clarity Delta ──
           React.createElement(CPCard, { style: { padding: '28px 26px', marginBottom: 20 } },
             React.createElement(CPEyebrow, null, 'Your Progress Over Time'),
             hasDelta
@@ -4353,7 +4840,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
         );
       }
 
-      // ── Section 6: Explore the Academy — categorize real lessons only,
+      // ── Section 6: Explore the Academy: categorize real lessons only,
       // never rename or fabricate. A lesson lands in the first category it
       // matches; nothing is duplicated or invented. ──
       const ACADEMY_CATEGORIES = [
@@ -4752,6 +5239,53 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
       );
     }
 
+    // ── Facilitator Access (grants facilitator_cohorts rows) ────────────
+    // Replaces the old shared facilitator PIN. Only an admin (this view is
+    // already gated on profiles.is_admin) can link a registered user to a
+    // cohort; that link, not a secret string, is what the Enterprise
+    // facilitator gate checks. See migration_facilitator_auth.sql.
+    function FacilitatorAccessPanel({ users }) {
+      const [selectedUserId, setSelectedUserId] = useState('');
+      const [cohortCode, setCohortCode] = useState('');
+      const [links, setLinks] = useState([]);
+      const [msg, setMsg] = useState('');
+
+      const loadLinksForUser = async (uid) => {
+        if (!uid) { setLinks([]); return; }
+        setLinks(await listFacilitatorCohorts(uid));
+      };
+
+      const grant = async () => {
+        if (!selectedUserId || !cohortCode.trim()) { setMsg('Pick a user and enter a cohort code.'); return; }
+        const row = await addFacilitatorCohort(selectedUserId, cohortCode.trim());
+        if (row) { setMsg('Facilitator access granted.'); setCohortCode(''); loadLinksForUser(selectedUserId); }
+        else setMsg('Could not grant access. They may already have this cohort.');
+      };
+      const revoke = async (id) => { if (await removeFacilitatorCohort(id)) loadLinksForUser(selectedUserId); };
+
+      return (
+        React.createElement("div", { className: "card", style: { padding: '28px', marginBottom: 32, borderColor: 'rgba(226,190,120,0.25)' } },
+          React.createElement("div", { style: { ...mono, fontSize: 11, letterSpacing: 1, color: '#E2BE78', marginBottom: 8 } }, 'Facilitator access'),
+          React.createElement("div", { style: { fontSize: 12.5, color: C.muted, marginBottom: 20, lineHeight: 1.6 } }, "Grants a signed-in user facilitator rights for a specific cohort. This replaced the old shared PIN: each grant is a real row, tied to their account, checked server-side."),
+          React.createElement("div", { style: { display: 'grid', gridTemplateColumns: '1.4fr 1fr auto', gap: 10, marginBottom: links.length ? 16 : 4 } },
+            React.createElement("select", { value: selectedUserId, onChange: e => { setSelectedUserId(e.target.value); loadLinksForUser(e.target.value); }, style: { fontSize: 12.5, padding: '10px' } },
+              React.createElement("option", { value: '' }, 'Select a user…'),
+              users.map(u => React.createElement("option", { key: u.id, value: u.id }, u.email || u.full_name || u.id))
+            ),
+            React.createElement("input", { type: 'text', value: cohortCode, onChange: e => setCohortCode(e.target.value), placeholder: 'Cohort code', style: { fontSize: 12.5, padding: '10px' } }),
+            React.createElement("button", { className: "btn-primary", onClick: grant, style: { whiteSpace: 'nowrap' } }, 'Grant')
+          ),
+          msg && React.createElement("div", { style: { fontSize: 12, color: C.muted, marginBottom: 12 } }, msg),
+          links.length > 0 && React.createElement("div", { style: { display: 'flex', flexDirection: 'column', gap: 6 } },
+            links.map(l => React.createElement("div", { key: l.id, style: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: 12.5, color: C.text, padding: '6px 0', borderTop: `1px solid ${C.border}` } },
+              React.createElement("span", null, l.cohort),
+              React.createElement("button", { onClick: () => revoke(l.id), style: { background: 'none', border: 'none', color: '#F87171', fontSize: 11, cursor: 'pointer' } }, 'Revoke')
+            ))
+          )
+        )
+      );
+    }
+
     // ═══════════════════════════════════════════════════════════════════
     //  ADMIN PORTAL: Full Platform Management
     // ═══════════════════════════════════════════════════════════════════
@@ -4792,11 +5326,10 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
       const [editingLesson, setEditingLesson] = useState(null);
       const [lessonDraft, setLessonDraft] = useState({});
 
-      // Cohort manager
+      // Cohort manager: backed by Supabase `cohorts` table (was localStorage)
       const [newCohort, setNewCohort] = useState({ name:'', org:'', facilitator:'', startDate:'', maxParticipants:'' });
-      const [localCohorts, setLocalCohorts] = useState(() => {
-        try { return JSON.parse(localStorage.getItem('nf_cohorts') || '[]'); } catch(_) { return []; }
-      });
+      const [localCohorts, setLocalCohorts] = useState([]);
+      useEffect(() => { listCohorts().then(setLocalCohorts); }, []);
 
       // Broadcast
       const [broadcastMsg, setBroadcastMsg] = useState('');
@@ -4828,7 +5361,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
             sb.from('profiles').select('*').order('created_at', { ascending: false }),
             sb.from('cfi_results').select('*').order('created_at', { ascending: false }),
           ]);
-          // Surface load errors instead of silently showing empty/stale data —
+          // Surface load errors instead of silently showing empty/stale data:
           // a blocked select (e.g. an RLS policy issue) previously failed silently
           // here, making the dashboard look correct while quietly showing nothing.
           if (usersRes.error) { console.error('[ADMIN LOAD ERROR] profiles select failed:', usersRes.error); showMsg('Could not load users: ' + usersRes.error.message, 'error'); }
@@ -4925,26 +5458,29 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
       };
 
       // Cohorts
-      const createCohort = () => {
+      const createCohort = async () => {
         if (!newCohort.name || !newCohort.org) { showMsg('Name and org required.', 'error'); return; }
-        const c = { ...newCohort, id: Date.now(), code: `${newCohort.org.toUpperCase().slice(0,4)}-${Date.now().toString().slice(-4)}`, created: new Date().toISOString(), status:'active', participants:[] };
-        const updated = [c, ...localCohorts];
-        setLocalCohorts(updated);
-        localStorage.setItem('nf_cohorts', JSON.stringify(updated));
+        const code = `${newCohort.org.toUpperCase().slice(0,4)}-${Date.now().toString().slice(-4)}`;
+        const row = await createCohortRow({ ...newCohort, code }, user?.id);
+        if (!row) { showMsg('Could not create cohort. Check your connection and try again.', 'error'); return; }
+        setLocalCohorts(prev => [row, ...prev]);
         setNewCohort({ name:'', org:'', facilitator:'', startDate:'', maxParticipants:'' });
-        showMsg(`Cohort "${c.name}" created. Code: ${c.code}`, 'success');
+        showMsg(`Cohort "${row.name}" created. Code: ${row.code}`, 'success');
       };
-      const archiveCohort = (id) => {
-        const updated = localCohorts.map(c => c.id === id ? { ...c, status: c.status==='active' ? 'archived' : 'active' } : c);
-        setLocalCohorts(updated);
-        localStorage.setItem('nf_cohorts', JSON.stringify(updated));
+      const archiveCohort = async (id) => {
+        const target = localCohorts.find(c => c.id === id);
+        if (!target) return;
+        const nextStatus = target.status === 'active' ? 'archived' : 'active';
+        const ok = await setCohortStatus(id, nextStatus);
+        if (!ok) { showMsg('Could not update cohort status.', 'error'); return; }
+        setLocalCohorts(prev => prev.map(c => c.id === id ? { ...c, status: nextStatus } : c));
         showMsg('Cohort status updated.', 'success');
       };
-      const deleteCohort = (id) => {
+      const deleteCohort = async (id) => {
         if (!window.confirm('Delete this cohort?')) return;
-        const updated = localCohorts.filter(c => c.id !== id);
-        setLocalCohorts(updated);
-        localStorage.setItem('nf_cohorts', JSON.stringify(updated));
+        const ok = await deleteCohortRow(id);
+        if (!ok) { showMsg('Could not delete cohort.', 'error'); return; }
+        setLocalCohorts(prev => prev.filter(c => c.id !== id));
         showMsg('Cohort deleted.', 'success');
       };
 
@@ -5014,7 +5550,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
       const nf100Count = uniqueCFIUserIds.size;
       const filteredCFI = completedCFI.filter(r => cfiFilter === 'all' || r.band === cfiFilter);
       // IMPORTANT: rows saved before this correction (assessment_version is null/legacy) used a
-      // different item set and a ~16–80 raw range — they are NOT on the CFI-1.0 13–65 scale.
+      // different item set and a ~16–80 raw range: they are NOT on the CFI-1.0 13–65 scale.
       // "Completed CFI assessments" / "Unique CFI participants" above are legitimate headcounts
       // across all versions, but any *scored* aggregate (band distribution, average/median CFI,
       // retest deltas, band movement) must never mix scales, so those are scoped to CFI-1.0 only.
@@ -5089,11 +5625,11 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
                           return (
                             React.createElement("div", {key: band, style: { marginBottom:16 }}, React.createElement("div", {style: { display:'flex', justifyContent:'space-between', marginBottom:6 }}, React.createElement("div", {style: { fontSize:12, color:C.muted }}, band), React.createElement("div", {style: { ...mono, fontSize:10, color:bandColors[band] }}, count, '(', pct, '%)')), React.createElement("div", {style: { height:4, background:C.panel, borderRadius:2 }}, React.createElement("div", {style: { width:`${pct}%`, height:'100%', background:bandColors[band], borderRadius:2, transition:'width 0.8s ease' }})))
                           );
-                        }), cfiV1.length === 0 && React.createElement("div", {style: { color:C.dim, fontSize:13 }}, 'No CFI-1.0 data yet.'), legacyCFICount > 0 && React.createElement("div", {style: { marginTop:12, ...mono, fontSize:10, color:C.dim }}, legacyCFICount, ' legacy (pre-correction) assessment(s) excluded — different scale, not shown here.')), React.createElement("div", {className: "card", style: { padding:'28px' }}, React.createElement("div", {style: { ...mono, fontSize:11, letterSpacing:1, color:C.cyan, marginBottom:20 }}, 'Retest outcomes · CFI-1.0'), [
-                          { label:'Average CFI', value: avgCFI ?? '—' },
-                          { label:'Median CFI', value: medianCFI ?? '—' },
+                        }), cfiV1.length === 0 && React.createElement("div", {style: { color:C.dim, fontSize:13 }}, 'No CFI-1.0 data yet.'), legacyCFICount > 0 && React.createElement("div", {style: { marginTop:12, ...mono, fontSize:10, color:C.dim }}, legacyCFICount, ' legacy (pre-correction) assessment(s) excluded: different scale, not shown here.')), React.createElement("div", {className: "card", style: { padding:'28px' }}, React.createElement("div", {style: { ...mono, fontSize:11, letterSpacing:1, color:C.cyan, marginBottom:20 }}, 'Retest outcomes · CFI-1.0'), [
+                          { label:'Average CFI', value: avgCFI ?? '-' },
+                          { label:'Median CFI', value: medianCFI ?? '-' },
                           { label:'Participants with multiple assessments', value: retestedUserIds.length },
-                          { label:'Average change among retested', value: avgChangeRetested != null ? (avgChangeRetested>0?'+':'')+avgChangeRetested : '—' },
+                          { label:'Average change among retested', value: avgChangeRetested != null ? (avgChangeRetested>0?'+':'')+avgChangeRetested : '-' },
                           { label:'Improved (lower CFI)', value: improved, color:'#7AAFCF' },
                           { label:'No change', value: noChange, color:C.muted },
                           { label:'Worsened (higher CFI)', value: worsened, color:'#F87171' },
@@ -5228,7 +5764,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
                           { label:'ARCHIVED', value:localCohorts.filter(c=>c.status==='archived').length, color:C.muted },
                         ].map((s,i) => (
                           React.createElement("div", {key: i, className: "card", style: { padding:'20px 24px', display:'flex', justifyContent:'space-between', alignItems:'center' }}, React.createElement("div", {style: { ...mono, fontSize:9, letterSpacing:1, color:C.muted }}, s.label), React.createElement("div", {style: { ...syne, fontSize:17, fontWeight:800, color:s.color, overflowWrap:'break-word', minWidth:0}}, s.value))
-                        )))), React.createElement("div", {className: "card", style: { overflow:'hidden' }}, React.createElement("div", {style: { display:'grid', gridTemplateColumns:'1.5fr 1fr 1fr 100px 80px 150px', gap:12, padding:'14px 20px', borderBottom:`1px solid ${C.border}`, background:C.deep }}, ['NAME','ORG','CODE','STARTED','STATUS','ACTIONS'].map(h => (
+                        )))), React.createElement(FacilitatorAccessPanel, { users }), React.createElement("div", {className: "card", style: { overflow:'hidden' }}, React.createElement("div", {style: { display:'grid', gridTemplateColumns:'1.5fr 1fr 1fr 100px 80px 150px', gap:12, padding:'14px 20px', borderBottom:`1px solid ${C.border}`, background:C.deep }}, ['NAME','ORG','CODE','STARTED','STATUS','ACTIONS'].map(h => (
                           React.createElement("div", {key: h, style: { ...mono, fontSize:11, letterSpacing:1, color:C.muted }}, h)
                         ))), React.createElement("div", {style: { maxHeight:480, overflowY:'auto' }}, localCohorts.length === 0 && (
                           React.createElement("div", {style: { padding:'40px', textAlign:'center', color:C.dim, fontSize:13 }}, 'No cohorts yet. Create one above.')
@@ -5558,21 +6094,29 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
     }
 
     // ── Enterprise RoleGate ────────────────────────────────────────────
-    function EntRoleGate({ onSelect, onExit }) {
+    // SECURITY: facilitator access no longer relies on a PIN embedded in
+    // frontend JavaScript (that string shipped to every visitor and worked
+    // for every cohort). It now requires the person to be signed in via
+    // Supabase Auth AND have a row in facilitator_cohorts for the cohort
+    // they enter, which only an admin can create. See migration_facilitator_auth.sql.
+    function EntRoleGate({ user, setShowAuth, onSelect, onExit }) {
       const [cohort, setCohort] = useState('');
       const [pid, setPid] = useState('');
-      const [facPin, setFacPin] = useState('');
-      const [facPinError, setFacPinError] = useState('');
-      const FACILITATOR_PIN = 'NF-FAC-2026';
+      const [facError, setFacError] = useState('');
+      const [checking, setChecking] = useState(false);
 
-      function handleFacilitatorEnter() {
-        if (!cohort) { setFacPinError('Please enter a cohort code.'); return; }
-        if (facPin !== FACILITATOR_PIN) { setFacPinError('Incorrect facilitator PIN.'); return; }
-        setFacPinError('');
-        onSelect('facilitator', { cohort });
+      async function handleFacilitatorEnter() {
+        if (!cohort.trim()) { setFacError('Please enter a cohort code.'); return; }
+        if (!user) { setShowAuth(true); return; }
+        setChecking(true); setFacError('');
+        const memberships = await listFacilitatorCohorts(user.id);
+        setChecking(false);
+        const match = memberships.find(m => m.cohort.toLowerCase() === cohort.trim().toLowerCase());
+        if (!match) { setFacError("Your account isn't linked to this cohort. Ask your administrator to grant facilitator access."); return; }
+        onSelect('facilitator', { cohort: match.cohort });
       }
       return (
-        React.createElement("div", {style: { minHeight:'100vh', display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', padding:'2rem', paddingTop:'5rem', background:EC.bg }}, React.createElement("div", {style: { position:'fixed', inset:0, backgroundImage:`linear-gradient(${EC.accent}08 1px,transparent 1px),linear-gradient(90deg,${EC.accent}08 1px,transparent 1px)`, backgroundSize:'60px 60px', pointerEvents:'none' }}), React.createElement("div", {style: { position:'relative', zIndex:1, width:'100%', maxWidth:700, display:'flex', flexDirection:'column', alignItems:'center' }}, React.createElement("div", {style: { ...ES.tag, textAlign:'center' }}, '◈ Enterprise Cohort System · Active'), React.createElement("h1", {style: { ...ES.h1, textAlign:'center', maxWidth:600, marginBottom:'0.75rem' }}, 'NeuralFusion™', React.createElement("br", null), React.createElement("em", {style: { color:EC.accent }}, 'Enterprise Portal')), React.createElement("p", {style: { ...ES.mono(), textAlign:'center', maxWidth:480, marginBottom:'3rem' }}, 'Select your role to enter the programme. Facilitators access session controls, CFI data entry, and live cohort results. Participants complete assessments and access lesson materials.'), React.createElement("div", {style: { display:'grid', gridTemplateColumns:'1fr 1fr', gap:'1.5rem', width:'100%', marginBottom:'2rem' }}, React.createElement("div", {style: { ...ES.card(), borderTop:`2px solid ${EC.gold}`, display:'flex', flexDirection:'column', gap:'1rem' }}, React.createElement("div", {style: { fontSize:'0.6rem', letterSpacing:'0.15em', color:EC.gold }}, 'Facilitator'), React.createElement("div", {style: ES.h3}, 'Run the programme'), React.createElement("p", {style: ES.mono()}, 'Deliver sessions, manage CFI data entry, view live cohort scores and Clarity Delta reports.'), React.createElement("input", {style: ES.input, placeholder: "Cohort code (e.g. ORG2026-A)", value: cohort, onChange: e=>setCohort(e.target.value)}), React.createElement("input", {style: ES.input, type: "password", placeholder: "Facilitator PIN", value: facPin, onChange: e=>{ setFacPin(e.target.value); setFacPinError(''); }}), facPinError && React.createElement("div", {style: { fontSize:'0.65rem', color:EC.red, fontFamily:"'Space Mono', monospace" }}, facPinError), React.createElement("button", {style: ES.btnGold, onClick: handleFacilitatorEnter}, 'Enter as Facilitator →')), React.createElement("div", {style: { ...ES.card(), borderTop:`2px solid ${EC.accent}`, display:'flex', flexDirection:'column', gap:'1rem' }}, React.createElement("div", {style: { fontSize:'0.6rem', letterSpacing:'0.15em', color:EC.accent }}, 'Participant'), React.createElement("div", {style: ES.h3}, 'Complete the programme'), React.createElement("p", {style: ES.mono()}, 'Take the CFI assessment, access lesson materials, and track your cognitive progress.'), React.createElement("input", {style: ES.input, placeholder: "Participant ID (e.g. NF-AB12)", value: pid, onChange: e=>setPid(e.target.value.toUpperCase())}), React.createElement("input", {style: ES.input, placeholder: "Cohort code", value: cohort, onChange: e=>setCohort(e.target.value)}), React.createElement("button", {style: ES.btnPrimary, onClick: ()=>pid&&cohort&&onSelect('participant',{pid,cohort})}, 'Enter Programme →'))), React.createElement("button", {style: { ...ES.mono({ color:EC.muted, cursor:'pointer' }), background:'none', border:'none', marginTop:'1rem' }, onClick: onExit}, '← Return to Platform')))
+        React.createElement("div", {style: { minHeight:'100vh', display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', padding:'2rem', paddingTop:'5rem', background:EC.bg }}, React.createElement("div", {style: { position:'fixed', inset:0, backgroundImage:`linear-gradient(${EC.accent}08 1px,transparent 1px),linear-gradient(90deg,${EC.accent}08 1px,transparent 1px)`, backgroundSize:'60px 60px', pointerEvents:'none' }}), React.createElement("div", {style: { position:'relative', zIndex:1, width:'100%', maxWidth:700, display:'flex', flexDirection:'column', alignItems:'center' }}, React.createElement("div", {style: { ...ES.tag, textAlign:'center' }}, '◈ Enterprise Cohort System · Active'), React.createElement("h1", {style: { ...ES.h1, textAlign:'center', maxWidth:600, marginBottom:'0.75rem' }}, 'NeuralFusion™', React.createElement("br", null), React.createElement("em", {style: { color:EC.accent }}, 'Enterprise Portal')), React.createElement("p", {style: { ...ES.mono(), textAlign:'center', maxWidth:480, marginBottom:'3rem' }}, 'Select your role to enter the programme. Facilitators access session controls, CFI data entry, and live cohort results. Participants complete assessments and access lesson materials.'), React.createElement("div", {style: { display:'grid', gridTemplateColumns:'1fr 1fr', gap:'1.5rem', width:'100%', marginBottom:'2rem' }}, React.createElement("div", {style: { ...ES.card(), borderTop:`2px solid ${EC.gold}`, display:'flex', flexDirection:'column', gap:'1rem' }}, React.createElement("div", {style: { fontSize:'0.6rem', letterSpacing:'0.15em', color:EC.gold }}, 'Facilitator'), React.createElement("div", {style: ES.h3}, 'Run the programme'), React.createElement("p", {style: ES.mono()}, 'Deliver sessions, manage CFI data entry, view live cohort scores and Clarity Delta reports.'), React.createElement("input", {style: ES.input, placeholder: "Cohort code (e.g. ORG2026-A)", value: cohort, onChange: e=>{ setCohort(e.target.value); setFacError(''); }}), !user && React.createElement("div", {style: { fontSize:'0.7rem', color:EC.muted, fontFamily:"'Space Mono', monospace" }}, 'Sign in with your facilitator account to continue.'), facError && React.createElement("div", {style: { fontSize:'0.65rem', color:EC.red, fontFamily:"'Space Mono', monospace" }}, facError), React.createElement("button", {style: ES.btnGold, onClick: handleFacilitatorEnter, disabled: checking}, checking ? 'Checking…' : (user ? 'Enter as Facilitator →' : 'Sign In as Facilitator →'))), React.createElement("div", {style: { ...ES.card(), borderTop:`2px solid ${EC.accent}`, display:'flex', flexDirection:'column', gap:'1rem' }}, React.createElement("div", {style: { fontSize:'0.6rem', letterSpacing:'0.15em', color:EC.accent }}, 'Participant'), React.createElement("div", {style: ES.h3}, 'Complete the programme'), React.createElement("p", {style: ES.mono()}, 'Take the CFI assessment, access lesson materials, and track your cognitive progress.'), React.createElement("input", {style: ES.input, placeholder: "Participant ID (e.g. NF-AB12)", value: pid, onChange: e=>setPid(e.target.value.toUpperCase())}), React.createElement("input", {style: ES.input, placeholder: "Cohort code", value: cohort, onChange: e=>setCohort(e.target.value)}), React.createElement("button", {style: ES.btnPrimary, onClick: ()=>pid&&cohort&&onSelect('participant',{pid,cohort})}, 'Enter Programme →'))), React.createElement("button", {style: { ...ES.mono({ color:EC.muted, cursor:'pointer' }), background:'none', border:'none', marginTop:'1rem' }, onClick: onExit}, '← Return to Platform')))
       );
     }
 
@@ -5682,7 +6226,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
             ))), threshold&&(
             /* FIX (audit finding #4): a within-subject pre/post self-report change, with no
                control/waitlist group, cannot support a causal "the programme has demonstrated
-               measurable cognitive improvement" claim on its own — retest familiarity,
+               measurable cognitive improvement" claim on its own: retest familiarity,
                regression to the mean, and demand characteristics are all live alternative
                explanations. Restated to describe only what was actually measured. */
             React.createElement("div", {style: { ...ES.accentCard({ marginBottom:'2rem', borderLeft:`2px solid ${EC.accent}` }) }}, React.createElement("div", {style: { ...ES.mono({ color:EC.accent }) }}, '◈ Clarity Delta threshold met (≤–15). Self-reported fragmentation dropped by at least 15 points pre-to-post. This reflects a within-subject self-report change, not an independently measured or controlled outcome.'))
@@ -5866,7 +6410,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
 
       // If enterprise, show the app
       if (!entRole) return (
-        React.createElement(EntRoleGate, {onSelect: (role,info)=>{ setEntRole(role); setEntSession({...info}); setEntView(role==='facilitator'?'dashboard':'programme'); }, onExit: ()=>{ setView('home'); }})
+        React.createElement(EntRoleGate, {user, setShowAuth, onSelect: (role,info)=>{ setEntRole(role); setEntSession({...info}); setEntView(role==='facilitator'?'dashboard':'programme'); }, onExit: ()=>{ setView('home'); }})
       );
 
       return (
@@ -5978,9 +6522,9 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
             const r = cfiRows[0];
             const dimScores = r.dim_scores || {};
             // Keys here are the A/I/S/R/E dimension letters (matches dimScores as stored
-            // by finalize()), not brain names — and E is excluded, same as the fresh-quiz path.
+            // by finalize()), not brain names, and E is excluded, same as the fresh-quiz path.
             const brainMap = { A:'analytical', I:'intuitive', S:'associative', R:'reflective' };
-            // FIX (audit finding #1): ascending sort — see matching comment in finalize()
+            // FIX (audit finding #1): ascending sort: see matching comment in finalize()
             // above. Lowest fragmentation score = dominant mode, consistently everywhere.
             const sortedDims = Object.entries(dimScores).filter(([d]) => d !== 'E').sort((a,b)=>a[1]-b[1]);
             const dominantBrain = brainMap[sortedDims[0]?.[0]] || 'analytical';
@@ -6021,7 +6565,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
       const viewProps = { setView, user, session, paystackKey, setShowAuth, openAuth, isPro, setIsPro, isEnterprise, setIsEnterprise, cfiResult, setCfiResult, cfiHistory, lessonProgress, setLessonProgress, proPrice };
 
       return (
-        React.createElement("div", {style: { background:C.void, minHeight:'100vh', color:C.text }}, showAuth && React.createElement(AuthModal, {initialTab: authInitialTab, onClose: ()=>{ setShowAuth(false); setAuthInitialTab('login'); }, onSuccess: ()=>{ setShowAuth(false); setAuthInitialTab('login'); }}), React.createElement(Navbar, {view: view, setView: setView, user: user, profile: profile, setShowAuth: setShowAuth, onSignOut: handleSignOut, authLoading: authLoading}), React.createElement("main", null, view==='home'        && React.createElement(HomeView, viewProps), view==='four-brains' && React.createElement(FourBrainsView, viewProps), view==='cfi'         && React.createElement(CFIView, viewProps), view==='protocol'    && React.createElement(ProtocolView, viewProps), view==='analytics'   && React.createElement(AnalyticsView, viewProps), view==='lessons'     && React.createElement(LessonsView, viewProps), view==='about'       && React.createElement(AboutView, viewProps), view==='resources'   && React.createElement(ResourcesView, viewProps), view==='legal'       && React.createElement(LegalView, {setView: setView}), view==='enterprise'  && React.createElement(EnterpriseView, {user: user, session: session, paystackKey: paystackKey, setShowAuth: setShowAuth, isEnterprise: isEnterprise, setIsEnterprise: setIsEnterprise, proPrice: proPrice, entPrice: entPrice, setView: setView}), view==='admin'       && profile?.is_admin === true && React.createElement(AdminView, {user: user, setView: setView, onPriceChange: setProPrice, onEntPriceChange: setEntPrice})), React.createElement(Footer, {setView: setView}), view !== 'enterprise' && React.createElement(BottomNav, {view: view, setView: setView}))
+        React.createElement("div", {style: { background:C.void, minHeight:'100vh', color:C.text }}, showAuth && React.createElement(AuthModal, {initialTab: authInitialTab, onClose: ()=>{ setShowAuth(false); setAuthInitialTab('login'); }, onSuccess: ()=>{ setShowAuth(false); setAuthInitialTab('login'); }}), React.createElement(Navbar, {view: view, setView: setView, user: user, profile: profile, setShowAuth: setShowAuth, onSignOut: handleSignOut, authLoading: authLoading}), React.createElement("main", null, view==='home'        && React.createElement(HomeView, viewProps), view==='four-brains' && React.createElement(FourBrainsView, viewProps), view==='cfi'         && React.createElement(CFIView, viewProps), view==='protocol'    && React.createElement(ProtocolView, viewProps), view==='decisions'   && React.createElement(DecisionVaultView, viewProps), view==='pressure'    && React.createElement(PressureModeView, viewProps), view==='analytics'   && React.createElement(AnalyticsView, viewProps), view==='lessons'     && React.createElement(LessonsView, viewProps), view==='about'       && React.createElement(AboutView, viewProps), view==='resources'   && React.createElement(ResourcesView, viewProps), view==='legal'       && React.createElement(LegalView, {setView: setView}), view==='enterprise'  && React.createElement(EnterpriseView, {user: user, session: session, paystackKey: paystackKey, setShowAuth: setShowAuth, isEnterprise: isEnterprise, setIsEnterprise: setIsEnterprise, proPrice: proPrice, entPrice: entPrice, setView: setView}), view==='admin'       && profile?.is_admin === true && React.createElement(AdminView, {user: user, setView: setView, onPriceChange: setProPrice, onEntPriceChange: setEntPrice})), React.createElement(Footer, {setView: setView}), view !== 'enterprise' && React.createElement(BottomNav, {view: view, setView: setView, user: user}))
       );
     }
 
