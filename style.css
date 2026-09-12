@@ -228,7 +228,7 @@ body {
 
 h1 {
   font-family: var(--font-display);
-  font-size: var(--h1-size) !important;
+  font-size: var(--h1-size);
   font-weight: var(--h1-weight);
   line-height: var(--h1-leading);
   color: var(--text);
@@ -239,7 +239,7 @@ h1 {
 }
 h2 {
   font-family: var(--font-display);
-  font-size: var(--h2-size) !important;
+  font-size: var(--h2-size);
   font-weight: var(--h2-weight);
   line-height: var(--h2-leading);
   color: var(--text);
@@ -249,7 +249,7 @@ h2 {
 }
 h3 {
   font-family: var(--font-display);
-  font-size: var(--h3-size) !important;
+  font-size: var(--h3-size);
   font-weight: var(--h3-weight);
   line-height: var(--h3-leading);
   color: var(--text);
@@ -259,7 +259,7 @@ h3 {
 }
 h4 {
   font-family: var(--font-display);
-  font-size: var(--h4-size) !important;
+  font-size: var(--h4-size);
   font-weight: var(--h4-weight);
   line-height: var(--h4-leading);
   color: var(--text);
