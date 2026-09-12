@@ -1737,7 +1737,10 @@ Most learners take four to six weeks working through the lessons at the suggeste
           setAwaitingReview(rows.filter(d => d.status === 'open' && d.review_date && new Date(d.review_date) <= new Date()).length);
         });
       }, [user]);
-      const navItems = [
+      // First-time and anonymous visitors get a short, plain-language nav.
+      // Signed-in users get the full functional app nav (all routes below
+      // remain unchanged and reachable, only the anonymous label set differs).
+      const navItems = user ? [
         { v:'cfi', label:'Assess' },
         { v:'four-brains', label:'Architecture' },
         { v:'analytics', label:'Analytics' },
@@ -1747,6 +1750,11 @@ Most learners take four to six weeks working through the lessons at the suggeste
         { v:'resources', label:'Resources' },
         { v:'enterprise', label:'Enterprise' },
         ...(profile?.is_admin === true ? [{ v:'admin', label:'⚙ Admin' }] : []),
+      ] : [
+        { v:'home', label:'Home' },
+        { v:'four-brains', label:'How It Works' },
+        { v:'cfi', label:'CFI™' },
+        { v:'lessons', label:'Training' },
       ];
       const blogHref = '/blog';
       const aboutHref = '/about';
@@ -1785,7 +1793,10 @@ Most learners take four to six weeks working through the lessons at the suggeste
                 ) : user ? (
                   React.createElement("button", {className: "btn-outline desktop-only", style: { fontSize:10, padding:'8px 16px' }, onClick: onSignOut}, 'Sign out')
                 ) : (
-                  React.createElement("button", {className: "btn-primary desktop-only", style: { fontSize:10, padding:'10px 20px' }, onClick: ()=>setShowAuth(true)}, 'Sign in →')
+                  React.createElement(React.Fragment, null,
+                    React.createElement("button", {className: "desktop-only", onClick: ()=>setShowAuth(true), style: { background:'none', border:'none', color:C.muted, ...inter, fontSize:11, cursor:'pointer' }}, 'Sign in'),
+                    React.createElement("button", {className: "btn-primary desktop-only", style: { fontSize:10, padding:'10px 20px' }, onClick: ()=>setView('cfi')}, 'Take the CFI™ Assessment →')
+                  )
                 ), React.createElement("button", {className: "hamburger-btn", onClick: ()=>setMenuOpen(!menuOpen), style: {
                   background:'none', border:`1px solid ${C.border}`, borderRadius:2,
                   color:C.muted, width:40, height:36, flexDirection:'column',
@@ -1822,7 +1833,11 @@ Most learners take four to six weeks working through the lessons at the suggeste
               }}, user ? (
                   React.createElement("div", {style: { display:'flex', flexDirection:'column', gap:12 }}, React.createElement("div", {style: { ...mono, fontSize:11, letterSpacing:1, color:C.muted }}, 'Signed in as', user.email?.toUpperCase()), React.createElement("button", {className: "btn-outline", style: { width:'100%', fontSize:11, textAlign:'center' }, onClick: ()=>{ onSignOut(); setMenuOpen(false); }}, 'Sign out'))
                 ) : (
-                  React.createElement("div", {style: { display:'flex', flexDirection:'column', gap:10 }}, React.createElement("div", {style: { ...mono, fontSize:11, letterSpacing:1, color:C.muted, marginBottom:4 }}, 'Cognitive performance OS'), React.createElement("button", {className: "btn-primary", style: { width:'100%', fontSize:12, textAlign:'center' }, onClick: ()=>{ setShowAuth(true); setMenuOpen(false); }}, 'Sign in →'))
+                  React.createElement("div", {style: { display:'flex', flexDirection:'column', gap:10 }},
+                    React.createElement("div", {style: { ...mono, fontSize:11, letterSpacing:1, color:C.muted, marginBottom:4 }}, 'Cognitive performance OS'),
+                    React.createElement("button", {className: "btn-primary", style: { width:'100%', fontSize:12, textAlign:'center' }, onClick: ()=>{ setView('cfi'); setMenuOpen(false); }}, 'Take the CFI™ Assessment →'),
+                    React.createElement("button", {className: "btn-outline", style: { width:'100%', fontSize:11, textAlign:'center' }, onClick: ()=>{ setShowAuth(true); setMenuOpen(false); }}, 'Sign in')
+                  )
                 )))
           ))
       );
@@ -2062,16 +2077,6 @@ const HOME_MODES = [
   { key:'reflective',  name:'Reflective',  symbol:'◳', color:C.brains.reflective.color, desc:'Steps back, evaluates meaning and examines the thinking itself.' },
 ];
 
-// Feature set for the homepage bento grid (Section 1.5), mirrors the
-// card language of the Four Brains / bento system elsewhere in the app.
-const HOME_BENTO = [
-  { title:'Four Brains Framework', desc:'Understand the four cognitive modes your mind already uses, every day, mostly unconsciously.', symbol:'◈', color:C.cyan, big:true },
-  { title:'CFI™ Assessment', desc:'A 13-item index that measures how fragmented or integrated your thinking currently is.', symbol:'◰', color:C.brains.analytical.color },
-  { title:'Integration Protocol', desc:'A guided 5-step exercise: Decompose, Sense, Expand, Reflect, Fuse.', symbol:'◱', color:C.brains.intuitive.color },
-  { title:'Clarity Delta™', desc:'Reassess over time and see your fragmentation score move.', symbol:'◲', color:C.brains.associative.color },
-  { title:'Enterprise', desc:'Bring structured thinking training to your leadership team.', symbol:'◳', color:C.brains.reflective.color },
-];
-
 /** Shared radial diagram: four cognitive nodes around a center. Used in
  * the hero and in the "four thinking modes" section at different sizes. */
 function HomeCognitiveField({ size = 220, centerLabel = 'YOU', interactive, setView }) {
@@ -2183,19 +2188,11 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
       @media (max-width: 760px) { .nf-home .nf-home-modes-grid { grid-template-columns:repeat(2, 1fr); } }
       .nf-home .nf-home-mode-cell { background:${C.surface}; border:1px solid ${C.border}; border-radius:8px; padding:28px 22px; transition:border-color 0.15s ease, transform 0.15s ease; }
       .nf-home .nf-home-mode-cell:hover { border-color:${H.goldLine}; transform:translateY(-2px); }
-      .nf-home .nf-home-bento { display:grid; grid-template-columns:repeat(4, 1fr); gap:12px; }
-      .nf-home .nf-home-bento-card { background:${C.surface}; border:1px solid ${C.border}; border-radius:8px; padding:26px; position:relative; overflow:hidden; transition:border-color 0.15s ease, transform 0.15s ease; grid-column:span 2; }
-      .nf-home .nf-home-bento-card:hover { transform:translateY(-2px); }
-      .nf-home .nf-home-bento-card.big { grid-column:span 4; display:flex; align-items:center; gap:28px; }
-      @media (max-width: 760px) { .nf-home .nf-home-bento { grid-template-columns:1fr; } .nf-home .nf-home-bento-card, .nf-home .nf-home-bento-card.big { grid-column:span 1; } .nf-home .nf-home-bento-card.big { flex-direction:column; align-items:flex-start; text-align:left; } }
-      .nf-home .nf-home-scatter { display:grid; grid-template-columns:repeat(3, minmax(140px,1fr)); gap:10px 24px; justify-items:center; max-width:640px; margin:0 auto; }
-      @media (max-width: 560px) { .nf-home .nf-home-scatter { grid-template-columns:repeat(2, 1fr); } }
-      .nf-home .nf-home-hero { grid-template-columns:1.1fr 0.9fr; }
-      @media (max-width: 860px) {
-        .nf-home .nf-home-hero { grid-template-columns:1fr; text-align:center; }
-        .nf-home .nf-home-hero p { margin-left:auto; margin-right:auto; }
-        .nf-home .nf-home-hero > div:first-child > div:last-child { justify-content:center; }
-      }
+      .nf-home .nf-home-steps-grid { display:grid; grid-template-columns:repeat(5, 1fr); gap:20px; text-align:left; }
+      @media (max-width: 760px) { .nf-home .nf-home-steps-grid { grid-template-columns:repeat(2, 1fr); } }
+      .nf-home .nf-home-hero { grid-template-columns:1fr; text-align:center; }
+      .nf-home .nf-home-hero p { margin-left:auto; margin-right:auto; }
+      .nf-home .nf-home-hero > div:first-child > div:last-child { justify-content:center; }
       .nf-home .nf-home-field { max-width:100%; }
       @media (max-width: 380px) {
         .nf-home .nf-home-field { transform:scale(0.85); }
@@ -2208,72 +2205,30 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
     // ══════════════════════════════════════════════════════════
     // SECTION 1: HERO
     // ══════════════════════════════════════════════════════════
-    React.createElement("section", { style: { maxWidth:1280, margin:'0 auto', padding:'56px 24px 72px', display:'grid', gap:48, alignItems:'center' }, className: "nf-home-hero" },
+    React.createElement("section", { style: { maxWidth:760, margin:'0 auto', padding:'72px 24px 64px', display:'grid', gap:28 }, className: "nf-home-hero" },
       React.createElement("div", null,
-        React.createElement(HomeLabel, null, 'NeuralFusion™ · Cognitive Performance OS'),
-        React.createElement("h1", { className: "nf-home-fade", style: { ...hDisplay, fontWeight:600, fontSize:'clamp(38px,6vw,64px)', lineHeight:1.02, letterSpacing:'-0.02em', color:H.ink, marginBottom:22 } }, 'You are the intelligence.'),
-        React.createElement("p", { className: "nf-home-fade", style: { ...hBody, fontSize:'clamp(16px,1.6vw,19px)', lineHeight:1.6, color:H.muted, maxWidth:'46ch', marginBottom:14 } },
-          'NeuralFusion™ is the cognitive performance operating system for understanding, training and integrating how you think.'),
-        React.createElement("p", { className: "nf-home-fade", style: { ...hBody, fontSize:15, lineHeight:1.7, color:H.faint, maxWidth:'48ch', marginBottom:32 } },
-          'Understand your cognitive profile. Train how you think. Make better decisions.'),
-        React.createElement("div", { className: "nf-home-fade", style: { display:'flex', flexWrap:'wrap', alignItems:'center', gap:18 } },
+        React.createElement(HomeLabel, null, 'NeuralFusion™'),
+        React.createElement("h1", { className: "nf-home-fade", style: { ...hDisplay, fontWeight:600, fontSize:'clamp(36px,6vw,60px)', lineHeight:1.05, letterSpacing:'-0.02em', color:H.ink, marginBottom:22 } }, 'The operating system for how you think.'),
+        React.createElement("p", { className: "nf-home-fade", style: { ...hBody, fontSize:'clamp(16px,1.6vw,19px)', lineHeight:1.6, color:H.muted, maxWidth:'42ch', marginBottom:32 } },
+          'Understand how your mind works. Train how you think. Make better decisions.'),
+        React.createElement("div", { className: "nf-home-fade", style: { display:'flex', flexDirection:'column', alignItems:'center', gap:14 } },
           React.createElement("button", { className: "nf-home-cta-primary", onClick: () => setView('cfi') }, 'Discover Your Cognitive Profile', React.createElement("span", null, '→')),
-          React.createElement("span", { style: { ...hMono, fontSize:11, letterSpacing:'0.08em', color:H.faint } }, '13 questions · About 3–4 minutes · Free · No account needed to start')
+          React.createElement("span", { style: { ...hMono, fontSize:11, letterSpacing:'0.08em', color:H.faint } }, 'Free CFI™ Assessment · 13 questions · About 3–4 minutes')
         )
-      ),
-      React.createElement("div", { className: "nf-home-fade", style: { display:'flex', justifyContent:'center' } },
-        React.createElement(HomeCognitiveField, { size:280, centerLabel:'YOU' })
       )
     ),
 
     React.createElement(HomeDecisionPanel, { user, setView }),
 
     // ══════════════════════════════════════════════════════════
-    // SECTION 1.5: BENTO OVERVIEW
+    // SECTION 2: FOUR THINKING MODES
     // ══════════════════════════════════════════════════════════
-    React.createElement("section", { style: { maxWidth:1280, margin:'0 auto', padding:'0 24px 72px' } },
-      React.createElement("div", { className: "nf-home-bento" },
-        HOME_BENTO.map(item => (
-          React.createElement("div", { key:item.title, className: `nf-home-bento-card${item.big ? ' big' : ''}` },
-            React.createElement("div", { style: { position:'absolute', top:0, left:0, width:2, height:'100%', background:item.color } }),
-            React.createElement("div", {
-              style: {
-                width:item.big ? 56 : 44, height:item.big ? 56 : 44, borderRadius:'50%', flexShrink:0,
-                background:`radial-gradient(circle, ${item.color}20, transparent)`, border:`1px solid ${item.color}33`,
-                display:'flex', alignItems:'center', justifyContent:'center',
-                ...hMono, fontSize:item.big ? 22 : 17, color:item.color, marginBottom:item.big ? 0 : 18,
-              }
-            }, item.symbol),
-            React.createElement("div", null,
-              React.createElement("div", { style: { ...hDisplay, fontWeight:600, fontSize:item.big ? 20 : 15, color:H.ink, marginBottom:8 } }, item.title),
-              React.createElement("div", { style: { ...hBody, fontWeight:500, fontSize:item.big ? 15 : 13, lineHeight:1.6, color:H.muted, maxWidth:item.big ? '48ch' : 'none' } }, item.desc)
-            )
-          )
-        ))
-      )
-    ),
-
-    // ══════════════════════════════════════════════════════════
-    // SECTION 2: THE HUMAN PROBLEM
-    // ══════════════════════════════════════════════════════════
-    React.createElement("section", { style: { maxWidth:820, margin:'0 auto', padding:'64px 24px', borderTop:`1px solid ${H.border}` } },
-      React.createElement("h2", { style: { ...hDisplay, fontWeight:600, fontSize:'clamp(24px,3vw,34px)', lineHeight:1.25, color:H.ink, marginBottom:24 } }, 'Your problem may not be intelligence.'),
-      React.createElement("p", { style: { ...hBody, fontSize:17, lineHeight:1.8, color:H.muted, marginBottom:20 } },
-        'You can be highly intelligent and still overthink a decision, freeze under pressure, chase too many possibilities, or keep analyzing after you already know enough.'),
-      React.createElement("p", { style: { ...hBody, fontSize:18, lineHeight:1.7, color:H.ink } },
-        'The question is not simply how much you think. It is ',
-        React.createElement("span", { style: { color:H.goldDeep, fontWeight:600 } }, 'how your thinking works together'), '.')
-    ),
-
-    // ══════════════════════════════════════════════════════════
-    // SECTION 3: FOUR THINKING MODES
-    // ══════════════════════════════════════════════════════════
-    React.createElement("section", { style: { maxWidth:1280, margin:'0 auto', padding:'64px 24px' } },
+    React.createElement("section", { style: { maxWidth:1280, margin:'0 auto', padding:'64px 24px', borderTop:`1px solid ${H.border}` } },
       React.createElement("div", { style: { maxWidth:640, marginBottom:40 } },
         React.createElement(HomeLabel, { color:H.goldDeep }, 'The framework'),
-        React.createElement("h2", { style: { ...hDisplay, fontWeight:600, fontSize:'clamp(22px,2.6vw,30px)', color:H.ink, marginBottom:16 } }, 'Your mind does not use just one way of thinking.'),
+        React.createElement("h2", { style: { ...hDisplay, fontWeight:600, fontSize:'clamp(22px,2.6vw,30px)', color:H.ink, marginBottom:16 } }, "You don't think in just one way."),
         React.createElement("p", { style: { ...hBody, fontSize:15, lineHeight:1.7, color:H.muted } },
-          'NeuralFusion™ helps you understand how these modes interact, and where they may become fragmented.')
+          'NeuralFusion™ helps you understand how these modes interact, and where they become fragmented.')
       ),
       React.createElement("div", { style: { display:'flex', justifyContent:'center', marginBottom:40 } },
         React.createElement(HomeCognitiveField, { size:200, centerLabel:'INTEGRATION', interactive:true, setView })
@@ -2289,15 +2244,65 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
     ),
 
     // ══════════════════════════════════════════════════════════
-    // SECTION 4: CFI™ ASSESSMENT (primary entry point)
+    // SECTION 3: COGNITIVE FRAGMENTATION
+    // ══════════════════════════════════════════════════════════
+    React.createElement("section", { style: { maxWidth:760, margin:'0 auto', padding:'72px 24px', textAlign:'center' } },
+      React.createElement("h2", { style: { ...hDisplay, fontWeight:600, fontSize:'clamp(24px,3vw,32px)', lineHeight:1.25, color:H.ink, marginBottom:36 } }, "When your thinking doesn't work together, you feel it."),
+      React.createElement("div", { style: { display:'flex', flexDirection:'column', gap:14, marginBottom:36 } },
+        ['You overthink.', 'You second-guess yourself.', 'You miss connections.', 'You rely too heavily on one way of thinking.'].map((w,i) => (
+          React.createElement("div", { key:i, style: { ...hBody, fontSize:17, color:H.muted } }, w)
+        ))
+      ),
+      React.createElement("p", { style: { ...hDisplay, fontWeight:600, fontSize:16, color:H.goldDeep, marginBottom:44 } }, "That's cognitive fragmentation."),
+      React.createElement("p", { style: { ...hBody, fontSize:15, lineHeight:1.7, color:H.faint, maxWidth:520, margin:'0 auto' } },
+        'Integration feels different: clarity, perspective and decisions you don\u2019t second-guess.')
+    ),
+
+    // ══════════════════════════════════════════════════════════
+    // SECTION 4: FROM FRAGMENTATION TO INTEGRATION
     // ══════════════════════════════════════════════════════════
     React.createElement("section", { style: { background:H.bgAlt, borderTop:`1px solid ${H.border}`, borderBottom:`1px solid ${H.border}` } },
+      React.createElement("div", { style: { maxWidth:1000, margin:'0 auto', padding:'72px 24px' } },
+        React.createElement("h2", { style: { ...hDisplay, fontWeight:600, fontSize:'clamp(22px,2.6vw,28px)', color:H.ink, marginBottom:44, textAlign:'center' } }, 'From fragmentation to integration.'),
+        React.createElement("div", { className: "nf-home-steps-grid", style: { marginBottom:40 } },
+          [
+            { step:'Measure', desc:'Discover your cognitive profile.' },
+            { step:'Understand', desc:'See how your thinking modes interact.' },
+            { step:'Train', desc:'Practice stronger thinking patterns.' },
+            { step:'Integrate', desc:'Bring different modes of thinking together.' },
+            { step:'Improve', desc:'Track your cognitive development.' },
+          ].map(s => (
+            React.createElement("div", { key:s.step },
+              React.createElement("div", { style: { ...hMono, fontSize:11, letterSpacing:'0.1em', textTransform:'uppercase', color:H.goldDeep, marginBottom:8 } }, s.step),
+              React.createElement("div", { style: { ...hBody, fontSize:14, lineHeight:1.5, color:H.muted } }, s.desc)
+            )
+          ))
+        ),
+        React.createElement("div", { style: { textAlign:'center' } },
+          React.createElement("p", { style: { ...hBody, fontSize:15, lineHeight:1.75, color:H.muted, maxWidth:560, margin:'0 auto 28px' } },
+            'The Integration Protocol walks you through each step in sequence: decompose, sense, expand, reflect, then fuse into a single, clearer position.'),
+          React.createElement("button", { className: "nf-home-cta-outline", onClick: () => setView('protocol') }, 'Explore Cognitive Training →'),
+          user && cfiResult ? (
+            React.createElement("div", { style: { marginTop:36, padding:'20px 24px', background:C.surface, border:`1px solid ${H.border}`, borderRadius:6, display:'inline-flex', gap:28, flexWrap:'wrap', justifyContent:'center' } },
+              React.createElement("div", null, React.createElement("div", { style: { ...hMono, fontSize:10, letterSpacing:'0.08em', color:H.faint, marginBottom:4 } }, 'YOUR CFI BAND'), React.createElement("div", { style: { ...hDisplay, fontWeight:600, fontSize:15, color:H.ink } }, cfiResult.band)),
+              React.createElement("div", null, React.createElement("div", { style: { ...hMono, fontSize:10, letterSpacing:'0.08em', color:H.faint, marginBottom:4 } }, 'LESSONS COMPLETE'), React.createElement("div", { style: { ...hDisplay, fontWeight:600, fontSize:15, color:H.ink } }, completedLessons, '/5')),
+              React.createElement("button", { className: "nf-home-link", onClick: () => setView('analytics') }, 'View Analytics →')
+            )
+          ) : null
+        )
+      )
+    ),
+
+    // ══════════════════════════════════════════════════════════
+    // SECTION 5: CFI™ ASSESSMENT (primary entry point, with Clarity Delta and FAQ folded in)
+    // ══════════════════════════════════════════════════════════
+    React.createElement("section", { style: { borderBottom:`1px solid ${H.border}` } },
       React.createElement("div", { style: { maxWidth:920, margin:'0 auto', padding:'72px 24px' } },
         React.createElement(HomeLabel, null, 'Before you train your thinking, understand it'),
         React.createElement("h2", { style: { ...hDisplay, fontWeight:600, fontSize:'clamp(24px,3vw,32px)', color:H.ink, marginBottom:8 } }, 'CFI™'),
         React.createElement("div", { style: { ...hMono, fontSize:12, letterSpacing:'0.14em', color:H.faint, marginBottom:24 } }, 'COGNITIVE FRAGMENTATION INDEX™'),
         React.createElement("p", { style: { ...hBody, fontSize:16, lineHeight:1.75, color:H.muted, maxWidth:560, marginBottom:40 } },
-          'A 13-item cognitive assessment designed to help you identify patterns in how your thinking coordinates across different cognitive modes.'),
+          'A 13-item assessment that shows how your thinking coordinates across the four modes.'),
 
         // Simple, honest CFI visualization: a radial spread across the
         // four modes, not a dashboard mockup with invented numbers.
@@ -2312,158 +2317,43 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
             ))
           )
         ),
-        React.createElement("p", { style: { ...hBody, fontSize:13.5, color:H.faint, fontStyle:'italic', maxWidth:480, marginBottom:32 } },
+        React.createElement("p", { style: { ...hBody, fontSize:13.5, color:H.faint, fontStyle:'italic', maxWidth:480, marginBottom:12 } },
           'Your result gives you a cognitive baseline, not a diagnosis, personality label or measure of intelligence.'),
+        React.createElement("p", { style: { ...hBody, fontSize:13.5, color:H.faint, maxWidth:480, marginBottom:32 } },
+          'Retake it later and Clarity Delta\u2122 shows how your profile has changed.'),
         React.createElement("button", { className: "nf-home-cta-primary", onClick: () => setView('cfi') }, 'Take the Free CFI™ Assessment', React.createElement("span", null, '→')),
-        React.createElement("div", { style: { ...hMono, fontSize:11, letterSpacing:'0.06em', color:H.faint, marginTop:14 } }, '13 questions · About 3–4 minutes · Free · No account needed to start')
-      )
-    ),
+        React.createElement("div", { style: { ...hMono, fontSize:11, letterSpacing:'0.06em', color:H.faint, marginTop:14, marginBottom:56 } }, '13 questions · About 3–4 minutes · Free · No account needed to start'),
 
-    // ══════════════════════════════════════════════════════════
-    // SECTION 4.5: FAQ
-    // ══════════════════════════════════════════════════════════
-    React.createElement("section", { style: { borderBottom:`1px solid ${H.border}` } },
-      React.createElement("div", { style: { maxWidth:680, margin:'0 auto', padding:'64px 24px' } },
-        React.createElement(HomeLabel, null, 'Before you start'),
-        React.createElement("h2", { style: { ...hDisplay, fontWeight:600, fontSize:'clamp(20px,2.4vw,26px)', color:H.ink, marginBottom:28 } }, 'A few things people ask.'),
-        [
-          { q:'Do I need an account to see my results?', a:'No. Answer all 13 questions and see your full CFI™ profile immediately. Create a free account only if you want to save your results and track them over time.' },
-          { q:'Is this a diagnosis or a personality test?', a:'No. The CFI™ gives you a cognitive baseline, not a diagnosis, personality label or measure of intelligence.' },
-          { q:'What happens to my answers?', a:'If you complete the assessment without an account, your answers are not stored anywhere. If you create an account, your results are saved to it so you can track changes over time.' },
-          { q:'Is NeuralFusion free?', a:'The CFI™ assessment and the first lesson are free. Pro unlocks the full training system for a one-time payment. Enterprise is a separate offering for teams and organizations.' },
-        ].map((item, i) => (
-          React.createElement("div", { key:i, style: { borderTop: i===0 ? 'none' : `1px solid ${H.border}` } },
-            React.createElement("button", {
-              onClick: () => setOpenFaq(openFaq === i ? null : i),
-              style: { width:'100%', textAlign:'left', background:'none', border:'none', cursor:'pointer', padding:'20px 0', display:'flex', justifyContent:'space-between', alignItems:'center', gap:16 }
-            },
-              React.createElement("span", { style: { ...hBody, fontWeight:600, fontSize:15, color:H.ink } }, item.q),
-              React.createElement("span", { style: { ...hMono, fontSize:14, color:H.faint, flexShrink:0 } }, openFaq === i ? '−' : '+')
-            ),
-            openFaq === i && React.createElement("p", { style: { ...hBody, fontSize:14.5, lineHeight:1.75, color:H.muted, paddingBottom:22, maxWidth:600 } }, item.a)
-          )
-        ))
-      )
-    ),
-
-    // ══════════════════════════════════════════════════════════
-    // SECTION 5: FRAGMENTATION TO INTEGRATION
-    // ══════════════════════════════════════════════════════════
-    React.createElement("section", { style: { maxWidth:820, margin:'0 auto', padding:'72px 24px' } },
-      React.createElement("h2", { style: { ...hDisplay, fontWeight:600, fontSize:'clamp(20px,2.4vw,26px)', color:H.ink, marginBottom:24 } }, 'Fragmented thinking feels like this.'),
-      React.createElement("div", { className: "nf-home-scatter", style: { marginBottom:44 } },
-        ['Overthinking.', 'Indecision.', 'Mental loops.', 'Too many possibilities.', 'Analysis without action.', 'Action without reflection.'].map((w,i) => (
-          React.createElement("span", { key:i, style: { ...hBody, fontSize:15, color:H.faint, opacity:0.85 } }, w)
-        ))
-      ),
-      React.createElement("div", { style: { ...hMono, fontSize:12, letterSpacing:'0.14em', color:H.goldDeep, marginBottom:44 } }, 'SCATTERED  →  CONNECTED  →  INTEGRATED'),
-      React.createElement("h2", { style: { ...hDisplay, fontWeight:600, fontSize:'clamp(20px,2.4vw,26px)', color:H.ink, marginBottom:24 } }, 'Integrated thinking feels different.'),
-      React.createElement("div", { className: "nf-home-scatter" },
-        ['Clarity.', 'Perspective.', 'Adaptability.', 'Better decisions.', 'Intentional action.', 'Reflection.'].map((w,i) => (
-          React.createElement("span", { key:i, style: { ...hBody, fontSize:16, color:H.ink, fontWeight:600 } }, w)
-        ))
-      )
-    ),
-
-    // ══════════════════════════════════════════════════════════
-    // SECTION 6: CORE LOOP (training)
-    // ══════════════════════════════════════════════════════════
-    React.createElement("section", { style: { background:H.bgAlt, borderTop:`1px solid ${H.border}`, borderBottom:`1px solid ${H.border}` } },
-      React.createElement("div", { style: { maxWidth:900, margin:'0 auto', padding:'72px 24px' } },
-        React.createElement("h2", { style: { ...hDisplay, fontWeight:600, fontSize:'clamp(22px,2.6vw,28px)', color:H.ink, marginBottom:36 } }, 'Train the way your thinking moves.'),
-        React.createElement("div", { style: { display:'flex', flexWrap:'wrap', justifyContent:'center', alignItems:'center', gap:'10px 4px', marginBottom:36 } },
-          ['Decompose','Sense','Expand','Reflect','Fuse'].map((step,i,arr) => (
-            React.createElement(React.Fragment, { key:step },
-              React.createElement("span", { style: { ...hMono, fontSize:12, letterSpacing:'0.1em', textTransform:'uppercase', color:H.ink, background:C.surface, border:`1px solid ${H.borderStrong}`, borderRadius:20, padding:'8px 16px' } }, step),
-              i < arr.length - 1 ? React.createElement("span", { style: { color:H.faint } }, '→') : null
+        React.createElement("div", { style: { borderTop:`1px solid ${H.border}`, paddingTop:40 } },
+          React.createElement("h3", { style: { ...hDisplay, fontWeight:600, fontSize:18, color:H.ink, marginBottom:16 } }, 'A few things people ask.'),
+          [
+            { q:'Is this a diagnosis or a personality test?', a:'No. The CFI™ gives you a cognitive baseline, not a diagnosis, personality label or measure of intelligence.' },
+            { q:'Is NeuralFusion free?', a:'The CFI™ assessment and the first lesson are free. Pro unlocks the full training system for a one-time payment. Enterprise is a separate offering for teams and organizations.' },
+            { q:'Do I need an account?', a:'No. Answer all 13 questions and see your full CFI™ profile immediately. Create a free account only if you want to save your results and track them over time.' },
+          ].map((item, i) => (
+            React.createElement("div", { key:i, style: { borderTop: i===0 ? 'none' : `1px solid ${H.border}` } },
+              React.createElement("button", {
+                onClick: () => setOpenFaq(openFaq === i ? null : i),
+                style: { width:'100%', textAlign:'left', background:'none', border:'none', cursor:'pointer', padding:'18px 0', display:'flex', justifyContent:'space-between', alignItems:'center', gap:16 }
+              },
+                React.createElement("span", { style: { ...hBody, fontWeight:600, fontSize:14.5, color:H.ink } }, item.q),
+                React.createElement("span", { style: { ...hMono, fontSize:14, color:H.faint, flexShrink:0 } }, openFaq === i ? '−' : '+')
+              ),
+              openFaq === i && React.createElement("p", { style: { ...hBody, fontSize:14, lineHeight:1.7, color:H.muted, paddingBottom:20, maxWidth:600 } }, item.a)
             )
           ))
-        ),
-        React.createElement("p", { style: { ...hBody, fontSize:15, lineHeight:1.75, color:H.muted, maxWidth:560, marginBottom:32 } },
-          'NeuralFusion™ gives you structured exercises designed to help you deliberately move between different modes of thinking instead of relying on the same cognitive pattern for every problem.'),
-        React.createElement("button", { className: "nf-home-cta-outline", onClick: () => setView('protocol') }, 'Explore Cognitive Training →')
-      )
-    ),
-
-    // ══════════════════════════════════════════════════════════
-    // SECTION 7: DECISION-MAKING
-    // ══════════════════════════════════════════════════════════
-    React.createElement("section", { style: { maxWidth:820, margin:'0 auto', padding:'72px 24px' } },
-      React.createElement("h2", { style: { ...hDisplay, fontWeight:600, fontSize:'clamp(22px,2.6vw,28px)', color:H.ink, marginBottom:10 } }, "Better decisions don't come from thinking harder."),
-      React.createElement("p", { style: { ...hBody, fontSize:16, color:H.goldDeep, fontWeight:600, marginBottom:32 } }, 'They come from knowing when to change how you think.'),
-      React.createElement("div", { style: { display:'flex', flexWrap:'wrap', justifyContent:'center', alignItems:'center', gap:'8px 4px', marginBottom:32 } },
-        ['Analyze','Sense','Connect','Reflect','Decide'].map((step,i,arr) => (
-          React.createElement(React.Fragment, { key:step },
-            React.createElement("span", { style: { ...hMono, fontSize:11, letterSpacing:'0.08em', textTransform:'uppercase', color:H.muted } }, step),
-            i < arr.length - 1 ? React.createElement("span", { style: { color:H.border } }, '→') : null
-          )
-        ))
-      ),
-      React.createElement("p", { style: { ...hBody, fontSize:15, lineHeight:1.75, color:H.muted, maxWidth:520, marginBottom:32 } },
-        'NeuralFusion™ helps you build a more deliberate relationship with your own thinking.'),
-      React.createElement("button", { className: "nf-home-cta-outline", onClick: () => setView('protocol') }, 'Explore Decision Intelligence →')
-    ),
-
-    // ══════════════════════════════════════════════════════════
-    // SECTION 8: HUMAN COGNITIVE AGENCY + AI (dark contrast section)
-    // ══════════════════════════════════════════════════════════
-    React.createElement("section", { style: { background:H.charcoal, color:H.charcoalText, padding:'80px 24px' } },
-      React.createElement("div", { style: { maxWidth:760, margin:'0 auto' } },
-        React.createElement("h2", { style: { ...hDisplay, fontWeight:600, fontSize:'clamp(22px,2.8vw,30px)', lineHeight:1.35, marginBottom:28 } },
-          'AI can generate the answer.', React.createElement("br"), 'You still have to decide whether it deserves your trust.'),
-        React.createElement("div", { style: { ...hMono, fontSize:11, letterSpacing:'0.16em', color:H.gold, marginBottom:20 } }, 'HUMAN COGNITIVE AGENCY'),
-        React.createElement("p", { style: { ...hBody, fontSize:15, lineHeight:1.8, color:H.charcoalMuted, marginBottom:14 } },
-          'As AI takes over more analysis, generation and information processing, the uniquely human challenge becomes maintaining judgment, intention and cognitive agency.'),
-        React.createElement("p", { style: { ...hBody, fontSize:15, lineHeight:1.8, color:H.charcoalMuted, marginBottom:36 } },
-          'NeuralFusion™ is designed to strengthen the human side of the equation.'),
-        React.createElement("div", { style: { display:'flex', flexWrap:'wrap', justifyContent:'center', alignItems:'center', gap:10, marginBottom:36, ...hMono, fontSize:11, letterSpacing:'0.1em', color:H.charcoalMuted } },
-          React.createElement("span", null, 'AI INFORMATION'), React.createElement("span", { style: { color:H.gold } }, '↓'),
-          React.createElement("span", null, 'HUMAN JUDGMENT'), React.createElement("span", { style: { color:H.gold } }, '↓'),
-          React.createElement("span", null, 'DECISION')
-        ),
-        React.createElement("a", { href: "/human-intelligence-ai", className: "nf-home-cta-outline", style: { borderColor:'rgba(196,160,80,0.4)', color:H.charcoalText, textDecoration:'none', display:'inline-block' } }, 'Explore Human Cognitive Agency →')
-      )
-    ),
-
-    // ══════════════════════════════════════════════════════════
-    // SECTION 9: CLARITY DELTA™
-    // ══════════════════════════════════════════════════════════
-    React.createElement("section", { style: { maxWidth:820, margin:'0 auto', padding:'72px 24px' } },
-      React.createElement("h2", { style: { ...hDisplay, fontWeight:600, fontSize:'clamp(20px,2.4vw,26px)', color:H.ink, lineHeight:1.3, marginBottom:8 } }, 'Thinking can be trained.'),
-      React.createElement("h2", { style: { ...hDisplay, fontWeight:600, fontSize:'clamp(20px,2.4vw,26px)', color:H.ink, lineHeight:1.3, marginBottom:24 } }, 'Change can be measured.'),
-      React.createElement("div", { style: { ...hMono, fontSize:12, letterSpacing:'0.14em', color:H.goldDeep, marginBottom:24 } }, 'CLARITY DELTA™'),
-      React.createElement("p", { style: { ...hBody, fontSize:15, lineHeight:1.75, color:H.muted, maxWidth:520, marginBottom:36 } },
-        'Establish your cognitive baseline. Train deliberately. Reassess. See how your profile changes over time.'),
-      React.createElement("div", { style: { display:'flex', flexWrap:'wrap', justifyContent:'center', alignItems:'center', gap:'8px 4px' } },
-        ['Baseline','Training','Reassessment','Change'].map((step,i,arr) => (
-          React.createElement(React.Fragment, { key:step },
-            React.createElement("span", { style: { ...hMono, fontSize:11, letterSpacing:'0.08em', textTransform:'uppercase', color:H.ink, borderBottom:`2px solid ${H.gold}`, paddingBottom:4 } }, step),
-            i < arr.length - 1 ? React.createElement("span", { style: { color:H.border } }, '→') : null
-          )
-        ))
-      ),
-      user && cfiResult ? (
-        React.createElement("div", { style: { marginTop:40, padding:'20px 24px', background:H.bgAlt, border:`1px solid ${H.border}`, borderRadius:6, display:'inline-flex', gap:28, flexWrap:'wrap', justifyContent:'center' } },
-          React.createElement("div", null, React.createElement("div", { style: { ...hMono, fontSize:10, letterSpacing:'0.08em', color:H.faint, marginBottom:4 } }, 'YOUR CFI BAND'), React.createElement("div", { style: { ...hDisplay, fontWeight:600, fontSize:15, color:H.ink } }, cfiResult.band)),
-          React.createElement("div", null, React.createElement("div", { style: { ...hMono, fontSize:10, letterSpacing:'0.08em', color:H.faint, marginBottom:4 } }, 'LESSONS COMPLETE'), React.createElement("div", { style: { ...hDisplay, fontWeight:600, fontSize:15, color:H.ink } }, completedLessons, '/5')),
-          React.createElement("button", { className: "nf-home-link", onClick: () => setView('analytics') }, 'View Analytics →')
         )
-      ) : null
+      )
     ),
 
     // ══════════════════════════════════════════════════════════
-    // SECTION 10: ENTERPRISE
+    // SECTION 6: ENTERPRISE
     // ══════════════════════════════════════════════════════════
     React.createElement("section", { style: { background:H.bgAlt, borderTop:`1px solid ${H.border}`, borderBottom:`1px solid ${H.border}` } },
       React.createElement("div", { style: { maxWidth:1000, margin:'0 auto', padding:'72px 24px' } },
         React.createElement("div", { style: { maxWidth:640, marginBottom:40 } },
           React.createElement("h2", { style: { ...hDisplay, fontWeight:600, fontSize:'clamp(22px,2.6vw,28px)', color:H.ink, marginBottom:14 } }, "Build better thinking into the way your organization works."),
           React.createElement("p", { style: { ...hBody, fontSize:15, lineHeight:1.7, color:H.muted } }, 'For leadership teams, executives, L&D teams and organizations navigating high-stakes decisions and AI-driven work.')
-        ),
-        React.createElement("div", { style: { display:'flex', flexWrap:'wrap', justifyContent:'center', gap:'14px 40px', marginBottom:40 } },
-          ['Leadership','Decision-Making','Human Performance','AI-Enabled Work'].map(label => (
-            React.createElement("span", { key:label, style: { ...hDisplay, fontWeight:600, fontSize:13, letterSpacing:'0.03em', color:H.ink, borderBottom:`1px solid ${H.borderStrong}`, paddingBottom:6 } }, label)
-          ))
         ),
         React.createElement("p", { style: { ...hBody, fontSize:14.5, lineHeight:1.75, color:H.muted, maxWidth:600, marginBottom:36 } },
           'NeuralFusion™ provides cognitive assessment, structured training and longitudinal measurement designed to help organizations understand and develop human thinking.'),
@@ -2475,61 +2365,41 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
     ),
 
     // ══════════════════════════════════════════════════════════
-    // SECTION 11: RESEARCH + CREDIBILITY
+    // SECTION 7: CREDIBILITY (principle + testimonial + founder + deep links)
     // ══════════════════════════════════════════════════════════
-    React.createElement("section", { style: { maxWidth:760, margin:'0 auto', padding:'72px 24px' } },
-      React.createElement("h2", { style: { ...hDisplay, fontWeight:600, fontSize:'clamp(20px,2.4vw,26px)', color:H.ink, marginBottom:20 } }, 'Built on a simple principle.'),
-      React.createElement("p", { style: { ...hBody, fontSize:15.5, lineHeight:1.9, color:H.muted, marginBottom:36 } },
+    React.createElement("section", { style: { maxWidth:640, margin:'0 auto', padding:'72px 24px', textAlign:'center' } },
+      React.createElement("p", { style: { ...hBody, fontSize:15.5, lineHeight:1.9, color:H.muted, marginBottom:44 } },
         'Understand what you can measure.', React.createElement("br"), 'Measure what you can test.', React.createElement("br"), 'Be honest about what you do not yet know.'),
-      React.createElement("div", { style: { display:'flex', flexWrap:'wrap', justifyContent:'center', gap:'12px 28px', ...hMono, fontSize:11.5, letterSpacing:'0.08em' } },
-        React.createElement("a", { href: "/research", style: { color:H.goldDeep, textDecoration:'underline', textUnderlineOffset:3 } }, 'RESEARCH'),
-        React.createElement("a", { href: "/methodology", style: { color:H.goldDeep, textDecoration:'underline', textUnderlineOffset:3 } }, 'METHODOLOGY'),
-        React.createElement("a", { href: "/blog", style: { color:H.goldDeep, textDecoration:'underline', textUnderlineOffset:3 } }, 'PUBLICATIONS'),
-        React.createElement("a", { href: "/cognitive-fragmentation", style: { color:H.goldDeep, textDecoration:'underline', textUnderlineOffset:3 } }, 'CFI™ FRAMEWORK'),
-        React.createElement("a", { href: "/human-intelligence-ai", style: { color:H.goldDeep, textDecoration:'underline', textUnderlineOffset:3 } }, 'HUMAN INTELLIGENCE & AI')
-      ),
-      React.createElement("p", { style: { ...hBody, fontSize:12.5, lineHeight:1.7, color:H.faint, maxWidth:540, margin:'36px auto 0' } },
-        'The CFI™ and the Four Modes framework are NeuralFusion™ proprietary tools, developed and refined by NeuralFusion™. Where research is preliminary, we say so.')
-    ),
 
-    // ══════════════════════════════════════════════════════════
-    // SECTION 11.5: CLIENT REVIEW
-    // ══════════════════════════════════════════════════════════
-    React.createElement("section", { style: { borderTop:`1px solid ${H.border}` } },
-      React.createElement("div", { style: { maxWidth:640, margin:'0 auto', padding:'64px 24px', textAlign:'center' } },
-        React.createElement("div", { style: { ...hMono, fontSize:10, letterSpacing:'0.14em', color:H.faint, marginBottom:24 } }, 'CLIENT REVIEW'),
-        React.createElement("p", { style: { ...hDisplay, fontSize:'clamp(16px,2vw,20px)', lineHeight:1.7, color:H.ink, marginBottom:24, fontStyle:'italic' } },
-          '"NeuralFusion is a useful reflection tool for founders and professionals who want to understand how they approach decisions. I\'d recommend it to anyone working on clearer thinking, leadership, or personal growth, especially because the four-mode framework makes those patterns easier to notice."'),
-        React.createElement("div", { style: { color:H.gold, fontSize:14, letterSpacing:'0.2em', marginBottom:16 } }, '★★★★★'),
-        React.createElement("div", { style: { ...hBody, fontWeight:600, fontSize:14, color:H.ink } }, 'Vimal Gopal'),
-        React.createElement("div", { style: { ...hMono, fontSize:11, letterSpacing:'0.06em', color:H.faint } }, 'FULL-FUNNEL MARKETER')
-      )
-    ),
+      React.createElement("p", { style: { ...hDisplay, fontSize:'clamp(16px,2vw,20px)', lineHeight:1.7, color:H.ink, marginBottom:20, fontStyle:'italic' } },
+        '"NeuralFusion is a useful reflection tool for founders and professionals who want to understand how they approach decisions. I\'d recommend it to anyone working on clearer thinking, leadership, or personal growth, especially because the four-mode framework makes those patterns easier to notice."'),
+      React.createElement("div", { style: { ...hBody, fontWeight:600, fontSize:14, color:H.ink } }, 'Vimal Gopal'),
+      React.createElement("div", { style: { ...hMono, fontSize:11, letterSpacing:'0.06em', color:H.faint, marginBottom:48 } }, 'FULL-FUNNEL MARKETER'),
 
-    // ══════════════════════════════════════════════════════════
-    // SECTION 12: FOUNDER
-    // ══════════════════════════════════════════════════════════
-    React.createElement("section", { style: { borderTop:`1px solid ${H.border}` } },
-      React.createElement("div", { style: { maxWidth:640, margin:'0 auto', padding:'64px 24px' } },
+      React.createElement("div", { style: { borderTop:`1px solid ${H.border}`, paddingTop:40 } },
         React.createElement("div", { style: { ...hMono, fontSize:10, letterSpacing:'0.14em', color:H.faint, marginBottom:10 } }, 'FOUNDER'),
-        React.createElement("div", { style: { ...hDisplay, fontWeight:600, fontSize:16, color:H.ink, marginBottom:4, letterSpacing:'0.02em' } }, 'LIFE EDET'),
-        React.createElement("div", { style: { ...hBody, fontSize:13.5, color:H.muted, marginBottom:18 } }, 'Founder, NeuralFusion™'),
-        React.createElement("p", { style: { ...hBody, fontSize:14.5, lineHeight:1.8, color:H.muted, marginBottom:20 } },
-          'Nigerian entrepreneur and researcher working at the intersection of human intelligence, technology and personal development. Life developed the Four Brains Framework™ and the Cognitive Fragmentation Index™ through NeuralFusion™, and writes on human cognitive agency in the age of AI, including his publication ',
+        React.createElement("div", { style: { ...hDisplay, fontWeight:600, fontSize:16, color:H.ink, marginBottom:16, letterSpacing:'0.02em' } }, 'LIFE EDET'),
+        React.createElement("p", { style: { ...hBody, fontSize:14.5, lineHeight:1.8, color:H.muted, maxWidth:520, margin:'0 auto 20px' } },
+          'Nigerian entrepreneur and researcher working at the intersection of human intelligence, technology and personal development, and author of ',
           React.createElement("em", null, 'The Human Intelligence Imperative'), '.'),
         React.createElement("a", { href: "/about", className: "nf-home-link" }, 'About →')
+      ),
+
+      React.createElement("div", { style: { display:'flex', flexWrap:'wrap', justifyContent:'center', gap:'10px 24px', marginTop:48, ...hMono, fontSize:11, letterSpacing:'0.06em' } },
+        React.createElement("a", { href: "/research", style: { color:H.faint, textDecoration:'underline', textUnderlineOffset:3 } }, 'RESEARCH'),
+        React.createElement("a", { href: "/methodology", style: { color:H.faint, textDecoration:'underline', textUnderlineOffset:3 } }, 'METHODOLOGY'),
+        React.createElement("a", { href: "/human-intelligence-ai", style: { color:H.faint, textDecoration:'underline', textUnderlineOffset:3 } }, 'HUMAN INTELLIGENCE & AI')
       )
     ),
 
     // ══════════════════════════════════════════════════════════
-    // FINAL CTA
+    // SECTION 8: CLOSING
     // ══════════════════════════════════════════════════════════
-    React.createElement("section", { style: { background:H.bgAlt, borderTop:`1px solid ${H.border}`, padding:'88px 24px' } },
-      React.createElement("div", { style: { maxWidth:600, margin:'0 auto' } },
-        React.createElement("h2", { style: { ...hDisplay, fontWeight:600, fontSize:'clamp(22px,2.8vw,30px)', lineHeight:1.35, color:H.ink, marginBottom:20 } },
-          'Understand your mind.', React.createElement("br"), 'Train how you think.', React.createElement("br"), 'Become harder to fragment.'),
-        React.createElement("p", { style: { ...hBody, fontSize:15, color:H.muted, marginBottom:32 } }, 'Start with your cognitive profile.'),
-        React.createElement("button", { className: "nf-home-cta-primary", onClick: () => setView('cfi') }, 'Take the Free CFI™ Assessment', React.createElement("span", null, '→')),
+    React.createElement("section", { style: { background:H.bgAlt, borderTop:`1px solid ${H.border}`, padding:'96px 24px' } },
+      React.createElement("div", { style: { maxWidth:600, margin:'0 auto', textAlign:'center' } },
+        React.createElement("h2", { style: { ...hDisplay, fontWeight:600, fontSize:'clamp(28px,4vw,42px)', lineHeight:1.15, color:H.ink, marginBottom:20 } }, 'You are the intelligence.'),
+        React.createElement("p", { style: { ...hBody, fontSize:16, lineHeight:1.6, color:H.muted, marginBottom:36 } }, 'NeuralFusion™ helps you understand, train and integrate the way you think.'),
+        React.createElement("button", { className: "nf-home-cta-primary", onClick: () => setView('cfi') }, 'Discover Your Cognitive Profile', React.createElement("span", null, '→')),
         React.createElement("div", { style: { ...hMono, fontSize:11, letterSpacing:'0.06em', color:H.faint, marginTop:16 } }, '13 questions · About 3–4 minutes · Free · No account needed to start')
       )
     )
