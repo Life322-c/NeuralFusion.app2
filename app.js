@@ -6378,7 +6378,14 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
         setAuthLoading(true);
         try {
           const [prof, lp] = await Promise.all([getProfile(u.id), loadLessonProgress(u.id)]);
-          if (prof) { setProfile(prof); setIsPro(!!prof.is_pro); setIsEnterprise(!!prof.is_enterprise); }
+          if (prof) {
+            setProfile(prof);
+            // Admins get full platform access (Pro + Enterprise) without needing
+            // is_pro / is_enterprise set on their profile row.
+            const isAdmin = prof.is_admin === true;
+            setIsPro(isAdmin || !!prof.is_pro);
+            setIsEnterprise(isAdmin || !!prof.is_enterprise);
+          }
           setLessonProgress(lp);
           // Load full CFI history from Supabase (needed for Clarity Delta™, not just the latest result)
           // IMPORTANT: only 'completed' rows have total_score/band/dim_scores populated.
