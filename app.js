@@ -1309,6 +1309,33 @@ Most learners take four to six weeks working through the lessons at the suggeste
       } catch (e) { console.error('[FACILITATOR COHORTS REMOVE ERROR]', e); return false; }
     };
 
+    // ── Cohort Participant Roster Helpers ────────────────────────────
+    // Adding someone here also auto-grants is_enterprise on their profile
+    // (via a Postgres trigger — see migration_cohort_participants.sql), so
+    // a facilitator can onboard participants without an admin manually
+    // flipping "Ent +" for every person in Admin → Users.
+    const listCohortParticipants = async (cohort) => {
+      try {
+        const { data, error } = await sb.from('cohort_participants').select('*').eq('cohort', cohort).order('created_at', { ascending: false });
+        if (error) throw error;
+        return data || [];
+      } catch (e) { console.error('[COHORT PARTICIPANTS LIST ERROR]', e); return []; }
+    };
+    const addCohortParticipant = async (email, cohort) => {
+      try {
+        const { data, error } = await sb.rpc('add_cohort_participant', { p_email: email.trim().toLowerCase(), p_cohort: cohort });
+        if (error) throw error;
+        return { row: data };
+      } catch (e) { console.error('[COHORT PARTICIPANTS ADD ERROR]', e); return { error: e.message || 'Could not add participant.' }; }
+    };
+    const removeCohortParticipant = async (id) => {
+      try {
+        const { error } = await sb.from('cohort_participants').delete().eq('id', id);
+        if (error) throw error;
+        return true;
+      } catch (e) { console.error('[COHORT PARTICIPANTS REMOVE ERROR]', e); return false; }
+    };
+
     // ── Cohort Helpers ───────────────────────────────────────────────
     // Backs the Admin → Cohorts tab. Previously stored in localStorage
     // (nf_cohorts), which only existed in one admin's browser. Field names
@@ -5724,8 +5751,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
                           color: brandSettings.announcementActive ? '#4CF7C0' : C.muted,
                         }}, brandSettings.announcementActive ? 'ON: Disable' : 'OFF: Enable')), React.createElement("div", {style: { ...mono, fontSize:11, letterSpacing:1, color:C.muted, marginBottom:6 }}, 'Announcement text'), React.createElement("input", {value: brandSettings.announcementBar || '', onChange: e => setBrandSettings(p => ({...p, announcementBar: e.target.value})), placeholder: "e.g. New enterprise cohorts now available. Contact us to enrol your team.", style: { fontSize:13, width:'100%' }})), React.createElement("button", {className: "btn-primary", onClick: saveBranding}, 'Save Branding Changes →'))
                 ), tab === 'pricing' && (
-                  React.createElement("div", {style: { display:'grid', gridTemplateColumns:'repeat(auto-fit,minmax(min(400px,100%),1fr))', gap:20 }}, React.createElement("div", {className: "card", style: { padding:'40px', position:'relative', overflow:'hidden', borderColor:'rgba(196,160,80,0.3)' }}, React.createElement(ScanLine, null), React.createElement("div", {style: { ...mono, fontSize:11, letterSpacing:1, color:C.cyan, marginBottom:16 }}, 'PRO plan pricing'), React.createElement("div", {style: { ...syne, fontSize:17, fontWeight:800, color:C.text, marginBottom:8, overflowWrap:'break-word', minWidth:0}}, 'Edit Pro Price'), React.createElement("div", {style: { fontSize:13, color:C.muted, marginBottom:28, lineHeight:1.7 }}, 'Updates the price shown on the platform and passed to Paystack for payment processing.'), React.createElement("div", {style: { marginBottom:20 }}, React.createElement("div", {style: { ...mono, fontSize:9, letterSpacing:1, color:C.muted, marginBottom:8 }}, 'CURRENT PRICE (NAIRA)'), React.createElement("div", {style: { ...syne, fontSize:14, fontWeight:800, color:C.cyan, lineHeight:1.2, marginBottom:4, overflowWrap:'break-word', minWidth:0}}, `₦${(proPrice/100).toLocaleString()}`), React.createElement("div", {style: { ...mono, fontSize:9, color:C.muted }}, '=', proPrice.toLocaleString(), 'kobo')), React.createElement("div", {style: { marginBottom:20 }}, React.createElement("div", {style: { ...mono, fontSize:9, letterSpacing:1, color:C.muted, marginBottom:8 }}, 'NEW PRICE (₦)'), React.createElement("div", {style: { display:'flex', gap:12, alignItems:'center' }}, React.createElement("div", {style: { position:'relative', flex:1 }}, React.createElement("div", {style: { position:'absolute', left:16, top:'50%', transform:'translateY(-50%)', ...syne, fontSize:14, fontWeight:700, color:C.muted, overflowWrap:'break-word', minWidth:0}}, '₦'), React.createElement("input", {type: "number", value: priceInput, onChange: e => setPriceInput(e.target.value), style: { paddingLeft:36, fontSize:14, ...syne, fontWeight:700, overflowWrap:'break-word', minWidth:0}, min: "100", step: "100"})), React.createElement("button", {className: "btn-primary", onClick: savePrice, style: { whiteSpace:'nowrap' }}, priceSaved ? '✓ Saved!' : 'Save Price'))), React.createElement("div", {style: { padding:'20px', background:C.deep, borderRadius:2, border:`1px solid ${C.border}` }}, React.createElement("div", {style: { ...mono, fontSize:11, letterSpacing:1, color:C.muted, marginBottom:8 }}, 'Paystack integration'), React.createElement("div", {style: { fontSize:13, color:C.muted, lineHeight:1.7 }}, 'Live key:', React.createElement("span", {style: { color:C.cyan, fontFamily:'monospace' }}, 'loaded from platform_settings at runtime'), React.createElement("br", null), 'Currency: NGN · Gateway: Paystack inline · Verified server-side'))), React.createElement("div", {className: "card", style: { padding:'40px', position:'relative', overflow:'hidden', borderColor:'rgba(76,247,192,0.2)' }}, React.createElement("div", {style: { ...mono, fontSize:11, letterSpacing:1, color:'#4CF7C0', marginBottom:16 }}, 'Enterprise plan pricing'), React.createElement("div", {style: { ...syne, fontSize:17, fontWeight:800, color:C.text, marginBottom:8, overflowWrap:'break-word', minWidth:0}}, 'Edit Enterprise Price'), React.createElement("div", {style: { fontSize:13, color:C.muted, marginBottom:28, lineHeight:1.7 }}, 'Sets the displayed price for enterprise cohort enrolment on the platform.'), React.createElement("div", {style: { marginBottom:20 }}, React.createElement("div", {style: { ...mono, fontSize:9, letterSpacing:1, color:C.muted, marginBottom:8 }}, 'CURRENT PRICE (NAIRA)'), React.createElement("div", {style: { ...syne, fontSize:14, fontWeight:800, color:'#4CF7C0', lineHeight:1.2, marginBottom:4, overflowWrap:'break-word', minWidth:0}}, `₦${(entPrice/100).toLocaleString()}`), React.createElement("div", {style: { ...mono, fontSize:9, color:C.muted }}, '=', entPrice.toLocaleString(), 'kobo')), React.createElement("div", {style: { marginBottom:20 }}, React.createElement("div", {style: { ...mono, fontSize:9, letterSpacing:1, color:C.muted, marginBottom:8 }}, 'NEW PRICE (₦)'), React.createElement("div", {style: { display:'flex', gap:12, alignItems:'center' }}, React.createElement("div", {style: { position:'relative', flex:1 }}, React.createElement("div", {style: { position:'absolute', left:16, top:'50%', transform:'translateY(-50%)', ...syne, fontSize:14, fontWeight:700, color:C.muted, overflowWrap:'break-word', minWidth:0}}, '₦'), React.createElement("input", {type: "number", value: entPriceInput, onChange: e => setEntPriceInput(e.target.value), style: { paddingLeft:36, fontSize:14, ...syne, fontWeight:700, overflowWrap:'break-word', minWidth:0}, min: "100", step: "1000"})), React.createElement("button", {className: "btn-primary", onClick: saveEntPrice, style: { whiteSpace:'nowrap' }}, 'Save Price'))), React.createElement("div", {style: { padding:'16px 20px', background:C.deep, borderRadius:2, border:`1px solid ${C.border}`, ...mono, fontSize:10, color:C.muted }}, 'Grant enterprise access manually in the', React.createElement("button", {onClick: () => setTab('users'), style: { background:'none', border:'none', color:C.cyan, cursor:'pointer', ...mono, fontSize:10, padding:0 }}, 'Users tab →'))),
-                  React.createElement("div", {className: "card", style: { padding:'40px', position:'relative', overflow:'hidden', borderColor:'rgba(196,160,80,0.2)', gridColumn:'1 / -1' }}, React.createElement(ScanLine, null), React.createElement("div", {style: { ...mono, fontSize:11, letterSpacing:1, color:'#E2BE78', marginBottom:16 }}, 'Payment gateway'), React.createElement("div", {style: { ...syne, fontSize:17, fontWeight:800, color:C.text, marginBottom:8, overflowWrap:'break-word', minWidth:0}}, 'Paystack Public Key'), React.createElement("div", {style: { fontSize:13, color:C.muted, marginBottom:28, lineHeight:1.7 }}, 'Your Paystack public key (pk_live_... or pk_test_...). Stored in platform_settings and loaded at runtime, so no redeploy is needed.'), React.createElement("div", {style: { display:'flex', gap:12, alignItems:'center' }}, React.createElement("input", {type: "text", value: paystackKeyInput, onChange: e => setPaystackKeyInput(e.target.value), placeholder: 'pk_live_...', style: { flex:1, fontSize:13, fontFamily:'monospace', letterSpacing:'0.02em', overflowWrap:'break-word', minWidth:0 }}), React.createElement("button", {className: "btn-primary", onClick: savePaystackKey, style: { whiteSpace:'nowrap' }}, keySaved ? '✓ Saved!' : 'Save Key')), paystackKeyInput && React.createElement("div", {style: { marginTop:16, padding:'12px 16px', background:C.deep, borderRadius:2, border:`1px solid ${C.border}`, ...mono, fontSize:10, color:C.muted }}, 'Active: ', React.createElement("span", {style: { color:'#E2BE78' }}, paystackKeyInput.slice(0,12), '...', paystackKeyInput.slice(-6)))))
+                  React.createElement("div", {style: { display:'grid', gridTemplateColumns:'repeat(auto-fit,minmax(min(400px,100%),1fr))', gap:20 }}, React.createElement("div", {className: "card", style: { padding:'40px', position:'relative', overflow:'hidden', borderColor:'rgba(196,160,80,0.3)' }}, React.createElement(ScanLine, null), React.createElement("div", {style: { ...mono, fontSize:11, letterSpacing:1, color:C.cyan, marginBottom:16 }}, 'PRO plan pricing'), React.createElement("div", {style: { ...syne, fontSize:17, fontWeight:800, color:C.text, marginBottom:8, overflowWrap:'break-word', minWidth:0}}, 'Edit Pro Price'), React.createElement("div", {style: { fontSize:13, color:C.muted, marginBottom:28, lineHeight:1.7 }}, 'Updates the price shown on the platform and passed to Paystack for payment processing.'), React.createElement("div", {style: { marginBottom:20 }}, React.createElement("div", {style: { ...mono, fontSize:9, letterSpacing:1, color:C.muted, marginBottom:8 }}, 'CURRENT PRICE (NAIRA)'), React.createElement("div", {style: { ...syne, fontSize:14, fontWeight:800, color:C.cyan, lineHeight:1.2, marginBottom:4, overflowWrap:'break-word', minWidth:0}}, `₦${(proPrice/100).toLocaleString()}`), React.createElement("div", {style: { ...mono, fontSize:9, color:C.muted }}, '=', proPrice.toLocaleString(), 'kobo')), React.createElement("div", {style: { marginBottom:20 }}, React.createElement("div", {style: { ...mono, fontSize:9, letterSpacing:1, color:C.muted, marginBottom:8 }}, 'NEW PRICE (₦)'), React.createElement("div", {style: { display:'flex', gap:12, alignItems:'center' }}, React.createElement("div", {style: { position:'relative', flex:1 }}, React.createElement("div", {style: { position:'absolute', left:16, top:'50%', transform:'translateY(-50%)', ...syne, fontSize:14, fontWeight:700, color:C.muted, overflowWrap:'break-word', minWidth:0}}, '₦'), React.createElement("input", {type: "number", value: priceInput, onChange: e => setPriceInput(e.target.value), style: { paddingLeft:36, fontSize:14, ...syne, fontWeight:700, overflowWrap:'break-word', minWidth:0}, min: "100", step: "100"})), React.createElement("button", {className: "btn-primary", onClick: savePrice, style: { whiteSpace:'nowrap' }}, priceSaved ? '✓ Saved!' : 'Save Price'))), React.createElement("div", {style: { padding:'20px', background:C.deep, borderRadius:2, border:`1px solid ${C.border}` }}, React.createElement("div", {style: { ...mono, fontSize:11, letterSpacing:1, color:C.muted, marginBottom:8 }}, 'Paystack integration'), React.createElement("div", {style: { fontSize:13, color:C.muted, lineHeight:1.7 }}, 'Live key:', React.createElement("span", {style: { color:C.cyan, fontFamily:'monospace' }}, 'loaded from platform_settings at runtime'), React.createElement("br", null), 'Currency: NGN · Gateway: Paystack inline · Verified server-side'))), React.createElement("div", {className: "card", style: { padding:'40px', position:'relative', overflow:'hidden', borderColor:'rgba(196,160,80,0.2)', gridColumn:'1 / -1' }}, React.createElement(ScanLine, null), React.createElement("div", {style: { ...mono, fontSize:11, letterSpacing:1, color:'#E2BE78', marginBottom:16 }}, 'Payment gateway'), React.createElement("div", {style: { ...syne, fontSize:17, fontWeight:800, color:C.text, marginBottom:8, overflowWrap:'break-word', minWidth:0}}, 'Paystack Public Key'), React.createElement("div", {style: { fontSize:13, color:C.muted, marginBottom:28, lineHeight:1.7 }}, 'Your Paystack public key (pk_live_... or pk_test_...). Stored in platform_settings and loaded at runtime, so no redeploy is needed.'), React.createElement("div", {style: { display:'flex', gap:12, alignItems:'center' }}, React.createElement("input", {type: "text", value: paystackKeyInput, onChange: e => setPaystackKeyInput(e.target.value), placeholder: 'pk_live_...', style: { flex:1, fontSize:13, fontFamily:'monospace', letterSpacing:'0.02em', overflowWrap:'break-word', minWidth:0 }}), React.createElement("button", {className: "btn-primary", onClick: savePaystackKey, style: { whiteSpace:'nowrap' }}, keySaved ? '✓ Saved!' : 'Save Key')), paystackKeyInput && React.createElement("div", {style: { marginTop:16, padding:'12px 16px', background:C.deep, borderRadius:2, border:`1px solid ${C.border}`, ...mono, fontSize:10, color:C.muted }}, 'Active: ', React.createElement("span", {style: { color:'#E2BE78' }}, paystackKeyInput.slice(0,12), '...', paystackKeyInput.slice(-6)))))
                 ), tab === 'settings' && (
                   React.createElement("div", {style: { maxWidth:680 }}, React.createElement("div", {className: "card", style: { padding:'36px', marginBottom:16 }}, React.createElement("div", {style: { ...mono, fontSize:11, letterSpacing:1, color:C.cyan, marginBottom:16 }}, 'Platform info'), [
                         { label:'Platform',      value:'NeuralFusion™ Cognitive OS' },
@@ -5954,7 +5980,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
     // ── Enterprise NavBar ──────────────────────────────────────────────
     function EntNavBar({ view, setView, role, onExit }) {
       const tabs = role==='facilitator'
-        ? [['dashboard','Dashboard'],['lessons','Lessons'],['cfi','CFI Data'],['results','Results']]
+        ? [['dashboard','Dashboard'],['roster','Participants'],['lessons','Lessons'],['cfi','CFI Data'],['results','Results']]
         : [['assessment','Assessment'],['programme','Programme']];
       return (
         React.createElement("nav", {style: { position:'fixed', top:0, left:0, right:0, zIndex:200, display:'flex', alignItems:'center', justifyContent:'space-between', padding:'1rem 2rem', background:'rgba(5,12,26,0.95)', backdropFilter:'blur(20px)', borderBottom:`1px solid ${EC.border}` }}, React.createElement("div", {style: { display:'flex', alignItems:'center', gap:10 }}, React.createElement(NFMark, {size: 20}), React.createElement("div", {style: { ...ES.mono({ color:EC.accent }), letterSpacing:'0.2em' }}, 'NEURALFUSION™', React.createElement("span", {style: { color:EC.muted }}, ' / Enterprise'))), React.createElement("div", {style: { display:'flex', gap:'0.25rem' }}, tabs.map(([id,label]) => (
@@ -6114,6 +6140,53 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
       );
     }
 
+    // ── Enterprise Participant Roster ───────────────────────────────────
+    // Adding a participant here (by the email they signed up with) auto-grants
+    // is_enterprise on their account via a server-side trigger, so they can get
+    // straight past the Enterprise paywall without an admin doing it manually.
+    // See migration_cohort_participants.sql.
+    function EntRosterView({ session }) {
+      const [email, setEmail] = useState('');
+      const [roster, setRoster] = useState([]);
+      const [loading, setLoading] = useState(false);
+      const [msg, setMsg] = useState('');
+
+      const load = async () => setRoster(await listCohortParticipants(session.cohort));
+      useEffect(() => { load(); }, [session.cohort]);
+
+      const add = async () => {
+        if (!email.trim()) { setMsg('Enter the email they signed up with.'); return; }
+        setLoading(true); setMsg('');
+        const res = await addCohortParticipant(email, session.cohort);
+        setLoading(false);
+        if (res.error) { setMsg(res.error); return; }
+        setMsg('Participant added — Enterprise access granted.');
+        setEmail(''); load();
+      };
+      const remove = async (id) => { if (await removeCohortParticipant(id)) load(); };
+
+      return (
+        React.createElement("div", {style: { maxWidth:700, margin:'0 auto', padding:'5rem 2rem 4rem' }},
+          React.createElement("div", {style: ES.tag}, 'Cohort:', session.cohort),
+          React.createElement("h1", {style: ES.h1}, 'Participant', React.createElement("em", {style: { color:EC.accent }}, 'Roster')),
+          React.createElement("p", {style: ES.mono({ marginBottom:'2rem' })}, "Add participants by the email they signed up with. This grants their account Enterprise access automatically — they won't need an admin to unlock it."),
+          React.createElement("div", {style: { display:'flex', gap:'0.75rem', marginBottom:'0.75rem' }},
+            React.createElement("input", {style: ES.input, placeholder: "participant@email.com", value: email, onChange: e=>setEmail(e.target.value), onKeyDown: e=>{ if(e.key==='Enter') add(); }}),
+            React.createElement("button", {style: { ...ES.btnPrimary, opacity: loading?0.7:1, whiteSpace:'nowrap' }, onClick: add, disabled: loading}, loading?'Adding…':'Add')
+          ),
+          msg && React.createElement("div", {style: ES.mono({ color: msg.includes('granted')?EC.accent:EC.red, marginBottom:'1.5rem' })}, msg),
+          roster.length===0
+            ? React.createElement("div", {style: ES.accentCard({ textAlign:'center', padding:'2rem' })}, React.createElement("div", {style: ES.mono()}, 'No participants added yet.'))
+            : React.createElement("div", {style: { display:'flex', flexDirection:'column', gap:0, marginTop:'1rem' }}, roster.map(r =>
+                React.createElement("div", {key: r.id, style: { display:'flex', justifyContent:'space-between', alignItems:'center', padding:'0.85rem 0', borderTop:`1px solid ${EC.border}` }},
+                  React.createElement("span", {style: ES.mono({ color:EC.text })}, r.email),
+                  React.createElement("button", {onClick: ()=>remove(r.id), style: { ...ES.mono({ color:EC.red }), background:'none', border:'none', cursor:'pointer' }}, 'Remove')
+                )
+              ))
+        )
+      );
+    }
+
     // ── Enterprise CFI Data Entry ──────────────────────────────────────
     function EntCFIDataEntry({ session, onSave }) {
       const [pid, setPid]     = useState('');
@@ -6270,11 +6343,12 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
                 border:'1px solid rgba(76,247,192,0.25)',
                 backdropFilter:'blur(20px)',
                 marginBottom:32,
-              }}, React.createElement("div", {style: { ...mono, fontSize:11, letterSpacing:1.5, color:'#4CF7C0', marginBottom:16 }}, 'ENTERPRISE ACCESS · ONE-TIME'), React.createElement("div", {style: { ...syne, fontSize:52, fontWeight:900, color:'#4CF7C0', marginBottom:4, letterSpacing:'-0.02em' }}, '₦', ((entPrice || ENTERPRISE_PRICE_KOBO)/100).toLocaleString()), React.createElement("div", {style: { ...mono, fontSize:12, color:C.muted, marginBottom:16 }}, usdApprox(entPrice || ENTERPRISE_PRICE_KOBO), ' · billed in Naira'), React.createElement("div", {style: { ...inter, fontSize:14, color:C.muted, marginBottom:40 }}, 'One-time payment · Permanent access · All cohorts · All features'), React.createElement("button", {onClick: handleUnlock, disabled: paystackLoading, style: {
+              }}, React.createElement("div", {style: { ...mono, fontSize:11, letterSpacing:1.5, color:'#4CF7C0', marginBottom:16 }}, 'ENTERPRISE ACCESS · CUSTOM PRICING'), React.createElement("div", {style: { ...syne, fontSize:38, fontWeight:900, color:'#4CF7C0', marginBottom:4, letterSpacing:'-0.02em' }}, 'Contact for price'), React.createElement("div", {style: { ...inter, fontSize:14, color:C.muted, marginBottom:40 }}, 'Permanent access · All cohorts · All features · Pricing scoped to your organisation'), React.createElement("a", {href: '/contact', style: {
+                    display:'inline-block', textDecoration:'none', textAlign:'center',
                     ...syne, fontSize:14, fontWeight:700, letterSpacing:'0.05em',
                     padding:'18px 48px', background:'#4CF7C0', color:'#050C1A',
-                    border:'none', cursor: paystackLoading ? 'default' : 'pointer', borderRadius:2,
-                    transition:'all 0.2s', boxShadow:'0 0 40px rgba(76,247,192,0.3)', overflowWrap:'break-word', minWidth:0, opacity: paystackLoading ? 0.7 : 1}, onMouseEnter: e=>{ if(!paystackLoading){ e.currentTarget.style.background='#6FFAD0'; e.currentTarget.style.transform='translateY(-2px)'; } }, onMouseLeave: e=>{ e.currentTarget.style.background='#4CF7C0'; e.currentTarget.style.transform='translateY(0)'; }}, paystackLoading ? 'Opening...' : (user ? `Unlock Enterprise: ₦${((entPrice || ENTERPRISE_PRICE_KOBO)/100).toLocaleString()} →` : 'Sign In to Unlock Enterprise →')), !user&&React.createElement("div", {style: { ...mono, fontSize:10, color:C.muted, marginTop:16 }}, 'Create a free account to proceed with payment.')), React.createElement("div", {style: { ...mono, fontSize:9, letterSpacing:1, color:C.dim }}, 'NeuralFusion™ Enterprise · Edition 2.0 · Life Edet · 2026 · Confidential')))
+                    border:'none', cursor:'pointer', borderRadius:2,
+                    transition:'all 0.2s', boxShadow:'0 0 40px rgba(76,247,192,0.3)', overflowWrap:'break-word', minWidth:0}, onMouseEnter: e=>{ e.currentTarget.style.background='#6FFAD0'; e.currentTarget.style.transform='translateY(-2px)'; }, onMouseLeave: e=>{ e.currentTarget.style.background='#4CF7C0'; e.currentTarget.style.transform='translateY(0)'; }}, 'Contact Us →')), React.createElement("div", {style: { ...mono, fontSize:9, letterSpacing:1, color:C.dim }}, 'NeuralFusion™ Enterprise · Edition 2.0 · Life Edet · 2026 · Confidential')))
         );
       }
 
@@ -6287,7 +6361,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
         React.createElement("div", {style: { background:EC.bg, minHeight:'100vh', fontFamily:"'Space Mono', monospace", color:EC.text }}, React.createElement("div", {style: { position:'fixed', inset:0, backgroundImage:`linear-gradient(${EC.accent}08 1px,transparent 1px),linear-gradient(90deg,${EC.accent}08 1px,transparent 1px)`, backgroundSize:'60px 60px', pointerEvents:'none', zIndex:0 }}), React.createElement("div", {style: { position:'relative', zIndex:1 }}, React.createElement(EntNavBar, {view: entView, setView: setEntView, role: entRole, onExit: ()=>setEntRole(null)}), entRole==='participant'&&(
               React.createElement(React.Fragment, null, entView==='assessment'&&React.createElement(EntCFIAssessment, {session: entSession, onComplete: r=>{setEntResults(p=>[...p,r]);}}), entView==='programme'&&React.createElement(EntProgrammeView, {session: entSession}))
             ), entRole==='facilitator'&&(
-              React.createElement(React.Fragment, null, entView==='dashboard'&&React.createElement(EntFacilitatorDashboard, {session: entSession, allResults: entResults}), entView==='lessons'&&React.createElement(EntProgrammeView, {session: entSession}), entView==='cfi'&&React.createElement(EntCFIDataEntry, {session: entSession, onSave: r=>{setEntResults(p=>{const idx=p.findIndex(x=>x.pid===r.pid&&x.cohort===r.cohort&&x.phase===r.phase);if(idx>=0){const u=[...p];u[idx]=r;return u;}return [...p,r];});}}), entView==='results'&&React.createElement(EntResultsView, {session: entSession, allResults: entResults}))
+              React.createElement(React.Fragment, null, entView==='dashboard'&&React.createElement(EntFacilitatorDashboard, {session: entSession, allResults: entResults}), entView==='roster'&&React.createElement(EntRosterView, {session: entSession}), entView==='lessons'&&React.createElement(EntProgrammeView, {session: entSession}), entView==='cfi'&&React.createElement(EntCFIDataEntry, {session: entSession, onSave: r=>{setEntResults(p=>{const idx=p.findIndex(x=>x.pid===r.pid&&x.cohort===r.cohort&&x.phase===r.phase);if(idx>=0){const u=[...p];u[idx]=r;return u;}return [...p,r];});}}), entView==='results'&&React.createElement(EntResultsView, {session: entSession, allResults: entResults}))
             )))
       );
     }
