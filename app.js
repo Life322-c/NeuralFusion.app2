@@ -1871,6 +1871,8 @@ Most learners take four to six weeks working through the lessons at the suggeste
     }
 
     // ── BOTTOM NAV ────────────────────────────────────────────────────
+    // Inactive nav colour: same slate family as C.dim, lifted to pass 4.5:1 on the navy bar.
+    const NAV_INACTIVE = '#6F7F9E';
     function BottomNav({ view, setView, user }) {
       const items = [
         { v:'home', symbol:'⌂', label:'Home' },
@@ -1881,6 +1883,11 @@ Most learners take four to six weeks working through the lessons at the suggeste
         { v:'enterprise', symbol:'⬡', label:'Enterprise' },
       ];
       const [awaitingReview, setAwaitingReview] = useState(0);
+      // Lets the footer reserve room for the fixed bar so it never covers content.
+      useEffect(() => {
+        document.body.classList.add('has-bottom-nav');
+        return () => document.body.classList.remove('has-bottom-nav');
+      }, []);
       useEffect(() => {
         if (!user) { setAwaitingReview(0); return; }
         listDecisionSessions(user.id).then(rows => {
@@ -1888,16 +1895,24 @@ Most learners take four to six weeks working through the lessons at the suggeste
         });
       }, [user]);
       return (
-        React.createElement("div", {className: "bottom-nav", style: {
+        React.createElement("nav", {className: "bottom-nav", "aria-label": "Primary", style: {
           position:'fixed', bottom:0, left:0, right:0, zIndex:90,
           background:'rgba(5,12,26,0.95)', backdropFilter:'blur(20px)',
           borderTop:`1px solid ${C.border}`,
-        }}, items.map(item => (
-            React.createElement("button", {key: item.v, onClick: ()=>setView(item.v), style: {
-              flex:1, padding:'10px 4px 14px', background:'none', border:'none',
-              display:'flex', flexDirection:'column', alignItems:'center', gap:4, cursor:'pointer',
-            }}, React.createElement("div", {style: { position:'relative', ...mono, fontSize:14, color:view===item.v?C.cyan:C.dim, transition:'color 0.2s' }}, item.symbol, item.v==='decisions' && awaitingReview>0 && React.createElement("div", {style: { position:'absolute', top:-2, right:-6, width:6, height:6, borderRadius:'50%', background:'#E2BE78' }})), React.createElement("div", {style: { ...inter, fontSize:9, letterSpacing:1, color:view===item.v?C.cyan:C.dim, fontWeight:view===item.v?600:400, transition:'color 0.2s' }}, item.label))
-          )))
+        }}, items.map(item => {
+            const active = view === item.v;
+            return React.createElement("button", {
+              key: item.v,
+              type: "button",
+              className: "bottom-nav-item" + (active ? " is-active" : ""),
+              "aria-current": active ? "page" : undefined,
+              onClick: ()=>setView(item.v),
+            },
+              React.createElement("span", {className: "bottom-nav-icon", style: { ...mono, color: active ? C.cyan : NAV_INACTIVE }}, item.symbol,
+                item.v==='decisions' && awaitingReview>0 && React.createElement("span", {className: "bottom-nav-dot"})),
+              React.createElement("span", {className: "bottom-nav-label", style: { ...inter, color: active ? C.cyan : NAV_INACTIVE, fontWeight: active ? 600 : 400 }}, item.label)
+            );
+          }))
       );
     }
 
@@ -2138,7 +2153,18 @@ function HomeCognitiveField({ size = 220, centerLabel = 'YOU', interactive, setV
 
 /** Small uppercase mono label used as a recurring section marker. */
 function HomeLabel({ children, color }) {
-  return React.createElement("div", { className: "nf-home-fade", style: { ...hMono, fontSize:11, letterSpacing:'0.18em', textTransform:'uppercase', color: color || H.goldDeep, marginBottom:16 } }, children);
+  return React.createElement("div", { className: "nf-home-fade nf-home-label", style: { ...hMono, fontSize:11, letterSpacing:'0.18em', textTransform:'uppercase', color: color || H.goldDeep, marginBottom:16 } }, children);
+}
+
+/** Renders the same note text, split into no-wrap phrases (each ending in the
+ * existing " ·" separator) so a wrap can never strand a dot at the start of a line. */
+function homeNoteParts(parts) {
+  const out = [];
+  parts.forEach((t, i) => {
+    if (i) out.push(' ');
+    out.push(React.createElement("span", { key: i, style: { whiteSpace:'nowrap' } }, i < parts.length - 1 ? t + ' ·' : t));
+  });
+  return out;
 }
 
 // Logged-in recurring-use panel: "What are you trying to figure out?"
@@ -2152,8 +2178,8 @@ function HomeDecisionPanel({ user, setView }) {
   }, [user]);
   if (!user) return null;
   return (
-    React.createElement("section", { style: { maxWidth: 1280, margin: '0 auto', padding: '0 24px 56px' } },
-      React.createElement("div", { style: { background: C.surface, border: `1px solid ${C.border}`, borderRadius: 8, padding: '32px 28px' } },
+    React.createElement("section", { className: "nf-home-panel", style: { maxWidth: 1280, margin: '0 auto', padding: '0 24px 56px' } },
+      React.createElement("div", { className: "nf-home-panel-card", style: { background: C.surface, border: `1px solid ${C.border}`, borderRadius: 8, padding: '32px 28px' } },
         React.createElement("div", { style: { ...hMono, fontSize: 11, letterSpacing: '0.14em', color: H.gold, marginBottom: 12 } }, 'WHAT ARE YOU TRYING TO FIGURE OUT?'),
         React.createElement("div", { style: { display: 'flex', flexWrap: 'wrap', gap: 12, marginBottom: decisions.length ? 24 : 0 } },
           React.createElement("button", { className: "nf-home-cta-primary", onClick: () => setView('protocol') }, 'Think Through a Decision', React.createElement("span", null, '→')),
@@ -2179,6 +2205,15 @@ function HomeDecisionPanel({ user, setView }) {
 function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
   const completedLessons = Object.values(lessonProgress || {}).filter(v => v === 100).length;
   const [openFaq, setOpenFaq] = useState(0);
+  // Framework graphic: 200px on tablet/desktop (unchanged); on phones it scales
+  // up to fill the column so the four nodes and centre label have room to breathe.
+  const [vw, setVw] = useState(typeof window !== 'undefined' ? window.innerWidth : 1024);
+  useEffect(() => {
+    const onResize = () => setVw(window.innerWidth);
+    window.addEventListener('resize', onResize);
+    return () => window.removeEventListener('resize', onResize);
+  }, []);
+  const fieldSize = vw < 640 ? Math.max(220, Math.min(264, vw - 72)) : 200;
 
   return React.createElement("div", { className: "nf-home", style: { background:H.bg, color:H.text, paddingTop:60 } },
 
@@ -2221,8 +2256,70 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
       .nf-home .nf-home-hero p { margin-left:auto; margin-right:auto; }
       .nf-home .nf-home-hero > div:first-child > div:last-child { justify-content:center; }
       .nf-home .nf-home-field { max-width:100%; }
-      @media (max-width: 380px) {
-        .nf-home .nf-home-field { transform:scale(0.85); }
+      /* ── PHONE REFINEMENTS (max 639px). Layout only; copy is untouched.
+         Tablet and desktop rules above are not affected. ─────────────── */
+      @media (max-width: 639px) {
+        .nf-home { overflow-x:clip; }
+
+        /* Consistent 20px gutters and tighter vertical rhythm */
+        .nf-home .nf-home-sec { padding-left:20px !important; padding-right:20px !important; padding-top:56px !important; padding-bottom:56px !important; }
+        .nf-home .nf-home-wrap { padding:56px 20px !important; }
+        .nf-home .nf-home-panel { padding:0 20px 40px !important; }
+        .nf-home .nf-home-panel-card { padding:24px 20px !important; }
+
+        /* Hero */
+        .nf-home .nf-home-hero { padding:44px 20px 52px !important; gap:0 !important; }
+        .nf-home .nf-home-label { font-size:11px; letter-spacing:0.2em; line-height:1.4; margin-bottom:18px; }
+        .nf-home .nf-home-hero .nf-home-label { margin-bottom:22px; }
+        .nf-home .nf-home-hero h1 {
+          font-size:clamp(34px, 9.6vw, 42px) !important; line-height:1.06 !important;
+          letter-spacing:-0.022em !important; font-weight:600 !important;
+          margin:0 auto 20px !important; text-wrap:balance;
+        }
+        .nf-home .nf-home-hero p {
+          font-size:16px !important; line-height:1.65 !important; max-width:30ch !important;
+          margin:0 auto 32px !important; text-wrap:balance;
+        }
+        .nf-home .nf-home-hero-actions { gap:18px !important; width:100%; }
+
+        /* Primary CTA: natural proportions, centred label, 52px tall touch target */
+        .nf-home .nf-home-cta-primary {
+          min-height:52px; padding:0 22px; font-size:13px; letter-spacing:0.03em; line-height:1.25; white-space:nowrap;
+          justify-content:center; text-align:center; max-width:100%; min-width:min(100%, 272px);
+        }
+        .nf-home .nf-home-cta-outline {
+          min-height:48px; padding:0 22px; display:inline-flex; align-items:center; justify-content:center; text-align:center; line-height:1.25;
+        }
+
+        /* CFI microcopy: larger, higher contrast, breaks only between phrases */
+        .nf-home .nf-home-note { font-size:12px !important; letter-spacing:0.03em !important; line-height:1.7; color:${C.muted} !important; }
+        .nf-home .nf-home-hero-note { display:block; max-width:300px; text-align:center; text-wrap:balance; }
+
+        /* Heading hierarchy (the global phone cap made these body-sized) */
+        .nf-home h2 { font-size:clamp(24px, 6.8vw, 30px) !important; line-height:1.2 !important; letter-spacing:-0.015em !important; font-weight:600 !important; }
+        .nf-home h3 { font-size:18px !important; line-height:1.3 !important; font-weight:600 !important; }
+
+        /* Framework section */
+        .nf-home .nf-home-fieldwrap { margin-bottom:32px !important; padding:4px 0; }
+        .nf-home .nf-home-modes-grid { grid-template-columns:1fr; gap:10px; }
+        .nf-home .nf-home-mode-cell { padding:18px 20px 18px 22px; }
+        .nf-home .nf-home-mode-cell:hover { transform:none; }
+
+        /* Steps: one clean list instead of a 2-column grid with an orphan */
+        .nf-home .nf-home-steps-grid { grid-template-columns:1fr; gap:0; }
+        .nf-home .nf-home-steps-grid > div { display:grid; grid-template-columns:104px 1fr; column-gap:16px; align-items:baseline; padding:14px 0; border-top:1px solid ${H.border}; }
+        .nf-home .nf-home-steps-grid > div:first-child { border-top:none; padding-top:0; }
+        .nf-home .nf-home-steps-grid > div > div:first-child { margin-bottom:0 !important; }
+
+        /* CFI example card: balanced 2 x 2 instead of 3 + 1 */
+        .nf-home .card { padding:28px 20px !important; }
+        .nf-home .nf-home-cfi-bars { display:grid !important; grid-template-columns:repeat(2, minmax(0, 1fr)); gap:28px 16px !important; justify-items:center; }
+
+        /* Enterprise actions: equal-width stack */
+        @media (max-width: 340px) { .nf-home .nf-home-cta-primary { font-size:12px; padding:0 14px; letter-spacing:0.02em; } }
+        .nf-home .nf-home-actions { flex-direction:column !important; align-items:stretch !important; max-width:320px; margin:0 auto; gap:12px !important; }
+        .nf-home .nf-home-actions .nf-home-cta-primary,
+        .nf-home .nf-home-actions .nf-home-cta-outline { display:flex; width:100%; min-width:0; }
       }
       @media (prefers-reduced-motion: reduce) {
         .nf-home * { animation-duration:0.01ms !important; animation-iteration-count:1 !important; }
@@ -2238,9 +2335,11 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
         React.createElement("h1", { className: "nf-home-fade", style: { ...hDisplay, fontWeight:600, fontSize:'clamp(36px,6vw,60px)', lineHeight:1.05, letterSpacing:'-0.02em', color:H.ink, marginBottom:22 } }, 'The operating system for how you think.'),
         React.createElement("p", { className: "nf-home-fade", style: { ...hBody, fontSize:'clamp(16px,1.6vw,19px)', lineHeight:1.6, color:H.muted, maxWidth:'42ch', marginBottom:32 } },
           'Understand how your mind works. Train how you think. Make better decisions.'),
-        React.createElement("div", { className: "nf-home-fade", style: { display:'flex', flexDirection:'column', alignItems:'center', gap:14 } },
+        React.createElement("div", { className: "nf-home-fade nf-home-hero-actions", style: { display:'flex', flexDirection:'column', alignItems:'center', gap:14 } },
           React.createElement("button", { className: "nf-home-cta-primary", onClick: () => setView('cfi') }, 'Discover Your Cognitive Profile', React.createElement("span", null, '→')),
-          React.createElement("span", { style: { ...hMono, fontSize:11, letterSpacing:'0.08em', color:H.faint } }, 'Free CFI™ Assessment · 13 questions · About 3–4 minutes')
+          // Same wording, split into no-wrap groups so it breaks cleanly on narrow phones.
+          React.createElement("span", { className: "nf-home-note nf-home-hero-note", style: { ...hMono, fontSize:11, letterSpacing:'0.08em', color:H.faint } },
+            homeNoteParts(['Free CFI™ Assessment', '13 questions', 'About 3–4 minutes']))
         )
       )
     ),
@@ -2250,15 +2349,15 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
     // ══════════════════════════════════════════════════════════
     // SECTION 2: FOUR THINKING MODES
     // ══════════════════════════════════════════════════════════
-    React.createElement("section", { style: { maxWidth:1280, margin:'0 auto', padding:'64px 24px', borderTop:`1px solid ${H.border}` } },
+    React.createElement("section", { className: "nf-home-sec", style: { maxWidth:1280, margin:'0 auto', padding:'64px 24px', borderTop:`1px solid ${H.border}` } },
       React.createElement("div", { style: { maxWidth:640, marginBottom:40 } },
         React.createElement(HomeLabel, { color:H.goldDeep }, 'The framework'),
         React.createElement("h2", { style: { ...hDisplay, fontWeight:600, fontSize:'clamp(22px,2.6vw,30px)', color:H.ink, marginBottom:16 } }, "You don't think in just one way."),
         React.createElement("p", { style: { ...hBody, fontSize:15, lineHeight:1.7, color:H.muted } },
           'NeuralFusion™ helps you understand how these modes interact, and where they become fragmented.')
       ),
-      React.createElement("div", { style: { display:'flex', justifyContent:'center', marginBottom:40 } },
-        React.createElement(HomeCognitiveField, { size:200, centerLabel:'INTEGRATION', interactive:true, setView })
+      React.createElement("div", { className: "nf-home-fieldwrap", style: { display:'flex', justifyContent:'center', marginBottom:40 } },
+        React.createElement(HomeCognitiveField, { size:fieldSize, centerLabel:'INTEGRATION', interactive:true, setView })
       ),
       React.createElement("div", { className: "nf-home-modes-grid" },
         HOME_MODES.map(m => React.createElement("div", { key:m.key, className: "nf-home-mode-cell", style: { position:'relative', overflow:'hidden' } },
@@ -2273,7 +2372,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
     // ══════════════════════════════════════════════════════════
     // SECTION 3: COGNITIVE FRAGMENTATION
     // ══════════════════════════════════════════════════════════
-    React.createElement("section", { style: { maxWidth:760, margin:'0 auto', padding:'72px 24px', textAlign:'center' } },
+    React.createElement("section", { className: "nf-home-sec", style: { maxWidth:760, margin:'0 auto', padding:'72px 24px', textAlign:'center' } },
       React.createElement("h2", { style: { ...hDisplay, fontWeight:600, fontSize:'clamp(24px,3vw,32px)', lineHeight:1.25, color:H.ink, marginBottom:36 } }, "When your thinking doesn't work together, you feel it."),
       React.createElement("div", { style: { display:'flex', flexDirection:'column', gap:14, marginBottom:36 } },
         ['You overthink.', 'You second-guess yourself.', 'You miss connections.', 'You rely too heavily on one way of thinking.'].map((w,i) => (
@@ -2289,7 +2388,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
     // SECTION 4: FROM FRAGMENTATION TO INTEGRATION
     // ══════════════════════════════════════════════════════════
     React.createElement("section", { style: { background:H.bgAlt, borderTop:`1px solid ${H.border}`, borderBottom:`1px solid ${H.border}` } },
-      React.createElement("div", { style: { maxWidth:1000, margin:'0 auto', padding:'72px 24px' } },
+      React.createElement("div", { className: "nf-home-wrap", style: { maxWidth:1000, margin:'0 auto', padding:'72px 24px' } },
         React.createElement("h2", { style: { ...hDisplay, fontWeight:600, fontSize:'clamp(22px,2.6vw,28px)', color:H.ink, marginBottom:44, textAlign:'center' } }, 'From fragmentation to integration.'),
         React.createElement("div", { className: "nf-home-steps-grid", style: { marginBottom:40 } },
           [
@@ -2324,7 +2423,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
     // SECTION 5: CFI™ ASSESSMENT (primary entry point, with Clarity Delta and FAQ folded in)
     // ══════════════════════════════════════════════════════════
     React.createElement("section", { style: { borderBottom:`1px solid ${H.border}` } },
-      React.createElement("div", { style: { maxWidth:920, margin:'0 auto', padding:'72px 24px' } },
+      React.createElement("div", { className: "nf-home-wrap", style: { maxWidth:920, margin:'0 auto', padding:'72px 24px' } },
         React.createElement(HomeLabel, null, 'Before you train your thinking, understand it'),
         React.createElement("h2", { style: { ...hDisplay, fontWeight:600, fontSize:'clamp(24px,3vw,32px)', color:H.ink, marginBottom:8 } }, 'CFI™'),
         React.createElement("div", { style: { ...hMono, fontSize:12, letterSpacing:'0.14em', color:H.faint, marginBottom:24 } }, 'COGNITIVE FRAGMENTATION INDEX™'),
@@ -2335,7 +2434,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
         // four modes, not a dashboard mockup with invented numbers.
         React.createElement("div", { className: "card", style: { background:C.surface, border:`1px solid ${H.border}`, borderRadius:6, padding:'40px 24px', marginBottom:28 } },
           React.createElement("div", { style: { ...hMono, fontSize:10, letterSpacing:'0.12em', color:H.faint, marginBottom:24 } }, 'CFI™ COGNITIVE PROFILE · EXAMPLE'),
-          React.createElement("div", { style: { display:'flex', justifyContent:'center', gap:'clamp(16px,4vw,40px)', flexWrap:'wrap' } },
+          React.createElement("div", { className: "nf-home-cfi-bars", style: { display:'flex', justifyContent:'center', gap:'clamp(16px,4vw,40px)', flexWrap:'wrap' } },
             HOME_MODES.map(m => React.createElement("div", { key:m.key, style: { display:'flex', flexDirection:'column', alignItems:'center', gap:10 } },
               React.createElement("div", { style: { width:6, height:76, borderRadius:3, background:H.border, position:'relative', overflow:'hidden' } },
                 React.createElement("div", { style: { position:'absolute', bottom:0, left:0, right:0, height:`${40 + (m.key.length * 7) % 45}%`, background:m.color, borderRadius:3 } })
@@ -2349,7 +2448,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
         React.createElement("p", { style: { ...hBody, fontSize:13.5, color:H.faint, maxWidth:480, marginBottom:32 } },
           'Retake it later and Clarity Delta\u2122 shows how your profile has changed.'),
         React.createElement("button", { className: "nf-home-cta-primary", onClick: () => setView('cfi') }, 'Take the Free CFI™ Assessment', React.createElement("span", null, '→')),
-        React.createElement("div", { style: { ...hMono, fontSize:11, letterSpacing:'0.06em', color:H.faint, marginTop:14, marginBottom:56 } }, '13 questions · About 3–4 minutes · Free · No account needed to start'),
+        React.createElement("div", { className: "nf-home-note", style: { ...hMono, fontSize:11, letterSpacing:'0.06em', color:H.faint, marginTop:14, marginBottom:56 } }, homeNoteParts(['13 questions', 'About 3–4 minutes', 'Free', 'No account needed to start'])),
 
         React.createElement("div", { style: { borderTop:`1px solid ${H.border}`, paddingTop:40 } },
           React.createElement("h3", { style: { ...hDisplay, fontWeight:600, fontSize:18, color:H.ink, marginBottom:16 } }, 'A few things people ask.'),
@@ -2377,14 +2476,14 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
     // SECTION 6: ENTERPRISE
     // ══════════════════════════════════════════════════════════
     React.createElement("section", { style: { background:H.bgAlt, borderTop:`1px solid ${H.border}`, borderBottom:`1px solid ${H.border}` } },
-      React.createElement("div", { style: { maxWidth:1000, margin:'0 auto', padding:'72px 24px' } },
+      React.createElement("div", { className: "nf-home-wrap", style: { maxWidth:1000, margin:'0 auto', padding:'72px 24px' } },
         React.createElement("div", { style: { maxWidth:640, marginBottom:40 } },
           React.createElement("h2", { style: { ...hDisplay, fontWeight:600, fontSize:'clamp(22px,2.6vw,28px)', color:H.ink, marginBottom:14 } }, "Build better thinking into the way your organization works."),
           React.createElement("p", { style: { ...hBody, fontSize:15, lineHeight:1.7, color:H.muted } }, 'For leadership teams, executives, L&D teams and organizations navigating high-stakes decisions and AI-driven work.')
         ),
         React.createElement("p", { style: { ...hBody, fontSize:14.5, lineHeight:1.75, color:H.muted, maxWidth:600, marginBottom:36 } },
           'NeuralFusion™ provides cognitive assessment, structured training and longitudinal measurement designed to help organizations understand and develop human thinking.'),
-        React.createElement("div", { style: { display:'flex', gap:14, justifyContent:'center', flexWrap:'wrap' } },
+        React.createElement("div", { className: "nf-home-actions", style: { display:'flex', gap:14, justifyContent:'center', flexWrap:'wrap' } },
           React.createElement("button", { className: "nf-home-cta-primary", onClick: () => setView('enterprise') }, 'Explore Enterprise →'),
           React.createElement("a", { href: "/contact", className: "nf-home-cta-outline", style: { textDecoration:'none' } }, 'Request an Enterprise Pilot')
         )
@@ -2394,7 +2493,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
     // ══════════════════════════════════════════════════════════
     // SECTION 7: CREDIBILITY (principle + testimonial + founder + deep links)
     // ══════════════════════════════════════════════════════════
-    React.createElement("section", { style: { maxWidth:640, margin:'0 auto', padding:'72px 24px', textAlign:'center' } },
+    React.createElement("section", { className: "nf-home-sec", style: { maxWidth:640, margin:'0 auto', padding:'72px 24px', textAlign:'center' } },
       React.createElement("p", { style: { ...hBody, fontSize:15.5, lineHeight:1.9, color:H.muted, marginBottom:44 } },
         'Understand what you can measure.', React.createElement("br"), 'Measure what you can test.', React.createElement("br"), 'Be honest about what you do not yet know.'),
 
@@ -2422,12 +2521,12 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
     // ══════════════════════════════════════════════════════════
     // SECTION 8: CLOSING
     // ══════════════════════════════════════════════════════════
-    React.createElement("section", { style: { background:H.bgAlt, borderTop:`1px solid ${H.border}`, padding:'96px 24px' } },
+    React.createElement("section", { className: "nf-home-sec", style: { background:H.bgAlt, borderTop:`1px solid ${H.border}`, padding:'96px 24px' } },
       React.createElement("div", { style: { maxWidth:600, margin:'0 auto', textAlign:'center' } },
         React.createElement("h2", { style: { ...hDisplay, fontWeight:600, fontSize:'clamp(28px,4vw,42px)', lineHeight:1.15, color:H.ink, marginBottom:20 } }, 'You are the intelligence.'),
         React.createElement("p", { style: { ...hBody, fontSize:16, lineHeight:1.6, color:H.muted, marginBottom:36 } }, 'NeuralFusion™ helps you understand, train and integrate the way you think.'),
         React.createElement("button", { className: "nf-home-cta-primary", onClick: () => setView('cfi') }, 'Discover Your Cognitive Profile', React.createElement("span", null, '→')),
-        React.createElement("div", { style: { ...hMono, fontSize:11, letterSpacing:'0.06em', color:H.faint, marginTop:16 } }, '13 questions · About 3–4 minutes · Free · No account needed to start')
+        React.createElement("div", { className: "nf-home-note", style: { ...hMono, fontSize:11, letterSpacing:'0.06em', color:H.faint, marginTop:16 } }, homeNoteParts(['13 questions', 'About 3–4 minutes', 'Free', 'No account needed to start']))
       )
     )
   );
@@ -5128,7 +5227,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
         { label:'Terms & conditions', href:'/terms' },
       ];
       return (
-        React.createElement("footer", {style: { borderTop:`1px solid ${C.border}`, padding:'48px 24px 32px', textAlign:'center' }}, React.createElement("div", {style: { maxWidth:1200, margin:'0 auto' }}, React.createElement("div", {style: { display:'flex', alignItems:'center', justifyContent:'center', marginBottom:32 }}, React.createElement(NFLogoLockup, {iconSize: 26, gap: 10, wordmarkColor: C.text})), React.createElement("div", {style: { display:'flex', justifyContent:'center', flexWrap:'wrap', gap:24, marginBottom:20 }}, links.map(l=>(
+        React.createElement("footer", {className: "nf-footer", style: { borderTop:`1px solid ${C.border}`, padding:'48px 24px 32px', textAlign:'center' }}, React.createElement("div", {style: { maxWidth:1200, margin:'0 auto' }}, React.createElement("div", {style: { display:'flex', alignItems:'center', justifyContent:'center', marginBottom:32 }}, React.createElement(NFLogoLockup, {iconSize: 26, gap: 10, wordmarkColor: C.text})), React.createElement("div", {style: { display:'flex', justifyContent:'center', flexWrap:'wrap', gap:24, marginBottom:20 }}, links.map(l=>(
                 React.createElement("button", {key: l.v, onClick: ()=>setView(l.v), style: { background:'none', border:'none', color:C.muted, fontSize:12, cursor:'pointer' }}, l.label)
               ))), React.createElement("div", {style: { display:'flex', justifyContent:'center', flexWrap:'wrap', gap:20, marginBottom:32, paddingTop:16, borderTop:`1px solid ${C.border}` }}, legalLinks.map(l=>(
                 React.createElement("a", {key: l.label, href: l.href, style: { background:'none', border:'none', color:C.dim, fontSize:10, cursor:'pointer', fontFamily:"'Space Mono', monospace", letterSpacing:1, textDecoration:'none' }}, l.label)
