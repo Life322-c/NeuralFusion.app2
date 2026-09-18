@@ -4914,10 +4914,15 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
             !isEnterprise && React.createElement(CPCard, {style: { marginTop:20, padding:'40px', textAlign:'center', borderColor:'#3E7CA655', background:'#F5F9FB' }},
               React.createElement(CPEyebrow, {color: '#3E7CA6'}, 'NeuralFusion™ Enterprise'),
               React.createElement("div", {style: { ...syne, fontSize:15, fontWeight:800, color:CP.ink, marginBottom:8 }}, 'Deploy it across your organisation'),
-              React.createElement("div", {style: { ...syne, fontSize:14, fontWeight:800, color:'#3E7CA6', marginBottom:2 }}, '₦', ENTERPRISE_PRICE_DISPLAY),
-              React.createElement("div", {style: { fontSize:12, color:CP.faint, marginBottom:16 }}, usdApprox(ENTERPRISE_PRICE_KOBO), ' · billed in Naira'),
+              React.createElement("div", {style: { ...syne, fontSize:14, fontWeight:800, color:'#3E7CA6', marginBottom:2 }}, 'Contact us'),
+              React.createElement("div", {style: { fontSize:12, color:CP.faint, marginBottom:16 }}, 'Custom pricing · billed in Naira'),
               React.createElement("div", {style: { fontSize:14, color:CP.muted, marginBottom:32, maxWidth:480, margin:'0 auto 32px', lineHeight:1.8 }}, 'Cohort management · CFI data entry · Facilitator dashboard · 5-lesson programme · Clarity Delta™ reporting'),
-              React.createElement(CPButton, {onClick: ()=>setView('enterprise'), style: { background:'#3E7CA6', border:'1px solid #3E7CA6', color:'#FFFFFF' }}, 'Explore enterprise →')
+              React.createElement("a", {href: '/contact', style: {
+                display:'inline-block', textDecoration:'none', textAlign:'center',
+                ...syne, fontSize:14, fontWeight:700, letterSpacing:'0.02em',
+                padding:'14px 32px', background:'#3E7CA6', color:'#FFFFFF',
+                border:'1px solid #3E7CA6', cursor:'pointer', borderRadius:2,
+              }}, 'Contact us →')
             )
           )
         )
