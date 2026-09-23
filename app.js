@@ -1336,14 +1336,36 @@ Most learners take four to six weeks working through the lessons at the suggeste
       } catch (e) { console.error('[COHORT PARTICIPANTS REMOVE ERROR]', e); return false; }
     };
 
+    // ── Organisation Helpers ─────────────────────────────────────────
+    // Backs Admin → Organisations. One row per enterprise client; cohorts
+    // hang off org_id (see migration_enterprise_workflow.sql). Free-text
+    // `cohorts.org` is kept in sync for backward compatibility.
+    const listOrganisations = async () => {
+      try {
+        const { data, error } = await sb.from('organisations').select('*').order('name', { ascending: true });
+        if (error) throw error;
+        return data || [];
+      } catch (e) { console.error('[ORGS LIST ERROR]', e); return []; }
+    };
+    const createOrganisation = async (name, createdBy) => {
+      try {
+        const { data, error } = await sb.from('organisations').insert({ name: name.trim(), created_by: createdBy || null }).select().single();
+        if (error) throw error;
+        return data;
+      } catch (e) { console.error('[ORGS CREATE ERROR]', e); return null; }
+    };
+
     // ── Cohort Helpers ───────────────────────────────────────────────
     // Backs the Admin → Cohorts tab. Previously stored in localStorage
     // (nf_cohorts), which only existed in one admin's browser. Field names
-    // are mapped to camelCase to match the existing Admin UI unchanged.
+    // are mapped to camelCase to match the existing Admin UI. Cohorts now
+    // carry a real org_id and facilitator_user_id alongside the legacy
+    // free-text org/facilitator_name columns (kept for display back-compat).
     const mapCohortRow = r => ({
-      id: r.id, name: r.name, org: r.org, facilitator: r.facilitator_name || '',
-      code: r.code, startDate: r.start_date || '', maxParticipants: r.max_participants,
-      status: r.status, created: r.created_at,
+      id: r.id, name: r.name, org: r.org, orgId: r.org_id || null,
+      facilitator: r.facilitator_name || '', facilitatorUserId: r.facilitator_user_id || null,
+      code: r.code, startDate: r.start_date || '', endDate: r.end_date || '',
+      maxParticipants: r.max_participants, status: r.status, created: r.created_at,
     });
     const listCohorts = async () => {
       try {
@@ -1352,15 +1374,31 @@ Most learners take four to six weeks working through the lessons at the suggeste
         return (data || []).map(mapCohortRow);
       } catch (e) { console.error('[COHORTS LIST ERROR]', e); return []; }
     };
+    // Cohort codes must be unique (see migration's unique index). Retries a
+    // handful of times on a collision rather than trusting Date.now() alone.
+    const generateCohortCode = (orgName) => {
+      const prefix = (orgName || 'NF').toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 4) || 'NF';
+      const suffix = Math.random().toString(36).slice(2, 6).toUpperCase();
+      return `${prefix}-${suffix}`;
+    };
     const createCohortRow = async (c, createdBy) => {
       try {
-        const { data, error } = await sb.from('cohorts').insert({
-          name: c.name, org: c.org, facilitator_name: c.facilitator || null, code: c.code,
-          start_date: c.startDate || null, max_participants: c.maxParticipants ? parseInt(c.maxParticipants, 10) : null,
-          status: 'active', created_by: createdBy || null,
-        }).select().single();
-        if (error) throw error;
-        return mapCohortRow(data);
+        let lastErr = null;
+        for (let attempt = 0; attempt < 5; attempt++) {
+          const code = c.code || generateCohortCode(c.org);
+          const { data, error } = await sb.from('cohorts').insert({
+            name: c.name, org: c.org, org_id: c.orgId || null,
+            facilitator_name: c.facilitator || null, facilitator_user_id: c.facilitatorUserId || null,
+            code, start_date: c.startDate || null, end_date: c.endDate || null,
+            max_participants: c.maxParticipants ? parseInt(c.maxParticipants, 10) : null,
+            status: 'active', created_by: createdBy || null,
+          }).select().single();
+          if (!error) return mapCohortRow(data);
+          lastErr = error;
+          // 23505 = unique_violation. Only retry (with a fresh code) on a code collision.
+          if (error.code !== '23505' || c.code) break;
+        }
+        throw lastErr;
       } catch (e) { console.error('[COHORTS CREATE ERROR]', e); return null; }
     };
     const setCohortStatus = async (id, status) => {
@@ -1370,12 +1408,38 @@ Most learners take four to six weeks working through the lessons at the suggeste
         return true;
       } catch (e) { console.error('[COHORTS UPDATE ERROR]', e); return false; }
     };
+    const assignCohortFacilitator = async (cohortId, userId, facilitatorName) => {
+      try {
+        const { error } = await sb.from('cohorts').update({ facilitator_user_id: userId, facilitator_name: facilitatorName || null }).eq('id', cohortId);
+        if (error) throw error;
+        return true;
+      } catch (e) { console.error('[COHORTS ASSIGN FACILITATOR ERROR]', e); return false; }
+    };
     const deleteCohortRow = async (id) => {
       try {
         const { error } = await sb.from('cohorts').delete().eq('id', id);
         if (error) throw error;
         return true;
       } catch (e) { console.error('[COHORTS DELETE ERROR]', e); return false; }
+    };
+    // Server-side join: validates code/status/capacity/duplicate membership
+    // and grants enterprise access in one atomic RPC (see
+    // migration_enterprise_workflow.sql · join_cohort_by_code). Returns a
+    // stable { ok, error } shape the UI maps to a friendly message.
+    const joinCohortByCode = async (code) => {
+      try {
+        const { data, error } = await sb.rpc('join_cohort_by_code', { p_code: code.trim() });
+        if (error) throw error;
+        return data;
+      } catch (e) { console.error('[JOIN COHORT ERROR]', e); return { ok: false, error: 'unknown' }; }
+    };
+    const JOIN_COHORT_ERRORS = {
+      not_signed_in: 'Please sign in first.',
+      invalid_code: "That cohort code isn't recognised. Double-check it with your facilitator.",
+      archived: 'This cohort has been archived and is no longer accepting participants.',
+      already_joined: "You've already joined this cohort.",
+      cohort_full: 'This cohort has reached its maximum number of participants.',
+      unknown: 'Something went wrong joining that cohort. Please try again.',
     };
 
     const CFI_VERSION = 'CFI-1.0'; // the canonical 13-item instrument. Never mix with older 15/16-item data.
@@ -1510,11 +1574,19 @@ Most learners take four to six weeks working through the lessons at the suggeste
       try { await sb.from('platform_settings').upsert({key, text_value},{onConflict:'key'}); } catch(_){}
     };
     // Enterprise results helpers
+    // Carries the stable IDs the brief's "CFI Result Association" step
+    // requires (participant user_id, org_id, cohort_id) alongside the
+    // legacy pid/cohort text, so a result is never identifiable only by a
+    // free-text cohort code. userId/orgId/cohortId are optional (manual
+    // facilitator entries via EntCFIDataEntry won't have a real user_id).
     const saveEnterpriseResult = async (result) => {
       try {
         await sb.from('enterprise_results').upsert({
           pid: result.pid,
           cohort: result.cohort,
+          user_id: result.userId || null,
+          org_id: result.orgId || null,
+          cohort_id: result.cohortId || null,
           phase: result.phase,
           group_label: result.group || null,
           composite: result.composite,
@@ -5287,6 +5359,119 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
       );
     }
 
+    // ── Cohort Details Page ──────────────────────────────────────────
+    // Opened from the Admin → Cohorts list. One screen for everything the
+    // brief asks a cohort to surface: code, status, roster, facilitator,
+    // and the Invite Facilitator / Invite Participants / Copy Code / Archive
+    // actions, so "Create Cohort" always lands somewhere connected rather
+    // than back on a flat list.
+    function CohortDetailsPanel({ cohort, users, onBack, onArchive, onFacilitatorAssigned }) {
+      const [participants, setParticipants] = useState([]);
+      const [loading, setLoading] = useState(true);
+      const [inviteEmails, setInviteEmails] = useState('');
+      const [inviteMsg, setInviteMsg] = useState('');
+      const [facilitatorPick, setFacilitatorPick] = useState(cohort.facilitatorUserId || '');
+      const [facMsg, setFacMsg] = useState('');
+      const [copied, setCopied] = useState(false);
+
+      const load = async () => { setLoading(true); setParticipants(await listCohortParticipants(cohort.code)); setLoading(false); };
+      useEffect(() => { load(); }, [cohort.code]);
+
+      const joined = participants.filter(p => p.status === 'joined' || p.user_id).length;
+
+      const inviteLink = `${window.location.origin}/?enterprise=1&code=${encodeURIComponent(cohort.code)}`;
+      const copyCode = () => {
+        navigator.clipboard?.writeText(cohort.code);
+        setCopied(true); setTimeout(() => setCopied(false), 2000);
+      };
+      const copyInviteLink = () => { navigator.clipboard?.writeText(inviteLink); setInviteMsg('Invite link copied.'); setTimeout(() => setInviteMsg(''), 2500); };
+
+      const invite = async () => {
+        const emails = inviteEmails.split(/[\n,]/).map(e => e.trim()).filter(Boolean);
+        if (!emails.length) { setInviteMsg('Enter at least one email address.'); return; }
+        if (cohort.status !== 'active') { setInviteMsg('This cohort is archived — reactivate it before inviting participants.'); return; }
+        let ok = 0, failed = 0;
+        for (const email of emails) {
+          const res = await addCohortParticipant(email, cohort.code);
+          if (res?.row) ok++; else failed++;
+        }
+        setInviteMsg(`${ok} invited${failed ? `, ${failed} failed (likely already invited)` : ''}.`);
+        setInviteEmails('');
+        load();
+      };
+      const removeParticipant = async (id) => { if (await removeCohortParticipant(id)) load(); };
+
+      const assignFacilitator = async () => {
+        if (!facilitatorPick) { setFacMsg('Select a facilitator.'); return; }
+        const u = users.find(x => x.id === facilitatorPick);
+        const ok = await assignCohortFacilitator(cohort.id, facilitatorPick, u ? (u.full_name || u.email) : '');
+        if (ok) {
+          await addFacilitatorCohort(facilitatorPick, cohort.code);
+          setFacMsg('Facilitator assigned.');
+          onFacilitatorAssigned(cohort.id, facilitatorPick, u ? (u.full_name || u.email) : '');
+        } else setFacMsg('Could not assign facilitator.');
+      };
+
+      return (
+        React.createElement("div", null,
+          React.createElement("button", { onClick: onBack, style: { ...mono, fontSize:11, color:C.muted, background:'none', border:'none', cursor:'pointer', marginBottom:20 } }, '← Back to cohorts'),
+          React.createElement("div", { className:"card", style: { padding:'28px', marginBottom:24 } },
+            React.createElement("div", { style: { display:'flex', justifyContent:'space-between', flexWrap:'wrap', gap:16, marginBottom:20 } },
+              React.createElement("div", null,
+                React.createElement("div", { style: { ...syne, fontSize:22, fontWeight:800, color:C.text, marginBottom:4 } }, cohort.name),
+                React.createElement("div", { style: { fontSize:13, color:C.muted } }, cohort.org || 'No organisation')
+              ),
+              React.createElement("span", { style: { ...mono, fontSize:9, padding:'4px 10px', borderRadius:100, height:'fit-content',
+                color: cohort.status==='active' ? '#4CF7C0' : C.dim,
+                background: cohort.status==='active' ? 'rgba(76,247,192,0.1)' : C.cyanDim,
+                border:`1px solid ${cohort.status==='active' ? 'rgba(76,247,192,0.3)' : C.border}`,
+              } }, cohort.status?.toUpperCase())
+            ),
+            React.createElement("div", { style: { display:'grid', gridTemplateColumns:'repeat(auto-fit,minmax(160px,1fr))', gap:16, marginBottom:20 } }, [
+              { label:'Cohort Code', value: cohort.code, mono:true, color:'#4CF7C0' },
+              { label:'Start Date', value: cohort.startDate || '--' },
+              { label:'End Date', value: cohort.endDate || '--' },
+              { label:'Participants', value: `${joined} / ${cohort.maxParticipants || '∞'}` },
+              { label:'Facilitator', value: cohort.facilitator || 'Not assigned' },
+            ].map((f,i) => (
+              React.createElement("div", { key:i }, React.createElement("div", { style: { ...mono, fontSize:9, letterSpacing:1, color:C.muted, marginBottom:4 } }, f.label.toUpperCase()), React.createElement("div", { style: { fontSize:13, color: f.color || C.text, fontFamily: f.mono ? "'Space Mono', monospace" : undefined } }, f.value))
+            ))),
+            React.createElement("div", { style: { display:'flex', gap:10, flexWrap:'wrap' } },
+              React.createElement("button", { className:"btn-primary", onClick: copyCode, style: { fontSize:12 } }, copied ? 'Copied ✓' : 'Copy Cohort Code'),
+              React.createElement("button", { onClick: copyInviteLink, style: { ...mono, fontSize:11, padding:'8px 14px', background:'none', border:`1px solid ${C.border}`, color:C.text, borderRadius:2, cursor:'pointer' } }, 'Copy Invite Link'),
+              React.createElement("button", { onClick: () => onArchive(cohort.id), style: { ...mono, fontSize:11, padding:'8px 14px', background:'rgba(196,160,80,0.08)', border:'1px solid rgba(196,160,80,0.2)', color:C.cyan, borderRadius:2, cursor:'pointer' } }, cohort.status==='active' ? 'Archive Cohort' : 'Restore Cohort')
+            )
+          ),
+          React.createElement("div", { className:"card", style: { padding:'28px', marginBottom:24 } },
+            React.createElement("div", { style: { ...mono, fontSize:11, letterSpacing:1, color:'#E2BE78', marginBottom:14 } }, 'Invite Facilitator'),
+            React.createElement("div", { style: { display:'grid', gridTemplateColumns:'1fr auto', gap:10 } },
+              React.createElement("select", { value: facilitatorPick, onChange: e => setFacilitatorPick(e.target.value), style: { fontSize:12.5, padding:'10px' } },
+                React.createElement("option", { value:'' }, 'Select a registered user…'),
+                users.map(u => React.createElement("option", { key:u.id, value:u.id }, u.email || u.full_name || u.id))
+              ),
+              React.createElement("button", { className:"btn-primary", onClick: assignFacilitator }, 'Assign')
+            ),
+            facMsg && React.createElement("div", { style: { fontSize:12, color:C.muted, marginTop:10 } }, facMsg)
+          ),
+          React.createElement("div", { className:"card", style: { padding:'28px' } },
+            React.createElement("div", { style: { ...mono, fontSize:11, letterSpacing:1, color:'#4CF7C0', marginBottom:14 } }, 'Invite Participants'),
+            React.createElement("textarea", { value: inviteEmails, onChange: e => setInviteEmails(e.target.value), placeholder:'john@example.com\nmary@example.com\nalex@example.com', rows:3, style: { fontSize:13, width:'100%', marginBottom:10, resize:'vertical' } }),
+            React.createElement("button", { className:"btn-primary", onClick: invite, style: { marginBottom: inviteMsg ? 10 : 0 } }, 'Send Invites →'),
+            inviteMsg && React.createElement("div", { style: { fontSize:12, color:C.muted, marginBottom:16 } }, inviteMsg),
+            React.createElement("div", { style: { ...mono, fontSize:10, letterSpacing:1, color:C.muted, marginTop:16, marginBottom:10 } }, `ROSTER (${participants.length})`),
+            loading ? React.createElement("div", { style: { color:C.dim, fontSize:12 } }, 'Loading…') :
+            participants.length === 0 ? React.createElement("div", { style: { color:C.dim, fontSize:12, padding:'12px 0' } }, 'No participants invited yet.') :
+            participants.map(p => (
+              React.createElement("div", { key:p.id, style: { display:'flex', justifyContent:'space-between', alignItems:'center', fontSize:12.5, color:C.text, padding:'8px 0', borderTop:`1px solid ${C.border}` } },
+                React.createElement("div", null, p.email, React.createElement("span", { style: { ...mono, fontSize:9, marginLeft:8, color: p.status==='joined' ? '#4CF7C0' : C.muted } }, (p.status||'invited').toUpperCase())),
+                React.createElement("button", { onClick: () => removeParticipant(p.id), style: { background:'none', border:'none', color:'#F87171', fontSize:11, cursor:'pointer' } }, 'Remove')
+              )
+            ))
+          )
+        )
+      );
+    }
+
     // ═══════════════════════════════════════════════════════════════════
     //  ADMIN PORTAL: Full Platform Management
     // ═══════════════════════════════════════════════════════════════════
@@ -5328,9 +5513,30 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
       const [lessonDraft, setLessonDraft] = useState({});
 
       // Cohort manager: backed by Supabase `cohorts` table (was localStorage)
-      const [newCohort, setNewCohort] = useState({ name:'', org:'', facilitator:'', startDate:'', maxParticipants:'' });
+      const [newCohort, setNewCohort] = useState({ name:'', orgId:'', orgName:'', facilitatorUserId:'', endDate:'', startDate:'', maxParticipants:'' });
       const [localCohorts, setLocalCohorts] = useState([]);
       useEffect(() => { listCohorts().then(setLocalCohorts); }, []);
+
+      // Organisations manager: backed by Supabase `organisations` table.
+      const [organisations, setOrganisations] = useState([]);
+      const [newOrgName, setNewOrgName] = useState('');
+      const [orgMsg, setOrgMsg] = useState('');
+      const reloadOrganisations = () => listOrganisations().then(setOrganisations);
+      useEffect(() => { reloadOrganisations(); }, []);
+      const createOrg = async () => {
+        if (!newOrgName.trim()) { setOrgMsg('Enter an organisation name.'); return; }
+        if (organisations.some(o => o.name.toLowerCase() === newOrgName.trim().toLowerCase())) {
+          setOrgMsg('An organisation with that name already exists.'); return;
+        }
+        const row = await createOrganisation(newOrgName, user?.id);
+        if (!row) { setOrgMsg('Could not create organisation.'); return; }
+        setOrganisations(prev => [...prev, row].sort((a,b)=>a.name.localeCompare(b.name)));
+        setNewOrgName('');
+        setOrgMsg('');
+      };
+
+      // Cohort Details: which cohort's dedicated page is open, if any.
+      const [openCohortId, setOpenCohortId] = useState(null);
 
       // Broadcast
       const [broadcastMsg, setBroadcastMsg] = useState('');
@@ -5346,6 +5552,13 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
 
       // Enterprise results filter
       const [entCohortFilter, setEntCohortFilter] = useState('all');
+      const [entOrgFilter, setEntOrgFilter] = useState('all');
+      const [entParticipantSearch, setEntParticipantSearch] = useState('');
+      const [entCohortRoster, setEntCohortRoster] = useState(null); // null = not scoped to a single cohort
+      useEffect(() => {
+        if (entCohortFilter === 'all') { setEntCohortRoster(null); return; }
+        listCohortParticipants(entCohortFilter).then(rows => setEntCohortRoster(new Set(rows.map(r => r.email.toLowerCase()))));
+      }, [entCohortFilter]);
 
       const showMsg = (msg, type='info') => {
         setActionMsg(msg); setActionType(type);
@@ -5460,12 +5673,23 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
 
       // Cohorts
       const createCohort = async () => {
-        if (!newCohort.name || !newCohort.org) { showMsg('Name and org required.', 'error'); return; }
-        const code = `${newCohort.org.toUpperCase().slice(0,4)}-${Date.now().toString().slice(-4)}`;
-        const row = await createCohortRow({ ...newCohort, code }, user?.id);
+        if (!newCohort.name || !newCohort.orgId) { showMsg('Name and organisation required.', 'error'); return; }
+        const org = organisations.find(o => o.id === newCohort.orgId);
+        const facUser = users.find(u => u.id === newCohort.facilitatorUserId);
+        const row = await createCohortRow({
+          name: newCohort.name, org: org ? org.name : '', orgId: newCohort.orgId,
+          facilitatorUserId: newCohort.facilitatorUserId || null,
+          facilitator: facUser ? (facUser.full_name || facUser.email) : '',
+          startDate: newCohort.startDate, endDate: newCohort.endDate,
+          maxParticipants: newCohort.maxParticipants,
+        }, user?.id);
         if (!row) { showMsg('Could not create cohort. Check your connection and try again.', 'error'); return; }
+        // Grant facilitator access immediately, same as the manual Facilitator
+        // access panel, so "Admin assigns Facilitator" is a single step.
+        if (newCohort.facilitatorUserId) await addFacilitatorCohort(newCohort.facilitatorUserId, row.code);
         setLocalCohorts(prev => [row, ...prev]);
-        setNewCohort({ name:'', org:'', facilitator:'', startDate:'', maxParticipants:'' });
+        setNewCohort({ name:'', orgId:'', orgName:'', facilitatorUserId:'', endDate:'', startDate:'', maxParticipants:'' });
+        setOpenCohortId(row.id);
         showMsg(`Cohort "${row.name}" created. Code: ${row.code}`, 'success');
       };
       const archiveCohort = async (id) => {
@@ -5518,6 +5742,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
         { id:'users',      label:'Users',        icon:'◱' },
         { id:'cfi',        label:'CFI Results',  icon:'◎' },
         { id:'pro',        label:'Pro Subs',     icon:'★' },
+        { id:'organisations', label:'Organisations', icon:'⬡' },
         { id:'cohorts',    label:'Cohorts',      icon:'⊞' },
         { id:'ent-results',label:'Ent Results',  icon:'◇' },
         { id:'lessons',    label:'Lessons',      icon:'▤' },
@@ -5750,37 +5975,86 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
                                 color:'#F87171', borderRadius:2,
                               }}, 'Revoke')))
                         )))))
-                ), tab === 'cohorts' && (
-                  React.createElement("div", null, React.createElement("div", {style: { display:'grid', gridTemplateColumns:'repeat(auto-fit,minmax(300px,1fr))', gap:24, marginBottom:32 }}, React.createElement("div", {className: "card", style: { padding:'28px', borderColor:'rgba(76,247,192,0.2)' }}, React.createElement("div", {style: { ...mono, fontSize:11, letterSpacing:1, color:'#4CF7C0', marginBottom:16 }}, 'Create new cohort'), React.createElement("div", {style: { display:'flex', flexDirection:'column', gap:12 }}, [
-                            { key:'name', label:'Cohort Name', placeholder:'e.g. Leadership Cohort A' },
-                            { key:'org', label:'Organisation', placeholder:'e.g. Acme Corp' },
-                            { key:'facilitator', label:'Facilitator Name', placeholder:'e.g. Jane Smith' },
-                            { key:'startDate', label:'Start Date', placeholder:'', type:'date' },
-                            { key:'maxParticipants', label:'Max Participants', placeholder:'e.g. 20', type:'number' },
-                          ].map(f => (
-                            React.createElement("div", {key: f.key}, React.createElement("div", {style: { ...mono, fontSize:11, letterSpacing:1, color:C.muted, marginBottom:5 }}, f.label.toUpperCase()), React.createElement("input", {type: f.type || 'text', value: newCohort[f.key], onChange: e => setNewCohort(p => ({...p, [f.key]: e.target.value})), placeholder: f.placeholder, style: { fontSize:13, width:'100%' }}))
-                          )), React.createElement("button", {className: "btn-primary", onClick: createCohort, style: { marginTop:8 }}, 'Create Cohort →'))), React.createElement("div", {style: { display:'flex', flexDirection:'column', gap:16 }}, [
+                ), tab === 'organisations' && (
+                  React.createElement("div", null,
+                    React.createElement("div", { className:"card", style: { padding:'28px', marginBottom:24, borderColor:'rgba(76,247,192,0.2)', maxWidth:480 } },
+                      React.createElement("div", { style: { ...mono, fontSize:11, letterSpacing:1, color:'#4CF7C0', marginBottom:16 } }, 'Create organisation'),
+                      React.createElement("div", { style: { display:'flex', gap:10 } },
+                        React.createElement("input", { type:'text', value:newOrgName, onChange:e=>setNewOrgName(e.target.value), placeholder:'e.g. Acme Ltd', style: { fontSize:13, flex:1 } }),
+                        React.createElement("button", { className:"btn-primary", onClick:createOrg }, 'Create →')
+                      ),
+                      orgMsg && React.createElement("div", { style: { fontSize:12, color:C.muted, marginTop:10 } }, orgMsg)
+                    ),
+                    React.createElement("div", { className:"card", style: { overflow:'hidden' } },
+                      React.createElement("div", { style: { display:'grid', gridTemplateColumns:'1.5fr 100px 100px 1fr', gap:12, padding:'14px 20px', borderBottom:`1px solid ${C.border}`, background:C.deep } }, ['NAME','COHORTS','FACILITATORS','COHORT CODES'].map(h => (
+                        React.createElement("div", { key:h, style: { ...mono, fontSize:11, letterSpacing:1, color:C.muted } }, h)
+                      ))),
+                      organisations.length === 0 && React.createElement("div", { style: { padding:'40px', textAlign:'center', color:C.dim, fontSize:13 } }, 'No organisations yet. Create one above.'),
+                      organisations.map(o => {
+                        const orgCohorts = localCohorts.filter(c => c.orgId === o.id);
+                        const facilitatorCount = new Set(orgCohorts.map(c => c.facilitatorUserId).filter(Boolean)).size;
+                        return React.createElement("div", { key:o.id, style: { display:'grid', gridTemplateColumns:'1.5fr 100px 100px 1fr', gap:12, padding:'14px 20px', borderBottom:`1px solid ${C.border}`, cursor:'pointer' }, onClick: () => { setTab('cohorts'); const first = orgCohorts[0]; if (first) setOpenCohortId(first.id); } },
+                          React.createElement("div", { style: { fontSize:13, color:C.text, fontWeight:500 } }, o.name),
+                          React.createElement("div", { style: { fontSize:12, color:C.muted } }, orgCohorts.length),
+                          React.createElement("div", { style: { fontSize:12, color:C.muted } }, facilitatorCount),
+                          React.createElement("div", { style: { fontSize:12, color:C.muted } }, orgCohorts.map(c=>c.code).join(', ') || '--')
+                        );
+                      })
+                    )
+                  )
+                ), tab === 'cohorts' && openCohortId && (
+                  (() => {
+                    const openCohort = localCohorts.find(c => c.id === openCohortId);
+                    if (!openCohort) { setOpenCohortId(null); return null; }
+                    return React.createElement(CohortDetailsPanel, {
+                      cohort: openCohort, users,
+                      onBack: () => setOpenCohortId(null),
+                      onArchive: async (id) => { await archiveCohort(id); },
+                      onFacilitatorAssigned: (id, uid, name) => setLocalCohorts(prev => prev.map(c => c.id === id ? { ...c, facilitatorUserId: uid, facilitator: name } : c)),
+                    });
+                  })()
+                ), tab === 'cohorts' && !openCohortId && (
+                  React.createElement("div", null, React.createElement("div", {style: { display:'grid', gridTemplateColumns:'repeat(auto-fit,minmax(300px,1fr))', gap:24, marginBottom:32 }}, React.createElement("div", {className: "card", style: { padding:'28px', borderColor:'rgba(76,247,192,0.2)' }}, React.createElement("div", {style: { ...mono, fontSize:11, letterSpacing:1, color:'#4CF7C0', marginBottom:16 }}, 'Create new cohort'), React.createElement("div", {style: { display:'flex', flexDirection:'column', gap:12 }},
+                            React.createElement("div", null, React.createElement("div", {style: { ...mono, fontSize:11, letterSpacing:1, color:C.muted, marginBottom:5 }}, 'COHORT NAME'), React.createElement("input", {type:'text', value:newCohort.name, onChange:e=>setNewCohort(p=>({...p,name:e.target.value})), placeholder:'e.g. Acme Leadership Cohort — October 2026', style: { fontSize:13, width:'100%' }})),
+                            React.createElement("div", null, React.createElement("div", {style: { ...mono, fontSize:11, letterSpacing:1, color:C.muted, marginBottom:5 }}, 'ORGANISATION'), React.createElement("select", {value:newCohort.orgId, onChange:e=>setNewCohort(p=>({...p,orgId:e.target.value})), style: { fontSize:13, width:'100%', padding:'10px' }},
+                              React.createElement("option", {value:''}, organisations.length ? 'Select organisation…' : 'No organisations yet — create one first'),
+                              organisations.map(o => React.createElement("option", {key:o.id, value:o.id}, o.name))
+                            )),
+                            React.createElement("div", null, React.createElement("div", {style: { ...mono, fontSize:11, letterSpacing:1, color:C.muted, marginBottom:5 }}, 'FACILITATOR (OPTIONAL)'), React.createElement("select", {value:newCohort.facilitatorUserId, onChange:e=>setNewCohort(p=>({...p,facilitatorUserId:e.target.value})), style: { fontSize:13, width:'100%', padding:'10px' }},
+                              React.createElement("option", {value:''}, 'Assign later'),
+                              users.map(u => React.createElement("option", {key:u.id, value:u.id}, u.email || u.full_name || u.id))
+                            )),
+                            React.createElement("div", null, React.createElement("div", {style: { ...mono, fontSize:11, letterSpacing:1, color:C.muted, marginBottom:5 }}, 'START DATE'), React.createElement("input", {type:'date', value:newCohort.startDate, onChange:e=>setNewCohort(p=>({...p,startDate:e.target.value})), style: { fontSize:13, width:'100%' }})),
+                            React.createElement("div", null, React.createElement("div", {style: { ...mono, fontSize:11, letterSpacing:1, color:C.muted, marginBottom:5 }}, 'END DATE (OPTIONAL)'), React.createElement("input", {type:'date', value:newCohort.endDate, onChange:e=>setNewCohort(p=>({...p,endDate:e.target.value})), style: { fontSize:13, width:'100%' }})),
+                            React.createElement("div", null, React.createElement("div", {style: { ...mono, fontSize:11, letterSpacing:1, color:C.muted, marginBottom:5 }}, 'MAXIMUM PARTICIPANTS'), React.createElement("input", {type:'number', value:newCohort.maxParticipants, onChange:e=>setNewCohort(p=>({...p,maxParticipants:e.target.value})), placeholder:'e.g. 20', style: { fontSize:13, width:'100%' }}))
+                          ), React.createElement("button", {className: "btn-primary", onClick: createCohort, style: { marginTop:8 }}, 'Create Cohort →')), React.createElement("div", {style: { display:'flex', flexDirection:'column', gap:16 }}, [
                           { label:'Total cohorts', value:localCohorts.length, color:'#C4A050' },
                           { label:'ACTIVE', value:localCohorts.filter(c=>c.status==='active').length, color:'#4CF7C0' },
                           { label:'ARCHIVED', value:localCohorts.filter(c=>c.status==='archived').length, color:C.muted },
                         ].map((s,i) => (
                           React.createElement("div", {key: i, className: "card", style: { padding:'20px 24px', display:'flex', justifyContent:'space-between', alignItems:'center' }}, React.createElement("div", {style: { ...mono, fontSize:9, letterSpacing:1, color:C.muted }}, s.label), React.createElement("div", {style: { ...syne, fontSize:17, fontWeight:800, color:s.color, overflowWrap:'break-word', minWidth:0}}, s.value))
-                        )))), React.createElement(FacilitatorAccessPanel, { users }), React.createElement("div", {className: "card", style: { overflow:'hidden' }}, React.createElement("div", {style: { display:'grid', gridTemplateColumns:'1.5fr 1fr 1fr 100px 80px 150px', gap:12, padding:'14px 20px', borderBottom:`1px solid ${C.border}`, background:C.deep }}, ['NAME','ORG','CODE','STARTED','STATUS','ACTIONS'].map(h => (
+                        )))), React.createElement("div", {className: "card", style: { overflow:'hidden' }}, React.createElement("div", {style: { display:'grid', gridTemplateColumns:'1.5fr 1fr 1fr 100px 80px 180px', gap:12, padding:'14px 20px', borderBottom:`1px solid ${C.border}`, background:C.deep }}, ['NAME','ORG','CODE','STARTED','STATUS','ACTIONS'].map(h => (
                           React.createElement("div", {key: h, style: { ...mono, fontSize:11, letterSpacing:1, color:C.muted }}, h)
                         ))), React.createElement("div", {style: { maxHeight:480, overflowY:'auto' }}, localCohorts.length === 0 && (
                           React.createElement("div", {style: { padding:'40px', textAlign:'center', color:C.dim, fontSize:13 }}, 'No cohorts yet. Create one above.')
                         ), localCohorts.map((c,i) => (
                           React.createElement("div", {key: c.id, style: {
-                            display:'grid', gridTemplateColumns:'1.5fr 1fr 1fr 100px 80px 150px', gap:12,
-                            padding:'14px 20px', borderBottom:`1px solid ${C.border}`, transition:'background 0.15s',
-                          }, onMouseEnter: e => e.currentTarget.style.background=C.deep, onMouseLeave: e => e.currentTarget.style.background='transparent'}, React.createElement("div", {style: { fontSize:13, color:C.text, fontWeight:500 }}, c.name), React.createElement("div", {style: { fontSize:12, color:C.muted }}, c.org), React.createElement("div", {style: { ...mono, fontSize:10, color:'#4CF7C0' }}, c.code), React.createElement("div", {style: { ...mono, fontSize:9, color:C.dim }}, c.startDate || '--'), React.createElement("div", null, React.createElement("span", {style: { ...mono, fontSize:8, padding:'3px 8px', borderRadius:100,
+                            display:'grid', gridTemplateColumns:'1.5fr 1fr 1fr 100px 80px 180px', gap:12,
+                            padding:'14px 20px', borderBottom:`1px solid ${C.border}`, transition:'background 0.15s', cursor:'pointer',
+                          }, onClick: () => setOpenCohortId(c.id), onMouseEnter: e => e.currentTarget.style.background=C.deep, onMouseLeave: e => e.currentTarget.style.background='transparent'}, React.createElement("div", {style: { fontSize:13, color:C.text, fontWeight:500 }}, c.name), React.createElement("div", {style: { fontSize:12, color:C.muted }}, c.org), React.createElement("div", {style: { ...mono, fontSize:10, color:'#4CF7C0' }}, c.code), React.createElement("div", {style: { ...mono, fontSize:9, color:C.dim }}, c.startDate || '--'), React.createElement("div", null, React.createElement("span", {style: { ...mono, fontSize:8, padding:'3px 8px', borderRadius:100,
                                 color: c.status==='active' ? '#4CF7C0' : C.dim,
                                 background: c.status==='active' ? 'rgba(76,247,192,0.1)' : C.cyanDim,
                                 border: `1px solid ${c.status==='active' ? 'rgba(76,247,192,0.3)' : C.border}`,
-                              }}, c.status?.toUpperCase())), React.createElement("div", {style: { display:'flex', gap:6 }}, React.createElement("button", {onClick: () => archiveCohort(c.id), style: { ...mono, fontSize:8, padding:'4px 10px', borderRadius:2, cursor:'pointer', background:'rgba(196,160,80,0.08)', border:`1px solid rgba(196,160,80,0.2)`, color:C.cyan }}, c.status==='active' ? 'Archive' : 'Restore'), React.createElement("button", {onClick: () => deleteCohort(c.id), style: { ...mono, fontSize:8, padding:'4px 10px', borderRadius:2, cursor:'pointer', background:'rgba(248,113,113,0.06)', border:'1px solid rgba(248,113,113,0.2)', color:'#F87171' }}, '✕')))
+                              }}, c.status?.toUpperCase())), React.createElement("div", {style: { display:'flex', gap:6 }, onClick: e => e.stopPropagation()}, React.createElement("button", {onClick: () => setOpenCohortId(c.id), style: { ...mono, fontSize:8, padding:'4px 10px', borderRadius:2, cursor:'pointer', background:'rgba(122,175,207,0.08)', border:'1px solid rgba(122,175,207,0.2)', color:'#7AAFCF' }}, 'Details'), React.createElement("button", {onClick: () => archiveCohort(c.id), style: { ...mono, fontSize:8, padding:'4px 10px', borderRadius:2, cursor:'pointer', background:'rgba(196,160,80,0.08)', border:`1px solid rgba(196,160,80,0.2)`, color:C.cyan }}, c.status==='active' ? 'Archive' : 'Restore'), React.createElement("button", {onClick: () => deleteCohort(c.id), style: { ...mono, fontSize:8, padding:'4px 10px', borderRadius:2, cursor:'pointer', background:'rgba(248,113,113,0.06)', border:'1px solid rgba(248,113,113,0.2)', color:'#F87171' }}, '✕')))
                         )))))
                 ), tab === 'ent-results' && (
-                  React.createElement("div", null, React.createElement("div", {style: { display:'flex', gap:16, marginBottom:24, flexWrap:'wrap', alignItems:'center' }}, React.createElement("div", {style: { display:'flex', gap:4, background:C.deep, padding:4, borderRadius:3, flexWrap:'wrap' }}, ['all', ...localCohorts.map(c=>c.code)].map(f => (
+                  React.createElement("div", null, React.createElement("div", {style: { display:'flex', gap:16, marginBottom:16, flexWrap:'wrap', alignItems:'center' }},
+                      React.createElement("select", {value: entOrgFilter, onChange: e => { setEntOrgFilter(e.target.value); setEntCohortFilter('all'); }, style: { fontSize:12, padding:'8px 10px' }},
+                        React.createElement("option", {value:'all'}, 'All organisations'),
+                        organisations.map(o => React.createElement("option", {key:o.id, value:o.id}, o.name))
+                      ),
+                      React.createElement("input", {type:'text', value: entParticipantSearch, onChange: e => setEntParticipantSearch(e.target.value), placeholder:'Search participant name or email…', style: { fontSize:12, padding:'8px 10px', minWidth:220 }})
+                  ), React.createElement("div", {style: { display:'flex', gap:16, marginBottom:24, flexWrap:'wrap', alignItems:'center' }}, React.createElement("div", {style: { display:'flex', gap:4, background:C.deep, padding:4, borderRadius:3, flexWrap:'wrap' }}, ['all', ...localCohorts.filter(c => entOrgFilter==='all' || c.orgId===entOrgFilter).map(c=>c.code)].map(f => (
                           React.createElement("button", {key: f, onClick: () => setEntCohortFilter(f), style: {
                             padding:'7px 12px', background:entCohortFilter===f?C.surface:'transparent',
                             border:entCohortFilter===f?`1px solid ${C.borderBright}`:'1px solid transparent',
@@ -5795,7 +6069,14 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
                         React.createElement("div", {key: i, className: "card", style: { padding:'20px 24px' }}, React.createElement("div", {style: { ...mono, fontSize:11, letterSpacing:1, color:C.muted, marginBottom:8 }}, s.label), React.createElement("div", {style: { ...syne, fontSize:17, fontWeight:800, color:s.color, overflowWrap:'break-word', minWidth:0}}, s.value))
                       ))), React.createElement("div", {className: "card", style: { padding:'28px' }}, React.createElement("div", {style: { ...mono, fontSize:11, letterSpacing:1, color:C.cyan, marginBottom:20 }}, 'Enterprise users by cohort'), entUsers.length === 0 && (
                         React.createElement("div", {style: { color:C.dim, fontSize:13, textAlign:'center', padding:'40px 0' }}, 'No enterprise users found. Grant enterprise access in the Users tab.')
-                      ), entUsers.map((u,i) => {
+                      ), entUsers.filter(u => {
+                          if (entCohortRoster && !entCohortRoster.has((u.email||'').toLowerCase())) return false;
+                          if (entParticipantSearch.trim()) {
+                            const q = entParticipantSearch.trim().toLowerCase();
+                            if (!(u.full_name||'').toLowerCase().includes(q) && !(u.email||'').toLowerCase().includes(q)) return false;
+                          }
+                          return true;
+                        }).map((u,i) => {
                         const userCFI = completedCFI.find(r => r.user_id === u.id);
                         const bColor = userCFI ? (bandColors[userCFI.band] || C.cyan) : C.dim;
                         return (
@@ -6099,11 +6380,19 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
     // for every cohort). It now requires the person to be signed in via
     // Supabase Auth AND have a row in facilitator_cohorts for the cohort
     // they enter, which only an admin can create. See migration_facilitator_auth.sql.
-    function EntRoleGate({ user, setShowAuth, onSelect, onExit }) {
+    //
+    // Participant entry no longer accepts a free-typed Participant ID: it
+    // joins through join_cohort_by_code (server-side RPC), which enforces
+    // active status, capacity, and no-duplicate-membership before granting
+    // Enterprise access, per the Cohort Join Flow / Automatic Enterprise
+    // Access requirements.
+    function EntRoleGate({ user, setShowAuth, onSelect, onEnterMyCohorts, onExit }) {
       const [cohort, setCohort] = useState('');
-      const [pid, setPid] = useState('');
+      const [joinCode, setJoinCode] = useState('');
       const [facError, setFacError] = useState('');
+      const [joinError, setJoinError] = useState('');
       const [checking, setChecking] = useState(false);
+      const [joining, setJoining] = useState(false);
 
       async function handleFacilitatorEnter() {
         if (!cohort.trim()) { setFacError('Please enter a cohort code.'); return; }
@@ -6115,8 +6404,74 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
         if (!match) { setFacError("Your account isn't linked to this cohort. Ask your administrator to grant facilitator access."); return; }
         onSelect('facilitator', { cohort: match.cohort });
       }
+
+      async function handleJoinCohort() {
+        if (!joinCode.trim()) { setJoinError('Please enter a cohort code.'); return; }
+        if (!user) { setShowAuth(true); return; }
+        setJoining(true); setJoinError('');
+        const res = await joinCohortByCode(joinCode);
+        setJoining(false);
+        if (!res?.ok) { setJoinError(JOIN_COHORT_ERRORS[res?.error] || JOIN_COHORT_ERRORS.unknown); return; }
+        const pid = 'NF-' + (user.id || '').replace(/-/g, '').slice(0, 6).toUpperCase();
+        onSelect('participant', { pid, cohort: res.cohort.code, cohortId: res.cohort.id, orgId: res.cohort.org_id, userId: user.id });
+      }
+
       return (
-        React.createElement("div", {style: { minHeight:'100vh', display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', padding:'2rem', paddingTop:'5rem', background:EC.bg }}, React.createElement("div", {style: { position:'fixed', inset:0, backgroundImage:`linear-gradient(${EC.accent}08 1px,transparent 1px),linear-gradient(90deg,${EC.accent}08 1px,transparent 1px)`, backgroundSize:'60px 60px', pointerEvents:'none' }}), React.createElement("div", {style: { position:'relative', zIndex:1, width:'100%', maxWidth:700, display:'flex', flexDirection:'column', alignItems:'center' }}, React.createElement("div", {style: { ...ES.tag, textAlign:'center' }}, '◈ Enterprise Cohort System · Active'), React.createElement("h1", {style: { ...ES.h1, textAlign:'center', maxWidth:600, marginBottom:'0.75rem' }}, 'NeuralFusion™', React.createElement("br", null), React.createElement("em", {style: { color:EC.accent }}, 'Enterprise Portal')), React.createElement("p", {style: { ...ES.mono(), textAlign:'center', maxWidth:480, marginBottom:'3rem' }}, 'Select your role to enter the programme. Facilitators access session controls, CFI data entry, and live cohort results. Participants complete assessments and access lesson materials.'), React.createElement("div", {style: { display:'grid', gridTemplateColumns:'1fr 1fr', gap:'1.5rem', width:'100%', marginBottom:'2rem' }}, React.createElement("div", {style: { ...ES.card(), borderTop:`2px solid ${EC.gold}`, display:'flex', flexDirection:'column', gap:'1rem' }}, React.createElement("div", {style: { fontSize:'0.6rem', letterSpacing:'0.15em', color:EC.gold }}, 'Facilitator'), React.createElement("div", {style: ES.h3}, 'Run the programme'), React.createElement("p", {style: ES.mono()}, 'Deliver sessions, manage CFI data entry, view live cohort scores and Clarity Delta reports.'), React.createElement("input", {style: ES.input, placeholder: "Cohort code (e.g. ORG2026-A)", value: cohort, onChange: e=>{ setCohort(e.target.value); setFacError(''); }}), !user && React.createElement("div", {style: { fontSize:'0.7rem', color:EC.muted, fontFamily:"'Space Mono', monospace" }}, 'Sign in with your facilitator account to continue.'), facError && React.createElement("div", {style: { fontSize:'0.65rem', color:EC.red, fontFamily:"'Space Mono', monospace" }}, facError), React.createElement("button", {style: ES.btnGold, onClick: handleFacilitatorEnter, disabled: checking}, checking ? 'Checking…' : (user ? 'Enter as Facilitator →' : 'Sign In as Facilitator →'))), React.createElement("div", {style: { ...ES.card(), borderTop:`2px solid ${EC.accent}`, display:'flex', flexDirection:'column', gap:'1rem' }}, React.createElement("div", {style: { fontSize:'0.6rem', letterSpacing:'0.15em', color:EC.accent }}, 'Participant'), React.createElement("div", {style: ES.h3}, 'Complete the programme'), React.createElement("p", {style: ES.mono()}, 'Take the CFI assessment, access lesson materials, and track your cognitive progress.'), React.createElement("input", {style: ES.input, placeholder: "Participant ID (e.g. NF-AB12)", value: pid, onChange: e=>setPid(e.target.value.toUpperCase())}), React.createElement("input", {style: ES.input, placeholder: "Cohort code", value: cohort, onChange: e=>setCohort(e.target.value)}), React.createElement("button", {style: ES.btnPrimary, onClick: ()=>pid&&cohort&&onSelect('participant',{pid,cohort})}, 'Enter Programme →'))), React.createElement("button", {style: { ...ES.mono({ color:EC.muted, cursor:'pointer' }), background:'none', border:'none', marginTop:'1rem' }, onClick: onExit}, '← Return to Platform')))
+        React.createElement("div", {style: { minHeight:'100vh', display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', padding:'2rem', paddingTop:'5rem', background:EC.bg }}, React.createElement("div", {style: { position:'fixed', inset:0, backgroundImage:`linear-gradient(${EC.accent}08 1px,transparent 1px),linear-gradient(90deg,${EC.accent}08 1px,transparent 1px)`, backgroundSize:'60px 60px', pointerEvents:'none' }}), React.createElement("div", {style: { position:'relative', zIndex:1, width:'100%', maxWidth:700, display:'flex', flexDirection:'column', alignItems:'center' }}, React.createElement("div", {style: { ...ES.tag, textAlign:'center' }}, '◈ Enterprise Cohort System · Active'), React.createElement("h1", {style: { ...ES.h1, textAlign:'center', maxWidth:600, marginBottom:'0.75rem' }}, 'NeuralFusion™', React.createElement("br", null), React.createElement("em", {style: { color:EC.accent }}, 'Enterprise Portal')), React.createElement("p", {style: { ...ES.mono(), textAlign:'center', maxWidth:480, marginBottom:'3rem' }}, 'Select your role to enter the programme. Facilitators access session controls, CFI data entry, and live cohort results. Participants join a cohort and complete assessments.'), React.createElement("div", {style: { display:'grid', gridTemplateColumns:'1fr 1fr', gap:'1.5rem', width:'100%', marginBottom:'2rem' }},
+          React.createElement("div", {style: { ...ES.card(), borderTop:`2px solid ${EC.gold}`, display:'flex', flexDirection:'column', gap:'1rem' }}, React.createElement("div", {style: { fontSize:'0.6rem', letterSpacing:'0.15em', color:EC.gold }}, 'Facilitator'), React.createElement("div", {style: ES.h3}, 'Run the programme'), React.createElement("p", {style: ES.mono()}, 'Deliver sessions, manage CFI data entry, view live cohort scores and Clarity Delta reports.'), user && React.createElement("button", {style: ES.btnGold, onClick: onEnterMyCohorts}, 'View My Cohorts →'), React.createElement("div", {style: { fontSize:'0.6rem', color:EC.muted, fontFamily:"'Space Mono', monospace", textAlign:'center' }}, '— or enter a single cohort code —'), React.createElement("input", {style: ES.input, placeholder: "Cohort code (e.g. ORG2026-A)", value: cohort, onChange: e=>{ setCohort(e.target.value); setFacError(''); }}), !user && React.createElement("div", {style: { fontSize:'0.7rem', color:EC.muted, fontFamily:"'Space Mono', monospace" }}, 'Sign in with your facilitator account to continue.'), facError && React.createElement("div", {style: { fontSize:'0.65rem', color:EC.red, fontFamily:"'Space Mono', monospace" }}, facError), React.createElement("button", {style: ES.btnGhost, onClick: handleFacilitatorEnter, disabled: checking}, checking ? 'Checking…' : (user ? 'Enter Cohort →' : 'Sign In as Facilitator →'))),
+          React.createElement("div", {style: { ...ES.card(), borderTop:`2px solid ${EC.accent}`, display:'flex', flexDirection:'column', gap:'1rem' }}, React.createElement("div", {style: { fontSize:'0.6rem', letterSpacing:'0.15em', color:EC.accent }}, 'Participant'), React.createElement("div", {style: ES.h3}, 'Complete the programme'), React.createElement("p", {style: ES.mono()}, 'Join with the cohort code from your invitation, then take the CFI assessment and access lesson materials.'), React.createElement("input", {style: ES.input, placeholder: "Cohort code", value: joinCode, onChange: e=>{ setJoinCode(e.target.value); setJoinError(''); }}), !user && React.createElement("div", {style: { fontSize:'0.7rem', color:EC.muted, fontFamily:"'Space Mono', monospace" }}, 'Sign in or create an account to join a cohort.'), joinError && React.createElement("div", {style: { fontSize:'0.65rem', color:EC.red, fontFamily:"'Space Mono', monospace" }}, joinError), React.createElement("button", {style: ES.btnPrimary, onClick: handleJoinCohort, disabled: joining}, joining ? 'Joining…' : (user ? 'Join Cohort →' : 'Sign In to Join →')))
+        ), React.createElement("button", {style: { ...ES.mono({ color:EC.muted, cursor:'pointer' }), background:'none', border:'none', marginTop:'1rem' }, onClick: onExit}, '← Return to Platform')))
+      );
+    }
+
+    // ── Enterprise Facilitator: My Cohorts ──────────────────────────────
+    // Lists every cohort an admin has linked this facilitator to
+    // (facilitator_cohorts), each with live participant/completion counts,
+    // so a facilitator with more than one cohort isn't stuck typing codes.
+    function EntMyCohorts({ user, onOpenCohort, onExit }) {
+      const [rows, setRows] = useState([]);
+      const [loading, setLoading] = useState(true);
+
+      useEffect(() => {
+        (async () => {
+          setLoading(true);
+          const [memberships, allCohorts] = await Promise.all([listFacilitatorCohorts(user.id), listCohorts()]);
+          const enriched = await Promise.all(memberships.map(async m => {
+            const cohort = allCohorts.find(c => c.code.toLowerCase() === m.cohort.toLowerCase());
+            const [participants, results] = await Promise.all([
+              listCohortParticipants(m.cohort),
+              loadEnterpriseResults(m.cohort),
+            ]);
+            const joined = participants.filter(p => p.status === 'joined' || p.user_id).length;
+            const completed = new Set(results.map(r => r.pid)).size;
+            return { cohort: cohort || { name: m.cohort, code: m.cohort, status:'active' }, joined, completed };
+          }));
+          setRows(enriched);
+          setLoading(false);
+        })();
+      }, [user.id]);
+
+      return (
+        React.createElement("div", {style: { maxWidth:900, margin:'0 auto', padding:'6rem 2rem 4rem' }},
+          React.createElement("button", {style: { ...ES.mono({ color:EC.muted, cursor:'pointer' }), background:'none', border:'none', marginBottom:'1.5rem' }, onClick: onExit}, '← Back'),
+          React.createElement("div", {style: ES.tag}, 'Facilitator'), React.createElement("h1", {style: ES.h1}, 'My', React.createElement("em", {style: { color:EC.accent }}, ' Cohorts')),
+          loading && React.createElement("p", {style: ES.mono()}, 'Loading your cohorts…'),
+          !loading && rows.length === 0 && React.createElement("div", {style: ES.accentCard({ padding:'2rem', marginTop:'1.5rem' })}, React.createElement("p", {style: ES.mono()}, "You don't have any cohorts assigned yet. Ask your administrator to grant facilitator access.")),
+          !loading && rows.length > 0 && React.createElement("div", {style: { display:'flex', flexDirection:'column', gap:'1rem', marginTop:'2rem' }}, rows.map((r, i) => (
+            React.createElement("div", {key: i, style: { ...ES.card({ padding:'1.5rem', cursor:'pointer' }) }, onClick: () => onOpenCohort(r.cohort.code)},
+              React.createElement("div", {style: { display:'flex', justifyContent:'space-between', alignItems:'center', flexWrap:'wrap', gap:'0.75rem' }},
+                React.createElement("div", null,
+                  React.createElement("div", {style: { fontFamily:"'DM Serif Display', serif", fontSize:'1.3rem', color:EC.text }}, r.cohort.name),
+                  React.createElement("div", {style: ES.mono({ fontSize:'0.62rem' })}, r.cohort.org || 'No organisation', ' · ', r.cohort.code, ' · ', (r.cohort.status||'active').toUpperCase(), ' · Started ', r.cohort.startDate || '--')
+                ),
+                React.createElement("div", {style: { display:'flex', gap:'1.5rem', textAlign:'right' }},
+                  React.createElement("div", null, React.createElement("div", {style: { fontFamily:"'DM Serif Display', serif", fontSize:'1.4rem', color:EC.accent }}, r.joined), React.createElement("div", {style: ES.mono({ fontSize:'0.55rem' })}, 'JOINED')),
+                  React.createElement("div", null, React.createElement("div", {style: { fontFamily:"'DM Serif Display', serif", fontSize:'1.4rem', color:EC.text }}, r.completed), React.createElement("div", {style: ES.mono({ fontSize:'0.55rem' })}, 'COMPLETED CFI'))
+                )
+              )
+            )
+          )))
+        )
       );
     }
 
@@ -6132,7 +6487,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
       function handleSubmit() {
         const composite = entCalcComposite(responses);
         const dims = entCalcDimScores(responses);
-        const result = { pid:session.pid, cohort:session.cohort, phase, responses, composite, dims, ts:Date.now() };
+        const result = { pid:session.pid, cohort:session.cohort, cohortId:session.cohortId, orgId:session.orgId, userId:session.userId, phase, responses, composite, dims, ts:Date.now() };
         onComplete(result);
         saveEnterpriseResult(result);
         setStep('done');
@@ -6215,8 +6570,22 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
       const dimNames = { A:'Decision Latency', B:'Mode Rigidity', C:'Emotional Reactivity', D:'Thought Interruption', E:'Cognitive Overload' };
       const dimMax   = { A:15, B:15, C:15, D:15, E:5 };
 
+      // Cohort-level roster: participants who've joined vs. completed a CFI
+      // phase, so "Pending CFI" is real rather than inferred from results alone.
+      const [roster, setRoster] = useState([]);
+      useEffect(() => { listCohortParticipants(session.cohort).then(setRoster); }, [session.cohort]);
+      const joinedCount = roster.filter(p => p.status === 'joined' || p.user_id).length;
+      const completedPids = new Set(cohortResults.map(r => r.pid));
+      const pendingCount = Math.max(0, joinedCount - completedPids.size);
+
       return (
-        React.createElement("div", {style: { maxWidth:1100, margin:'0 auto', padding:'5rem 2rem 4rem' }}, React.createElement("div", {style: ES.tag}, 'Cohort:', session.cohort), React.createElement("h1", {style: ES.h1}, 'Facilitator', React.createElement("em", {style: { color:EC.accent }}, 'Dashboard')), React.createElement("div", {style: { display:'grid', gridTemplateColumns:'repeat(auto-fit,minmax(min(200px,100%),1fr))', gap:'1rem', marginBottom:'2.5rem' }}, [
+        React.createElement("div", {style: { maxWidth:1100, margin:'0 auto', padding:'5rem 2rem 4rem' }}, React.createElement("div", {style: ES.tag}, 'Cohort:', session.cohort), React.createElement("h1", {style: ES.h1}, 'Facilitator', React.createElement("em", {style: { color:EC.accent }}, 'Dashboard')), React.createElement("div", {style: { display:'grid', gridTemplateColumns:'repeat(auto-fit,minmax(min(160px,100%),1fr))', gap:'1rem', marginBottom:'1rem' }}, [
+              { label:'Participants', val:joinedCount },
+              { label:'Completed CFI', val:completedPids.size, color:EC.accent },
+              { label:'Pending CFI', val:pendingCount, color:pendingCount>0?EC.gold:EC.muted },
+            ].map((s,i)=>(
+              React.createElement("div", {key: i, style: ES.card({ padding:'1.5rem' })}, React.createElement("div", {style: ES.mono({ fontSize:'0.6rem', marginBottom:'0.4rem' })}, s.label), React.createElement("div", {style: { fontFamily:"'DM Serif Display', serif", fontSize:'2rem', color:s.color||EC.text }}, s.val))
+            ))), React.createElement("div", {style: { display:'grid', gridTemplateColumns:'repeat(auto-fit,minmax(min(200px,100%),1fr))', gap:'1rem', marginBottom:'2.5rem' }}, [
               { label:'Pre-assessments', val:preResults.length },
               { label:'Post-assessments', val:postResults.length },
               { label:'Mean Pre CFI', val:preMean!==null?preMean:'N/A' },
@@ -6457,8 +6826,11 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
       }
 
       // If enterprise, show the app
+      if (entRole === 'facilitator-list') return (
+        React.createElement(EntMyCohorts, {user, onOpenCohort: (code) => { setEntRole('facilitator'); setEntSession({ cohort: code }); setEntView('dashboard'); }, onExit: () => setEntRole(null)})
+      );
       if (!entRole) return (
-        React.createElement(EntRoleGate, {user, setShowAuth, onSelect: (role,info)=>{ setEntRole(role); setEntSession({...info}); setEntView(role==='facilitator'?'dashboard':'programme'); }, onExit: ()=>{ setView('home'); }})
+        React.createElement(EntRoleGate, {user, setShowAuth, onSelect: (role,info)=>{ setEntRole(role); setEntSession({...info}); setEntView(role==='facilitator'?'dashboard':'programme'); }, onEnterMyCohorts: ()=>{ if (!user) { setShowAuth(true); return; } setEntRole('facilitator-list'); }, onExit: ()=>{ setView('home'); }})
       );
 
       return (
