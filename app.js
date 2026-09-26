@@ -2324,6 +2324,10 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
       .nf-home .nf-home-mode-cell:hover { border-color:${H.goldLine}; transform:translateY(-2px); }
       .nf-home .nf-home-steps-grid { display:grid; grid-template-columns:repeat(5, 1fr); gap:20px; text-align:left; }
       @media (max-width: 760px) { .nf-home .nf-home-steps-grid { grid-template-columns:repeat(2, 1fr); } }
+      .nf-home .nf-home-problem-grid { display:grid; grid-template-columns:1fr 1.15fr; gap:56px; align-items:start; text-align:left; }
+      @media (max-width: 760px) { .nf-home .nf-home-problem-grid { grid-template-columns:1fr; gap:32px; } }
+      .nf-home .nf-home-symptom-row { padding:16px 0; border-top:1px solid ${H.border}; }
+      .nf-home .nf-home-symptom-row:first-child { border-top:none; padding-top:0; }
       .nf-home .nf-home-hero { grid-template-columns:1fr; text-align:center; }
       .nf-home .nf-home-hero p { margin-left:auto; margin-right:auto; }
       .nf-home .nf-home-hero > div:first-child > div:last-child { justify-content:center; }
@@ -2424,17 +2428,21 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
     // ══════════════════════════════════════════════════════════
     // SECTION 2: THE PROBLEM — COGNITIVE FRAGMENTATION
     // ══════════════════════════════════════════════════════════
-    React.createElement("section", { className: "nf-home-sec", style: { maxWidth:760, margin:'0 auto', padding:'72px 24px', textAlign:'center' } },
-      React.createElement("h2", { style: { ...hDisplay, fontWeight:600, fontSize:'clamp(24px,3vw,32px)', lineHeight:1.25, color:H.ink, marginBottom:20 } }, "Your team may not have a thinking problem."),
-      React.createElement("h2", { style: { ...hDisplay, fontWeight:600, fontSize:'clamp(24px,3vw,32px)', lineHeight:1.25, color:H.ink, marginBottom:36 } }, "It may have an integration problem."),
-      React.createElement("div", { style: { display:'flex', flexDirection:'column', gap:14, marginBottom:36 } },
-        ['You overthink.', 'You second-guess yourself.', 'You miss connections.', 'You rely too heavily on one way of thinking.'].map((w,i) => (
-          React.createElement("div", { key:i, style: { ...hBody, fontSize:17, color:H.muted } }, w)
-        ))
-      ),
-      React.createElement("p", { style: { ...hDisplay, fontWeight:600, fontSize:16, color:H.goldDeep, marginBottom:44 } }, "That's cognitive fragmentation."),
-      React.createElement("p", { style: { ...hBody, fontSize:15, lineHeight:1.7, color:H.faint, maxWidth:520, margin:'0 auto' } },
-        'Integration feels different: clarity, perspective and decisions you don\u2019t second-guess.')
+    React.createElement("section", { className: "nf-home-sec", style: { maxWidth:1000, margin:'0 auto', padding:'72px 24px' } },
+      React.createElement("div", { className: "nf-home-problem-grid" },
+        React.createElement("div", null,
+          React.createElement("h2", { style: { ...hDisplay, fontWeight:600, fontSize:'clamp(24px,3vw,32px)', lineHeight:1.25, color:H.ink, marginBottom:8 } }, "Your team may not have a thinking problem."),
+          React.createElement("h2", { style: { ...hDisplay, fontWeight:600, fontSize:'clamp(24px,3vw,32px)', lineHeight:1.25, color:H.goldDeep, marginBottom:24 } }, "It may have an integration problem."),
+          React.createElement("p", { style: { ...hBody, fontSize:15, lineHeight:1.7, color:H.muted, maxWidth:420 } },
+            'Integration feels different: clarity, perspective and decisions you don\u2019t second-guess.')
+        ),
+        React.createElement("div", { style: { background:C.surface, border:`1px solid ${H.border}`, borderRadius:8, padding:'8px 28px' } },
+          ['You overthink.', 'You second-guess yourself.', 'You miss connections.', 'You rely too heavily on one way of thinking.'].map((w,i) => (
+            React.createElement("div", { key:i, className: "nf-home-symptom-row", style: { ...hBody, fontSize:15.5, color:H.muted } }, w)
+          )),
+          React.createElement("div", { className: "nf-home-symptom-row", style: { ...hDisplay, fontWeight:600, fontSize:15.5, color:H.goldDeep } }, "That's cognitive fragmentation.")
+        )
+      )
     ),
 
     // ══════════════════════════════════════════════════════════
