@@ -2550,7 +2550,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
         React.createElement("p", { style: { ...hBody, fontSize:13.5, color:H.faint, maxWidth:480, marginBottom:32 } },
           'Retake it later and Clarity Delta\u2122 shows how your profile has changed.'),
         React.createElement("button", { className: "nf-home-cta-primary", onClick: () => setView('cfi') }, 'Take the Free CFI™ Assessment', React.createElement("span", null, '→')),
-        React.createElement("div", { className: "nf-home-note", style: { ...hMono, fontSize:11, letterSpacing:'0.06em', color:H.faint, marginTop:14, marginBottom:56 } }, homeNoteParts(['13 questions', 'About 3–4 minutes', 'Free', 'No account needed to start'])),
+        React.createElement("div", { className: "nf-home-note", style: { ...hMono, fontSize:11, letterSpacing:'0.06em', color:H.faint, marginTop:14, marginBottom:56 } }, homeNoteParts(['13 questions', 'About 3–4 minutes', 'Free', 'Free account to save results'])),
 
         React.createElement("div", { style: { borderTop:`1px solid ${H.border}`, paddingTop:40 } },
           React.createElement("h3", { style: { ...hDisplay, fontWeight:600, fontSize:18, color:H.ink, marginBottom:16 } }, 'A few things people ask.'),
@@ -2613,7 +2613,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
           React.createElement("button", { className: "nf-home-cta-primary", onClick: () => setView('cfi') }, 'Discover How You Think', React.createElement("span", null, '→')),
           React.createElement("button", { className: "nf-home-cta-outline", onClick: () => setView('enterprise') }, 'Develop Your Team\u2019s Thinking')
         ),
-        React.createElement("div", { className: "nf-home-note", style: { ...hMono, fontSize:11, letterSpacing:'0.06em', color:H.faint } }, homeNoteParts(['13 questions', 'About 3–4 minutes', 'Free', 'No account needed to start']))
+        React.createElement("div", { className: "nf-home-note", style: { ...hMono, fontSize:11, letterSpacing:'0.06em', color:H.faint } }, homeNoteParts(['13 questions', 'About 3–4 minutes', 'Free', 'Free account to save results']))
       )
     )
   );
@@ -4000,12 +4000,24 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
       // close the gate and show the short "ready" transition rather than
       // silently dropping them back on the un-started intro screen.
       useEffect(() => {
-        if (user && awaitingAuth) {
-          setAwaitingAuth(false);
+        if (user && showGate) {
+          // Came through the gate: show the short "ready" screen after fresh auth.
+          // If the session simply finished restoring (no auth modal used), go straight in.
           setShowGate(false);
-          setJustAuthed(true);
+          if (awaitingAuth) { setAwaitingAuth(false); setJustAuthed(true); }
+          else { setStarted(true); }
         }
-      }, [user, awaitingAuth]);
+      }, [user, awaitingAuth, showGate]);
+
+      // Hard guard: the questions must never be reachable without a signed-in user.
+      // If the session ends mid-assessment (sign out, expired token), drop back to the
+      // intro and clear in-memory answers so nothing carries over to the next person.
+      useEffect(() => {
+        if (!user && (started || justAuthed)) {
+          setStarted(false); setJustAuthed(false); setStep(0); setAnswers({});
+          setDraftId(null); setShowResult(false); setSaveState('idle');
+        }
+      }, [user]);
 
       // Resume an interrupted attempt: if a signed-in user has an in-progress
       // CFI row (refresh, dropped connection, closed browser, came back later),
@@ -4243,7 +4255,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
                 }}, 'Sign In')
               ),
               React.createElement("div", {style: { marginTop:28 }},
-                React.createElement("button", {className: "nf-a11y-btn", onClick: ()=>setShowGate(false), style: {
+                React.createElement("button", {className: "nf-a11y-btn", onClick: ()=>{ setShowGate(false); setAwaitingAuth(false); }, style: {
                   background:'none', border:'none', ...mono, fontSize:12, letterSpacing:1, color:AC.muted, cursor:'pointer',
                 }}, '← Back')
               )
@@ -4301,12 +4313,18 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
                   )
                 ))
               ),
-              React.createElement("button", {className: "nf-a11y-btn", onClick: ()=> setStarted(true), style: {
+              React.createElement("button", {className: "nf-a11y-btn", onClick: ()=> {
+                if (user) {
+                  setStarted(true);
+                } else {
+                  setShowGate(true);
+                }
+              }, style: {
                 fontFamily:AC.font, fontSize:18, fontWeight:700, padding:'18px 40px', minHeight:56,
                 background:AC.goldDark, color:'#FFFFFF', border:'none', borderRadius:16, cursor:'pointer',
                 boxShadow:'0 2px 8px rgba(138,109,47,0.35)',
               }}, 'Begin CFI →'),
-              React.createElement("div", {style: { ...mono, fontSize:12, color:AC.muted, marginTop:14 }}, 'No account needed to see your results.')
+              React.createElement("div", {style: { ...mono, fontSize:12, color:AC.muted, marginTop:14 }}, 'Free account required. Your results are saved automatically.')
             )
           )
         );
@@ -6996,7 +7014,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
 
       const handleSignOut = async () => {
         await sb.auth.signOut();
-        setUser(null); setProfile(null); setIsPro(false); setIsEnterprise(false); setLessonProgress({});
+        setUser(null); setProfile(null); setIsPro(false); setIsEnterprise(false); setLessonProgress({}); setCfiResult(null); setCfiHistory([]);
       };
 
       // Opens the auth modal on a specific tab (e.g. 'signup' or 'login'). Used by
