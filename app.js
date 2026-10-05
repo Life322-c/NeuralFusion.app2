@@ -1483,7 +1483,7 @@ Most learners take four to six weeks working through the lessons at the suggeste
     // NOTE: supabase-js does NOT throw on a failed query: it resolves with
     // { data, error }. Every call here checks .error explicitly and logs it,
     // so a failed save is visible in the console instead of silently vanishing.
-    const saveCFIResult = async (id, r, a, draftId) => {
+    const saveCFIResultCore = async (id, r, a, draftId) => {
       const check = validateCFISubmission(a);
       if (!check.valid || !validateCFIScore(r.total)) {
         const msg = 'CFI submission failed validation: ' + check.errors.concat(
@@ -1532,6 +1532,13 @@ Most learners take four to six weeks working through the lessons at the suggeste
       const res = await sb.from('cfi_results').insert(payload).select('id');
       if (res.error) console.error('[CFI SAVE ERROR] insert failed:', res.error);
       return res;
+    };
+    // Wrapper: persistence is unchanged; afterwards, if the participant started from a team
+    // invitation, the saved result is LINKED (not copied) to their organisation server-side.
+    const saveCFIResult = async (id, r, a, draftId) => {
+      const out = await saveCFIResultCore(id, r, a, draftId);
+      try { if (!out.error && window.NF_ORG) await window.NF_ORG.afterCfiSaved(out.data && out.data[0] && out.data[0].id); } catch (e) { console.error('[ORG LINK ERROR]', e); }
+      return out;
     };
     // Looks up a signed-in user's in-progress CFI attempt, if one exists, so an
     // interrupted assessment (refresh, lost connection, returning later) can resume
@@ -1824,7 +1831,7 @@ Most learners take four to six weeks working through the lessons at the suggeste
     }
 
     // ── NAVBAR ────────────────────────────────────────────────────────
-    function Navbar({ view, setView, user, profile, setShowAuth, onSignOut, authLoading }) {
+    function Navbar({ view, setView, user, profile, setShowAuth, onSignOut, authLoading , hasOrg }) {
       const [menuOpen, setMenuOpen] = useState(false);
       // Awaiting-review indicator: a quiet dot next to "Decisions" when a
       // saved decision's review date has arrived. No push, no popups;
@@ -1848,6 +1855,7 @@ Most learners take four to six weeks working through the lessons at the suggeste
         { v:'lessons', label:'Academy' },
         { v:'resources', label:'Resources' },
         { v:'enterprise', label:'Enterprise' },
+        ...(hasOrg ? [{ v:'org', label:'My Team' }] : []),
         ...(profile?.is_admin === true ? [{ v:'admin', label:'⚙ Admin' }] : []),
       ] : [
         { v:'home', label:'Home' },
@@ -5776,6 +5784,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
         { id:'cfi',        label:'CFI Results',  icon:'◎' },
         { id:'pro',        label:'Pro Subs',     icon:'★' },
         { id:'organisations', label:'Organisations', icon:'⬡' },
+        { id:'teams',      label:'Teams',        icon:'◈' },
         { id:'cohorts',    label:'Cohorts',      icon:'⊞' },
         { id:'ent-results',label:'Ent Results',  icon:'◇' },
         { id:'lessons',    label:'Lessons',      icon:'▤' },
@@ -6008,7 +6017,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
                                 color:'#F87171', borderRadius:2,
                               }}, 'Revoke')))
                         )))))
-                ), tab === 'organisations' && (
+                ), tab === 'teams' && React.createElement(window.NF_ORG.AdminTeamsPanel, null), tab === 'organisations' && (
                   React.createElement("div", null,
                     React.createElement("div", { className:"card", style: { padding:'28px', marginBottom:24, borderColor:'rgba(76,247,192,0.2)', maxWidth:480 } },
                       React.createElement("div", { style: { ...mono, fontSize:11, letterSpacing:1, color:'#4CF7C0', marginBottom:16 } }, 'Create organisation'),
@@ -6818,44 +6827,9 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
       };
 
       // If not enterprise, show paywall
+      // Non-enterprise visitors get the self-serve team purchase experience (org.js).
       if (!isEnterprise) {
-        return (
-          React.createElement("div", {style: { paddingTop:80, paddingBottom:80, background:C.void, minHeight:'100vh' }}, React.createElement("div", {style: { maxWidth:800, margin:'0 auto', padding:'60px 24px', textAlign:'center' }}, React.createElement("div", {style: { ...mono, fontSize:11, letterSpacing:1.5, color:C.cyan, marginBottom:20 }}, 'NEURALFUSION™ · ENTERPRISE SYSTEM'), React.createElement("div", {style: {
-                width:100, height:100, borderRadius:'50%',
-                background:`radial-gradient(circle, rgba(76,247,192,0.15), transparent)`,
-                border:'1px solid rgba(76,247,192,0.3)',
-                display:'flex', alignItems:'center', justifyContent:'center',
-                ...mono, fontSize:26, color:'#4CF7C0',
-                margin:'0 auto 32px',
-                boxShadow:'0 0 60px rgba(76,247,192,0.15)',
-                animation:'neuralPulse 3s ease-in-out infinite',
-              }}, '◈'), React.createElement("h1", {style: { ...syne, fontSize:'clamp(14px,1.3vw,17px)', fontWeight:900, color:C.text, marginBottom:16, lineHeight:1.05 }}, 'NeuralFusion™', React.createElement("br", null), React.createElement("span", {style: { color:'#4CF7C0' }}, 'Enterprise')), React.createElement("p", {style: { ...inter, fontSize:14, color:C.muted, maxWidth:520, margin:'0 auto 48px', lineHeight:1.8 }}, 'The complete organisational delivery system. Run NeuralFusion™ with your teams, cohorts, and clients. Includes facilitator tools, CFI data management, Clarity Delta reporting, and the full 5-lesson programme.'), React.createElement("div", {style: { display:'grid', gridTemplateColumns:'repeat(auto-fit,minmax(min(240px,100%),1fr))', gap:20, marginBottom:56, textAlign:'left' }}, [
-                  { icon:'◈', title:'Cohort Management', desc:'Run multiple cohorts simultaneously. Full participant tracking.' },
-                  { icon:'◰', title:'CFI Data Entry', desc:'Manual and participant-led CFI assessments. Edition 2.0 with Dim E.' },
-                  { icon:'◱', title:'Facilitator Dashboard', desc:'Live cohort scores, dimension breakdown, Clarity Delta reports.' },
-                  { icon:'◲', title:'5-Lesson Programme', desc:'Complete session plans, practice scripts, debrief prompts, watchpoints.' },
-                  { icon:'◳', title:'Results Archive', desc:'Full participant records with pre/post comparison.' },
-                  { icon:'★', title:'Certification Track', desc:'7-week programme with Week 7 certification session.' },
-                ].map((f,i)=>(
-                  React.createElement("div", {key: i, style: {
-                    padding:'24px', borderRadius:2,
-                    background:'rgba(10,22,40,0.6)',
-                    border:'1px solid rgba(76,247,192,0.12)',
-                    backdropFilter:'blur(8px)',
-                  }}, React.createElement("div", {style: { ...mono, fontSize:17, color:'#4CF7C0', marginBottom:12 }}, f.icon), React.createElement("div", {style: { ...syne, fontSize:15, fontWeight:700, color:C.text, marginBottom:8, overflowWrap:'break-word', minWidth:0}}, f.title), React.createElement("div", {style: { ...inter, fontSize:13, color:C.muted, lineHeight:1.6 }}, f.desc))
-                ))), React.createElement("div", {style: {
-                padding:'48px', borderRadius:4,
-                background:'rgba(10,22,40,0.8)',
-                border:'1px solid rgba(76,247,192,0.25)',
-                backdropFilter:'blur(20px)',
-                marginBottom:32,
-              }}, React.createElement("div", {style: { ...mono, fontSize:11, letterSpacing:1.5, color:'#4CF7C0', marginBottom:16 }}, 'ENTERPRISE ACCESS · CUSTOM PRICING'), React.createElement("div", {style: { ...syne, fontSize:38, fontWeight:900, color:'#4CF7C0', marginBottom:4, letterSpacing:'-0.02em' }}, 'Contact for price'), React.createElement("div", {style: { ...inter, fontSize:14, color:C.muted, marginBottom:40 }}, 'Permanent access · All cohorts · All features · Pricing scoped to your organisation'), React.createElement("a", {href: '/contact', style: {
-                    display:'inline-block', textDecoration:'none', textAlign:'center',
-                    ...syne, fontSize:14, fontWeight:700, letterSpacing:'0.05em',
-                    padding:'18px 48px', background:'#4CF7C0', color:'#050C1A',
-                    border:'none', cursor:'pointer', borderRadius:2,
-                    transition:'all 0.2s', boxShadow:'0 0 40px rgba(76,247,192,0.3)', overflowWrap:'break-word', minWidth:0}, onMouseEnter: e=>{ e.currentTarget.style.background='#6FFAD0'; e.currentTarget.style.transform='translateY(-2px)'; }, onMouseLeave: e=>{ e.currentTarget.style.background='#4CF7C0'; e.currentTarget.style.transform='translateY(0)'; }}, 'Contact Us →')), React.createElement("div", {style: { ...mono, fontSize:9, letterSpacing:1, color:C.dim }}, 'NeuralFusion™ Enterprise · Edition 2.0 · Life Edet · 2026 · Confidential')))
-        );
+        return React.createElement(window.NF_ORG.EnterpriseLanding, { user, session, setShowAuth });
       }
 
       // If enterprise, show the app
@@ -6879,7 +6853,8 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
     //  MAIN APP
     // ═══════════════════════════════════════════════════════════════════
     function App() {
-      const [view, setView] = useState('home');
+      const [view, setView] = useState(() => (window.NF_ORG && window.NF_ORG.initialView()) || 'home');
+      const [hasOrg, setHasOrg] = useState(false);
       const [showAuth, setShowAuth] = useState(false);
       const [authInitialTab, setAuthInitialTab] = useState('login');
 
@@ -6957,6 +6932,11 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
         return ()=>subscription.unsubscribe();
       },[]);
 
+      useEffect(()=>{
+        if (user && window.NF_ORG) window.NF_ORG.loadMyOrgs().then(l => setHasOrg(l.length > 0));
+        else setHasOrg(false);
+      }, [user && user.id]);
+
       const loadUser = async (u) => {
         setAuthLoading(true);
         try {
@@ -7025,7 +7005,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
       const viewProps = { setView, user, session, paystackKey, setShowAuth, openAuth, isPro, setIsPro, isEnterprise, setIsEnterprise, cfiResult, setCfiResult, cfiHistory, lessonProgress, setLessonProgress, proPrice };
 
       return (
-        React.createElement("div", {style: { background:C.void, minHeight:'100vh', color:C.text }}, showAuth && React.createElement(AuthModal, {initialTab: authInitialTab, onClose: ()=>{ setShowAuth(false); setAuthInitialTab('login'); }, onSuccess: ()=>{ setShowAuth(false); setAuthInitialTab('login'); }}), React.createElement(Navbar, {view: view, setView: setView, user: user, profile: profile, setShowAuth: setShowAuth, onSignOut: handleSignOut, authLoading: authLoading}), React.createElement("main", null, view==='home'        && React.createElement(HomeView, viewProps), view==='four-brains' && React.createElement(FourBrainsView, viewProps), view==='cfi'         && React.createElement(CFIView, viewProps), view==='protocol'    && React.createElement(ProtocolView, viewProps), view==='decisions'   && React.createElement(DecisionVaultView, viewProps), view==='pressure'    && React.createElement(PressureModeView, viewProps), view==='analytics'   && React.createElement(AnalyticsView, viewProps), view==='lessons'     && React.createElement(LessonsView, viewProps), view==='about'       && React.createElement(AboutView, viewProps), view==='resources'   && React.createElement(ResourcesView, viewProps), view==='legal'       && React.createElement(LegalView, {setView: setView}), view==='enterprise'  && React.createElement(EnterpriseView, {user: user, session: session, paystackKey: paystackKey, setShowAuth: setShowAuth, isEnterprise: isEnterprise, setIsEnterprise: setIsEnterprise, proPrice: proPrice, entPrice: entPrice, setView: setView}), view==='admin'       && profile?.is_admin === true && React.createElement(AdminView, {user: user, setView: setView, onPriceChange: setProPrice, onEntPriceChange: setEntPrice})), React.createElement(Footer, {setView: setView}), view !== 'enterprise' && React.createElement(BottomNav, {view: view, setView: setView, user: user}))
+        React.createElement("div", {style: { background:C.void, minHeight:'100vh', color:C.text }}, showAuth && React.createElement(AuthModal, {initialTab: authInitialTab, onClose: ()=>{ setShowAuth(false); setAuthInitialTab('login'); }, onSuccess: ()=>{ setShowAuth(false); setAuthInitialTab('login'); }}), React.createElement(Navbar, {view: view, setView: setView, user: user, profile: profile, setShowAuth: setShowAuth, onSignOut: handleSignOut, authLoading: authLoading, hasOrg: hasOrg}), React.createElement("main", null, view==='home'        && React.createElement(HomeView, viewProps), view==='four-brains' && React.createElement(FourBrainsView, viewProps), view==='cfi'         && React.createElement(CFIView, viewProps), view==='protocol'    && React.createElement(ProtocolView, viewProps), view==='decisions'   && React.createElement(DecisionVaultView, viewProps), view==='pressure'    && React.createElement(PressureModeView, viewProps), view==='analytics'   && React.createElement(AnalyticsView, viewProps), view==='lessons'     && React.createElement(LessonsView, viewProps), view==='about'       && React.createElement(AboutView, viewProps), view==='resources'   && React.createElement(ResourcesView, viewProps), view==='legal'       && React.createElement(LegalView, {setView: setView}), view==='enterprise'  && React.createElement(EnterpriseView, {user: user, session: session, paystackKey: paystackKey, setShowAuth: setShowAuth, isEnterprise: isEnterprise, setIsEnterprise: setIsEnterprise, proPrice: proPrice, entPrice: entPrice, setView: setView}), view==='teams'       && React.createElement(window.NF_ORG.EnterpriseLanding, {user: user, session: session, setShowAuth: setShowAuth}), view==='org'         && React.createElement(window.NF_ORG.OrgPortal, {user: user, session: session, setView: setView, setShowAuth: setShowAuth, onOrgsChanged: l => setHasOrg(l.length > 0)}), view==='invite'      && React.createElement(window.NF_ORG.InvitePage, {user: user, session: session, setView: setView, setShowAuth: setShowAuth, onOrgsChanged: l => setHasOrg(l.length > 0)}), view==='admin'       && profile?.is_admin === true && React.createElement(AdminView, {user: user, setView: setView, onPriceChange: setProPrice, onEntPriceChange: setEntPrice})), React.createElement(Footer, {setView: setView}), view !== 'enterprise' && React.createElement(BottomNav, {view: view, setView: setView, user: user}))
       );
     }
 
