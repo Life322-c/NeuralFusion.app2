@@ -6225,12 +6225,25 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
     //  ENTERPRISE SYSTEM: Components, Data & Views
     // ═══════════════════════════════════════════════════════════════════
 
-    // ── Enterprise Colors ──────────────────────────────────────────────
+    // ── Enterprise design tokens ───────────────────────────────────────
+    // Single source of truth for the Enterprise Portal. Mirrors the individual
+    // CFI assessment tokens (AC in CFIView / PROTOCOL_AC) so Enterprise reads as
+    // the organisational version of the same product.
+    const ENTERPRISE_CFI_THEME = {
+      bg: '#FFFFFF', surface: '#FFFFFF', surfaceAlt: '#F9FAFB',
+      text: '#111827', muted: '#4B5563', border: '#D1D5DB',
+      gold: '#C8A95A', goldDark: '#8A6D2F', goldTint: '#FBF3E3',
+      focus: '#8A6D2F',
+      error: '#B91C1C', errorTint: '#FEF2F2', success: '#166534',
+      font: "'Atkinson Hyperlegible', 'Inter', -apple-system, sans-serif",
+    };
+    const ET = ENTERPRISE_CFI_THEME;
+    // Legacy alias kept so any external reference to EC resolves to the CFI palette.
     const EC = {
-      bg: '#050C1A', bg2: '#0A1428', bg3: '#0F1E38',
-      accent: '#4CF7C0', accent2: '#1AEFFF', gold: '#F5C842',
-      red: '#FF5252', muted: 'rgba(255,255,255,0.45)', text: 'rgba(255,255,255,0.88)',
-      border: 'rgba(255,255,255,0.07)', border2: 'rgba(255,255,255,0.13)',
+      bg: ET.bg, bg2: ET.surface, bg3: ET.surfaceAlt,
+      accent: ET.goldDark, accent2: ET.goldDark, gold: ET.gold,
+      red: ET.error, muted: ET.muted, text: ET.text,
+      border: ET.border, border2: ET.border,
     };
 
     // ── Enterprise CFI Items ───────────────────────────────────────────
@@ -6256,10 +6269,10 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
     // and "Low Fragmentation" for an enterprise participant. Now sharing one threshold
     // table with CFIView's finalize() so a given score always gets the same label.
     const ENT_BANDS  = [
-      {min:41,max:65,label:'Critical fragmentation',color:'#FF5252'},
-      {min:29,max:40,label:'High fragmentation',color:'#FF8C42'},
-      {min:18,max:28,label:'Moderate fragmentation',color:'#F5C842'},
-      {min:0, max:17,label:'Integrated',color:'#4CF7C0'},
+      {min:41,max:65,label:'Critical fragmentation',color:'#B91C1C'},
+      {min:29,max:40,label:'High fragmentation',color:'#C2410C'},
+      {min:18,max:28,label:'Moderate fragmentation',color:'#8A6D2F'},
+      {min:0, max:17,label:'Integrated',color:'#166534'},
     ];
     const ENT_LESSONS = [
       { num:1, week:2, title:'Foundation of Integrated Thinking', skill:'Cognitive Mode Awareness', level:'Beginner', duration:90,
@@ -6373,46 +6386,315 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
       return ENT_BANDS.find(b => score >= b.min && score <= b.max) || ENT_BANDS[ENT_BANDS.length-1];
     }
 
-    // ── Enterprise Styles ──────────────────────────────────────────────
-    const ES = {
-      tag: { fontSize:'0.6rem', letterSpacing:'0.2em', color:EC.muted, marginBottom:'0.75rem' },
-      h1: { fontFamily:"'DM Serif Display', serif", fontSize:'clamp(1.1rem,1.6vw,1.5rem)', lineHeight:1.05, letterSpacing:'-0.02em', marginBottom:'1.5rem', color:EC.text },
-      h2: { fontFamily:"'DM Serif Display', serif", fontSize:'clamp(0.95rem,1.3vw,1.25rem)', lineHeight:1.1, marginBottom:'1rem', color:EC.text },
-      h3: { fontFamily:"'DM Serif Display', serif", fontSize:'1.2rem', lineHeight:1.2, marginBottom:'0.75rem', color:EC.text },
-      mono: (extra={}) => ({ fontFamily:"'Space Mono', monospace", fontSize:'0.72rem', lineHeight:1.8, color:EC.muted, ...extra }),
-      card: (extra={}) => ({ background:EC.bg2, border:`1px solid ${EC.border}`, padding:'2rem', ...extra }),
-      accentCard: (extra={}) => ({ background:EC.bg3, borderLeft:`2px solid ${EC.accent}`, padding:'1.5rem 2rem', ...extra }),
-      btnPrimary: { fontFamily:"'Space Mono', monospace", fontSize:'0.68rem', letterSpacing:'0.15em', color:EC.bg, background:EC.accent, border:'none', padding:'0.9rem 1.75rem', cursor:'pointer' },
-      btnGhost:   { fontFamily:"'Space Mono', monospace", fontSize:'0.68rem', letterSpacing:'0.15em', color:EC.accent, background:'transparent', border:`1px solid rgba(76,247,192,0.4)`, padding:'0.9rem 1.75rem', cursor:'pointer' },
-      btnGold:    { fontFamily:"'Space Mono', monospace", fontSize:'0.68rem', letterSpacing:'0.15em', color:EC.bg, background:EC.gold, border:'none', padding:'0.9rem 1.75rem', cursor:'pointer' },
-      input:      { fontFamily:"'Space Mono', monospace", fontSize:'0.72rem', background:EC.bg3, border:`1px solid ${EC.border2}`, color:EC.text, padding:'0.75rem 1rem', outline:'none', width:'100%' },
-      label:      { fontSize:'0.6rem', letterSpacing:'0.15em', color:EC.muted, display:'block', marginBottom:'0.4rem' },
-      navTab: (active) => ({ fontSize:'0.62rem', letterSpacing:'0.12em', padding:'0.5rem 1rem', border:`1px solid ${active?EC.accent:EC.border}`, background:active?'rgba(76,247,192,0.1)':'transparent', color:active?EC.accent:EC.muted, cursor:'pointer', transition:'all 0.2s' }),
-    };
+    // ── Enterprise Styles (CFI design system, scoped to .nf-enterprise) ─────
+    // The Enterprise Portal reuses the individual CFI assessment tokens
+    // (ENTERPRISE_CFI_THEME mirrors AC / PROTOCOL_AC). All layout and
+    // responsive behaviour lives in the scoped stylesheet below so nothing
+    // outside .nf-enterprise is affected.
+    const entH = React.createElement;
+    const ENT_DIM_NAMES = { A:'Decision Latency', B:'Mode Rigidity', C:'Emotional Reactivity', D:'Thought Interruption', E:'Cognitive Overload' };
+    const ENT_DIM_MAX   = { A:15, B:15, C:15, D:15, E:5 };
+
+    function entStylesCSS() {
+      const T = ET;
+      return `
+.nf-enterprise{font-family:${T.font};background:${T.bg};color:${T.text};min-height:100vh;font-size:17px;line-height:1.6;overflow-x:hidden;-webkit-text-size-adjust:100%;}
+.nf-enterprise *,.nf-enterprise *::before,.nf-enterprise *::after{box-sizing:border-box;}
+.nf-enterprise button,.nf-enterprise input,.nf-enterprise select,.nf-enterprise textarea{font-family:inherit;}
+.nf-enterprise :focus-visible{outline:3px solid ${T.focus};outline-offset:3px;}
+.nf-enterprise h1,.nf-enterprise h2,.nf-enterprise h3,.nf-enterprise p{margin:0;}
+
+/* Navigation */
+.nf-enterprise-nav{position:fixed;top:0;left:0;right:0;z-index:200;background:#FFFFFF;border-bottom:1px solid ${T.border};}
+.nf-enterprise-nav__inner{max-width:1160px;margin:0 auto;padding:8px 24px;min-height:64px;display:flex;align-items:center;gap:24px;}
+.nf-enterprise-brand{display:flex;align-items:center;gap:10px;font-weight:800;font-size:16px;letter-spacing:0.04em;white-space:nowrap;color:${T.text};}
+.nf-enterprise-brand small{font-size:14px;font-weight:600;letter-spacing:0;color:${T.muted};}
+.nf-enterprise-tabs{display:flex;gap:4px;flex:1 1 auto;min-width:0;overflow-x:auto;scrollbar-width:none;-ms-overflow-style:none;-webkit-overflow-scrolling:touch;}
+.nf-enterprise-tabs::-webkit-scrollbar{display:none;}
+.nf-enterprise-tab{flex:0 0 auto;min-height:48px;padding:0 16px;background:transparent;border:0;border-bottom:3px solid transparent;color:${T.text};font-size:16px;font-weight:600;cursor:pointer;white-space:nowrap;border-radius:8px 8px 0 0;}
+.nf-enterprise-tab:hover{background:${T.surfaceAlt};}
+.nf-enterprise-tab[aria-current="page"]{background:${T.goldTint};border-bottom-color:${T.goldDark};font-weight:700;}
+.nf-enterprise-nav__exit{flex:0 0 auto;margin-left:auto;}
+
+/* Layout */
+.nf-enterprise-container{width:100%;max-width:1100px;margin:0 auto;padding:96px 24px 64px;}
+.nf-enterprise-container--mid{max-width:880px;}
+.nf-enterprise-container--narrow{max-width:720px;}
+.nf-enterprise-header{margin-bottom:32px;}
+.nf-enterprise-header--center{text-align:center;}
+.nf-enterprise-eyebrow{font-size:14px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:${T.goldDark};margin-bottom:10px;overflow-wrap:anywhere;}
+.nf-enterprise-h1{font-size:clamp(26px,5vw,38px);font-weight:800;line-height:1.2;color:${T.text};margin-bottom:12px;overflow-wrap:anywhere;}
+.nf-enterprise-h2{font-size:clamp(20px,3.5vw,24px);font-weight:800;line-height:1.3;color:${T.text};margin-bottom:12px;overflow-wrap:anywhere;}
+.nf-enterprise-h3{font-size:20px;font-weight:700;line-height:1.35;color:${T.text};margin-bottom:8px;overflow-wrap:anywhere;}
+.nf-enterprise-lead{font-size:18px;line-height:1.7;color:${T.muted};max-width:640px;}
+.nf-enterprise-header--center .nf-enterprise-lead{margin:0 auto;}
+.nf-enterprise-text{font-size:17px;line-height:1.7;color:${T.text};overflow-wrap:anywhere;}
+.nf-enterprise-muted{font-size:16px;line-height:1.6;color:${T.muted};overflow-wrap:anywhere;}
+.nf-enterprise-small{font-size:15px;color:${T.muted};}
+.nf-enterprise-section{margin-bottom:32px;}
+.nf-enterprise-stack{display:flex;flex-direction:column;gap:16px;}
+.nf-enterprise-stack--tight{gap:12px;}
+
+/* Cards */
+.nf-enterprise-card{background:${T.surface};border:1px solid ${T.border};border-radius:16px;padding:24px;min-width:0;}
+.nf-enterprise-card--interactive{cursor:pointer;transition:border-color .15s ease,box-shadow .15s ease;}
+.nf-enterprise-card--interactive:hover{border-color:${T.gold};box-shadow:0 2px 10px rgba(138,109,47,0.12);}
+.nf-enterprise-card--tint{background:${T.goldTint};border-color:${T.gold};}
+.nf-enterprise-card--alt{background:${T.surfaceAlt};}
+.nf-enterprise-card--shadow{box-shadow:0 1px 3px rgba(17,24,39,0.06);}
+
+/* Grids */
+.nf-enterprise-metrics{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px;margin-bottom:16px;}
+.nf-enterprise-grid-2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;}
+.nf-enterprise-grid-3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;}
+.nf-enterprise-rolegrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px;}
+.nf-enterprise-metric{background:${T.surface};border:1px solid ${T.border};border-radius:16px;padding:20px;min-width:0;}
+.nf-enterprise-metric__label{font-size:15px;font-weight:600;color:${T.muted};margin-bottom:6px;}
+.nf-enterprise-metric__value{font-size:clamp(28px,4vw,36px);font-weight:800;line-height:1.15;color:${T.text};overflow-wrap:anywhere;}
+.nf-enterprise-metric__sub{font-size:14px;color:${T.muted};margin-top:6px;}
+
+/* Buttons */
+.nf-enterprise-btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:48px;padding:12px 22px;border-radius:12px;border:1px solid transparent;font-size:16px;font-weight:700;line-height:1.3;text-align:center;cursor:pointer;transition:background .15s ease,border-color .15s ease,color .15s ease;max-width:100%;}
+.nf-enterprise-btn--primary{background:${T.goldDark};color:#FFFFFF;box-shadow:0 1px 3px rgba(138,109,47,0.35);}
+.nf-enterprise-btn--primary:hover:not([disabled]){background:#735A26;}
+.nf-enterprise-btn--secondary{background:#FFFFFF;color:${T.text};border-color:${T.border};}
+.nf-enterprise-btn--secondary:hover:not([disabled]){border-color:${T.gold};background:${T.goldTint};}
+.nf-enterprise-btn--ghost{background:transparent;color:${T.text};}
+.nf-enterprise-btn--ghost:hover:not([disabled]){background:${T.goldTint};color:${T.goldDark};}
+.nf-enterprise-btn--danger{background:#FFFFFF;color:${T.error};border-color:#FCA5A5;}
+.nf-enterprise-btn--danger:hover:not([disabled]){background:${T.errorTint};}
+.nf-enterprise-btn--block{width:100%;}
+.nf-enterprise-btn[disabled]{opacity:0.5;cursor:not-allowed;}
+.nf-enterprise-actions{display:flex;flex-wrap:wrap;align-items:center;gap:12px;}
+
+/* Inputs */
+.nf-enterprise-field{display:flex;flex-direction:column;gap:6px;min-width:0;}
+.nf-enterprise-label{font-size:15px;font-weight:700;color:${T.text};}
+.nf-enterprise-input{width:100%;min-height:48px;padding:12px 14px;border:1px solid ${T.border};border-radius:10px;background:#FFFFFF;color:${T.text};font-size:16px;line-height:1.4;}
+.nf-enterprise-input::placeholder{color:#6B7280;}
+.nf-enterprise-input:focus{border-color:${T.goldDark};box-shadow:0 0 0 3px rgba(138,109,47,0.18);outline:none;}
+.nf-enterprise-input:focus-visible{outline:3px solid ${T.focus};outline-offset:2px;}
+.nf-enterprise-inline{display:flex;gap:12px;align-items:stretch;}
+.nf-enterprise-inline .nf-enterprise-input{flex:1 1 auto;min-width:0;}
+.nf-enterprise-inline .nf-enterprise-btn{flex:0 0 auto;}
+.nf-enterprise-seg{display:flex;gap:8px;}
+.nf-enterprise-seg button{flex:1 1 0;min-width:0;min-height:48px;padding:10px 14px;border:2px solid ${T.border};border-radius:12px;background:#FFFFFF;color:${T.text};font-size:16px;font-weight:700;cursor:pointer;line-height:1.3;}
+.nf-enterprise-seg button:hover{border-color:${T.gold};background:${T.goldTint};}
+.nf-enterprise-seg button[aria-checked="true"]{border-color:${T.goldDark};background:${T.goldTint};}
+.nf-enterprise-chips{display:flex;flex-wrap:wrap;gap:8px;}
+.nf-enterprise-chip{min-height:48px;padding:0 18px;border:1px solid ${T.border};border-radius:999px;background:#FFFFFF;color:${T.text};font-size:16px;font-weight:700;cursor:pointer;}
+.nf-enterprise-chip:hover{border-color:${T.gold};background:${T.goldTint};}
+.nf-enterprise-chip[aria-pressed="true"]{border-color:${T.goldDark};background:${T.goldTint};}
+.nf-enterprise-divider{display:flex;align-items:center;gap:12px;color:${T.muted};font-size:15px;}
+.nf-enterprise-divider::before,.nf-enterprise-divider::after{content:"";flex:1;height:1px;background:${T.border};}
+
+/* Status */
+.nf-enterprise-pill{display:inline-block;padding:4px 12px;border-radius:999px;border:1px solid ${T.border};background:#FFFFFF;font-size:14px;font-weight:700;line-height:1.4;white-space:nowrap;}
+.nf-enterprise-pill--ok{color:${T.success};border-color:#86EFAC;background:#F0FDF4;}
+.nf-enterprise-pill--wait{color:${T.goldDark};border-color:${T.gold};background:${T.goldTint};}
+.nf-enterprise-pill--idle{color:${T.muted};}
+.nf-enterprise-notice{padding:14px 16px;border-radius:12px;border:1px solid ${T.gold};background:${T.goldTint};color:${T.text};font-size:16px;line-height:1.6;overflow-wrap:anywhere;}
+.nf-enterprise-notice--error{background:${T.errorTint};border-color:#FCA5A5;color:${T.error};}
+.nf-enterprise-notice--success{background:#F0FDF4;border-color:#86EFAC;color:${T.success};}
+.nf-enterprise-empty{text-align:center;padding:40px 20px;border:1px dashed ${T.border};border-radius:16px;background:${T.surfaceAlt};}
+.nf-enterprise-loading{display:flex;align-items:center;gap:12px;padding:24px 0;color:${T.muted};}
+.nf-enterprise-spinner{width:22px;height:22px;border:3px solid ${T.border};border-top-color:${T.goldDark};border-radius:50%;animation:nfEntSpin .8s linear infinite;flex:0 0 auto;}
+@keyframes nfEntSpin{to{transform:rotate(360deg);}}
+
+/* Progress */
+.nf-enterprise-progress{height:10px;background:${T.surfaceAlt};border:1px solid ${T.border};border-radius:6px;overflow:hidden;}
+.nf-enterprise-progress__fill{height:100%;background:${T.gold};border-radius:6px;transition:width .4s ease;}
+.nf-enterprise-bar-row{display:grid;grid-template-columns:minmax(0,220px) minmax(0,1fr) 72px;gap:12px;align-items:center;padding:10px 0;border-top:1px solid #E5E7EB;}
+.nf-enterprise-bar-row:first-child{border-top:0;}
+.nf-enterprise-bar-row__value{text-align:right;font-weight:700;}
+
+/* Tables (desktop) and stacked cards (mobile) */
+.nf-enterprise-tablewrap{border:1px solid ${T.border};border-radius:16px;overflow:hidden;background:#FFFFFF;}
+.nf-enterprise-table{width:100%;border-collapse:collapse;font-size:16px;}
+.nf-enterprise-table th{text-align:left;font-size:14px;font-weight:700;color:${T.muted};background:${T.surfaceAlt};padding:12px 16px;border-bottom:1px solid ${T.border};}
+.nf-enterprise-table td{padding:14px 16px;border-bottom:1px solid #E5E7EB;vertical-align:middle;overflow-wrap:anywhere;}
+.nf-enterprise-table tr:last-child td{border-bottom:0;}
+.nf-enterprise-mobilelist{display:none;flex-direction:column;gap:12px;}
+.nf-enterprise-mobile-card{background:#FFFFFF;border:1px solid ${T.border};border-radius:16px;padding:16px;min-width:0;}
+.nf-enterprise-mobile-card__head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:8px;}
+.nf-enterprise-kv{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:10px 0;border-top:1px solid #E5E7EB;}
+.nf-enterprise-kv__k{font-size:15px;color:${T.muted};flex:0 0 auto;}
+.nf-enterprise-kv__v{font-weight:600;text-align:right;min-width:0;overflow-wrap:anywhere;}
+.nf-enterprise-dimchips{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px;padding-top:10px;border-top:1px solid #E5E7EB;}
+.nf-enterprise-dimchips div{text-align:center;background:${T.surfaceAlt};border:1px solid ${T.border};border-radius:10px;padding:6px 2px;}
+.nf-enterprise-dimchips span{display:block;font-size:13px;color:${T.muted};}
+.nf-enterprise-dimchips strong{font-size:17px;}
+
+/* Assessment and data entry (matches the individual CFI) */
+.nf-enterprise-question{margin-bottom:16px;}
+.nf-enterprise-question__text{font-size:clamp(19px,4.5vw,24px);font-weight:700;line-height:1.5;color:${T.text};margin-bottom:20px;overflow-wrap:anywhere;}
+.nf-enterprise-question__num{display:block;font-size:14px;font-weight:700;color:${T.goldDark};margin-bottom:6px;}
+.nf-enterprise-question--done{border-color:${T.goldDark};}
+.nf-enterprise-options{display:flex;flex-direction:column;gap:12px;}
+.nf-enterprise-option{width:100%;display:flex;align-items:center;justify-content:space-between;gap:16px;min-height:64px;padding:14px 18px;border-radius:16px;border:2px solid ${T.border};background:#FFFFFF;color:${T.text};font-size:18px;font-weight:700;text-align:left;cursor:pointer;box-shadow:0 1px 2px rgba(17,24,39,0.05);}
+.nf-enterprise-option:hover{border-color:${T.gold};background:${T.goldTint};}
+.nf-enterprise-option[aria-checked="true"]{border-color:${T.goldDark};background:${T.goldTint};box-shadow:0 2px 8px rgba(138,109,47,0.25);}
+.nf-enterprise-radio{width:26px;height:26px;border-radius:50%;border:2px solid ${T.border};flex:0 0 auto;display:flex;align-items:center;justify-content:center;}
+.nf-enterprise-option[aria-checked="true"] .nf-enterprise-radio{border-color:${T.goldDark};background:${T.goldDark};}
+.nf-enterprise-radio i{display:none;width:10px;height:10px;border-radius:50%;background:#FFFFFF;}
+.nf-enterprise-option[aria-checked="true"] .nf-enterprise-radio i{display:block;}
+.nf-enterprise-scale5{display:flex;gap:6px;}
+.nf-enterprise-scale5 button{flex:1 1 0;min-width:0;min-height:48px;border:2px solid ${T.border};border-radius:10px;background:#FFFFFF;color:${T.text};font-size:18px;font-weight:700;cursor:pointer;}
+.nf-enterprise-scale5 button:hover{border-color:${T.gold};background:${T.goldTint};}
+.nf-enterprise-scale5 button[aria-checked="true"]{border-color:${T.goldDark};background:${T.goldDark};color:#FFFFFF;}
+.nf-enterprise-scale5__hint{display:flex;justify-content:space-between;gap:12px;font-size:14px;color:${T.muted};margin-bottom:8px;}
+.nf-enterprise-chiprow{display:flex;flex-wrap:wrap;gap:8px;margin-top:16px;}
+.nf-enterprise-scalechip{font-size:15px;color:${T.text};background:${T.surfaceAlt};padding:6px 12px;border:1px solid ${T.border};border-radius:999px;}
+.nf-enterprise-submitbar{position:sticky;bottom:0;z-index:5;background:#FFFFFF;border-top:1px solid ${T.border};padding:14px 0;margin-top:16px;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;}
+
+/* Programme */
+.nf-enterprise-lesson{display:grid;grid-template-columns:56px minmax(0,1fr) auto;gap:20px;align-items:center;}
+.nf-enterprise-lesson__num{font-size:28px;font-weight:800;color:${T.goldDark};}
+.nf-enterprise-meta{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px;}
+.nf-enterprise-planrow{display:grid;grid-template-columns:120px minmax(0,1fr);gap:20px;padding:16px 0;border-bottom:1px solid ${T.border};}
+.nf-enterprise-planrow__t{font-weight:700;color:${T.goldDark};}
+.nf-enterprise-step{display:flex;gap:16px;align-items:flex-start;}
+.nf-enterprise-step__n{font-weight:800;color:${T.goldDark};flex:0 0 auto;min-width:28px;}
+.nf-enterprise-dot{width:8px;height:8px;border-radius:50%;background:${T.gold};flex:0 0 auto;margin-top:11px;}
+.nf-enterprise-cohortcard{display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap;}
+.nf-enterprise-cohortstats{display:flex;gap:28px;}
+.nf-enterprise-cohortstats strong{display:block;font-size:28px;line-height:1.2;font-weight:800;}
+
+/* Tablet */
+@media (max-width:1023px){
+  .nf-enterprise-metrics{grid-template-columns:repeat(2,minmax(0,1fr));}
+  .nf-enterprise-tablewrap--wide{display:none;}
+  .nf-enterprise-mobilelist--wide{display:flex;}
+}
+
+/* Mobile */
+@media (max-width:767px){
+  .nf-enterprise{font-size:16px;}
+  .nf-enterprise-nav__inner{flex-wrap:wrap;gap:0 12px;padding:8px 16px;}
+  .nf-enterprise-brand{order:1;flex:1 1 auto;min-width:0;min-height:48px;}
+  .nf-enterprise-nav__exit{order:2;margin-left:0;}
+  .nf-enterprise-tabs{order:3;flex:1 0 100%;margin:0 -16px;padding:0 16px;}
+  .nf-enterprise-container{padding:88px 16px 48px;}
+  .nf-enterprise-container--tabs{padding-top:136px;}
+  .nf-enterprise-header{margin-bottom:24px;}
+  .nf-enterprise-lead{font-size:17px;}
+  .nf-enterprise-card{padding:16px;}
+  .nf-enterprise-metrics,.nf-enterprise-grid-2,.nf-enterprise-grid-3,.nf-enterprise-rolegrid{grid-template-columns:minmax(0,1fr);}
+  .nf-enterprise-inline{flex-direction:column;}
+  .nf-enterprise-inline .nf-enterprise-btn{width:100%;}
+  .nf-enterprise-actions{flex-direction:column;align-items:stretch;}
+  .nf-enterprise-actions .nf-enterprise-btn{width:100%;}
+  .nf-enterprise-seg{flex-wrap:wrap;}
+  .nf-enterprise-seg button{flex:1 1 100%;}
+  .nf-enterprise-seg--row button{flex:1 1 0;}
+  .nf-enterprise-tablewrap:not(.nf-enterprise-tablewrap--wide){display:none;}
+  .nf-enterprise-mobilelist:not(.nf-enterprise-mobilelist--wide){display:flex;}
+  .nf-enterprise-mobile-card .nf-enterprise-btn{width:100%;margin-top:12px;}
+  .nf-enterprise-bar-row{grid-template-columns:minmax(0,1fr) auto;}
+  .nf-enterprise-bar-row .nf-enterprise-progress{grid-column:1 / -1;order:3;}
+  .nf-enterprise-lesson{grid-template-columns:minmax(0,1fr);gap:8px;}
+  .nf-enterprise-lesson .nf-enterprise-btn{width:100%;margin-top:8px;}
+  .nf-enterprise-planrow{grid-template-columns:minmax(0,1fr);gap:4px;}
+  .nf-enterprise-cohortcard{flex-direction:column;align-items:stretch;}
+  .nf-enterprise-cohortcard .nf-enterprise-btn{width:100%;}
+  .nf-enterprise-cohortstats{gap:24px;}
+  .nf-enterprise-question__text{margin-bottom:16px;}
+  .nf-enterprise-option{padding:14px;font-size:17px;}
+  .nf-enterprise-submitbar{flex-direction:column;align-items:stretch;}
+  .nf-enterprise-submitbar .nf-enterprise-btn{width:100%;}
+  .nf-enterprise-step{gap:12px;}
+}
+
+/* Small phones */
+@media (max-width:360px){
+  .nf-enterprise-card{padding:14px 12px;}
+  .nf-enterprise-container{padding-left:12px;padding-right:12px;}
+  .nf-enterprise-scale5{gap:4px;}
+}
+
+@media (prefers-reduced-motion:reduce){
+  .nf-enterprise *,.nf-enterprise *::before,.nf-enterprise *::after{animation:none !important;transition:none !important;}
+}
+`;
+    }
+
+    function useEnterpriseStyles() {
+      useEffect(() => {
+        if (!document.getElementById('nf-a11y-font')) {
+          const link = document.createElement('link');
+          link.id = 'nf-a11y-font';
+          link.rel = 'stylesheet';
+          link.href = 'https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Inter:wght@400;600;700;800&display=swap';
+          document.head.appendChild(link);
+        }
+        if (!document.getElementById('nf-enterprise-styles')) {
+          const style = document.createElement('style');
+          style.id = 'nf-enterprise-styles';
+          style.textContent = entStylesCSS();
+          document.head.appendChild(style);
+        }
+      }, []);
+    }
+
+    // ── Shared small pieces ────────────────────────────────────────────
+    const entMean = arr => arr.length ? Math.round(arr.reduce((s,r)=>s+r.composite,0)/arr.length) : null;
+    const entPidForUser = uid => 'NF-' + (uid || '').replace(/-/g, '').slice(0, 6).toUpperCase();
+
+    function EntMain({ width, tabs = true, children }) {
+      const cls = 'nf-enterprise-container' + (width ? ' nf-enterprise-container--' + width : '') + (tabs ? ' nf-enterprise-container--tabs' : '');
+      return entH("main", {className: cls}, children);
+    }
+    function EntHeader({ eyebrow, title, lead, center }) {
+      return entH("header", {className: 'nf-enterprise-header' + (center ? ' nf-enterprise-header--center' : '')},
+        eyebrow && entH("div", {className: "nf-enterprise-eyebrow"}, eyebrow),
+        entH("h1", {className: "nf-enterprise-h1"}, title),
+        lead && entH("p", {className: "nf-enterprise-lead"}, lead)
+      );
+    }
+    function EntMetric({ label, value, sub, color }) {
+      return entH("div", {className: "nf-enterprise-metric"},
+        entH("div", {className: "nf-enterprise-metric__label"}, label),
+        entH("div", {className: "nf-enterprise-metric__value", style: color ? { color } : undefined}, value),
+        sub && entH("div", {className: "nf-enterprise-metric__sub"}, sub)
+      );
+    }
+    function EntNotice({ tone, children }) {
+      return entH("div", {className: 'nf-enterprise-notice' + (tone ? ' nf-enterprise-notice--' + tone : ''), role: tone==='error' ? 'alert' : 'status'}, children);
+    }
+    function EntEmpty({ children }) {
+      return entH("div", {className: "nf-enterprise-empty"}, entH("p", {className: "nf-enterprise-muted"}, children));
+    }
+    function EntLoading({ children }) {
+      return entH("div", {className: "nf-enterprise-loading", role: "status"}, entH("div", {className: "nf-enterprise-spinner", "aria-hidden": "true"}), entH("span", null, children));
+    }
 
     // ── Enterprise BandPill ────────────────────────────────────────────
     function EntBandPill({ score }) {
       const band = entGetBand(score);
-      return React.createElement("span", {style: { fontSize:'0.6rem', letterSpacing:'0.1em', color:band.color, border:`1px solid ${band.color}50`, padding:'0.2rem 0.6rem' }}, band.label);
+      return entH("span", {className: "nf-enterprise-pill", style: { color: band.color, borderColor: band.color }}, band.label);
     }
 
     // ── Enterprise ProgressBar ─────────────────────────────────────────
-    function EntProgressBar({ value, max=65 }) {
-      const pct = Math.min(100,(value/max)*100);
-      return (
-        React.createElement("div", {style: { background:EC.border, height:4, borderRadius:2, overflow:'hidden' }}, React.createElement("div", {style: { height:'100%', width:`${pct}%`, background:EC.accent, transition:'width 0.5s ease' }}))
+    function EntProgressBar({ value, max=65, label }) {
+      const pct = Math.min(100, max ? (value/max)*100 : 0);
+      return entH("div", {className: "nf-enterprise-progress", role: "progressbar", "aria-label": label || 'Progress', "aria-valuenow": Math.round(pct), "aria-valuemin": 0, "aria-valuemax": 100},
+        entH("div", {className: "nf-enterprise-progress__fill", style: { width: pct + '%' }})
       );
     }
 
     // ── Enterprise NavBar ──────────────────────────────────────────────
-    function EntNavBar({ view, setView, role, onExit }) {
-      const tabs = role==='facilitator'
-        ? [['dashboard','Dashboard'],['roster','Participants'],['lessons','Lessons'],['cfi','CFI Data'],['results','Results']]
-        : [['assessment','Assessment'],['programme','Programme']];
-      return (
-        React.createElement("nav", {style: { position:'fixed', top:0, left:0, right:0, zIndex:200, display:'flex', alignItems:'center', justifyContent:'space-between', padding:'1rem 2rem', background:'rgba(5,12,26,0.95)', backdropFilter:'blur(20px)', borderBottom:`1px solid ${EC.border}` }}, React.createElement("div", {style: { display:'flex', alignItems:'center', gap:10 }}, React.createElement(NFMark, {size: 20}), React.createElement("div", {style: { ...ES.mono({ color:EC.accent }), letterSpacing:'0.2em' }}, 'NEURALFUSION™', React.createElement("span", {style: { color:EC.muted }}, ' / Enterprise'))), React.createElement("div", {style: { display:'flex', gap:'0.25rem' }}, tabs.map(([id,label]) => (
-              React.createElement("button", {key: id, style: ES.navTab(view===id), onClick: ()=>setView(id)}, label)
-            ))), React.createElement("button", {style: { ...ES.mono({ color:EC.muted }), background:'none', border:`1px solid ${EC.border}`, padding:'0.4rem 0.9rem', cursor:'pointer' }, onClick: onExit}, '← Exit'))
+    function EntNavBar({ view, setView, role, onExit, minimal }) {
+      const tabs = minimal ? [] : (role==='facilitator'
+        ? [['dashboard','Dashboard'],['roster','Participants'],['lessons','Lessons'],['cfi','CFI'],['results','Results']]
+        : [['assessment','Assessment'],['programme','Programme']]);
+      return entH("nav", {className: "nf-enterprise-nav", "aria-label": "Enterprise portal"},
+        entH("div", {className: "nf-enterprise-nav__inner"},
+          entH("div", {className: "nf-enterprise-brand"}, entH(NFMark, {size: 22, color: ET.goldDark}), entH("span", null, 'NEURALFUSION™'), entH("small", null, 'Enterprise')),
+          tabs.length > 0 && entH("div", {className: "nf-enterprise-tabs"}, tabs.map(([id,label]) =>
+            entH("button", {key: id, type: "button", className: "nf-enterprise-tab", "aria-current": view===id ? 'page' : undefined, onClick: ()=>setView(id)}, label)
+          )),
+          onExit && entH("button", {type: "button", className: "nf-enterprise-btn nf-enterprise-btn--secondary nf-enterprise-nav__exit", onClick: onExit}, '← Exit')
+        )
       );
     }
 
@@ -6459,10 +6741,40 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
       }
 
       return (
-        React.createElement("div", {style: { minHeight:'100vh', display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', padding:'2rem', paddingTop:'5rem', background:EC.bg }}, React.createElement("div", {style: { position:'fixed', inset:0, backgroundImage:`linear-gradient(${EC.accent}08 1px,transparent 1px),linear-gradient(90deg,${EC.accent}08 1px,transparent 1px)`, backgroundSize:'60px 60px', pointerEvents:'none' }}), React.createElement("div", {style: { position:'relative', zIndex:1, width:'100%', maxWidth:700, display:'flex', flexDirection:'column', alignItems:'center' }}, React.createElement("div", {style: { ...ES.tag, textAlign:'center' }}, '◈ Enterprise Cohort System · Active'), React.createElement("h1", {style: { ...ES.h1, textAlign:'center', maxWidth:600, marginBottom:'0.75rem' }}, 'NeuralFusion™', React.createElement("br", null), React.createElement("em", {style: { color:EC.accent }}, 'Enterprise Portal')), React.createElement("p", {style: { ...ES.mono(), textAlign:'center', maxWidth:480, marginBottom:'3rem' }}, 'Select your role to enter the programme. Facilitators access session controls, CFI data entry, and live cohort results. Participants join a cohort and complete assessments.'), React.createElement("div", {style: { display:'grid', gridTemplateColumns:'1fr 1fr', gap:'1.5rem', width:'100%', marginBottom:'2rem' }},
-          React.createElement("div", {style: { ...ES.card(), borderTop:`2px solid ${EC.gold}`, display:'flex', flexDirection:'column', gap:'1rem' }}, React.createElement("div", {style: { fontSize:'0.6rem', letterSpacing:'0.15em', color:EC.gold }}, 'Facilitator'), React.createElement("div", {style: ES.h3}, 'Run the programme'), React.createElement("p", {style: ES.mono()}, 'Deliver sessions, manage CFI data entry, view live cohort scores and Clarity Delta reports.'), user && React.createElement("button", {style: ES.btnGold, onClick: onEnterMyCohorts}, 'View My Cohorts →'), React.createElement("div", {style: { fontSize:'0.6rem', color:EC.muted, fontFamily:"'Space Mono', monospace", textAlign:'center' }}, '— or enter a single cohort code —'), React.createElement("input", {style: ES.input, placeholder: "Cohort code (e.g. ORG2026-A)", value: cohort, onChange: e=>{ setCohort(e.target.value); setFacError(''); }}), !user && React.createElement("div", {style: { fontSize:'0.7rem', color:EC.muted, fontFamily:"'Space Mono', monospace" }}, 'Sign in with your facilitator account to continue.'), facError && React.createElement("div", {style: { fontSize:'0.65rem', color:EC.red, fontFamily:"'Space Mono', monospace" }}, facError), React.createElement("button", {style: ES.btnGhost, onClick: handleFacilitatorEnter, disabled: checking}, checking ? 'Checking…' : (user ? 'Enter Cohort →' : 'Sign In as Facilitator →'))),
-          React.createElement("div", {style: { ...ES.card(), borderTop:`2px solid ${EC.accent}`, display:'flex', flexDirection:'column', gap:'1rem' }}, React.createElement("div", {style: { fontSize:'0.6rem', letterSpacing:'0.15em', color:EC.accent }}, 'Participant'), React.createElement("div", {style: ES.h3}, 'Complete the programme'), React.createElement("p", {style: ES.mono()}, 'Join with the cohort code from your invitation, then take the CFI assessment and access lesson materials.'), React.createElement("input", {style: ES.input, placeholder: "Cohort code", value: joinCode, onChange: e=>{ setJoinCode(e.target.value); setJoinError(''); }}), !user && React.createElement("div", {style: { fontSize:'0.7rem', color:EC.muted, fontFamily:"'Space Mono', monospace" }}, 'Sign in or create an account to join a cohort.'), joinError && React.createElement("div", {style: { fontSize:'0.65rem', color:EC.red, fontFamily:"'Space Mono', monospace" }}, joinError), React.createElement("button", {style: ES.btnPrimary, onClick: handleJoinCohort, disabled: joining}, joining ? 'Joining…' : (user ? 'Join Cohort →' : 'Sign In to Join →')))
-        ), React.createElement("button", {style: { ...ES.mono({ color:EC.muted, cursor:'pointer' }), background:'none', border:'none', marginTop:'1rem' }, onClick: onExit}, '← Return to Platform')))
+        entH("div", {className: "nf-enterprise"},
+          entH(EntNavBar, {minimal: true, onExit}),
+          entH(EntMain, {width: 'narrow', tabs: false},
+            entH(EntHeader, {center: true, eyebrow: 'Enterprise Cohort System', title: 'NeuralFusion™ Enterprise Portal', lead: 'Select your role to enter the programme. Facilitators access session controls, CFI data entry, and live cohort results. Participants join a cohort and complete assessments.'}),
+            entH("div", {className: "nf-enterprise-rolegrid"},
+              entH("section", {className: "nf-enterprise-card nf-enterprise-card--shadow nf-enterprise-stack", "aria-labelledby": "ent-role-fac"},
+                entH("div", {className: "nf-enterprise-eyebrow", style: {marginBottom: 0}}, 'Facilitator'),
+                entH("h2", {className: "nf-enterprise-h3", id: "ent-role-fac", style: {marginBottom: 0}}, 'Run the programme'),
+                entH("p", {className: "nf-enterprise-muted"}, 'Deliver sessions, manage CFI data entry, view live cohort scores and Clarity Delta reports.'),
+                user && entH("button", {type: "button", className: "nf-enterprise-btn nf-enterprise-btn--primary nf-enterprise-btn--block", onClick: onEnterMyCohorts}, 'View My Cohorts →'),
+                user && entH("div", {className: "nf-enterprise-divider"}, 'or enter a single cohort code'),
+                entH("div", {className: "nf-enterprise-field"},
+                  entH("label", {className: "nf-enterprise-label", htmlFor: "ent-fac-code"}, 'Cohort code'),
+                  entH("input", {id: "ent-fac-code", className: "nf-enterprise-input", placeholder: "e.g. ORG2026-A", value: cohort, autoComplete: "off", "aria-invalid": !!facError, onChange: e=>{ setCohort(e.target.value); setFacError(''); }})
+                ),
+                !user && entH("p", {className: "nf-enterprise-small"}, 'Sign in with your facilitator account to continue.'),
+                facError && entH(EntNotice, {tone: 'error'}, facError),
+                entH("button", {type: "button", className: "nf-enterprise-btn nf-enterprise-btn--secondary nf-enterprise-btn--block", onClick: handleFacilitatorEnter, disabled: checking}, checking ? 'Checking…' : (user ? 'Enter Cohort →' : 'Sign In as Facilitator →'))
+              ),
+              entH("section", {className: "nf-enterprise-card nf-enterprise-card--shadow nf-enterprise-stack", "aria-labelledby": "ent-role-part"},
+                entH("div", {className: "nf-enterprise-eyebrow", style: {marginBottom: 0}}, 'Participant'),
+                entH("h2", {className: "nf-enterprise-h3", id: "ent-role-part", style: {marginBottom: 0}}, 'Complete the programme'),
+                entH("p", {className: "nf-enterprise-muted"}, 'Join with the cohort code from your invitation, then take the CFI assessment and access lesson materials.'),
+                entH("div", {className: "nf-enterprise-field"},
+                  entH("label", {className: "nf-enterprise-label", htmlFor: "ent-join-code"}, 'Cohort code'),
+                  entH("input", {id: "ent-join-code", className: "nf-enterprise-input", placeholder: "Code from your invitation", value: joinCode, autoComplete: "off", "aria-invalid": !!joinError, onChange: e=>{ setJoinCode(e.target.value); setJoinError(''); }})
+                ),
+                !user && entH("p", {className: "nf-enterprise-small"}, 'Sign in or create an account to join a cohort.'),
+                joinError && entH(EntNotice, {tone: 'error'}, joinError),
+                entH("button", {type: "button", className: "nf-enterprise-btn nf-enterprise-btn--primary nf-enterprise-btn--block", onClick: handleJoinCohort, disabled: joining}, joining ? 'Joining…' : (user ? 'Join Cohort →' : 'Sign In to Join →'))
+              )
+            )
+          )
+        )
       );
     }
 
@@ -6494,30 +6806,34 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
       }, [user.id]);
 
       return (
-        React.createElement("div", {style: { maxWidth:900, margin:'0 auto', padding:'6rem 2rem 4rem' }},
-          React.createElement("button", {style: { ...ES.mono({ color:EC.muted, cursor:'pointer' }), background:'none', border:'none', marginBottom:'1.5rem' }, onClick: onExit}, '← Back'),
-          React.createElement("div", {style: ES.tag}, 'Facilitator'), React.createElement("h1", {style: ES.h1}, 'My', React.createElement("em", {style: { color:EC.accent }}, ' Cohorts')),
-          loading && React.createElement("p", {style: ES.mono()}, 'Loading your cohorts…'),
-          !loading && rows.length === 0 && React.createElement("div", {style: ES.accentCard({ padding:'2rem', marginTop:'1.5rem' })}, React.createElement("p", {style: ES.mono()}, "You don't have any cohorts assigned yet. Ask your administrator to grant facilitator access.")),
-          !loading && rows.length > 0 && React.createElement("div", {style: { display:'flex', flexDirection:'column', gap:'1rem', marginTop:'2rem' }}, rows.map((r, i) => (
-            React.createElement("div", {key: i, style: { ...ES.card({ padding:'1.5rem', cursor:'pointer' }) }, onClick: () => onOpenCohort(r.cohort.code)},
-              React.createElement("div", {style: { display:'flex', justifyContent:'space-between', alignItems:'center', flexWrap:'wrap', gap:'0.75rem' }},
-                React.createElement("div", null,
-                  React.createElement("div", {style: { fontFamily:"'DM Serif Display', serif", fontSize:'1.3rem', color:EC.text }}, r.cohort.name),
-                  React.createElement("div", {style: ES.mono({ fontSize:'0.62rem' })}, r.cohort.org || 'No organisation', ' · ', r.cohort.code, ' · ', (r.cohort.status||'active').toUpperCase(), ' · Started ', r.cohort.startDate || '--')
+        entH("div", {className: "nf-enterprise"},
+          entH(EntNavBar, {minimal: true}),
+          entH(EntMain, {width: 'mid', tabs: false},
+            entH("div", {className: "nf-enterprise-section"}, entH("button", {type: "button", className: "nf-enterprise-btn nf-enterprise-btn--ghost", onClick: onExit}, '← Back')),
+            entH(EntHeader, {eyebrow: 'Facilitator', title: 'My Cohorts', lead: 'Open a cohort to manage participants, lessons and results.'}),
+            loading && entH(EntLoading, null, 'Loading your cohorts…'),
+            !loading && rows.length === 0 && entH(EntEmpty, null, "You don't have any cohorts assigned yet. Ask your administrator to grant facilitator access."),
+            !loading && rows.length > 0 && entH("div", {className: "nf-enterprise-stack"}, rows.map((r, i) => (
+              entH("article", {key: i, className: "nf-enterprise-card nf-enterprise-card--interactive nf-enterprise-cohortcard", onClick: () => onOpenCohort(r.cohort.code)},
+                entH("div", {style: {minWidth: 0, flex: '1 1 260px'}},
+                  entH("h2", {className: "nf-enterprise-h3"}, r.cohort.name),
+                  entH("p", {className: "nf-enterprise-small"}, (r.cohort.org || 'No organisation'), ' · ', r.cohort.code, ' · ', (r.cohort.status||'active').toUpperCase(), ' · Started ', r.cohort.startDate || '--')
                 ),
-                React.createElement("div", {style: { display:'flex', gap:'1.5rem', textAlign:'right' }},
-                  React.createElement("div", null, React.createElement("div", {style: { fontFamily:"'DM Serif Display', serif", fontSize:'1.4rem', color:EC.accent }}, r.joined), React.createElement("div", {style: ES.mono({ fontSize:'0.55rem' })}, 'JOINED')),
-                  React.createElement("div", null, React.createElement("div", {style: { fontFamily:"'DM Serif Display', serif", fontSize:'1.4rem', color:EC.text }}, r.completed), React.createElement("div", {style: ES.mono({ fontSize:'0.55rem' })}, 'COMPLETED CFI'))
-                )
+                entH("div", {className: "nf-enterprise-cohortstats"},
+                  entH("div", null, entH("strong", {style: {color: ET.goldDark}}, r.joined), entH("span", {className: "nf-enterprise-small"}, 'Joined')),
+                  entH("div", null, entH("strong", null, r.completed), entH("span", {className: "nf-enterprise-small"}, 'Completed CFI'))
+                ),
+                entH("button", {type: "button", className: "nf-enterprise-btn nf-enterprise-btn--primary", onClick: e => { e.stopPropagation(); onOpenCohort(r.cohort.code); }, "aria-label": 'Open cohort ' + r.cohort.name}, 'Open →')
               )
-            )
-          )))
+            )))
+          )
         )
       );
     }
 
     // ── Enterprise CFI Assessment ──────────────────────────────────────
+    // Visually mirrors the individual CFI (CFIView): same type scale, card
+    // style response options, gold progress bar and focus treatment.
     function EntCFIAssessment({ session, onComplete }) {
       const [step, setStep] = useState('intro');
       const [responses, setResponses] = useState({});
@@ -6536,30 +6852,71 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
       }
 
       if (step==='intro') return (
-        React.createElement("div", {style: { maxWidth:700, margin:'0 auto', padding:'5rem 2rem 2rem' }}, React.createElement("div", {style: ES.tag}, 'Cognitive Fusion Index · Edition 2.0'), React.createElement("h1", {style: ES.h1}, 'CFI', React.createElement("em", {style: { color:EC.accent }}, 'Assessment')), React.createElement("div", {style: ES.accentCard({ marginBottom:'2rem' })}, React.createElement("div", {style: { ...ES.mono({ color:EC.text }), marginBottom:'1rem' }}, 'Instructions to Participant'), React.createElement("p", {style: ES.mono()}, 'Read each statement below and select the number that best describes how often you experience this, based on the', React.createElement("strong", {style: { color:EC.text }}, 'past two weeks'), '.'), React.createElement("div", {style: { display:'flex', gap:'1rem', flexWrap:'wrap', marginTop:'1.25rem' }}, ENT_SCALE.map(s=>React.createElement("span", {key: s.val, style: { fontSize:'0.65rem', color:EC.text, background:EC.bg3, padding:'0.3rem 0.75rem', border:`1px solid ${EC.border2}` }}, s.val, '=', s.label)))), React.createElement("div", {style: { display:'flex', gap:'1rem', marginBottom:'1.5rem' }}, ['pre','post'].map(p=>React.createElement("button", {key: p, style: p===phase?ES.btnPrimary:ES.btnGhost, onClick: ()=>setPhase(p)}, p==='pre'?'Pre-Assessment (Week 1)':'Post-Assessment (Week 6)'))), React.createElement("div", {style: ES.mono({ marginBottom:'2rem' })}, 'Participant ID:', React.createElement("strong", {style: { color:EC.accent }}, session.pid), '· Cohort:', React.createElement("strong", {style: { color:EC.accent }}, session.cohort)), React.createElement("button", {style: ES.btnPrimary, onClick: ()=>setStep('items')}, 'Begin Assessment →'))
+        entH(EntMain, {width: 'narrow'},
+          entH(EntHeader, {eyebrow: 'Cognitive Fusion Index · Edition 2.0', title: 'CFI Assessment'}),
+          entH("section", {className: "nf-enterprise-card nf-enterprise-card--tint nf-enterprise-section"},
+            entH("h2", {className: "nf-enterprise-h3"}, 'Instructions'),
+            entH("p", {className: "nf-enterprise-text"}, 'Read each statement below and select the number that best describes how often you experience this, based on the ', entH("strong", null, 'past two weeks'), '.'),
+            entH("div", {className: "nf-enterprise-chiprow"}, ENT_SCALE.map(s => entH("span", {key: s.val, className: "nf-enterprise-scalechip"}, s.val, ' = ', s.label)))
+          ),
+          entH("div", {className: "nf-enterprise-section"},
+            entH("div", {className: "nf-enterprise-label", id: "ent-phase-label", style: {marginBottom: 8}}, 'Assessment phase'),
+            entH("div", {className: "nf-enterprise-seg", role: "radiogroup", "aria-labelledby": "ent-phase-label"}, ['pre','post'].map(p =>
+              entH("button", {key: p, type: "button", role: "radio", "aria-checked": p===phase, onClick: ()=>setPhase(p)}, p==='pre' ? 'Pre-Assessment (Week 1)' : 'Post-Assessment (Week 6)')
+            ))
+          ),
+          entH("p", {className: "nf-enterprise-small nf-enterprise-section"}, 'Participant ID: ', entH("strong", {style: {color: ET.text}}, session.pid), ' · Cohort: ', entH("strong", {style: {color: ET.text}}, session.cohort)),
+          entH("button", {type: "button", className: "nf-enterprise-btn nf-enterprise-btn--primary nf-enterprise-btn--block", onClick: ()=>setStep('items')}, 'Begin Assessment →')
+        )
       );
 
       if (step==='done') return (
-        React.createElement("div", {style: { maxWidth:600, margin:'0 auto', padding:'5rem 2rem 2rem', textAlign:'center' }}, React.createElement("div", {style: { fontSize:'3rem', marginBottom:'1rem' }}, '◈'), React.createElement("div", {style: ES.tag}, 'Assessment Complete'), React.createElement("h2", {style: ES.h2}, 'Your responses have', React.createElement("br", null), React.createElement("em", {style: { color:EC.accent }}, 'been recorded.')), React.createElement("p", {style: ES.mono()}, 'Your facilitator will share cohort-level results at Week 7. Individual scores are not disclosed during the programme.'))
+        entH(EntMain, {width: 'narrow'},
+          entH("div", {className: "nf-enterprise-header--center", style: {paddingTop: 24}},
+            entH("div", {"aria-hidden": "true", style: {width: 64, height: 64, borderRadius: '50%', background: ET.goldTint, border: `2px solid ${ET.goldDark}`, color: ET.goldDark, fontSize: 30, fontWeight: 800, display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px'}}, '✓'),
+            entH("div", {className: "nf-enterprise-eyebrow"}, 'Assessment Complete'),
+            entH("h1", {className: "nf-enterprise-h1"}, 'Your responses have been recorded.'),
+            entH("p", {className: "nf-enterprise-lead"}, 'Your facilitator will share cohort-level results at Week 7. Individual scores are not disclosed during the programme.')
+          )
+        )
       );
 
       const dimGroups = ['A','B','C','D','E'];
-      const dimNames = { A:'Decision Latency', B:'Mode Rigidity', C:'Emotional Reactivity', D:'Thought Interruption', E:'Cognitive Overload' };
-
       return (
-        React.createElement("div", {style: { maxWidth:760, margin:'0 auto', padding:'5rem 2rem 4rem' }}, React.createElement("div", {style: { display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'2rem' }}, React.createElement("div", {style: ES.mono()}, 'CFI Edition 2.0 ·', phase==='pre'?'Pre-Assessment':'Post-Assessment'), React.createElement("div", {style: ES.mono()}, React.createElement("span", {style: { color:EC.accent }}, current), '/', total, 'items')), React.createElement(EntProgressBar, {value: current, max: total}), React.createElement("div", {style: { height:'2rem' }}), dimGroups.map(dim=>{
+        entH(EntMain, {width: 'mid'},
+          entH("div", {className: "nf-enterprise-section"},
+            entH("div", {style: {display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8, flexWrap: 'wrap', marginBottom: 12}},
+              entH("div", {className: "nf-enterprise-label"}, 'CFI Edition 2.0 · ', phase==='pre' ? 'Pre-Assessment' : 'Post-Assessment'),
+              entH("div", {className: "nf-enterprise-label", style: {color: ET.goldDark}}, current, ' of ', total, ' answered')
+            ),
+            entH(EntProgressBar, {value: current, max: total, label: 'Assessment progress'}),
+            entH("p", {className: "nf-enterprise-small", style: {marginTop: 12}}, current === 0 ? 'There are no wrong answers here. Go with your first instinct.' : (allDone ? 'Nice work.' : 'Good progress. Keep going.'))
+          ),
+          dimGroups.map(dim => {
             const items = ENT_CFI_ITEMS.filter(i=>i.dim===dim);
             return (
-              React.createElement("div", {key: dim, style: { marginBottom:'3rem' }}, React.createElement("div", {style: { ...ES.tag, color:EC.accent, marginBottom:'1.5rem' }}, 'Dimension', dim, ':', dimNames[dim], dim==='E'?' ★ New in Edition 2.0':''), items.map(item=>(
-                  React.createElement("div", {key: item.id, style: { ...ES.card({ marginBottom:'1rem', padding:'1.5rem' }), borderLeft:responses[item.id]?`2px solid ${EC.accent}`:`2px solid transparent` }}, React.createElement("div", {style: { display:'flex', gap:'1rem', marginBottom:'1.25rem', alignItems:'flex-start' }}, React.createElement("span", {style: { ...ES.mono({ color:EC.muted, flexShrink:0 }) }}, String(item.id).padStart(2,'0'), item.reversed?' ★':''), React.createElement("span", {style: ES.mono({ color:EC.text, lineHeight:1.7 })}, item.text)), React.createElement("div", {style: { display:'flex', gap:'0.5rem', flexWrap:'wrap' }}, ENT_SCALE.map(s=>{
-                        const sel = responses[item.id]===s.val;
-                        return (
-                          React.createElement("button", {key: s.val, onClick: ()=>setResponses(r=>({...r,[item.id]:s.val})), style: { fontFamily:"'Space Mono', monospace", fontSize:'0.6rem', letterSpacing:'0.1em', padding:'0.5rem 0.75rem', border:`1px solid ${sel?EC.accent:EC.border2}`, background:sel?'rgba(76,247,192,0.12)':'transparent', color:sel?EC.accent:EC.muted, cursor:'pointer', transition:'all 0.15s' }}, s.val, React.createElement("br", null), React.createElement("span", {style: { fontSize:'0.5rem' }}, s.label))
-                        );
-                      })))
-                )))
+              entH("section", {key: dim, className: "nf-enterprise-section", "aria-label": ENT_DIM_NAMES[dim]},
+                entH("div", {className: "nf-enterprise-eyebrow", style: {marginBottom: 16}}, 'Dimension ', dim, ': ', ENT_DIM_NAMES[dim], dim==='E' ? ' · New in Edition 2.0' : ''),
+                items.map(item => (
+                  entH("div", {key: item.id, className: 'nf-enterprise-card nf-enterprise-question' + (responses[item.id] ? ' nf-enterprise-question--done' : '')},
+                    entH("div", {className: "nf-enterprise-question__text", id: 'ent-q-' + item.id}, entH("span", {className: "nf-enterprise-question__num"}, 'Question ', String(item.id).padStart(2,'0')), item.text),
+                    entH("div", {className: "nf-enterprise-options", role: "radiogroup", "aria-labelledby": 'ent-q-' + item.id}, ENT_SCALE.map(s => {
+                      const sel = responses[item.id]===s.val;
+                      return entH("button", {key: s.val, type: "button", role: "radio", "aria-checked": sel, className: "nf-enterprise-option", onClick: ()=>setResponses(r=>({...r,[item.id]:s.val}))},
+                        entH("span", null, s.val, ' · ', s.label),
+                        entH("span", {className: "nf-enterprise-radio", "aria-hidden": "true"}, entH("i", null))
+                      );
+                    }))
+                  )
+                ))
+              )
             );
-          }), React.createElement("div", {style: { marginTop:'2rem', paddingTop:'2rem', borderTop:`1px solid ${EC.border}`, display:'flex', justifyContent:'space-between', alignItems:'center' }}, React.createElement("span", {style: ES.mono()}, allDone?'All items complete. Ready to submit.':`${total-current} items remaining.`), React.createElement("button", {style: allDone?ES.btnPrimary:{...ES.btnPrimary,opacity:0.4,cursor:'not-allowed'}, disabled: !allDone, onClick: handleSubmit}, 'Submit Assessment →')))
+          }),
+          entH("div", {className: "nf-enterprise-submitbar"},
+            entH("span", {className: "nf-enterprise-muted"}, allDone ? 'All items complete. Ready to submit.' : `${total-current} items remaining.`),
+            entH("button", {type: "button", className: "nf-enterprise-btn nf-enterprise-btn--primary", disabled: !allDone, onClick: handleSubmit}, 'Submit Assessment →')
+          )
+        )
       );
     }
 
@@ -6572,30 +6929,81 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
         const L = ENT_LESSONS[activeLesson];
         const tabs = [['plan','Session Plan'],['practice','Practice Script'],['debrief','Debrief Prompts'],['watchpoints','Watch-Points']];
         return (
-          React.createElement("div", {style: { maxWidth:880, margin:'0 auto', padding:'5rem 2rem 4rem' }}, React.createElement("button", {style: { ...ES.mono({ color:EC.accent }), background:'none', border:'none', cursor:'pointer', marginBottom:'2rem' }, onClick: ()=>setActiveLesson(null)}, '← Back to Programme'), React.createElement("div", {style: ES.tag}, 'Lesson', L.num, '· Week', L.week, '·', L.level), React.createElement("h1", {style: ES.h1}, L.title), React.createElement("div", {style: ES.accentCard({ marginBottom:'2rem' })}, React.createElement("div", {style: { ...ES.mono({ color:EC.accent, marginBottom:'0.5rem' }) }}, 'Facilitator Framing'), React.createElement("p", {style: ES.mono({ color:EC.text, lineHeight:1.9 })}, L.framing)), React.createElement("div", {style: { display:'flex', gap:'0.5rem', marginBottom:'2rem', flexWrap:'wrap' }}, tabs.map(([id,label])=>React.createElement("button", {key: id, style: ES.navTab(lessonTab===id), onClick: ()=>setLessonTab(id)}, label))), lessonTab==='plan'&&(
-              React.createElement("div", null, L.plan.map((row,i)=>(
-                  React.createElement("div", {key: i, style: { display:'grid', gridTemplateColumns:'100px 1fr', gap:'1.5rem', padding:'1.25rem 0', borderBottom:`1px solid ${EC.border}` }}, React.createElement("span", {style: ES.mono({ color:EC.accent })}, row.t), React.createElement("div", null, React.createElement("div", {style: { ...ES.mono({ color:EC.text, marginBottom:'0.3rem' }) }}, row.act), React.createElement("div", {style: ES.mono()}, row.detail)))
-                )), React.createElement("div", {style: { marginTop:'2rem', ...ES.card({ borderLeft:`2px solid ${EC.gold}` }) }}, React.createElement("div", {style: { fontSize:'0.6rem', letterSpacing:'0.15em', color:EC.gold, marginBottom:'0.5rem' }}, 'Assignment'), React.createElement("p", {style: ES.mono({ color:EC.text })}, L.assignment)))
-            ), lessonTab==='practice'&&(
-              React.createElement("div", {style: { display:'flex', flexDirection:'column', gap:'1rem' }}, L.practice.map((step,i)=>(
-                  React.createElement("div", {key: i, style: { ...ES.card({ padding:'1.25rem 1.5rem' }), borderLeft:`2px solid ${EC.accent2}`, display:'flex', gap:'1.25rem' }}, React.createElement("span", {style: { ...ES.mono({ color:EC.accent, flexShrink:0 }) }}, String(i+1).padStart(2,'0')), React.createElement("span", {style: ES.mono({ color:EC.text, fontStyle:step.startsWith("'")?'italic':'normal', lineHeight:1.9 })}, step))
-                )))
-            ), lessonTab==='debrief'&&(
-              React.createElement("div", {style: { display:'flex', flexDirection:'column', gap:'0.75rem' }}, L.debrief.map((q,i)=>(
-                  React.createElement("div", {key: i, style: { ...ES.card({ padding:'1.25rem 1.5rem' }), display:'flex', gap:'1.25rem' }}, React.createElement("span", {style: { ...ES.mono({ color:EC.accent }) }}, '→'), React.createElement("span", {style: ES.mono({ color:EC.text })}, q))
-                )))
-            ), lessonTab==='watchpoints'&&(
-              React.createElement("div", {style: { display:'grid', gridTemplateColumns:'repeat(auto-fit,minmax(min(340px,100%),1fr))', gap:'1rem' }}, L.watchpoints.map((w,i)=>(
-                  React.createElement("div", {key: i, style: { ...ES.card({ padding:'1.25rem' }), display:'flex', gap:'1rem' }}, React.createElement("span", {style: { width:6, height:6, borderRadius:'50%', background:EC.gold, flexShrink:0, marginTop:6 }}), React.createElement("span", {style: ES.mono({ color:EC.muted, lineHeight:1.8 })}, w))
-                )))
-            ), React.createElement("div", {style: { ...ES.card({ marginTop:'2.5rem', background:EC.bg3, textAlign:'center', padding:'2rem' }) }}, React.createElement("div", {style: { fontSize:'0.6rem', letterSpacing:'0.15em', color:EC.accent, marginBottom:'0.75rem' }}, 'Key Insight: Lesson', L.num), React.createElement("div", {style: { fontFamily:"'DM Serif Display', serif", fontSize:'1.3rem', fontStyle:'italic', color:EC.text, lineHeight:1.6 }}, L.keyInsight)))
+          entH(EntMain, {width: 'mid'},
+            entH("div", {className: "nf-enterprise-section"}, entH("button", {type: "button", className: "nf-enterprise-btn nf-enterprise-btn--ghost", onClick: ()=>setActiveLesson(null)}, '← Back to Programme')),
+            entH(EntHeader, {eyebrow: `Lesson ${L.num} · Week ${L.week} · ${L.level}`, title: L.title}),
+            entH("section", {className: "nf-enterprise-card nf-enterprise-card--tint nf-enterprise-section"},
+              entH("h2", {className: "nf-enterprise-h3"}, 'Facilitator Framing'),
+              entH("p", {className: "nf-enterprise-text"}, L.framing)
+            ),
+            entH("div", {className: "nf-enterprise-chips nf-enterprise-section", role: "group", "aria-label": "Lesson sections"}, tabs.map(([id,label]) =>
+              entH("button", {key: id, type: "button", className: "nf-enterprise-chip", "aria-pressed": lessonTab===id, onClick: ()=>setLessonTab(id)}, label)
+            )),
+            lessonTab==='plan' && (
+              entH("div", null,
+                L.plan.map((row,i) => (
+                  entH("div", {key: i, className: "nf-enterprise-planrow"},
+                    entH("span", {className: "nf-enterprise-planrow__t"}, row.t),
+                    entH("div", null, entH("div", {className: "nf-enterprise-text", style: {fontWeight: 700}}, row.act), entH("div", {className: "nf-enterprise-muted"}, row.detail))
+                  )
+                )),
+                entH("div", {className: "nf-enterprise-card nf-enterprise-card--tint", style: {marginTop: 24}},
+                  entH("div", {className: "nf-enterprise-eyebrow"}, 'Assignment'),
+                  entH("p", {className: "nf-enterprise-text"}, L.assignment)
+                )
+              )
+            ),
+            lessonTab==='practice' && (
+              entH("div", {className: "nf-enterprise-stack nf-enterprise-stack--tight"}, L.practice.map((step,i) => (
+                entH("div", {key: i, className: "nf-enterprise-card nf-enterprise-step"},
+                  entH("span", {className: "nf-enterprise-step__n"}, String(i+1).padStart(2,'0')),
+                  entH("span", {className: "nf-enterprise-text", style: {fontStyle: step.startsWith("'") ? 'italic' : 'normal'}}, step)
+                )
+              )))
+            ),
+            lessonTab==='debrief' && (
+              entH("div", {className: "nf-enterprise-stack nf-enterprise-stack--tight"}, L.debrief.map((q,i) => (
+                entH("div", {key: i, className: "nf-enterprise-card nf-enterprise-step"},
+                  entH("span", {className: "nf-enterprise-step__n", "aria-hidden": "true"}, '→'),
+                  entH("span", {className: "nf-enterprise-text"}, q)
+                )
+              )))
+            ),
+            lessonTab==='watchpoints' && (
+              entH("div", {className: "nf-enterprise-grid-2"}, L.watchpoints.map((w,i) => (
+                entH("div", {key: i, className: "nf-enterprise-card nf-enterprise-step"},
+                  entH("span", {className: "nf-enterprise-dot", "aria-hidden": "true"}),
+                  entH("span", {className: "nf-enterprise-text"}, w)
+                )
+              )))
+            ),
+            entH("section", {className: "nf-enterprise-card nf-enterprise-card--alt", style: {marginTop: 32, textAlign: 'center', padding: '28px 20px'}},
+              entH("div", {className: "nf-enterprise-eyebrow"}, 'Key Insight · Lesson ', L.num),
+              entH("p", {style: {fontSize: 'clamp(19px,4vw,24px)', fontWeight: 700, lineHeight: 1.5}}, L.keyInsight)
+            )
+          )
         );
       }
 
       return (
-        React.createElement("div", {style: { maxWidth:880, margin:'0 auto', padding:'5rem 2rem 4rem' }}, React.createElement("div", {style: ES.tag}, '5-Lesson Programme · 7 Weeks'), React.createElement("h1", {style: ES.h1}, 'Your', React.createElement("em", {style: { color:EC.accent }}, 'Programme')), React.createElement("div", {style: { display:'flex', flexDirection:'column', borderTop:`1px solid ${EC.border}` }}, ENT_LESSONS.map((L,i)=>(
-              React.createElement("button", {key: i, onClick: ()=>setActiveLesson(i), style: { display:'grid', gridTemplateColumns:'3rem 1fr auto', gap:'2rem', alignItems:'center', padding:'1.75rem 0', borderBottom:`1px solid ${EC.border}`, background:'none', border:'none', borderTop:'none', textAlign:'left', cursor:'pointer', color:EC.text, width:'100%', transition:'padding-left 0.2s' }, onMouseEnter: e=>e.currentTarget.style.paddingLeft='1rem', onMouseLeave: e=>e.currentTarget.style.paddingLeft='0'}, React.createElement("span", {style: ES.mono({ color:EC.muted })}, String(L.num).padStart(2,'0')), React.createElement("div", null, React.createElement("div", {style: { fontFamily:"'DM Serif Display', serif", fontSize:'1.3rem', marginBottom:'0.3rem', color:EC.text }}, L.title), React.createElement("div", {style: ES.mono({ fontSize:'0.62rem' })}, L.skill, '· Week', L.week, '·', L.duration, 'min')), React.createElement("span", {style: ES.mono({ color:EC.accent })}, L.level, '→'))
-            ))))
+        entH(EntMain, {width: 'mid'},
+          entH(EntHeader, {eyebrow: '5-Lesson Programme · 7 Weeks', title: 'Your Programme', lead: 'Work through the five lessons in order. Each lesson builds on the one before.'}),
+          entH("div", {className: "nf-enterprise-stack"}, ENT_LESSONS.map((L,i) => (
+            entH("article", {key: i, className: "nf-enterprise-card nf-enterprise-card--interactive nf-enterprise-lesson", onClick: ()=>setActiveLesson(i)},
+              entH("div", {className: "nf-enterprise-lesson__num", "aria-hidden": "true"}, String(L.num).padStart(2,'0')),
+              entH("div", {style: {minWidth: 0}},
+                entH("h2", {className: "nf-enterprise-h3", style: {marginBottom: 4}}, entH("span", {className: "nf-enterprise-small", style: {display: 'block'}}, 'Lesson ', L.num), L.title),
+                entH("p", {className: "nf-enterprise-muted"}, L.skill),
+                entH("div", {className: "nf-enterprise-meta"},
+                  entH("span", {className: "nf-enterprise-pill"}, L.duration, ' min'),
+                  entH("span", {className: "nf-enterprise-pill"}, 'Week ', L.week),
+                  entH("span", {className: "nf-enterprise-pill nf-enterprise-pill--wait"}, L.level)
+                )
+              ),
+              entH("button", {type: "button", className: "nf-enterprise-btn nf-enterprise-btn--primary", onClick: e => { e.stopPropagation(); setActiveLesson(i); }, "aria-label": 'Start lesson ' + L.num + ': ' + L.title}, 'Start Lesson →')
+            )
+          )))
+        )
       );
     }
 
@@ -6604,13 +7012,10 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
       const cohortResults = allResults.filter(r=>r.cohort===session.cohort);
       const preResults  = cohortResults.filter(r=>r.phase==='pre');
       const postResults = cohortResults.filter(r=>r.phase==='post');
-      const meanScore = arr => arr.length ? Math.round(arr.reduce((s,r)=>s+r.composite,0)/arr.length) : null;
-      const preMean = meanScore(preResults);
-      const postMean = meanScore(postResults);
+      const preMean = entMean(preResults);
+      const postMean = entMean(postResults);
       const delta = preMean!==null&&postMean!==null ? postMean-preMean : null;
       const threshold = delta!==null && delta<=-15;
-      const dimNames = { A:'Decision Latency', B:'Mode Rigidity', C:'Emotional Reactivity', D:'Thought Interruption', E:'Cognitive Overload' };
-      const dimMax   = { A:15, B:15, C:15, D:15, E:5 };
 
       // Cohort-level roster: participants who've joined vs. completed a CFI
       // phase, so "Pending CFI" is real rather than inferred from results alone.
@@ -6619,39 +7024,49 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
       const joinedCount = roster.filter(p => p.status === 'joined' || p.user_id).length;
       const completedPids = new Set(cohortResults.map(r => r.pid));
       const pendingCount = Math.max(0, joinedCount - completedPids.size);
+      const completionPct = joinedCount > 0 ? Math.min(100, Math.round((completedPids.size / joinedCount) * 100)) : null;
+      const avgAll = entMean(cohortResults);
 
       return (
-        React.createElement("div", {style: { maxWidth:1100, margin:'0 auto', padding:'5rem 2rem 4rem' }}, React.createElement("div", {style: ES.tag}, 'Cohort:', session.cohort), React.createElement("h1", {style: ES.h1}, 'Facilitator', React.createElement("em", {style: { color:EC.accent }}, 'Dashboard')), React.createElement("div", {style: { display:'grid', gridTemplateColumns:'repeat(auto-fit,minmax(min(160px,100%),1fr))', gap:'1rem', marginBottom:'1rem' }}, [
-              { label:'Participants', val:joinedCount },
-              { label:'Completed CFI', val:completedPids.size, color:EC.accent },
-              { label:'Pending CFI', val:pendingCount, color:pendingCount>0?EC.gold:EC.muted },
-            ].map((s,i)=>(
-              React.createElement("div", {key: i, style: ES.card({ padding:'1.5rem' })}, React.createElement("div", {style: ES.mono({ fontSize:'0.6rem', marginBottom:'0.4rem' })}, s.label), React.createElement("div", {style: { fontFamily:"'DM Serif Display', serif", fontSize:'2rem', color:s.color||EC.text }}, s.val))
-            ))), React.createElement("div", {style: { display:'grid', gridTemplateColumns:'repeat(auto-fit,minmax(min(200px,100%),1fr))', gap:'1rem', marginBottom:'2.5rem' }}, [
-              { label:'Pre-assessments', val:preResults.length },
-              { label:'Post-assessments', val:postResults.length },
-              { label:'Mean Pre CFI', val:preMean!==null?preMean:'N/A' },
-              { label:'Clarity Delta', val:delta!==null?(delta>0?'+':'')+delta:'N/A', color:threshold?EC.accent:delta!==null?EC.red:EC.muted },
-            ].map((s,i)=>(
-              React.createElement("div", {key: i, style: ES.card({ padding:'1.5rem' })}, React.createElement("div", {style: ES.mono({ fontSize:'0.6rem', marginBottom:'0.4rem' })}, s.label), React.createElement("div", {style: { fontFamily:"'DM Serif Display', serif", fontSize:'2rem', color:s.color||EC.text }}, s.val))
-            ))), threshold&&(
+        entH(EntMain, null,
+          entH(EntHeader, {eyebrow: 'Cohort: ' + session.cohort, title: 'Facilitator Dashboard', lead: 'Live participation and CFI results for this cohort.'}),
+          entH("div", {className: "nf-enterprise-metrics"},
+            entH(EntMetric, {label: 'Participants', value: joinedCount}),
+            entH(EntMetric, {label: 'Completed CFI', value: completedPids.size, color: ET.goldDark}),
+            entH(EntMetric, {label: 'Completion', value: completionPct!==null ? completionPct + '%' : 'N/A', sub: pendingCount + ' pending CFI'}),
+            entH(EntMetric, {label: 'Average CFI', value: avgAll!==null ? avgAll : 'N/A', sub: 'Out of 65'})
+          ),
+          entH("div", {className: "nf-enterprise-metrics", style: {marginBottom: 32}},
+            entH(EntMetric, {label: 'Pre-assessments', value: preResults.length}),
+            entH(EntMetric, {label: 'Post-assessments', value: postResults.length}),
+            entH(EntMetric, {label: 'Mean Pre CFI', value: preMean!==null ? preMean : 'N/A'}),
+            entH(EntMetric, {label: 'Clarity Delta', value: delta!==null ? (delta>0?'+':'')+delta : 'N/A', color: threshold ? ET.success : delta!==null ? ET.error : ET.muted})
+          ),
+          threshold && (
             /* FIX (audit finding #4): a within-subject pre/post self-report change, with no
                control/waitlist group, cannot support a causal "the programme has demonstrated
                measurable cognitive improvement" claim on its own: retest familiarity,
                regression to the mean, and demand characteristics are all live alternative
                explanations. Restated to describe only what was actually measured. */
-            React.createElement("div", {style: { ...ES.accentCard({ marginBottom:'2rem', borderLeft:`2px solid ${EC.accent}` }) }}, React.createElement("div", {style: { ...ES.mono({ color:EC.accent }) }}, '◈ Clarity Delta threshold met (≤–15). Self-reported fragmentation dropped by at least 15 points pre-to-post. This reflects a within-subject self-report change, not an independently measured or controlled outcome.'))
-          ), preResults.length>0&&(
-            React.createElement("div", {style: ES.card({ padding:'2rem' })}, React.createElement("div", {style: { ...ES.tag, marginBottom:'1.5rem' }}, 'Dimension Breakdown: Pre-Assessment Means'), React.createElement("div", {style: { display:'grid', gridTemplateColumns:'repeat(5,1fr)', gap:'1rem' }}, ['A','B','C','D','E'].map(dim=>{
-                  const dimItems = ENT_CFI_ITEMS.filter(i=>i.dim===dim);
-                  const mean = preResults.length ? Math.round(preResults.reduce((s,r)=>s+(r.dims?.[dim]||0),0)/preResults.length) : 0;
-                  return (
-                    React.createElement("div", {key: dim, style: { textAlign:'center', padding:'1rem', border:`1px solid ${EC.border}` }}, React.createElement("div", {style: { fontFamily:"'DM Serif Display', serif", fontSize:'2rem', color:EC.accent, marginBottom:'0.25rem' }}, mean), React.createElement("div", {style: ES.mono({ fontSize:'0.55rem' })}, '/', dimMax[dim]), React.createElement("div", {style: { ...ES.mono({ fontSize:'0.58rem', color:EC.text, marginTop:'0.3rem' }) }}, 'Dim', dim), React.createElement("div", {style: ES.mono({ fontSize:'0.55rem' })}, dimNames[dim]))
-                  );
-                })))
-          ), preResults.length===0&&(
-            React.createElement("div", {style: ES.accentCard({ textAlign:'center', padding:'3rem' })}, React.createElement("div", {style: ES.mono()}, 'No assessment data yet for cohort', React.createElement("strong", {style: { color:EC.accent }}, session.cohort), '.', React.createElement("br", null), 'Participants must complete the CFI assessment to populate this dashboard.'))
-          ))
+            entH("div", {className: "nf-enterprise-section"}, entH(EntNotice, null, 'Clarity Delta threshold met (≤–15). Self-reported fragmentation dropped by at least 15 points pre-to-post. This reflects a within-subject self-report change, not an independently measured or controlled outcome.'))
+          ),
+          preResults.length>0 ? (
+            entH("section", {className: "nf-enterprise-card"},
+              entH("h2", {className: "nf-enterprise-h2"}, 'Dimension Breakdown'),
+              entH("p", {className: "nf-enterprise-muted", style: {marginBottom: 12}}, 'Pre-assessment means for each dimension.'),
+              ['A','B','C','D','E'].map(dim => {
+                const mean = Math.round(preResults.reduce((s,r)=>s+(r.dims?.[dim]||0),0)/preResults.length);
+                return entH("div", {key: dim, className: "nf-enterprise-bar-row"},
+                  entH("div", null, entH("div", {className: "nf-enterprise-text", style: {fontWeight: 700}}, ENT_DIM_NAMES[dim]), entH("div", {className: "nf-enterprise-small"}, 'Dimension ', dim)),
+                  entH(EntProgressBar, {value: mean, max: ENT_DIM_MAX[dim], label: ENT_DIM_NAMES[dim] + ' pre-assessment mean'}),
+                  entH("div", {className: "nf-enterprise-bar-row__value"}, mean, entH("span", {className: "nf-enterprise-small"}, ' / ', ENT_DIM_MAX[dim]))
+                );
+              })
+            )
+          ) : (
+            entH(EntEmpty, null, 'No assessment data yet for cohort ', entH("strong", null, session.cohort), '. Participants must complete the CFI assessment to populate this dashboard.')
+          )
+        )
       );
     }
 
@@ -6660,7 +7075,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
     // is_enterprise on their account via a server-side trigger, so they can get
     // straight past the Enterprise paywall without an admin doing it manually.
     // See migration_cohort_participants.sql.
-    function EntRosterView({ session }) {
+    function EntRosterView({ session, allResults = [] }) {
       const [email, setEmail] = useState('');
       const [roster, setRoster] = useState([]);
       const [loading, setLoading] = useState(false);
@@ -6675,29 +7090,66 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
         const res = await addCohortParticipant(email, session.cohort);
         setLoading(false);
         if (res.error) { setMsg(res.error); return; }
-        setMsg('Participant added — Enterprise access granted.');
+        setMsg('Participant added. Enterprise access granted.');
         setEmail(''); load();
       };
       const remove = async (id) => { if (await removeCohortParticipant(id)) load(); };
 
+      const cohortResults = allResults.filter(r => r.cohort === session.cohort);
+      const describe = (r) => {
+        const joined = r.status === 'joined' || !!r.user_id;
+        const pid = r.user_id ? entPidForUser(r.user_id) : null;
+        const mine = pid ? cohortResults.filter(x => x.pid === pid) : [];
+        const pre = mine.some(x => x.phase === 'pre');
+        const post = mine.some(x => x.phase === 'post');
+        const done = (pre ? 1 : 0) + (post ? 1 : 0);
+        const cfi = !joined ? 'Not joined' : done === 2 ? 'Pre and post complete' : pre ? 'Pre complete' : post ? 'Post complete' : 'Not started';
+        const emailStr = r.email || '';
+        return { joined, done, cfi, name: r.full_name || r.name || emailStr.split('@')[0] || 'Participant', email: emailStr };
+      };
+      const rows = roster.map(r => ({ r, d: describe(r) }));
+      const statusPill = d => entH("span", {className: 'nf-enterprise-pill ' + (d.joined ? 'nf-enterprise-pill--ok' : 'nf-enterprise-pill--idle')}, d.joined ? 'Joined' : 'Invited');
+      const removeBtn = (r, d) => entH("button", {type: "button", className: "nf-enterprise-btn nf-enterprise-btn--danger", onClick: ()=>remove(r.id), "aria-label": 'Remove ' + d.email}, 'Remove');
+
       return (
-        React.createElement("div", {style: { maxWidth:700, margin:'0 auto', padding:'5rem 2rem 4rem' }},
-          React.createElement("div", {style: ES.tag}, 'Cohort:', session.cohort),
-          React.createElement("h1", {style: ES.h1}, 'Participant', React.createElement("em", {style: { color:EC.accent }}, 'Roster')),
-          React.createElement("p", {style: ES.mono({ marginBottom:'2rem' })}, "Add participants by the email they signed up with. This grants their account Enterprise access automatically — they won't need an admin to unlock it."),
-          React.createElement("div", {style: { display:'flex', gap:'0.75rem', marginBottom:'0.75rem' }},
-            React.createElement("input", {style: ES.input, placeholder: "participant@email.com", value: email, onChange: e=>setEmail(e.target.value), onKeyDown: e=>{ if(e.key==='Enter') add(); }}),
-            React.createElement("button", {style: { ...ES.btnPrimary, opacity: loading?0.7:1, whiteSpace:'nowrap' }, onClick: add, disabled: loading}, loading?'Adding…':'Add')
+        entH(EntMain, {width: 'mid'},
+          entH(EntHeader, {eyebrow: 'Cohort: ' + session.cohort, title: 'Participant Roster', lead: "Add participants by the email they signed up with. This grants their account Enterprise access automatically, so they won't need an admin to unlock it."}),
+          entH("section", {className: "nf-enterprise-card nf-enterprise-section", "aria-label": "Add participant"},
+            entH("label", {className: "nf-enterprise-label", htmlFor: "ent-add-email", style: {display: 'block', marginBottom: 8}}, 'Participant email'),
+            entH("div", {className: "nf-enterprise-inline"},
+              entH("input", {id: "ent-add-email", type: "email", inputMode: "email", autoComplete: "off", className: "nf-enterprise-input", placeholder: "participant@email.com", value: email, onChange: e=>setEmail(e.target.value), onKeyDown: e=>{ if(e.key==='Enter') add(); }}),
+              entH("button", {type: "button", className: "nf-enterprise-btn nf-enterprise-btn--primary", onClick: add, disabled: loading}, loading ? 'Adding…' : 'Add Participant')
+            ),
+            msg && entH("div", {style: {marginTop: 12}}, entH(EntNotice, {tone: msg.includes('granted') ? 'success' : 'error'}, msg))
           ),
-          msg && React.createElement("div", {style: ES.mono({ color: msg.includes('granted')?EC.accent:EC.red, marginBottom:'1.5rem' })}, msg),
-          roster.length===0
-            ? React.createElement("div", {style: ES.accentCard({ textAlign:'center', padding:'2rem' })}, React.createElement("div", {style: ES.mono()}, 'No participants added yet.'))
-            : React.createElement("div", {style: { display:'flex', flexDirection:'column', gap:0, marginTop:'1rem' }}, roster.map(r =>
-                React.createElement("div", {key: r.id, style: { display:'flex', justifyContent:'space-between', alignItems:'center', padding:'0.85rem 0', borderTop:`1px solid ${EC.border}` }},
-                  React.createElement("span", {style: ES.mono({ color:EC.text })}, r.email),
-                  React.createElement("button", {onClick: ()=>remove(r.id), style: { ...ES.mono({ color:EC.red }), background:'none', border:'none', cursor:'pointer' }}, 'Remove')
-                )
-              ))
+          rows.length===0
+            ? entH(EntEmpty, null, 'No participants added yet.')
+            : entH("div", null,
+                entH("div", {className: "nf-enterprise-tablewrap"},
+                  entH("table", {className: "nf-enterprise-table"},
+                    entH("thead", null, entH("tr", null, ['Participant','Email','Status','CFI','Progress','Actions'].map(h => entH("th", {key: h, scope: "col"}, h)))),
+                    entH("tbody", null, rows.map(({r, d}) =>
+                      entH("tr", {key: r.id},
+                        entH("td", {style: {fontWeight: 700}}, d.name),
+                        entH("td", null, d.email),
+                        entH("td", null, statusPill(d)),
+                        entH("td", null, d.cfi),
+                        entH("td", {style: {minWidth: 120}}, entH(EntProgressBar, {value: d.done, max: 2, label: 'CFI progress for ' + d.email}), entH("div", {className: "nf-enterprise-small", style: {marginTop: 4}}, d.done, ' of 2 phases')),
+                        entH("td", null, removeBtn(r, d))
+                      )
+                    ))
+                  )
+                ),
+                entH("div", {className: "nf-enterprise-mobilelist"}, rows.map(({r, d}) =>
+                  entH("article", {key: r.id, className: "nf-enterprise-mobile-card"},
+                    entH("div", {className: "nf-enterprise-mobile-card__head"}, entH("h2", {className: "nf-enterprise-h3", style: {marginBottom: 0}}, d.name), statusPill(d)),
+                    entH("div", {className: "nf-enterprise-kv"}, entH("span", {className: "nf-enterprise-kv__k"}, 'Email'), entH("span", {className: "nf-enterprise-kv__v"}, d.email)),
+                    entH("div", {className: "nf-enterprise-kv"}, entH("span", {className: "nf-enterprise-kv__k"}, 'CFI'), entH("span", {className: "nf-enterprise-kv__v"}, d.cfi)),
+                    entH("div", {className: "nf-enterprise-kv", style: {display: 'block'}}, entH("div", {className: "nf-enterprise-kv__k", style: {marginBottom: 6}}, 'Progress: ', d.done, ' of 2 phases'), entH(EntProgressBar, {value: d.done, max: 2, label: 'CFI progress for ' + d.email})),
+                    removeBtn(r, d)
+                  )
+                ))
+              )
         )
       );
     }
@@ -6710,6 +7162,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
       const [responses, setResponses] = useState({});
       const [submitted, setSubmitted] = useState(false);
       const allFilled = ENT_CFI_ITEMS.every(i=>responses[i.id]>=1&&responses[i.id]<=5);
+      const filledCount = ENT_CFI_ITEMS.filter(i=>responses[i.id]>=1&&responses[i.id]<=5).length;
 
       function handleSubmit() {
         const composite = entCalcComposite(responses);
@@ -6721,23 +7174,74 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
         setTimeout(()=>{ setSubmitted(false); setPid(''); setResponses({}); }, 2000);
       }
 
-      const dimNames = { A:'Decision Latency', B:'Mode Rigidity', C:'Emotional Reactivity', D:'Thought Interruption', E:'Cognitive Overload' };
+      const ds = allFilled ? entCalcDimScores(responses) : null;
       return (
-        React.createElement("div", {style: { maxWidth:900, margin:'0 auto', padding:'5rem 2rem 4rem' }}, React.createElement("div", {style: ES.tag}, 'Manual CFI Data Entry · Cohort', session.cohort), React.createElement("h1", {style: ES.h1}, 'Enter', React.createElement("em", {style: { color:EC.accent }}, 'CFI Responses')), React.createElement("p", {style: ES.mono({ marginBottom:'2rem' })}, 'Enter raw responses (1–5) exactly as given by the participant. Reversal for reversed items is applied automatically.'), React.createElement("div", {style: { display:'grid', gridTemplateColumns:'1fr 1fr 1fr', gap:'1rem', marginBottom:'2rem' }}, React.createElement("div", null, React.createElement("label", {style: ES.label}, 'Participant ID'), React.createElement("input", {style: ES.input, value: pid, onChange: e=>setPid(e.target.value.toUpperCase()), placeholder: "NF-XXXX"})), React.createElement("div", null, React.createElement("label", {style: ES.label}, 'Group'), React.createElement("div", {style: { display:'flex', gap:'0.5rem' }}, ['T','C'].map(g=>React.createElement("button", {key: g, style: g===group?ES.btnPrimary:ES.btnGhost, onClick: ()=>setGroup(g)}, g==='T'?'Treatment (T)':'Control (C)')))), React.createElement("div", null, React.createElement("label", {style: ES.label}, 'Phase'), React.createElement("div", {style: { display:'flex', gap:'0.5rem' }}, ['pre','post'].map(p=>React.createElement("button", {key: p, style: p===phaseEntry?ES.btnPrimary:ES.btnGhost, onClick: ()=>setPhaseEntry(p)}, p==='pre'?'Pre (Wk 1)':'Post (Wk 6)'))))), ['A','B','C','D','E'].map(dim=>{
+        entH(EntMain, {width: 'mid'},
+          entH(EntHeader, {eyebrow: 'Manual CFI Data Entry · Cohort ' + session.cohort, title: 'Enter CFI Responses', lead: 'Enter raw responses (1 to 5) exactly as given by the participant. Reversal for reversed items is applied automatically.'}),
+          entH("section", {className: "nf-enterprise-card nf-enterprise-section"},
+            entH("div", {className: "nf-enterprise-stack"},
+              entH("div", {className: "nf-enterprise-field"},
+                entH("label", {className: "nf-enterprise-label", htmlFor: "ent-de-pid"}, 'Participant ID'),
+                entH("input", {id: "ent-de-pid", className: "nf-enterprise-input", value: pid, autoComplete: "off", onChange: e=>setPid(e.target.value.toUpperCase()), placeholder: "NF-XXXXXX"})
+              ),
+              entH("div", {className: "nf-enterprise-grid-2"},
+                entH("div", {className: "nf-enterprise-field"},
+                  entH("div", {className: "nf-enterprise-label", id: "ent-de-group"}, 'Group'),
+                  entH("div", {className: "nf-enterprise-seg nf-enterprise-seg--row", role: "radiogroup", "aria-labelledby": "ent-de-group"}, ['T','C'].map(g =>
+                    entH("button", {key: g, type: "button", role: "radio", "aria-checked": g===group, onClick: ()=>setGroup(g)}, g==='T' ? 'Treatment (T)' : 'Control (C)')
+                  ))
+                ),
+                entH("div", {className: "nf-enterprise-field"},
+                  entH("div", {className: "nf-enterprise-label", id: "ent-de-phase"}, 'Phase'),
+                  entH("div", {className: "nf-enterprise-seg nf-enterprise-seg--row", role: "radiogroup", "aria-labelledby": "ent-de-phase"}, ['pre','post'].map(p =>
+                    entH("button", {key: p, type: "button", role: "radio", "aria-checked": p===phaseEntry, onClick: ()=>setPhaseEntry(p)}, p==='pre' ? 'Pre (Wk 1)' : 'Post (Wk 6)')
+                  ))
+                )
+              )
+            )
+          ),
+          entH("div", {className: "nf-enterprise-section"},
+            entH("div", {style: {display: 'flex', justifyContent: 'space-between', gap: 8, flexWrap: 'wrap', marginBottom: 8}},
+              entH("span", {className: "nf-enterprise-label"}, 'Responses entered'),
+              entH("span", {className: "nf-enterprise-label", style: {color: ET.goldDark}}, filledCount, ' of ', ENT_CFI_ITEMS.length)
+            ),
+            entH(EntProgressBar, {value: filledCount, max: ENT_CFI_ITEMS.length, label: 'Responses entered'})
+          ),
+          ['A','B','C','D','E'].map(dim => {
             const items = ENT_CFI_ITEMS.filter(i=>i.dim===dim);
             return (
-              React.createElement("div", {key: dim, style: { marginBottom:'2rem' }}, React.createElement("div", {style: { ...ES.tag, color:EC.accent, marginBottom:'1rem' }}, 'Dimension', dim, ':', dimNames[dim]), items.map(item=>(
-                  React.createElement("div", {key: item.id, style: { display:'grid', gridTemplateColumns:'2rem 1fr auto', gap:'1.25rem', alignItems:'center', padding:'0.75rem 0', borderBottom:`1px solid ${EC.border}` }}, React.createElement("span", {style: ES.mono({ color:EC.muted, fontSize:'0.65rem' })}, 'Q', item.id, item.reversed?'*':'', item.isNew?' ★':''), React.createElement("span", {style: ES.mono({ color:EC.text, lineHeight:1.6 })}, item.text), React.createElement("div", {style: { display:'flex', gap:'0.35rem' }}, [1,2,3,4,5].map(v=>(
-                        React.createElement("button", {key: v, onClick: ()=>setResponses(r=>({...r,[item.id]:v})), style: { width:32, height:32, fontFamily:"'Space Mono', monospace", fontSize:'0.65rem', border:`1px solid ${responses[item.id]===v?EC.accent:EC.border2}`, background:responses[item.id]===v?'rgba(76,247,192,0.15)':'transparent', color:responses[item.id]===v?EC.accent:EC.muted, cursor:'pointer' }}, v)
-                      ))))
+              entH("section", {key: dim, className: "nf-enterprise-section", "aria-label": ENT_DIM_NAMES[dim]},
+                entH("div", {className: "nf-enterprise-eyebrow", style: {marginBottom: 12}}, 'Dimension ', dim, ': ', ENT_DIM_NAMES[dim]),
+                entH("div", {className: "nf-enterprise-stack nf-enterprise-stack--tight"}, items.map(item => (
+                  entH("div", {key: item.id, className: 'nf-enterprise-card' + (responses[item.id] ? ' nf-enterprise-question--done' : '')},
+                    entH("div", {className: "nf-enterprise-text", id: 'ent-de-q-' + item.id, style: {fontWeight: 700, marginBottom: 12}},
+                      entH("span", {className: "nf-enterprise-small", style: {display: 'block', color: ET.goldDark, fontWeight: 700}}, 'Q', item.id, item.reversed ? ' · Reverse scored' : '', item.isNew ? ' · New' : ''),
+                      item.text
+                    ),
+                    entH("div", {className: "nf-enterprise-scale5__hint"}, entH("span", null, '1 = Never'), entH("span", null, '5 = Very often')),
+                    entH("div", {className: "nf-enterprise-scale5", role: "radiogroup", "aria-labelledby": 'ent-de-q-' + item.id}, [1,2,3,4,5].map(v => (
+                      entH("button", {key: v, type: "button", role: "radio", "aria-checked": responses[item.id]===v, "aria-label": v + ', ' + ENT_SCALE[v-1].label, onClick: ()=>setResponses(r=>({...r,[item.id]:v}))}, v)
+                    )))
+                  )
                 )))
+              )
             );
-          }), allFilled&&(
-            React.createElement("div", {style: { ...ES.card({ marginBottom:'1.5rem' }), display:'flex', justifyContent:'space-between', alignItems:'center', flexWrap:'wrap', gap:'1rem' }}, React.createElement("div", null, React.createElement("div", {style: ES.mono({ color:EC.text })}, 'Composite Score:', React.createElement("strong", {style: { color:EC.accent }}, entCalcComposite(responses)), '/ 65'), React.createElement(EntBandPill, {score: entCalcComposite(responses)})), React.createElement("div", {style: { display:'flex', gap:'1.5rem', flexWrap:'wrap' }}, ['A','B','C','D','E'].map(d=>{
-                  const ds = entCalcDimScores(responses);
-                  return React.createElement("span", {key: d, style: ES.mono({ fontSize:'0.65rem' })}, 'Dim', d, ':', React.createElement("strong", {style: { color:EC.accent }}, ds[d]));
-                })))
-          ), React.createElement("button", {style: allFilled&&pid?ES.btnPrimary:{...ES.btnPrimary,opacity:0.4,cursor:'not-allowed'}, disabled: !allFilled||!pid, onClick: handleSubmit}, submitted?'✓ Saved':'Save Participant Record →'))
+          }),
+          allFilled && (
+            entH("section", {className: "nf-enterprise-card nf-enterprise-card--tint nf-enterprise-section"},
+              entH("div", {className: "nf-enterprise-eyebrow"}, 'Composite Score'),
+              entH("div", {style: {display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap', marginBottom: 12}},
+                entH("span", {style: {fontSize: 32, fontWeight: 800}}, entCalcComposite(responses), entH("span", {className: "nf-enterprise-small"}, ' / 65')),
+                entH(EntBandPill, {score: entCalcComposite(responses)})
+              ),
+              entH("div", {className: "nf-enterprise-dimchips"}, ['A','B','C','D','E'].map(d => entH("div", {key: d}, entH("span", null, 'Dim ', d), entH("strong", null, ds[d]))))
+            )
+          ),
+          entH("div", {className: "nf-enterprise-submitbar"},
+            entH("span", {className: "nf-enterprise-muted"}, !allFilled ? `${ENT_CFI_ITEMS.length - filledCount} responses remaining.` : (!pid ? 'Enter a participant ID to save.' : 'Ready to save.')),
+            entH("button", {type: "button", className: "nf-enterprise-btn nf-enterprise-btn--primary", disabled: !allFilled||!pid, onClick: handleSubmit}, submitted ? '✓ Saved' : 'Save Participant Record →')
+          )
+        )
       );
     }
 
@@ -6746,21 +7250,94 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
       const cohortResults = allResults.filter(r=>r.cohort===session.cohort);
       const [filterPhase, setFilterPhase] = useState('all');
       const filtered = filterPhase==='all' ? cohortResults : cohortResults.filter(r=>r.phase===filterPhase);
+
+      const preAll = cohortResults.filter(r=>r.phase==='pre');
+      const postAll = cohortResults.filter(r=>r.phase==='post');
+      const preMean = entMean(preAll), postMean = entMean(postAll);
+      const delta = preMean!==null && postMean!==null ? postMean-preMean : null;
+      const avgFiltered = entMean(filtered);
+      const participants = new Set(filtered.map(r=>r.pid)).size;
+      const fmtDate = ts => new Date(ts).toLocaleDateString('en-GB',{day:'2-digit',month:'short'});
+      const distribution = ENT_BANDS.slice().reverse().map(b => ({ band: b, count: filtered.filter(r => entGetBand(r.composite).label === b.label).length }));
+
       return (
-        React.createElement("div", {style: { maxWidth:1100, margin:'0 auto', padding:'5rem 2rem 4rem' }}, React.createElement("div", {style: ES.tag}, 'Cohort Results ·', session.cohort), React.createElement("h1", {style: ES.h1}, 'CFI', React.createElement("em", {style: { color:EC.accent }}, 'Records')), React.createElement("div", {style: { display:'flex', gap:'0.5rem', marginBottom:'2rem', flexWrap:'wrap' }}, [['all','All Records'],['pre','Pre-Assessment'],['post','Post-Assessment']].map(([id,label])=>(
-              React.createElement("button", {key: id, style: ES.navTab(filterPhase===id), onClick: ()=>setFilterPhase(id)}, label)
-            ))), filtered.length===0 ? (
-            React.createElement("div", {style: ES.accentCard({ textAlign:'center', padding:'3rem' })}, React.createElement("p", {style: ES.mono()}, 'No records found for this filter.'))
+        entH(EntMain, null,
+          entH(EntHeader, {eyebrow: 'Cohort Results · ' + session.cohort, title: 'CFI Results', lead: 'Cohort-level view of CFI records for this programme.'}),
+          entH("div", {className: "nf-enterprise-chips nf-enterprise-section", role: "group", "aria-label": "Filter by phase"}, [['all','All Records'],['pre','Pre-Assessment'],['post','Post-Assessment']].map(([id,label]) =>
+            entH("button", {key: id, type: "button", className: "nf-enterprise-chip", "aria-pressed": filterPhase===id, onClick: ()=>setFilterPhase(id)}, label)
+          )),
+          filtered.length===0 ? (
+            entH(EntEmpty, null, 'No records found for this filter.')
           ) : (
-            React.createElement("div", null, React.createElement("div", {style: { display:'grid', gridTemplateColumns:'120px 60px 60px 60px 60px 60px 60px 60px 60px 1fr', gap:'0.75rem', padding:'0.75rem 0', borderBottom:`1px solid ${EC.border}`, overflowX:'auto' }}, ['Participant','Group','Phase','Date','Dim A','Dim B','Dim C','Dim D','Dim E','Composite'].map(h=>(
-                  React.createElement("span", {key: h, style: { fontSize:'0.55rem', letterSpacing:'0.12em', color:EC.muted }}, h)
-                ))), filtered.map((r,i)=>{
-                const band = entGetBand(r.composite);
-                return (
-                  React.createElement("div", {key: i, style: { display:'grid', gridTemplateColumns:'120px 60px 60px 60px 60px 60px 60px 60px 60px 1fr', gap:'0.75rem', padding:'1rem 0', borderBottom:`1px solid ${EC.border}`, alignItems:'center' }}, React.createElement("span", {style: ES.mono({ color:EC.accent, fontSize:'0.65rem' })}, r.pid), React.createElement("span", {style: ES.mono({ fontSize:'0.65rem' })}, r.group||'N/A'), React.createElement("span", {style: { ...ES.mono({ fontSize:'0.65rem' }), color:r.phase==='pre'?EC.gold:EC.accent2 }}, r.phase), React.createElement("span", {style: ES.mono({ fontSize:'0.6rem' })}, new Date(r.ts).toLocaleDateString('en-GB',{day:'2-digit',month:'short'})), ['A','B','C','D','E'].map(d=>React.createElement("span", {key: d, style: ES.mono({ fontSize:'0.65rem' })}, r.dims?.[d]||'--')), React.createElement("div", {style: { display:'flex', alignItems:'center', gap:'0.75rem' }}, React.createElement("span", {style: { fontFamily:"'DM Serif Display', serif", fontSize:'1.3rem', color:band.color }}, r.composite), React.createElement(EntBandPill, {score: r.composite})))
-                );
-              }))
-          ))
+            entH("div", null,
+              entH("section", {className: "nf-enterprise-section"},
+                entH("h2", {className: "nf-enterprise-h2"}, 'Cohort Overview'),
+                entH("div", {className: "nf-enterprise-grid-3"},
+                  entH(EntMetric, {label: 'Participants with results', value: participants}),
+                  entH(EntMetric, {label: 'Records shown', value: filtered.length}),
+                  entH(EntMetric, {label: 'Average CFI', value: avgFiltered!==null ? avgFiltered : 'N/A', sub: avgFiltered!==null ? entGetBand(avgFiltered).label : 'Out of 65', color: avgFiltered!==null ? entGetBand(avgFiltered).color : undefined})
+                )
+              ),
+              entH("section", {className: "nf-enterprise-section"},
+                entH("h2", {className: "nf-enterprise-h2"}, 'Participation'),
+                entH("div", {className: "nf-enterprise-grid-2"},
+                  entH(EntMetric, {label: 'Pre-assessments', value: preAll.length}),
+                  entH(EntMetric, {label: 'Post-assessments', value: postAll.length})
+                )
+              ),
+              entH("section", {className: "nf-enterprise-section"},
+                entH("h2", {className: "nf-enterprise-h2"}, 'Pre → Post Change'),
+                entH("div", {className: "nf-enterprise-grid-3"},
+                  entH(EntMetric, {label: 'Mean Pre CFI', value: preMean!==null ? preMean : 'N/A'}),
+                  entH(EntMetric, {label: 'Mean Post CFI', value: postMean!==null ? postMean : 'N/A'}),
+                  entH(EntMetric, {label: 'Clarity Delta', value: delta!==null ? (delta>0?'+':'')+delta : 'N/A', color: delta!==null && delta<=-15 ? ET.success : undefined})
+                )
+              ),
+              entH("section", {className: "nf-enterprise-section"},
+                entH("h2", {className: "nf-enterprise-h2"}, 'Cognitive Fragmentation Distribution'),
+                entH("div", {className: "nf-enterprise-card"}, distribution.map(({band, count}) => {
+                  const pct = filtered.length ? Math.round((count/filtered.length)*100) : 0;
+                  return entH("div", {key: band.label, className: "nf-enterprise-bar-row"},
+                    entH("div", {className: "nf-enterprise-text", style: {fontWeight: 700}}, band.label),
+                    entH("div", {className: "nf-enterprise-progress", role: "progressbar", "aria-label": band.label + ' share of records', "aria-valuenow": pct, "aria-valuemin": 0, "aria-valuemax": 100}, entH("div", {className: "nf-enterprise-progress__fill", style: {width: pct + '%', background: band.color}})),
+                    entH("div", {className: "nf-enterprise-bar-row__value"}, count, entH("span", {className: "nf-enterprise-small"}, ' (', pct, '%)'))
+                  );
+                }))
+              ),
+              entH("section", {className: "nf-enterprise-section"},
+                entH("h2", {className: "nf-enterprise-h2"}, 'CFI Records'),
+                entH("div", {className: "nf-enterprise-tablewrap nf-enterprise-tablewrap--wide"},
+                  entH("table", {className: "nf-enterprise-table"},
+                    entH("thead", null, entH("tr", null, ['Participant','Group','Phase','Date','Dim A','Dim B','Dim C','Dim D','Dim E','Composite'].map(h => entH("th", {key: h, scope: "col"}, h)))),
+                    entH("tbody", null, filtered.map((r,i) => (
+                      entH("tr", {key: i},
+                        entH("td", {style: {fontWeight: 700}}, r.pid),
+                        entH("td", null, r.group||'N/A'),
+                        entH("td", null, r.phase),
+                        entH("td", null, fmtDate(r.ts)),
+                        ['A','B','C','D','E'].map(d => entH("td", {key: d}, r.dims?.[d]||'--')),
+                        entH("td", null, entH("div", {style: {display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap'}}, entH("strong", {style: {fontSize: 20, color: entGetBand(r.composite).color}}, r.composite), entH(EntBandPill, {score: r.composite})))
+                      )
+                    )))
+                  )
+                ),
+                entH("div", {className: "nf-enterprise-mobilelist nf-enterprise-mobilelist--wide"}, filtered.map((r,i) => (
+                  entH("article", {key: i, className: "nf-enterprise-mobile-card"},
+                    entH("div", {className: "nf-enterprise-mobile-card__head"},
+                      entH("h3", {className: "nf-enterprise-h3", style: {marginBottom: 0}}, r.pid),
+                      entH("strong", {style: {fontSize: 28, lineHeight: 1.1, color: entGetBand(r.composite).color}}, r.composite)
+                    ),
+                    entH("div", {style: {marginBottom: 8}}, entH(EntBandPill, {score: r.composite})),
+                    entH("div", {className: "nf-enterprise-kv"}, entH("span", {className: "nf-enterprise-kv__k"}, 'Phase'), entH("span", {className: "nf-enterprise-kv__v"}, r.phase)),
+                    entH("div", {className: "nf-enterprise-kv"}, entH("span", {className: "nf-enterprise-kv__k"}, 'Group'), entH("span", {className: "nf-enterprise-kv__v"}, r.group||'N/A')),
+                    entH("div", {className: "nf-enterprise-kv"}, entH("span", {className: "nf-enterprise-kv__k"}, 'Date'), entH("span", {className: "nf-enterprise-kv__v"}, fmtDate(r.ts))),
+                    entH("div", {className: "nf-enterprise-dimchips"}, ['A','B','C','D','E'].map(d => entH("div", {key: d}, entH("span", null, d), entH("strong", null, r.dims?.[d]||'--'))))
+                  )
+                )))
+              )
+            )
+          )
+        )
       );
     }
 
@@ -6772,6 +7349,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
       const [entResults, setEntResults] = useState([]);
       const [paystackLoading, setPaystackLoading] = useState(false);
       const paystackHandlerRef = React.useRef(null);
+      useEnterpriseStyles();
 
       // (pre-warm removed: initiate-payment is called on click)
 
@@ -6841,10 +7419,10 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
       );
 
       return (
-        React.createElement("div", {style: { background:EC.bg, minHeight:'100vh', fontFamily:"'Space Mono', monospace", color:EC.text }}, React.createElement("div", {style: { position:'fixed', inset:0, backgroundImage:`linear-gradient(${EC.accent}08 1px,transparent 1px),linear-gradient(90deg,${EC.accent}08 1px,transparent 1px)`, backgroundSize:'60px 60px', pointerEvents:'none', zIndex:0 }}), React.createElement("div", {style: { position:'relative', zIndex:1 }}, React.createElement(EntNavBar, {view: entView, setView: setEntView, role: entRole, onExit: ()=>setEntRole(null)}), entRole==='participant'&&(
+        React.createElement("div", {className: "nf-enterprise"}, React.createElement("div", null, React.createElement(EntNavBar, {view: entView, setView: setEntView, role: entRole, onExit: ()=>setEntRole(null)}), entRole==='participant'&&(
               React.createElement(React.Fragment, null, entView==='assessment'&&React.createElement(EntCFIAssessment, {session: entSession, onComplete: r=>{setEntResults(p=>[...p,r]);}}), entView==='programme'&&React.createElement(EntProgrammeView, {session: entSession}))
             ), entRole==='facilitator'&&(
-              React.createElement(React.Fragment, null, entView==='dashboard'&&React.createElement(EntFacilitatorDashboard, {session: entSession, allResults: entResults}), entView==='roster'&&React.createElement(EntRosterView, {session: entSession}), entView==='lessons'&&React.createElement(EntProgrammeView, {session: entSession}), entView==='cfi'&&React.createElement(EntCFIDataEntry, {session: entSession, onSave: r=>{setEntResults(p=>{const idx=p.findIndex(x=>x.pid===r.pid&&x.cohort===r.cohort&&x.phase===r.phase);if(idx>=0){const u=[...p];u[idx]=r;return u;}return [...p,r];});}}), entView==='results'&&React.createElement(EntResultsView, {session: entSession, allResults: entResults}))
+              React.createElement(React.Fragment, null, entView==='dashboard'&&React.createElement(EntFacilitatorDashboard, {session: entSession, allResults: entResults}), entView==='roster'&&React.createElement(EntRosterView, {session: entSession, allResults: entResults}), entView==='lessons'&&React.createElement(EntProgrammeView, {session: entSession}), entView==='cfi'&&React.createElement(EntCFIDataEntry, {session: entSession, onSave: r=>{setEntResults(p=>{const idx=p.findIndex(x=>x.pid===r.pid&&x.cohort===r.cohort&&x.phase===r.phase);if(idx>=0){const u=[...p];u[idx]=r;return u;}return [...p,r];});}}), entView==='results'&&React.createElement(EntResultsView, {session: entSession, allResults: entResults}))
             )))
       );
     }
