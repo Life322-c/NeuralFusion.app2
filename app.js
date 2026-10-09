@@ -65,7 +65,7 @@ const { useState, useEffect, useCallback, useRef, useMemo } = React;
         React.createElement(
           "div",
           { className: "nf-lockup-text", style: { display: 'flex', flexDirection: 'column', justifyContent: 'center', minWidth: 0 } },
-          React.createElement("div", { style: { fontFamily: "'Syne', sans-serif", fontSize: 15, fontWeight: 700, letterSpacing: '0.06em', color: wordmarkColor, lineHeight: 1.15, whiteSpace: 'nowrap' } }, 'NEURALFUSION', React.createElement("sup", { style: { fontSize: '0.5em', marginLeft: 1 } }, '™')),
+          React.createElement("div", { style: { fontFamily: "'Syne', sans-serif", fontSize: 15, fontWeight: 700, letterSpacing: '0.06em', color: wordmarkColor, lineHeight: 1.15, whiteSpace: 'nowrap' } }, 'NEURALFUSION', React.createElement("sup", { style: { fontSize: '0.5em', marginLeft: 1 } }, '')),
           tagline && React.createElement("div", { style: { fontFamily: "'Space Mono', monospace", fontSize: 10.5, letterSpacing: '0.08em', color: taglineColor, marginTop: 2, whiteSpace: 'nowrap' } }, tagline)
         )
       );
@@ -427,7 +427,7 @@ const { useState, useEffect, useCallback, useRef, useMemo } = React;
         primaryStyle: CFI_DIM_LABELS[primaryDim],
         secondaryStyle: CFI_DIM_LABELS[secondaryDim],
 
-        // ── Cognitive Coordination Profile™ fields ──
+        // ── Cognitive Coordination Profile fields ──
         dominantModes: dominantModes.map(d => CFI_DIM_LABELS[d]),
         supportingModes: supportingModes.map(d => CFI_DIM_LABELS[d]),
         underutilizedModes: underutilizedModes.map(d => CFI_DIM_LABELS[d]),
@@ -504,10 +504,10 @@ const { useState, useEffect, useCallback, useRef, useMemo } = React;
       1: { pages: [
         { title: `Learning Objectives`, body: `By the end of Lesson One, you will be able to:
 
-1. Explain what NeuralFusion™ is and the specific problem it is designed to solve.
+1. Explain what NeuralFusion is and the specific problem it is designed to solve.
 2. Identify each of the Four Brains by name and function.
-3. Walk through the four stages of the NeuralFusion™ Core Loop from memory.
-4. Complete a first conscious NeuralFusion™ cycle on a real issue from your own life.
+3. Walk through the four stages of the NeuralFusion Core Loop from memory.
+4. Complete a first conscious NeuralFusion cycle on a real issue from your own life.
 5. Begin noticing, in real time, which brain is currently active.
 
 WHY THIS LESSON MATTERS
@@ -519,12 +519,12 @@ Think of this lesson as installing the map before you learn to navigate. Once yo
 
 PRINCIPLE 1: FRAGMENTATION IS THE DEFAULT, NOT THE EXCEPTION
 
-Left untrained, the mind moves between logic, emotion, memory, and impulse in an unstructured way. This is not a personal failing. It is simply what happens when thinking has no deliberate structure applied to it. NeuralFusion™ calls this cognitive fragmentation: the experience of thinking in disconnected pieces rather than as one coordinated process.
+Left untrained, the mind moves between logic, emotion, memory, and impulse in an unstructured way. This is not a personal failing. It is simply what happens when thinking has no deliberate structure applied to it. NeuralFusion calls this cognitive fragmentation: the experience of thinking in disconnected pieces rather than as one coordinated process.
 
 PRINCIPLE 2: INTEGRATION IS TRAINABLE
 
-The Four Brains are not new; every person already uses all four. What NeuralFusion™ adds is a trainable method for engaging them on purpose, in sequence, so their outputs combine into a single, usable conclusion instead of competing with each other.` },
-        { title: `What Is NeuralFusion™?`, body: `NeuralFusion™ is a structured mental skill that trains the brain to combine multiple thinking modes intentionally, instead of relying on only one at a time.
+The Four Brains are not new; every person already uses all four. What NeuralFusion adds is a trainable method for engaging them on purpose, in sequence, so their outputs combine into a single, usable conclusion instead of competing with each other.` },
+        { title: `What Is NeuralFusion?`, body: `NeuralFusion is a structured mental skill that trains the brain to combine multiple thinking modes intentionally, instead of relying on only one at a time.
 
 Most untrained thinking happens in fragments:
 
@@ -532,10 +532,10 @@ Most untrained thinking happens in fragments:
 · Creativity without structure: good ideas that never convert into a workable plan.
 · Emotion without reflection: reactive choices made under pressure, regretted once the pressure passes.
 
-NeuralFusion™ teaches you how to fuse these modes into one coordinated thinking loop, so their strengths combine instead of colliding.
+NeuralFusion teaches you how to fuse these modes into one coordinated thinking loop, so their strengths combine instead of colliding.
 
-KEY TAKEAWAY: NeuralFusion™ is not intelligence. It is control over intelligence. You already have every raw thinking capacity you need. This system trains you to direct it.` },
-        { title: `The Problem NeuralFusion™ Solves`, body: `The modern mind is exposed to more information, more competing demands, and more emotional pressure than at almost any point in human history. Left unmanaged, this produces five recognizable symptoms:
+KEY TAKEAWAY: NeuralFusion is not intelligence. It is control over intelligence. You already have every raw thinking capacity you need. This system trains you to direct it.` },
+        { title: `The Problem NeuralFusion Solves`, body: `The modern mind is exposed to more information, more competing demands, and more emotional pressure than at almost any point in human history. Left unmanaged, this produces five recognizable symptoms:
 
 1. Overthinking: circling the same decision without reaching resolution.
 2. Mental confusion: difficulty locating a clear next step, even on familiar problems.
@@ -543,8 +543,8 @@ KEY TAKEAWAY: NeuralFusion™ is not intelligence. It is control over intelligen
 4. Emotional reactivity: responding to pressure instead of to the actual situation.
 5. Inconsistent focus: attention that shifts randomly rather than by intention.
 
-These symptoms share a single root cause: the brain is switching modes randomly, without a structure to organize the switch. NeuralFusion™ introduces that structure.` },
-        { title: `The Four Brains, Revisited`, body: `NeuralFusion™ works by consciously activating and integrating four natural thinking modes that every person already possesses:
+These symptoms share a single root cause: the brain is switching modes randomly, without a structure to organize the switch. NeuralFusion introduces that structure.` },
+        { title: `The Four Brains, Revisited`, body: `NeuralFusion works by consciously activating and integrating four natural thinking modes that every person already possesses:
 
 ▰ ANALYTICAL: Logic, structure, and facts. The mode of breakdown, planning, and precision.
 
@@ -555,7 +555,7 @@ These symptoms share a single root cause: the brain is switching modes randomly,
 △ REFLECTIVE: Self-awareness, evaluation, and meaning. The mode of learning and long-term perspective.
 
 Every human being has access to all four brains. Very few people are ever taught to coordinate them on purpose; most simply default to whichever mode habit, mood, or urgency selects for them.` },
-        { title: `The NeuralFusion™ Core Loop`, body: `NeuralFusion™ operates through a simple, repeatable four-stage loop:
+        { title: `The NeuralFusion Core Loop`, body: `NeuralFusion operates through a simple, repeatable four-stage loop:
 
 1. DECOMPOSITION: Break the problem or thought into clear, separate parts.
 2. MODE SWITCHING: Intentionally activate the brain best suited to each part.
@@ -575,7 +575,7 @@ DAILY LIFE: Someone is deciding how to respond to a frustrating text message. An
 Write one sentence for what each brain, Analytical, Intuitive, Associative, Reflective, would say about it.
 
 Notice which brain you would have defaulted to if you had not paused to check the other three.` },
-        { title: `First Guided Practice: Conscious Thought Control`, body: `This is your first full pass through the NeuralFusion™ Core Loop. Use a real issue: something mildly unresolved in your life right now, not a hypothetical.
+        { title: `First Guided Practice: Conscious Thought Control`, body: `This is your first full pass through the NeuralFusion Core Loop. Use a real issue: something mildly unresolved in your life right now, not a hypothetical.
 
 WORKSHEET
 
@@ -617,11 +617,11 @@ SUCCESS INDICATORS
 · You catch yourself mid-thought and can identify which brain you are currently in.
 · The one-sentence decomposition step feels clarifying rather than reductive.
 · You completed the full guided practice worksheet on a real issue, not a hypothetical one.` },
-        { title: `Key Insight, Recap & Assignment`, body: `KEY INSIGHT: You are not your thoughts. You are the conductor of them. NeuralFusion™ trains mental leadership: the ability to direct thinking rather than be directed by it.
+        { title: `Key Insight, Recap & Assignment`, body: `KEY INSIGHT: You are not your thoughts. You are the conductor of them. NeuralFusion trains mental leadership: the ability to direct thinking rather than be directed by it.
 
 END-OF-LESSON RECAP
 
-· NeuralFusion™ is a trainable skill that fuses four natural brains into one coordinated process.
+· NeuralFusion is a trainable skill that fuses four natural brains into one coordinated process.
 · Fragmented thinking produces overthinking, confusion, and poor decisions.
 · The Four Brains are Analytical, Intuitive, Associative, and Reflective.
 · The Core Loop, Decomposition, Mode Switching, Synthesis, Stabilization, is the engine of every later lesson.
@@ -652,9 +652,9 @@ Most people do not think; they react. Thoughts appear automatically because the 
 
 PRINCIPLE 2: CONTROL BEGINS AT THE POINT OF CHOICE
 
-NeuralFusion™ replaces reaction with activation. Control does not begin when a decision is made; it begins the moment you choose how to think about the situation in the first place.
+NeuralFusion replaces reaction with activation. Control does not begin when a decision is made; it begins the moment you choose how to think about the situation in the first place.
 
-KEY TAKEAWAY: Reaction is automatic. Activation is chosen. Every time you pause before a default thought pattern takes over, you are practicing NeuralFusion™.` },
+KEY TAKEAWAY: Reaction is automatic. Activation is chosen. Every time you pause before a default thought pattern takes over, you are practicing NeuralFusion.` },
         { title: `Each Brain: Best Use & Overuse Risk`, body: `Lesson One introduced the four brains by function. Lesson Two adds a second dimension: what each brain is best used for, and the specific risk that appears when it is overused.
 
 ▰ ANALYTICAL (Precision): Best for decisions, planning, and problem breakdown. Overused, it produces rigidity and overthinking.
@@ -665,7 +665,7 @@ KEY TAKEAWAY: Reaction is automatic. Activation is chosen. Every time you pause 
 
 △ REFLECTIVE (Meaning): Best for self-awareness, evaluation, and learning. Overused, it produces rumination.
 
-NeuralFusion™ is not about staying in one brain. It is about moving between all four deliberately, spending only as much time in each as the situation actually requires.` },
+NeuralFusion is not about staying in one brain. It is about moving between all four deliberately, spending only as much time in each as the situation actually requires.` },
         { title: `Mode Activation Signals`, body: `Each brain has a mental entry signal: a specific question that reliably switches your brain into that mode. Learning these signals is what gives you control.
 
 ▰ ANALYTICAL: "What are the facts?"
@@ -689,7 +689,7 @@ DAILY LIFE: Someone feels a sudden urge to buy something impulsively while brows
 Identify which brain you were likely overusing, using the risk list above.
 
 Say the activation question for a different brain out loud, right now, and notice the shift.` },
-        { title: `The NeuralFusion™ Switching Drill`, body: `This drill builds mode awareness by deliberately spending time in each of the four brains, back to back, on the same neutral topic.
+        { title: `The NeuralFusion Switching Drill`, body: `This drill builds mode awareness by deliberately spending time in each of the four brains, back to back, on the same neutral topic.
 
 WORKSHEET: 7 MINUTES
 
@@ -711,7 +711,7 @@ EXPERT TIP: The goal is not the content you produce; it is building a felt sense
 
 This collapses noise into clarity by forcing a single, small, actionable focus, Reflective mode's natural function.
 
-KEY TAKEAWAY: Mental freedom is the ability to switch your thoughts, not escape them. NeuralFusion™ gives you that freedom through the Emergency Reset.` },
+KEY TAKEAWAY: Mental freedom is the ability to switch your thoughts, not escape them. NeuralFusion gives you that freedom through the Emergency Reset.` },
         { title: `Reflection Questions & Practice Exercises`, body: `REFLECTION QUESTIONS
 
 · What is your default brain, and in which situations does it serve you least well?
@@ -758,7 +758,7 @@ Consistency builds mastery. A single successful switch matters less than repeati
       3: { pages: [
         { title: `Learning Objectives`, body: `By the end of Lesson Three, you will be able to:
 
-1. Explain why most decisions fail, in NeuralFusion™ terms.
+1. Explain why most decisions fail, in NeuralFusion terms.
 2. Define synthesis as integration rather than compromise.
 3. Apply the four-step Synthesis Framework: Extract, Align, Compress, Decide.
 4. Use the Commitment Lock to convert a decision into stable action.
@@ -766,24 +766,24 @@ Consistency builds mastery. A single successful switch matters less than repeati
 
 WHY THIS LESSON MATTERS
 
-Lessons One and Two built awareness and control of individual brains. Lesson Three is where those separate skills become useful: converting multiple, sometimes contradictory, streams of thought into one decision you can actually act on. This is the core power of NeuralFusion™: most people are not short on information or ideas; they are short on a reliable method for integrating them.` },
+Lessons One and Two built awareness and control of individual brains. Lesson Three is where those separate skills become useful: converting multiple, sometimes contradictory, streams of thought into one decision you can actually act on. This is the core power of NeuralFusion: most people are not short on information or ideas; they are short on a reliable method for integrating them.` },
         { title: `Cognitive Principles`, body: `PRINCIPLE 1: FRAGMENTATION, NOT EFFORT, CAUSES DECISION FAILURE
 
-Decisions fail not because of a lack of intelligence but because of internal fragmentation: logic arguing with emotion, intuition contradicting the facts, creativity overwhelming focus. NeuralFusion™ ends this internal conflict by unifying the outputs of all four brains rather than letting one silence the others.
+Decisions fail not because of a lack of intelligence but because of internal fragmentation: logic arguing with emotion, intuition contradicting the facts, creativity overwhelming focus. NeuralFusion ends this internal conflict by unifying the outputs of all four brains rather than letting one silence the others.
 
 PRINCIPLE 2: A FUSED MIND DOES NOT HESITATE
 
 Hesitation is frequently a symptom of unresolved fragmentation, not of an inherently difficult decision. Once brains are genuinely synthesized, the felt experience of the decision changes from uncertain to settled.
 
-KEY TAKEAWAY: NeuralFusion™ ends internal conflict by unifying outputs. A fused mind does not hesitate.` },
+KEY TAKEAWAY: NeuralFusion ends internal conflict by unifying outputs. A fused mind does not hesitate.` },
         { title: `What Synthesis Really Means`, body: `Synthesis is not compromise. Synthesis is integration. Three conditions define real synthesis:
 
 · Each brain contributes something to the final conclusion.
 · No single brain dominates or silences the others.
 · One clear conclusion emerges from the combination.
 
-NeuralFusion™ treats the four brains as advisors, not rulers. Their role is to inform the decision, not to individually control it.` },
-        { title: `The NeuralFusion™ Synthesis Framework`, body: `After activating all four brains on a given decision, synthesis follows a strict, repeatable order:
+NeuralFusion treats the four brains as advisors, not rulers. Their role is to inform the decision, not to individually control it.` },
+        { title: `The NeuralFusion Synthesis Framework`, body: `After activating all four brains on a given decision, synthesis follows a strict, repeatable order:
 
 1. EXTRACT: Identify the single strongest output from each of the four brains.
 2. ALIGN: Check the four outputs for overlap and for direct contradiction.
@@ -803,7 +803,7 @@ DAILY LIFE: Someone deciding whether to move to a new city finds all four brains
 Write one line of output for each brain: Analytical, Intuitive, Associative, Reflective.
 
 Underline where they already agree; that overlap is the seed of your synthesis.` },
-        { title: `Guided Practice: Full NeuralFusion™ Cycle`, body: `WORKSHEET: 10 MINUTES, ONE DECISION, ONE DIRECTION
+        { title: `Guided Practice: Full NeuralFusion Cycle`, body: `WORKSHEET: 10 MINUTES, ONE DECISION, ONE DIRECTION
 
 1. Choose a real decision you are currently facing.
 2. Write the Analytical output: facts and constraints.
@@ -855,7 +855,7 @@ SUCCESS INDICATORS
 · You can identify the common theme across those outputs without forcing it.
 · You have applied the Commitment Lock at least once and held it despite doubt.
 · Your decisions increasingly feel settled rather than merely made.` },
-        { title: `Key Insight, Recap & Assignment`, body: `KEY INSIGHT: Clarity is not finding the right answer; it is unifying the mind. NeuralFusion™ makes clarity repeatable.
+        { title: `Key Insight, Recap & Assignment`, body: `KEY INSIGHT: Clarity is not finding the right answer; it is unifying the mind. NeuralFusion makes clarity repeatable.
 
 END-OF-LESSON RECAP
 
@@ -876,9 +876,9 @@ Action completes the loop. Synthesis that is never acted on remains theoretical 
       4: { pages: [
         { title: `Learning Objectives`, body: `By the end of Lesson Four, you will be able to:
 
-1. Explain why clarity collapses under pressure, in NeuralFusion™ terms.
+1. Explain why clarity collapses under pressure, in NeuralFusion terms.
 2. Distinguish stabilization from suppression.
-3. Apply the three NeuralFusion™ Stabilizers: Cognitive Anchor, Temporal Compression, and Mode Containment.
+3. Apply the three NeuralFusion Stabilizers: Cognitive Anchor, Temporal Compression, and Mode Containment.
 4. Complete the Pressure Simulation guided practice.
 5. Recognize and interrupt the early signs of mental relapse after a decision.
 
@@ -887,7 +887,7 @@ WHY THIS LESSON MATTERS
 Lessons One through Three build clarity under calm conditions: a seated practice, a quiet moment to write, time to think. Real decisions rarely happen that way. Pressure, urgency, and emotion are exactly the conditions under which fused thinking is most needed and most likely to collapse. Lesson Four closes that gap: it trains clarity that survives contact with stress, rather than clarity that only works in ideal conditions.` },
         { title: `Cognitive Principles`, body: `PRINCIPLE 1: PRESSURE IS NOT THE ENEMY, INSTABILITY IS
 
-NeuralFusion™ does not treat pressure as something to eliminate or avoid. Pressure is a normal feature of meaningful decisions. The actual problem is instability: the tendency for a fused conclusion to collapse back into fragmentation the moment stress rises.
+NeuralFusion does not treat pressure as something to eliminate or avoid. Pressure is a normal feature of meaningful decisions. The actual problem is instability: the tendency for a fused conclusion to collapse back into fragmentation the moment stress rises.
 
 PRINCIPLE 2: STABILIZATION IS CONTAINMENT, NOT SUPPRESSION
 
@@ -898,9 +898,9 @@ Stabilizing a brain does not mean silencing it. It means preventing any one brai
 2. Narrow attention: the mind fixates on the most urgent-seeming detail and loses the wider picture.
 3. Mode dominance: usually emotion or rushed analysis takes over completely, silencing the other brains.
 
-Under real pressure, the brain shifts into survival prioritization rather than deliberate reasoning. This is a normal biological response, not a personal failure, but it is exactly the state NeuralFusion™ trains you to recognize and work with.
+Under real pressure, the brain shifts into survival prioritization rather than deliberate reasoning. This is a normal biological response, not a personal failure, but it is exactly the state NeuralFusion trains you to recognize and work with.
 
-KEY TAKEAWAY: NeuralFusion™ does not fight pressure. It absorbs and stabilizes it. Pressure is not the enemy; instability is.` },
+KEY TAKEAWAY: NeuralFusion does not fight pressure. It absorbs and stabilizes it. Pressure is not the enemy; instability is.` },
         { title: `The Stabilization Principle`, body: `Stabilization means holding one fused conclusion while emotion or urgency is present, without letting either take over the decision. This is containment, not suppression.
 
 A stabilized mind under pressure feels distinctly different from either panic or forced calm:
@@ -908,11 +908,11 @@ A stabilized mind under pressure feels distinctly different from either panic or
 · Calm but alert: not numb, not frozen.
 · Focused but flexible: able to hold a direction while still noticing new information.
 · Certain without aggression: decisive without needing to force the outcome.` },
-        { title: `The Three NeuralFusion™ Stabilizers`, body: `1. COGNITIVE ANCHOR
+        { title: `The Three NeuralFusion Stabilizers`, body: `1. COGNITIVE ANCHOR
 A short internal statement that locks in a completed synthesis, preventing re-fragmentation. Examples: "This is my decision" or "I have already fused this." The anchor is a specific, repeatable interruption of the impulse to re-open a decision under stress.
 
 2. TEMPORAL COMPRESSION
-Pressure distorts time, making distant consequences feel as urgent as immediate ones. NeuralFusion™ compresses time deliberately by asking: "What matters in the next 10 minutes?" This narrows the decision space to what is actually actionable right now.
+Pressure distorts time, making distant consequences feel as urgent as immediate ones. NeuralFusion compresses time deliberately by asking: "What matters in the next 10 minutes?" This narrows the decision space to what is actually actionable right now.
 
 3. MODE CONTAINMENT
 When one brain flares up under pressure, most often emotion, the response is not to eliminate it. It is to identify it, reduce its influence on the current decision, and return authority to the already-completed synthesis. No brain is removed; it is simply regulated back to its appropriate role as one advisor among four.` },
@@ -968,7 +968,7 @@ SUCCESS INDICATORS
 · You can name your own default pressure response.
 · You have used a Cognitive Anchor in an actual moment of pressure, not just in rehearsal.
 · You can apply Temporal Compression to a live situation within a few seconds.` },
-        { title: `Key Insight, Recap & Assignment`, body: `KEY INSIGHT: Mental mastery is not calm thinking; it is stable thinking. NeuralFusion™ creates stability that survives pressure, rather than clarity that only works when conditions are ideal.
+        { title: `Key Insight, Recap & Assignment`, body: `KEY INSIGHT: Mental mastery is not calm thinking; it is stable thinking. NeuralFusion creates stability that survives pressure, rather than clarity that only works when conditions are ideal.
 
 END-OF-LESSON RECAP
 
@@ -991,19 +991,19 @@ Stability strengthens with use. The first application under real pressure is rar
 1. Define cognitive fluency and distinguish it from effortful thinking.
 2. Explain the three stages every trained skill passes through, and identify which stage you are in.
 3. Use the Automatic Fusion Trigger to initiate the Core Loop instinctively.
-4. Recognize the practical signs that NeuralFusion™ is becoming automatic in daily life.
+4. Recognize the practical signs that NeuralFusion is becoming automatic in daily life.
 5. Commit to a lifetime maintenance protocol for the skill.
 
 WHY THIS LESSON MATTERS
 
-Every lesson so far has required deliberate effort: naming a brain, asking an activation question, running the Synthesis Framework step by step, applying a Stabilizer under pressure. This is appropriate for early training, but it is not the end state. Lesson Five completes the arc by training NeuralFusion™ to operate without conscious effort, the same way an experienced driver no longer thinks through each step of using a clutch.` },
+Every lesson so far has required deliberate effort: naming a brain, asking an activation question, running the Synthesis Framework step by step, applying a Stabilizer under pressure. This is appropriate for early training, but it is not the end state. Lesson Five completes the arc by training NeuralFusion to operate without conscious effort, the same way an experienced driver no longer thinks through each step of using a clutch.` },
         { title: `Cognitive Principles & Cognitive Fluency`, body: `PRINCIPLE 1: ELITE PERFORMANCE IS INTEGRATED, NOT EFFORTFUL
 
 High performers across disciplines are rarely distinguished by thinking harder than others in the moment of performance. They are distinguished by thinking in a more integrated way, built through extensive prior deliberate practice.
 
 PRINCIPLE 2: MASTERY IS EFFORT DISAPPEARING, NOT EFFORT INCREASING
 
-A common misconception is that mastery means working harder at a skill indefinitely. In NeuralFusion™, mastery is marked by the opposite: the loop that once took ten minutes of deliberate writing now runs in seconds, unnoticed.
+A common misconception is that mastery means working harder at a skill indefinitely. In NeuralFusion, mastery is marked by the opposite: the loop that once took ten minutes of deliberate writing now runs in seconds, unnoticed.
 
 COGNITIVE FLUENCY has three defining qualities: fast (the Core Loop completes in seconds), stable (clarity holds under pressure without conscious stabilization steps), and adaptive (the loop applies itself automatically to whatever is in front of you).` },
         { title: `From Skill to Instinct`, body: `Every trainable skill, physical or cognitive, passes through the same three stages:
@@ -1015,7 +1015,7 @@ STAGE 2, STRUCTURED PRACTICE: Consistent and deliberate. The steps are familiar 
 STAGE 3, AUTOMATIC EXECUTION: Fast and natural. The Core Loop runs without conscious step-by-step effort.
 
 Lessons One through Four operate primarily in Stages One and Two. Lesson Five initiates Stage Three.` },
-        { title: `The Automatic Fusion Trigger`, body: `NeuralFusion™ automation begins with a single internal cue: the word "Fuse."
+        { title: `The Automatic Fusion Trigger`, body: `NeuralFusion automation begins with a single internal cue: the word "Fuse."
 
 This single word, used consistently, signals the brain to run the full loop without conscious step-by-step direction:
 
@@ -1025,7 +1025,7 @@ This single word, used consistently, signals the brain to run the full loop with
 4. Stabilize instantly.
 
 With repetition, this becomes reflexive, the same way a practiced athlete no longer consciously thinks through the individual components of a well-trained movement.` },
-        { title: `Living NeuralFusion™: Daily Integration`, body: `As automatic integration develops, it shows up as specific, observable changes in daily life rather than as an abstract feeling of "mastery":
+        { title: `Living NeuralFusion: Daily Integration`, body: `As automatic integration develops, it shows up as specific, observable changes in daily life rather than as an abstract feeling of "mastery":
 
 · Faster decisions, without a corresponding drop in decision quality.
 · Reduced overthinking, particularly on familiar categories of decision.
@@ -1061,7 +1061,7 @@ SUCCESS INDICATORS
 
 · You can run a compressed version of the Core Loop in under a minute on a real decision.
 · The word "Fuse" reliably produces a shift toward clarity when used.` },
-        { title: `Final Insight & Lifetime Protocol`, body: `FINAL INSIGHT: You do not control the mind by force; you train it by structure. NeuralFusion™ is now part of you.
+        { title: `Final Insight & Lifetime Protocol`, body: `FINAL INSIGHT: You do not control the mind by force; you train it by structure. NeuralFusion is now part of you.
 
 END-OF-LESSON RECAP
 
@@ -1072,18 +1072,18 @@ END-OF-LESSON RECAP
 
 FINAL ASSIGNMENT: LIFETIME PROTOCOL
 
-1. Use NeuralFusion™ daily, through the automatic trigger and the underlying loop it activates.
+1. Use NeuralFusion daily, through the automatic trigger and the underlying loop it activates.
 2. Teach it through behavior, not words; let others notice the change rather than announcing it.
 3. Return to conscious structure whenever clarity fades, rather than assuming fluency is permanent.
 
-This completes the core system of NeuralFusion™ Level One. "You do not control the mind by force; you train it by structure."` }
+This completes the core system of NeuralFusion Level One. "You do not control the mind by force; you train it by structure."` }
       ]},
       6: { pages: [
-        { title: `Glossary, Part 1`, body: `NEURALFUSION™: The overall trainable cognitive skill system that coordinates the Four Brains into one controlled process.
+        { title: `Glossary, Part 1`, body: `NEURALFUSION: The overall trainable cognitive skill system that coordinates the Four Brains into one controlled process.
 
 COGNITIVE FRAGMENTATION: The default, untrained state of thinking in disconnected pieces (logic without intuition, emotion without reflection) rather than as one coordinated process.
 
-THE FOUR BRAINS: Analytical, Intuitive, Associative, and Reflective, the four natural modes of thought that NeuralFusion™ trains you to activate and coordinate deliberately.
+THE FOUR BRAINS: Analytical, Intuitive, Associative, and Reflective, the four natural modes of thought that NeuralFusion trains you to activate and coordinate deliberately.
 
 ANALYTICAL BRAIN: Governs logic, structure, and facts. Best used for decisions, planning, and problem breakdown.
 
@@ -1094,7 +1094,7 @@ ASSOCIATIVE BRAIN: Governs creativity, connection, and idea generation. Best use
 REFLECTIVE BRAIN: Governs self-awareness, evaluation, and meaning. Best used for learning and long-term perspective.
 
 MODE ACTIVATION SIGNAL: A short internal question used to deliberately switch into a specific brain.` },
-        { title: `Glossary, Part 2`, body: `THE CORE LOOP: The four-stage process, Decomposition, Mode Switching, Synthesis, Stabilization, that structures every application of NeuralFusion™.
+        { title: `Glossary, Part 2`, body: `THE CORE LOOP: The four-stage process, Decomposition, Mode Switching, Synthesis, Stabilization, that structures every application of NeuralFusion.
 
 SYNTHESIS: Combining the outputs of all four brains into one unified insight. Integration, not compromise.
 
@@ -1116,7 +1116,7 @@ COGNITIVE FLUENCY: The advanced state in which the Core Loop runs quickly, stabl
 
 THE AUTOMATIC FUSION TRIGGER: The single-word cue ("Fuse") used to activate the full Core Loop automatically, once trained.
 
-MENTAL LEADERSHIP: The core identity shift NeuralFusion™ aims to produce, from being carried by one's thoughts to consciously directing them.` },
+MENTAL LEADERSHIP: The core identity shift NeuralFusion aims to produce, from being carried by one's thoughts to consciously directing them.` },
         { title: `Quick-Reference: The Core Loop & Synthesis Framework`, body: `THE CORE LOOP
 
 1. Decomposition: break it into parts.
@@ -1154,7 +1154,7 @@ WEEK 1: Lesson One. Daily mode-naming practice. Complete the First Guided Practi
 
 WEEK 2: Lesson Two. Daily Switching Drill or a single deliberate mode switch. Rehearse the Emergency Reset once per day.
 
-WEEK 3: Lesson Three. Apply the Full NeuralFusion™ Cycle to one real decision. Practice the Commitment Lock on smaller daily decisions.
+WEEK 3: Lesson Three. Apply the Full NeuralFusion Cycle to one real decision. Practice the Commitment Lock on smaller daily decisions.
 
 WEEK 4: Lesson Four. Run the Pressure Simulation on a past event. Apply at least one Stabilizer to a real pressure moment.
 
@@ -1163,7 +1163,7 @@ WEEK 5+: Lesson Five. Begin using the Automatic Fusion Trigger daily. Shift from
 This schedule is a starting structure, not a fixed rule. If a lesson has not yet produced its Success Indicators, it is more effective to repeat that week than to advance on schedule.` },
         { title: `Decision Journal & Reflection Journal Templates`, body: `DECISION JOURNAL TEMPLATE
 
-Use this each time you apply the Full NeuralFusion™ Cycle or the Synthesis Framework to a real decision.
+Use this each time you apply the Full NeuralFusion Cycle or the Synthesis Framework to a real decision.
 
 · Date
 · The Decision (one sentence)
@@ -1188,15 +1188,15 @@ Use one entry per lesson, or more frequently if useful.
 · What I want to practice next
 
 Short, honest entries written consistently are more valuable than long, polished entries written occasionally. The Reflection Journal is a training log, not a performance.` },
-        { title: `Cognitive Performance Scorecard`, body: `Use this scorecard monthly to track your own sense of progress across the five core NeuralFusion™ capacities. Rate each from 1 (Rarely) to 5 (Consistently). This is a self-assessment tool for personal tracking, not a diagnostic or clinical instrument.
+        { title: `Cognitive Performance Scorecard`, body: `Use this scorecard monthly to track your own sense of progress across the five core NeuralFusion capacities. Rate each from 1 (Rarely) to 5 (Consistently). This is a self-assessment tool for personal tracking, not a diagnostic or clinical instrument.
 
 · I can name my current brain on request.
 · I can switch deliberately into a specific brain using an activation signal.
 · I can complete a full synthesis and produce a one-sentence decision.
 · I can apply at least one Stabilizer during a real pressure moment.
-· I notice NeuralFusion™ operating automatically, without deliberate effort.
+· I notice NeuralFusion operating automatically, without deliberate effort.
 
-This scorecard measures your own subjective sense of skill, consistent with how NeuralFusion™ is designed to be practiced. It is not a psychological assessment and does not diagnose any condition.` },
+This scorecard measures your own subjective sense of skill, consistent with how NeuralFusion is designed to be practiced. It is not a psychological assessment and does not diagnose any condition.` },
         { title: `Mastery Checklist: Level One`, body: `Complete this checklist honestly before considering Level One finished. Every item should reflect something you have actually done, not something you understand conceptually.
 
 · I completed all five lessons in order, including every guided practice.
@@ -1208,11 +1208,11 @@ This scorecard measures your own subjective sense of skill, consistent with how 
 · I have used the Automatic Fusion Trigger ("Fuse") in a real, unplanned situation.
 · I have completed at least one full Decision Journal entry.
 · I have completed at least three Reflection Journal entries.
-· I can explain, in my own words, why NeuralFusion™ is described as a trainable skill rather than a personality trait.` },
-        { title: `Final Level One Assessment`, body: `This assessment is self-graded and reflective by design: NeuralFusion™ measures applied skill, not memorized theory.
+· I can explain, in my own words, why NeuralFusion is described as a trainable skill rather than a personality trait.` },
+        { title: `Final Level One Assessment`, body: `This assessment is self-graded and reflective by design: NeuralFusion measures applied skill, not memorized theory.
 
 PART A: CONCEPTUAL UNDERSTANDING
-1. In your own words, define cognitive fragmentation and explain how NeuralFusion™ addresses it.
+1. In your own words, define cognitive fragmentation and explain how NeuralFusion addresses it.
 2. Name the Four Brains and describe one overuse risk for each.
 3. Explain the difference between synthesis and compromise.
 4. Explain the difference between stabilization and suppression.
@@ -1226,7 +1226,7 @@ PART B: APPLIED SKILL
 PART C: SELF-EVALUATION
 1. Which lesson required the most repetition for you, and why?
 2. Which Success Indicators do you meet most confidently? Least confidently?
-3. What is your personal plan for continuing to practice NeuralFusion™ after completing this curriculum?
+3. What is your personal plan for continuing to practice NeuralFusion after completing this curriculum?
 
 There is no passing score. Completion of this assessment in full, honest written form is what qualifies you to proceed toward certification.` },
         { title: `Certification, Daily Practice & FAQ`, body: `LEVEL ONE CERTIFICATION REQUIREMENTS
@@ -1245,8 +1245,8 @@ RECOMMENDED DAILY PRACTICE ROUTINE
 · Under pressure: Apply a Stabilizer as the situation requires.
 · Evening (3–5 min): One Reflection Journal entry, focused on what was noticed rather than what was achieved.
 
-IS NEURALFUSION™ A FORM OF THERAPY?
-No. NeuralFusion™ is a cognitive skill training system. It is not a medical, psychological, psychiatric, or therapeutic treatment, and it does not replace professional care. If you are working through a mental health concern, please consult a licensed professional.
+IS NEURALFUSION A FORM OF THERAPY?
+No. NeuralFusion is a cognitive skill training system. It is not a medical, psychological, psychiatric, or therapeutic treatment, and it does not replace professional care. If you are working through a mental health concern, please consult a licensed professional.
 
 HOW LONG DOES LEVEL ONE TAKE?
 Most learners take four to six weeks working through the lessons at the suggested pace. The timeline matters far less than whether each lesson's Success Indicators have genuinely been met before moving on.` }
@@ -1860,7 +1860,7 @@ Most learners take four to six weeks working through the lessons at the suggeste
       ] : [
         { v:'home', label:'Home' },
         { v:'four-brains', label:'How It Works' },
-        { v:'cfi', label:'CFI™' },
+        { v:'cfi', label:'CFI' },
         { v:'lessons', label:'Training' },
       ];
       const blogHref = '/blog';
@@ -1902,7 +1902,7 @@ Most learners take four to six weeks working through the lessons at the suggeste
                 ) : (
                   React.createElement(React.Fragment, null,
                     React.createElement("button", {className: "desktop-only", onClick: ()=>setShowAuth(true), style: { background:'none', border:'none', color:C.muted, ...inter, fontSize:11, cursor:'pointer' }}, 'Sign in'),
-                    React.createElement("button", {className: "btn-primary desktop-only", style: { fontSize:10, padding:'10px 20px' }, onClick: ()=>setView('cfi')}, 'Take the CFI™ Assessment →')
+                    React.createElement("button", {className: "btn-primary desktop-only", style: { fontSize:10, padding:'10px 20px' }, onClick: ()=>setView('cfi')}, 'Take the CFI Assessment →')
                   )
                 ), React.createElement("button", {className: "hamburger-btn", onClick: ()=>setMenuOpen(!menuOpen), style: {
                   background:'none', border:`1px solid ${C.border}`, borderRadius:2,
@@ -1942,7 +1942,7 @@ Most learners take four to six weeks working through the lessons at the suggeste
                 ) : (
                   React.createElement("div", {style: { display:'flex', flexDirection:'column', gap:10 }},
                     React.createElement("div", {style: { ...mono, fontSize:11, letterSpacing:1, color:C.muted, marginBottom:4 }}, 'Cognitive performance OS'),
-                    React.createElement("button", {className: "btn-primary", style: { width:'100%', fontSize:12, textAlign:'center' }, onClick: ()=>{ setView('cfi'); setMenuOpen(false); }}, 'Take the CFI™ Assessment →'),
+                    React.createElement("button", {className: "btn-primary", style: { width:'100%', fontSize:12, textAlign:'center' }, onClick: ()=>{ setView('cfi'); setMenuOpen(false); }}, 'Take the CFI Assessment →'),
                     React.createElement("button", {className: "btn-outline", style: { width:'100%', fontSize:11, textAlign:'center' }, onClick: ()=>{ setShowAuth(true); setMenuOpen(false); }}, 'Sign in')
                   )
                 )))
@@ -2171,7 +2171,7 @@ function BentoStepList({ steps, setView }) {
 // ═══════════════════════════════════════════════════════════════════
 //  HOME VIEW: "You Are the Intelligence."
 //  Cognitive Performance OS homepage. White / gold editorial system,
-//  visually aligned with the CFI™ assessment (AC tokens in CFIView).
+//  visually aligned with the CFI assessment (AC tokens in CFIView).
 //  Scoped styles live under .nf-home so the rest of the app (which
 //  uses the dark navy/gold "bento" system via the C token object)
 //  is completely unaffected.
@@ -2415,18 +2415,18 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
     // ══════════════════════════════════════════════════════════
     React.createElement("section", { style: { maxWidth:760, margin:'0 auto', padding:'72px 24px 64px', display:'grid', gap:28 }, className: "nf-home-hero" },
       React.createElement("div", null,
-        React.createElement(HomeLabel, null, 'NeuralFusion™'),
+        React.createElement(HomeLabel, null, 'NeuralFusion'),
         React.createElement("h1", { className: "nf-home-fade", style: { ...hDisplay, fontWeight:600, fontSize:'clamp(36px,6vw,60px)', lineHeight:1.05, letterSpacing:'-0.02em', color:H.ink, marginBottom:22 } }, 'The operating system for how you think.'),
         React.createElement("p", { className: "nf-home-fade", style: { ...hBody, fontSize:'clamp(16px,1.6vw,19px)', lineHeight:1.6, color:H.muted, maxWidth:'42ch', marginBottom:32 } },
           'Understand how your mind works. Train how you think. Make better decisions.'),
         React.createElement("div", { className: "nf-home-fade nf-home-hero-actions", style: { display:'flex', flexDirection:'column', alignItems:'center', gap:14 } },
           React.createElement("div", { style: { display:'flex', flexWrap:'wrap', gap:14, justifyContent:'center' } },
-            React.createElement("button", { className: "nf-home-cta-primary", onClick: () => setView('cfi') }, 'Take the CFI™ Assessment', React.createElement("span", null, '→')),
+            React.createElement("button", { className: "nf-home-cta-primary", onClick: () => setView('cfi') }, 'Take the CFI Assessment', React.createElement("span", null, '→')),
             React.createElement("button", { className: "nf-home-cta-outline", onClick: () => setView('enterprise') }, 'For Organizations')
           ),
           // Same wording, split into no-wrap groups so it breaks cleanly on narrow phones.
           React.createElement("span", { className: "nf-home-note nf-home-hero-note", style: { ...hMono, fontSize:11, letterSpacing:'0.08em', color:H.faint } },
-            homeNoteParts(['Free CFI™ Assessment', '13 questions', 'About 3–4 minutes']))
+            homeNoteParts(['Free CFI Assessment', '13 questions', 'About 3–4 minutes']))
         )
       )
     ),
@@ -2498,7 +2498,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
           React.createElement("p", { style: { ...hBody, fontSize:15, lineHeight:1.7, color:H.muted } }, 'For leadership teams, executives, L&D teams and organizations navigating high-stakes decisions and AI-driven work.')
         ),
         React.createElement("p", { style: { ...hBody, fontSize:14.5, lineHeight:1.75, color:H.muted, maxWidth:600, marginBottom:36 } },
-          'NeuralFusion™ provides cognitive assessment, structured training and longitudinal measurement designed to help organizations understand and develop human thinking.'),
+          'NeuralFusion provides cognitive assessment, structured training and longitudinal measurement designed to help organizations understand and develop human thinking.'),
         React.createElement("div", { className: "nf-home-actions", style: { display:'flex', gap:14, justifyContent:'center', flexWrap:'wrap' } },
           React.createElement("button", { className: "nf-home-cta-primary", onClick: () => setView('enterprise') }, 'Explore Enterprise →'),
           React.createElement("a", { href: "/contact", className: "nf-home-cta-outline", style: { textDecoration:'none' } }, 'Request an Enterprise Pilot')
@@ -2514,7 +2514,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
         React.createElement(HomeLabel, { color:H.goldDeep }, 'The framework'),
         React.createElement("h2", { style: { ...hDisplay, fontWeight:600, fontSize:'clamp(22px,2.6vw,30px)', color:H.ink, marginBottom:16 } }, "You don't think in just one way."),
         React.createElement("p", { style: { ...hBody, fontSize:15, lineHeight:1.7, color:H.muted } },
-          'NeuralFusion™ helps you understand how these modes interact, and where they become fragmented.')
+          'NeuralFusion helps you understand how these modes interact, and where they become fragmented.')
       ),
       React.createElement("div", { className: "nf-home-fieldwrap", style: { display:'flex', justifyContent:'center', marginBottom:40 } },
         React.createElement(HomeCognitiveField, { size:fieldSize, centerLabel:'INTEGRATION', interactive:true, setView })
@@ -2530,20 +2530,20 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
     ),
 
     // ══════════════════════════════════════════════════════════
-    // SECTION 6: CFI™ ASSESSMENT (primary entry point, with Clarity Delta and FAQ folded in)
+    // SECTION 6: CFI ASSESSMENT (primary entry point, with Clarity Delta and FAQ folded in)
     // ══════════════════════════════════════════════════════════
     React.createElement("section", { style: { borderBottom:`1px solid ${H.border}` } },
       React.createElement("div", { className: "nf-home-wrap", style: { maxWidth:920, margin:'0 auto', padding:'72px 24px' } },
         React.createElement(HomeLabel, null, 'Before you train your thinking, understand it'),
-        React.createElement("h2", { style: { ...hDisplay, fontWeight:600, fontSize:'clamp(24px,3vw,32px)', color:H.ink, marginBottom:8 } }, 'CFI™'),
-        React.createElement("div", { style: { ...hMono, fontSize:12, letterSpacing:'0.14em', color:H.faint, marginBottom:24 } }, 'COGNITIVE FRAGMENTATION INDEX™'),
+        React.createElement("h2", { style: { ...hDisplay, fontWeight:600, fontSize:'clamp(24px,3vw,32px)', color:H.ink, marginBottom:8 } }, 'CFI'),
+        React.createElement("div", { style: { ...hMono, fontSize:12, letterSpacing:'0.14em', color:H.faint, marginBottom:24 } }, 'COGNITIVE FRAGMENTATION INDEX'),
         React.createElement("p", { style: { ...hBody, fontSize:16, lineHeight:1.75, color:H.muted, maxWidth:560, marginBottom:40 } },
           'A 13-item assessment that shows how your thinking coordinates across the four modes.'),
 
         // Simple, honest CFI visualization: a radial spread across the
         // four modes, not a dashboard mockup with invented numbers.
         React.createElement("div", { className: "card", style: { background:C.surface, border:`1px solid ${H.border}`, borderRadius:6, padding:'40px 24px', marginBottom:28 } },
-          React.createElement("div", { style: { ...hMono, fontSize:10, letterSpacing:'0.12em', color:H.faint, marginBottom:24 } }, 'CFI™ COGNITIVE PROFILE · EXAMPLE'),
+          React.createElement("div", { style: { ...hMono, fontSize:10, letterSpacing:'0.12em', color:H.faint, marginBottom:24 } }, 'CFI COGNITIVE PROFILE · EXAMPLE'),
           React.createElement("div", { className: "nf-home-cfi-bars", style: { display:'flex', justifyContent:'center', gap:'clamp(16px,4vw,40px)', flexWrap:'wrap' } },
             HOME_MODES.map(m => React.createElement("div", { key:m.key, style: { display:'flex', flexDirection:'column', alignItems:'center', gap:10 } },
               React.createElement("div", { style: { width:6, height:76, borderRadius:3, background:H.border, position:'relative', overflow:'hidden' } },
@@ -2556,16 +2556,16 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
         React.createElement("p", { style: { ...hBody, fontSize:13.5, color:H.faint, fontStyle:'italic', maxWidth:480, marginBottom:12 } },
           'Your result gives you a cognitive baseline, not a diagnosis, personality label or measure of intelligence.'),
         React.createElement("p", { style: { ...hBody, fontSize:13.5, color:H.faint, maxWidth:480, marginBottom:32 } },
-          'Retake it later and Clarity Delta\u2122 shows how your profile has changed.'),
-        React.createElement("button", { className: "nf-home-cta-primary", onClick: () => setView('cfi') }, 'Take the Free CFI™ Assessment', React.createElement("span", null, '→')),
+          'Retake it later and Clarity Delta shows how your profile has changed.'),
+        React.createElement("button", { className: "nf-home-cta-primary", onClick: () => setView('cfi') }, 'Take the Free CFI Assessment', React.createElement("span", null, '→')),
         React.createElement("div", { className: "nf-home-note", style: { ...hMono, fontSize:11, letterSpacing:'0.06em', color:H.faint, marginTop:14, marginBottom:56 } }, homeNoteParts(['13 questions', 'About 3–4 minutes', 'Free', 'Free account to save results'])),
 
         React.createElement("div", { style: { borderTop:`1px solid ${H.border}`, paddingTop:40 } },
           React.createElement("h3", { style: { ...hDisplay, fontWeight:600, fontSize:18, color:H.ink, marginBottom:16 } }, 'A few things people ask.'),
           [
-            { q:'Is this a diagnosis or a personality test?', a:'No. The CFI™ gives you a cognitive baseline, not a diagnosis, personality label or measure of intelligence.' },
-            { q:'Is NeuralFusion free?', a:'The CFI™ assessment and the first lesson are free. Pro unlocks the full training system for a one-time payment. Enterprise is a separate offering for teams and organizations.' },
-            { q:'Do I need an account?', a:'No. Answer all 13 questions and see your full CFI™ profile immediately. Create a free account only if you want to save your results and track them over time.' },
+            { q:'Is this a diagnosis or a personality test?', a:'No. The CFI gives you a cognitive baseline, not a diagnosis, personality label or measure of intelligence.' },
+            { q:'Is NeuralFusion free?', a:'The CFI assessment and the first lesson are free. Pro unlocks the full training system for a one-time payment. Enterprise is a separate offering for teams and organizations.' },
+            { q:'Do I need an account?', a:'No. Answer all 13 questions and see your full CFI profile immediately. Create a free account only if you want to save your results and track them over time.' },
           ].map((item, i) => (
             React.createElement("div", { key:i, style: { borderTop: i===0 ? 'none' : `1px solid ${H.border}` } },
               React.createElement("button", {
@@ -2616,7 +2616,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
     React.createElement("section", { className: "nf-home-sec", style: { background:H.bgAlt, borderTop:`1px solid ${H.border}`, padding:'96px 24px' } },
       React.createElement("div", { style: { maxWidth:600, margin:'0 auto', textAlign:'center' } },
         React.createElement("h2", { style: { ...hDisplay, fontWeight:600, fontSize:'clamp(28px,4vw,42px)', lineHeight:1.15, color:H.ink, marginBottom:20 } }, 'You are the intelligence.'),
-        React.createElement("p", { style: { ...hBody, fontSize:16, lineHeight:1.6, color:H.muted, marginBottom:36 } }, 'NeuralFusion™ helps you understand, train and integrate the way you think.'),
+        React.createElement("p", { style: { ...hBody, fontSize:16, lineHeight:1.6, color:H.muted, marginBottom:36 } }, 'NeuralFusion helps you understand, train and integrate the way you think.'),
         React.createElement("div", { className: "nf-home-actions", style: { display:'flex', gap:14, justifyContent:'center', flexWrap:'wrap', marginBottom:16 } },
           React.createElement("button", { className: "nf-home-cta-primary", onClick: () => setView('cfi') }, 'Discover How You Think', React.createElement("span", null, '→')),
           React.createElement("button", { className: "nf-home-cta-outline", onClick: () => setView('enterprise') }, 'Develop Your Team\u2019s Thinking')
@@ -2669,7 +2669,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
     //  INTEGRATION PROTOCOL: interactive experience
     //  Decompose → Sense → Expand → Reflect → Fuse
     //
-    //  Philosophy: NeuralFusion™ does not think for the visitor. It
+    //  Philosophy: NeuralFusion does not think for the visitor. It
     //  organizes and reflects the visitor's own thinking back to them.
     //  Every line of "synthesis" below is derived from words the visitor
     //  typed themselves, never a generated recommendation or decision.
@@ -2701,7 +2701,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
 
     // Reads the visitor's own four answers and reflects patterns back to
     // them in their own language. Hedged, non-directive phrasing throughout,
-    // NeuralFusion™ never tells the visitor what to decide.
+    // NeuralFusion never tells the visitor what to decide.
     function synthesizeProtocol(answers) {
       const logicalWords = [...protocolTokenize(answers.decompose), ...protocolTokenize(answers.expand)];
       const signalWords  = [...protocolTokenize(answers.sense), ...protocolTokenize(answers.reflect)];
@@ -2779,7 +2779,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
     ];
 
     // ── Accessible design tokens (WCAG AA, dyslexia-friendly) ──────────
-    // Shared with the CFI™ assessment (CFIView) so the Integration Protocol
+    // Shared with the CFI assessment (CFIView) so the Integration Protocol
     // reads as one continuous experience with the CFI, not a separate style.
     const PROTOCOL_AC = {
       bg: '#FFFFFF', surface: '#FFFFFF', surfaceAlt: '#F9FAFB',
@@ -2929,7 +2929,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
 
             React.createElement("div", {style: { fontFamily:AC.font, fontSize:14, fontWeight:700, letterSpacing:'0.06em', color:AC.goldDark, marginBottom:8, textTransform:'uppercase' }}, 'The Integration Protocol · Fuse'),
             React.createElement("div", {style: { fontSize:14, color:AC.muted, lineHeight:1.6, marginBottom:20, maxWidth:640 }},
-              'NeuralFusion™ does not think for you. It helps you see how you are thinking. Everything below is drawn from your own words, not a decision, diagnosis, or recommendation.'
+              'NeuralFusion does not think for you. It helps you see how you are thinking. Everything below is drawn from your own words, not a decision, diagnosis, or recommendation.'
             ),
 
             React.createElement("h1", {style: { fontFamily:AC.font, fontSize:'clamp(24px,4.5vw,30px)', fontWeight:800, color:AC.text, marginBottom:20, lineHeight:1.3 }}, 'Your Thinking, Integrated.'),
@@ -2995,7 +2995,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
               React.createElement("div", {style: { fontFamily:AC.font, fontSize:13, fontWeight:700, letterSpacing:'0.04em', color:AC.goldDark, marginBottom:16, textTransform:'uppercase' }}, 'The Integrated Picture'),
               React.createElement("div", {style: { fontSize:17, color:AC.text, lineHeight:1.8, marginBottom:20, padding:'18px 20px', background:AC.surfaceAlt, borderRadius:12, border:`1px solid ${AC.border}` }}, synthesis.insight),
               synthesis.uncertain && React.createElement("div", {style: { fontSize:13.5, color:AC.muted, lineHeight:1.7, marginBottom:8 }}, "This may be worth investigating further: parts of your own answers suggest you're still uncertain, and that uncertainty is worth sitting with rather than rushing past."),
-              React.createElement("div", {style: { fontSize:13, color:AC.muted, lineHeight:1.6, marginTop:12 }}, "NeuralFusion™ is not an AI decision-maker. You remain the intelligence. This is your thinking, organized and reflected back to you.")
+              React.createElement("div", {style: { fontSize:13, color:AC.muted, lineHeight:1.6, marginTop:12 }}, "NeuralFusion is not an AI decision-maker. You remain the intelligence. This is your thinking, organized and reflected back to you.")
             ),
 
             // Investigate the gap
@@ -3015,13 +3015,13 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
             // CTA after experience
             React.createElement("div", {style: { padding:'32px 24px', background:AC.goldTint, border:`1px solid ${AC.gold}`, borderRadius:16, marginBottom:24, textAlign:'center' }},
               React.createElement("div", {style: { fontFamily:AC.font, fontSize:18, fontWeight:800, color:AC.text, marginBottom:10, lineHeight:1.3 }}, 'Want to strengthen how you think, not just solve one problem?'),
-              React.createElement("p", {style: { fontSize:14, color:AC.muted, lineHeight:1.7, maxWidth:480, margin:'0 auto 22px' }}, 'The Integration Protocol gives you a structured way to examine a single problem. NeuralFusion™ is designed to help you develop this way of thinking across decisions, challenges, and complex situations.'),
+              React.createElement("p", {style: { fontSize:14, color:AC.muted, lineHeight:1.7, maxWidth:480, margin:'0 auto 22px' }}, 'The Integration Protocol gives you a structured way to examine a single problem. NeuralFusion is designed to help you develop this way of thinking across decisions, challenges, and complex situations.'),
               React.createElement("div", {style: { display:'flex', gap:12, flexWrap:'wrap', justifyContent:'center' }},
                 React.createElement("button", {className: "nf-a11y-btn", onClick: () => user ? setView('protocol') : setShowAuth(true), style: {
                   fontFamily:AC.font, fontSize:16, fontWeight:700, padding:'16px 32px', minHeight:52,
                   background:AC.goldDark, color:'#FFFFFF', border:'none', borderRadius:16, cursor:'pointer',
                   boxShadow:'0 2px 8px rgba(138,109,47,0.35)',
-                }}, 'Explore NeuralFusion™ →'),
+                }}, 'Explore NeuralFusion →'),
                 React.createElement("button", {className: "nf-a11y-btn", onClick: () => setView('four-brains'), style: {
                   fontFamily:AC.font, fontSize:16, fontWeight:700, padding:'14px 28px', minHeight:52,
                   background:'transparent', color:AC.goldDark, border:`2px solid ${AC.goldDark}`, borderRadius:16, cursor:'pointer',
@@ -3062,7 +3062,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
         setPhase('intro'); setStepIndex(0); setProblem(''); setAnswers({ decompose:'', sense:'', expand:'', reflect:'' });
       };
 
-      // ── Intro (mirrors the CFI™ intro screen) ───────────────────────
+      // ── Intro (mirrors the CFI intro screen) ───────────────────────
       if (phase === 'intro') {
         return (
           React.createElement("div", {style: { paddingTop:80, paddingBottom:60, background:AC.bg, minHeight:'100vh', fontFamily:AC.font }},
@@ -3075,7 +3075,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
                 'Bring a real decision, challenge, or situation. Five short stages, about five minutes.'
               ),
               React.createElement("div", {role:'note', style: { fontSize:18, color:AC.text, lineHeight:1.7, marginBottom:20, maxWidth:560, margin:'0 auto 20px', padding:'20px 22px', background:AC.goldTint, border:`1px solid ${AC.gold}`, borderRadius:16, textAlign:'left' }},
-                "NeuralFusion™ does not think for you. It helps you see how you are thinking. There are no wrong answers, and you'll see your own responses reflected back to you at the end, not a decision made for you."
+                "NeuralFusion does not think for you. It helps you see how you are thinking. There are no wrong answers, and you'll see your own responses reflected back to you at the end, not a decision made for you."
               ),
               React.createElement("div", {style: { display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(min(200px, 100%), 1fr))', gap:12, marginBottom:36, textAlign:'left' }},
                 [
@@ -3117,7 +3117,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
         return React.createElement(ProtocolResult, { problem, answers, setView, user, setShowAuth, onRestart: restart });
       }
 
-      // ── Steps 1–4 (mirrors the CFI™ question screen) ────────────────
+      // ── Steps 1–4 (mirrors the CFI question screen) ────────────────
       const step = PROTOCOL_STEPS[stepIndex];
       const b = C.brains[step.brain];
       const isDecompose = step.key === 'decompose';
@@ -3580,11 +3580,11 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
     };
     const CP_MODE_ORDER = ['A', 'I', 'S', 'R'];
     const CP_JOURNEY = [
-      { step: '01', title: 'Measure',    desc: 'Discover your CFI™.',                    view: 'cfi' },
+      { step: '01', title: 'Measure',    desc: 'Discover your CFI.',                    view: 'cfi' },
       { step: '02', title: 'Understand', desc: 'Explore your Cognitive Profile.',         view: 'cfi' },
       { step: '03', title: 'Train',      desc: 'Learn through the NeuralFusion Academy.', view: 'lessons' },
       { step: '04', title: 'Integrate',  desc: 'Practice the Integration Protocol.',      view: 'protocol' },
-      { step: '05', title: 'Improve',    desc: 'Track your Clarity Delta™.',              view: 'analytics' },
+      { step: '05', title: 'Improve',    desc: 'Track your Clarity Delta.',              view: 'analytics' },
     ];
 
     function CPCard({ children, style }) {
@@ -3740,7 +3740,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
         : '';
       const handleShare = async () => {
         if (navigator.share) {
-          try { await navigator.share({ title: 'My NeuralFusion™ Cognitive Profile', text: shareText, url: shareUrl }); } catch (e) { /* user cancelled */ }
+          try { await navigator.share({ title: 'My NeuralFusion Cognitive Profile', text: shareText, url: shareUrl }); } catch (e) { /* user cancelled */ }
         } else if (navigator.clipboard) {
           try { await navigator.clipboard.writeText(`${shareText} ${shareUrl}`); setShareState('copied'); setTimeout(() => setShareState('idle'), 2200); } catch (e) { /* clipboard unavailable */ }
         }
@@ -3752,7 +3752,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
         return (
           React.createElement("div", { style: { background: CP.bg, paddingTop: 80, paddingBottom: 80 }, id: 'cfi-report' },
             React.createElement("div", { style: { maxWidth: 640, margin: '0 auto', padding: '24px 20px', textAlign: 'center' } },
-              React.createElement(CPEyebrow, null, "Your NeuralFusion™ Cognitive Profile"),
+              React.createElement(CPEyebrow, null, "Your NeuralFusion Cognitive Profile"),
               React.createElement("h1", { style: { ...syne, fontSize: 'clamp(22px,5vw,30px)', fontWeight: 800, color: CP.ink, marginBottom: 28 } }, "Now you can see how your thinking works."),
               React.createElement(CPCard, { style: { padding: '36px 24px', marginBottom: 28 } },
                 React.createElement(CPScoreRing, { value: integrationScore, color: bandColor, label: 'Overall Coordination Level' }),
@@ -3782,9 +3782,9 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
 
             // ── Header ──
             React.createElement("div", { style: { textAlign: 'center', marginBottom: 40 } },
-              React.createElement(CPEyebrow, null, "CFI™ · Your NeuralFusion™ Cognitive Profile"),
+              React.createElement(CPEyebrow, null, "CFI · Your NeuralFusion Cognitive Profile"),
               React.createElement("h1", { style: { ...syne, fontSize: 'clamp(24px,5.5vw,34px)', fontWeight: 800, color: CP.ink, marginBottom: 14, lineHeight: 1.15 } }, "Now you can see how your thinking works."),
-              React.createElement("div", { style: { fontSize: 13.5, color: CP.muted, lineHeight: 1.7, maxWidth: 480, margin: '0 auto' } }, "The CFI™ measures thinking clarity and how well your four thinking modes work together. It is not a personality test, mental health screening, or medical evaluation.")
+              React.createElement("div", { style: { fontSize: 13.5, color: CP.muted, lineHeight: 1.7, maxWidth: 480, margin: '0 auto' } }, "The CFI measures thinking clarity and how well your four thinking modes work together. It is not a personality test, mental health screening, or medical evaluation.")
             ),
 
             // ── SECTION 1: Profile overview ──
@@ -3882,7 +3882,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
 
             // ── SECTION 8: Academy recommendation ──
             React.createElement(CPCard, { style: { padding: '32px 26px', marginBottom: 20 } },
-              React.createElement(CPEyebrow, null, "Your Recommended NeuralFusion™ Lesson"),
+              React.createElement(CPEyebrow, null, "Your Recommended NeuralFusion Lesson"),
               React.createElement("div", { style: { fontSize: 13, color: CP.muted, lineHeight: 1.7, marginBottom: 22, maxWidth: 480 } }, "Your Cognitive Profile gives you a starting point. The Academy helps you train from there."),
               React.createElement("div", { style: { padding: '20px', background: CP.surface, borderRadius: 14, border: `1px solid ${CP.border}` } },
                 React.createElement("div", { style: { ...mono, fontSize: 9.5, letterSpacing: 1, color: CP.goldDeep, marginBottom: 10 } }, 'RECOMMENDED FOR YOU'),
@@ -3922,8 +3922,8 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
             // ── SECTION 10: Clarity Delta ──
             React.createElement(CPCard, { style: { padding: '28px 26px', marginBottom: 20 } },
               React.createElement(CPEyebrow, null, 'Track Your Progress'),
-              React.createElement("div", { style: { ...syne, fontSize: 15, fontWeight: 800, color: CP.ink, marginBottom: 8 } }, 'Clarity Delta™ · Starting Point'),
-              React.createElement("div", { style: { fontSize: 13.5, color: CP.muted, lineHeight: 1.7, marginBottom: 16, maxWidth: 480 } }, "This CFI™ establishes your baseline. Complete NeuralFusion training and retake the assessment, and your Clarity Delta™ will show how your profile changes over time."),
+              React.createElement("div", { style: { ...syne, fontSize: 15, fontWeight: 800, color: CP.ink, marginBottom: 8 } }, 'Clarity Delta · Starting Point'),
+              React.createElement("div", { style: { fontSize: 13.5, color: CP.muted, lineHeight: 1.7, marginBottom: 16, maxWidth: 480 } }, "This CFI establishes your baseline. Complete NeuralFusion training and retake the assessment, and your Clarity Delta will show how your profile changes over time."),
               React.createElement(CPButton, { variant: 'outline', onClick: () => setView('analytics') }, 'Continue Training →')
             ),
 
@@ -3932,7 +3932,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
               React.createElement(CPEyebrow, null, 'Share Your Cognitive Profile'),
               React.createElement("div", { style: { fontSize: 13.5, color: CP.muted, lineHeight: 1.7, marginBottom: 18, maxWidth: 440, margin: '0 auto 18px' } }, "You discovered how you think. Now invite someone else to discover theirs."),
               React.createElement("div", { style: { display: 'inline-block', textAlign: 'left', padding: '20px 24px', background: CP.ink, borderRadius: 14, marginBottom: 20 } },
-                React.createElement("div", { style: { ...syne, fontSize: 12, fontWeight: 800, color: CP.gold, letterSpacing: 1, marginBottom: 10 } }, 'NEURALFUSION™ · My Cognitive Profile'),
+                React.createElement("div", { style: { ...syne, fontSize: 12, fontWeight: 800, color: CP.gold, letterSpacing: 1, marginBottom: 10 } }, 'NEURALFUSION · My Cognitive Profile'),
                 CP_MODE_ORDER.map(d => (
                   React.createElement("div", { key: d, style: { display: 'flex', justifyContent: 'space-between', gap: 24, fontSize: 12.5, color: 'rgba(255,255,255,0.85)', padding: '3px 0' } },
                     React.createElement("span", null, CP_MODE_META[d].name), React.createElement("span", { style: { color: CP.gold, fontWeight: 700 } }, dimensionReports[d].integrationScore, '%')
@@ -3954,9 +3954,9 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
                   : 'Your progress is saved.'
               ),
               React.createElement("div", { style: { fontSize: 13, color: CP.muted, marginBottom: 20, maxWidth: 440, margin: '0 auto 20px', lineHeight: 1.7 } },
-                !user ? 'Create a free account to save this report, track your Clarity Delta™ over time, and unlock your personalized learning path.'
+                !user ? 'Create a free account to save this report, track your Clarity Delta over time, and unlock your personalized learning path.'
                   : saveState === 'failed' ? 'See the notice above: retry the save, or it will be lost when you leave this page.'
-                  : 'Retake the CFI™ over time to watch your Clarity Delta™ grow.'
+                  : 'Retake the CFI over time to watch your Clarity Delta grow.'
               ),
               !user && React.createElement(CPButton, { onClick: () => setShowAuth(true) }, 'Create free account')
             ),
@@ -4243,13 +4243,13 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
         return (
           React.createElement("div", {style: { paddingTop:80, paddingBottom:60, background:AC.bg, minHeight:'100vh', fontFamily:AC.font, display:'flex', alignItems:'center' }},
             React.createElement("div", {style: { maxWidth:520, margin:'0 auto', padding:'32px 20px', textAlign:'center' }},
-              React.createElement("div", {style: { fontFamily:AC.font, fontSize:14, fontWeight:700, letterSpacing:'0.06em', color:AC.goldDark, marginBottom:20, textTransform:'uppercase' }}, 'Cognitive Fragmentation Index™'),
-              React.createElement("h1", {style: { fontFamily:AC.font, fontSize:'clamp(24px,5vw,30px)', fontWeight:800, color:AC.text, marginBottom:16, lineHeight:1.3 }}, 'Your CFI™ profile starts here.'),
+              React.createElement("div", {style: { fontFamily:AC.font, fontSize:14, fontWeight:700, letterSpacing:'0.06em', color:AC.goldDark, marginBottom:20, textTransform:'uppercase' }}, 'Cognitive Fragmentation Index'),
+              React.createElement("h1", {style: { fontFamily:AC.font, fontSize:'clamp(24px,5vw,30px)', fontWeight:800, color:AC.text, marginBottom:16, lineHeight:1.3 }}, 'Your CFI profile starts here.'),
               React.createElement("p", {style: { fontSize:17, color:AC.text, lineHeight:1.7, marginBottom:28, maxWidth:440, margin:'0 auto 28px' }},
-                'Create your free NeuralFusion™ account before beginning the assessment.'
+                'Create your free NeuralFusion account before beginning the assessment.'
               ),
               React.createElement("div", {style: { fontSize:15, color:AC.muted, lineHeight:1.7, marginBottom:32, maxWidth:440, margin:'0 auto 32px', padding:'16px 20px', background:AC.surfaceAlt, border:`1px solid ${AC.border}`, borderRadius:16, textAlign:'left' }},
-                'Your account allows your CFI™ assessment and cognitive profile to be securely saved.'
+                'Your account allows your CFI assessment and cognitive profile to be securely saved.'
               ),
               React.createElement("button", {className: "nf-a11y-btn", onClick: ()=>openAuthTab('signup'), style: {
                 fontFamily:AC.font, fontSize:18, fontWeight:700, padding:'18px 40px', minHeight:56, width:'100%', maxWidth:360,
@@ -4282,7 +4282,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
               React.createElement("div", {style: { fontSize:30, color:AC.goldDark, marginBottom:16 }}, '✓'),
               React.createElement("h1", {style: { fontFamily:AC.font, fontSize:'clamp(24px,5vw,30px)', fontWeight:800, color:AC.text, marginBottom:16, lineHeight:1.3 }}, 'Your account is ready.'),
               React.createElement("p", {style: { fontSize:17, color:AC.text, lineHeight:1.7, marginBottom:32, maxWidth:440, margin:'0 auto 32px' }},
-                'Your CFI™ assessment is waiting.'
+                'Your CFI assessment is waiting.'
               ),
               React.createElement("button", {className: "nf-a11y-btn", onClick: ()=>{ setJustAuthed(false); setStarted(true); }, style: {
                 fontFamily:AC.font, fontSize:18, fontWeight:700, padding:'18px 40px', minHeight:56,
@@ -4299,7 +4299,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
         return (
           React.createElement("div", {style: { paddingTop:80, paddingBottom:60, background:AC.bg, minHeight:'100vh', fontFamily:AC.font }},
             React.createElement("div", {style: { maxWidth:720, margin:'0 auto', padding:'32px 20px', textAlign:'center' }},
-              React.createElement("div", {style: { fontFamily:AC.font, fontSize:14, fontWeight:700, letterSpacing:'0.06em', color:AC.goldDark, marginBottom:20, textTransform:'uppercase' }}, 'Cognitive Fragmentation Index™'),
+              React.createElement("div", {style: { fontFamily:AC.font, fontSize:14, fontWeight:700, letterSpacing:'0.06em', color:AC.goldDark, marginBottom:20, textTransform:'uppercase' }}, 'Cognitive Fragmentation Index'),
               React.createElement("h1", {style: { fontFamily:AC.font, fontSize:'clamp(26px,5vw,34px)', fontWeight:800, color:AC.text, marginBottom:20, lineHeight:1.3 }},
                 'Discover how you think', React.createElement("br", null), React.createElement("span", {style: {color:AC.goldDark}}, 'and where it gets stuck')
               ),
@@ -4311,7 +4311,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
                 'This assessment is designed to support a wide range of thinking styles, including ADHD, dyslexia, autism, and other neurodivergent profiles. There are no right or wrong answers. Respond based on your typical experience, not how you think you should perform.'
               ),
               React.createElement("div", {style: { fontSize:16, color:AC.muted, lineHeight:1.7, marginBottom:36, maxWidth:560, margin:'0 auto 36px', padding:'16px 20px', background:AC.surfaceAlt, border:`1px solid ${AC.border}`, borderRadius:16, textAlign:'left' }},
-                'The CFI™ measures how you process information, make decisions, and combine different ways of thinking. It is not a personality test, a mental health screening, or a diagnosis of any kind.'
+                'The CFI measures how you process information, make decisions, and combine different ways of thinking. It is not a personality test, a mental health screening, or a diagnosis of any kind.'
               ),
               React.createElement("div", {style: { display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(min(240px, 100%), 1fr))', gap:16, marginBottom:36, textAlign:'left' }},
                 ['A score for how clear your thinking is right now', 'Your natural strengths and blind spots, explained plainly', 'A personalized, day-by-day improvement plan', 'A radar chart comparing your four thinking modes'].map((item,i)=>(
@@ -4439,7 +4439,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
     // ═══════════════════════════════════════════════════════════════════
     // "YOUR COGNITIVE JOURNEY": every completed CFI-1.0 attempt for this user, oldest→newest,
     // with per-assessment numbering, change vs. the previous attempt, and band movement.
-    // A lower CFI score is less fragmentation, i.e. improvement; matches the Clarity Delta™
+    // A lower CFI score is less fragmentation, i.e. improvement; matches the Clarity Delta
     // sign convention used elsewhere on this page (baseline - latest).
     function CFIJourney({ cfiHistory = [] }) {
       if (cfiHistory.length < 2) return null;
@@ -4534,7 +4534,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
                     { key: 'session', label: 'First integration session', done: decisionsProcessed >= 1 },
                     { key: 'reviewed', label: 'First decision reviewed', done: decisionsReviewed >= 1 },
                     { key: 'ten', label: '10 decisions processed', done: decisionsProcessed >= 10 },
-                    { key: 'delta', label: 'First Clarity Delta™ improvement', done: hasDelta && clarityDelta > 0 },
+                    { key: 'delta', label: 'First Clarity Delta improvement', done: hasDelta && clarityDelta > 0 },
                     { key: 'lesson', label: 'First lesson completed', done: completedLessons >= 1 },
                   ].map(m => React.createElement("div", { key: m.key, style: { display: 'flex', alignItems: 'center', gap: 10, padding: '10px 0' } },
                     React.createElement("div", { style: { width: 18, height: 18, borderRadius: '50%', flexShrink: 0, border: `1px solid ${m.done ? '#7AAFCF' : C.border}`, background: m.done ? 'rgba(122,175,207,0.15)' : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center', ...mono, fontSize: 10, color: '#7AAFCF' } }, m.done ? '✓' : ''),
@@ -4552,14 +4552,14 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
                     { label:'Band', value:cfiResult.band.split(' ')[0], unit:'', color:'#C4A050', small:true },
                   ].map((s,i)=>(
                     React.createElement("div", {key: i, className: "card", style: { padding:'24px' }}, React.createElement("div", {style: { ...mono, fontSize:11, letterSpacing:1, color:C.muted, marginBottom:12 }}, s.label), React.createElement("div", {style: { display:'flex', alignItems:'baseline', gap:4 }}, React.createElement("div", {style: { ...syne, fontSize:s.small?18:32, fontWeight:800, color:s.color, overflowWrap:'break-word', minWidth:0}}, s.value), s.unit && React.createElement("div", {style: { ...mono, fontSize:10, color:C.muted }}, s.unit)))
-                  ))), React.createElement("div", {className: "card", style: { padding:'32px', marginBottom:40 }}, React.createElement("div", {style: { ...mono, fontSize:11, letterSpacing:1, color:C.cyan, marginBottom:hasDelta?24:12 }}, 'Clarity Delta™'), !hasDelta ? (
-                    React.createElement("div", {style: { fontSize:14, color:C.muted, lineHeight:1.8 }}, 'Retake the CFI™ assessment to start tracking your Clarity Delta™, the change in your fragmentation score over time.', React.createElement("br", null), React.createElement("button", {className: "btn-primary", style: { marginTop:16 }, onClick: ()=>setView('cfi')}, 'Retake CFI assessment →'))
+                  ))), React.createElement("div", {className: "card", style: { padding:'32px', marginBottom:40 }}, React.createElement("div", {style: { ...mono, fontSize:11, letterSpacing:1, color:C.cyan, marginBottom:hasDelta?24:12 }}, 'Clarity Delta'), !hasDelta ? (
+                    React.createElement("div", {style: { fontSize:14, color:C.muted, lineHeight:1.8 }}, 'Retake the CFI assessment to start tracking your Clarity Delta, the change in your fragmentation score over time.', React.createElement("br", null), React.createElement("button", {className: "btn-primary", style: { marginTop:16 }, onClick: ()=>setView('cfi')}, 'Retake CFI assessment →'))
                   ) : (
                     React.createElement("div", {style: { display:'flex', alignItems:'center', gap:32, flexWrap:'wrap' }},
                       React.createElement("div", null, React.createElement("div", {style: { ...mono, fontSize:10, letterSpacing:1, color:C.muted, marginBottom:6 }}, 'Baseline'), React.createElement("div", {style: { ...syne, fontSize:22, fontWeight:800, color:C.muted }}, baselineCFI.total_score), React.createElement("div", {style: { ...mono, fontSize:9, color:C.dim, marginTop:4 }}, new Date(baselineCFI.created_at).toLocaleDateString())),
                       React.createElement("div", {style: { ...mono, fontSize:16, color:C.dim }}, '→'),
                       React.createElement("div", null, React.createElement("div", {style: { ...mono, fontSize:10, letterSpacing:1, color:C.muted, marginBottom:6 }}, 'Current'), React.createElement("div", {style: { ...syne, fontSize:22, fontWeight:800, color:C.text }}, latestCFI.total_score), React.createElement("div", {style: { ...mono, fontSize:9, color:C.dim, marginTop:4 }}, new Date(latestCFI.created_at).toLocaleDateString())),
-                      React.createElement("div", {style: { marginLeft:'auto' }}, React.createElement("div", {style: { ...mono, fontSize:10, letterSpacing:1, color:C.muted, marginBottom:6 }}, 'Clarity Delta™'), React.createElement("div", {style: { ...syne, fontSize:32, fontWeight:800, color:clarityDelta>0?'#7AAFCF':clarityDelta<0?'#F87171':C.muted }}, clarityDelta>0?'+':'', clarityDelta))
+                      React.createElement("div", {style: { marginLeft:'auto' }}, React.createElement("div", {style: { ...mono, fontSize:10, letterSpacing:1, color:C.muted, marginBottom:6 }}, 'Clarity Delta'), React.createElement("div", {style: { ...syne, fontSize:32, fontWeight:800, color:clarityDelta>0?'#7AAFCF':clarityDelta<0?'#F87171':C.muted }}, clarityDelta>0?'+':'', clarityDelta))
                     )
                   )), hasDelta && React.createElement(CFIJourney, { cfiHistory }), React.createElement("div", {style: { display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(min(300px, 100%), 1fr))', gap:24, marginBottom:40 }}, React.createElement("div", {className: "card", style: { padding:'32px' }}, React.createElement("div", {style: { ...mono, fontSize:11, letterSpacing:1, color:C.cyan, marginBottom:24 }}, 'Mode fragmentation'), Object.entries(cfiResult.dimScores).map(([dim,score])=>{
                       const dimNames = {A:'Analytical',I:'Intuitive',S:'Associative',R:'Reflective',E:'Integration'};
@@ -4589,7 +4589,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
 
     // ═══════════════════════════════════════════════════════════════════
     //  ACADEMY PERSONALIZATION ENGINE
-    //  CFI™ → Cognitive Profile → Development Opportunity → Recommended
+    //  CFI → Cognitive Profile → Development Opportunity → Recommended
     //  Lesson → Training → Practice → Integration → Progress → Next.
     //  Reads ONLY real cfiResult / LESSONS / lessonProgress data. Never
     //  invents lessons, never fabricates metrics, never fakes completion.
@@ -4610,7 +4610,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
       if (!cfiResult || !cfiResult.plan) {
         const first = LESSONS.find(l => !isComplete(l.id)) || LESSONS[0];
         return { lesson: first, opportunityDim: null,
-          reason: `This is the starting point for every NeuralFusion™ member. Take your CFI™ assessment and this recommendation will update to match how you think.` };
+          reason: `This is the starting point for every NeuralFusion member. Take your CFI assessment and this recommendation will update to match how you think.` };
       }
       const { plan, profile } = cfiResult;
       // plan.recommendedLessonIds = [1, <weakest-brain lesson id>]; weakest-first.
@@ -4735,7 +4735,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
             React.createElement("div", { style: { fontSize: 13.5, color: CP.muted, lineHeight: 1.7, maxWidth: 520, marginBottom: 20 } }, 'Your Cognitive Profile gives you a starting point. Your training path helps you develop from there.'),
             hasCFI
               ? React.createElement("button", { className: 'nf-cp-btn', onClick: () => setView('cfi'), style: { ...mono, fontSize: 11, letterSpacing: 1, color: CP.goldDeep, background: 'none', border: 'none', cursor: 'pointer', padding: 0 } }, 'View My Cognitive Profile →')
-              : React.createElement(CPButton, { onClick: () => setView('cfi') }, 'Take Your CFI™ Assessment →')
+              : React.createElement(CPButton, { onClick: () => setView('cfi') }, 'Take Your CFI Assessment →')
           ),
 
           // ── YOUR PROFILE ──
@@ -4843,9 +4843,9 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
             hasCFI
               ? React.createElement("div", { style: { display: 'flex', gap: 28, flexWrap: 'wrap' } },
                   React.createElement("div", null, React.createElement("div", { style: { ...syne, fontSize: 22, fontWeight: 800, color: CP.ink } }, completedCount, '/', LESSONS.length), React.createElement("div", { style: { ...mono, fontSize: 9.5, letterSpacing: 0.6, color: CP.faint } }, 'LESSONS COMPLETED')),
-                  React.createElement("div", null, React.createElement("div", { style: { ...syne, fontSize: 22, fontWeight: 800, color: CP.ink } }, cfiResult.integrationScore ?? '-'), React.createElement("div", { style: { ...mono, fontSize: 9.5, letterSpacing: 0.6, color: CP.faint } }, 'CFI™ COORDINATION SCORE'))
+                  React.createElement("div", null, React.createElement("div", { style: { ...syne, fontSize: 22, fontWeight: 800, color: CP.ink } }, cfiResult.integrationScore ?? '-'), React.createElement("div", { style: { ...mono, fontSize: 9.5, letterSpacing: 0.6, color: CP.faint } }, 'CFI COORDINATION SCORE'))
                 )
-              : React.createElement("div", { style: { fontSize: 13.5, color: CP.muted, lineHeight: 1.7 } }, 'Your baseline has been established. Complete your CFI™ assessment to begin tracking your journey.')
+              : React.createElement("div", { style: { fontSize: 13.5, color: CP.muted, lineHeight: 1.7 } }, 'Your baseline has been established. Complete your CFI assessment to begin tracking your journey.')
           ),
 
           // ── SECTION 10: Clarity Delta ──
@@ -4854,12 +4854,12 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
             hasDelta
               ? React.createElement(React.Fragment, null,
                   React.createElement("div", { style: { ...syne, fontSize: 26, fontWeight: 800, color: clarityDelta > 0 ? '#3E7CA6' : clarityDelta < 0 ? '#C24545' : CP.muted, marginBottom: 8 } }, clarityDelta > 0 ? '+' : '', clarityDelta),
-                  React.createElement("div", { style: { fontSize: 13, color: CP.muted, marginBottom: 16 } }, 'Change in Clarity Delta™ since your first CFI™.'),
+                  React.createElement("div", { style: { fontSize: 13, color: CP.muted, marginBottom: 16 } }, 'Change in Clarity Delta since your first CFI.'),
                   React.createElement(CPButton, { variant: 'outline', onClick: () => setView('analytics') }, 'View Full Progress →')
                 )
               : React.createElement(React.Fragment, null,
-                  React.createElement("div", { style: { fontSize: 13.5, color: CP.muted, lineHeight: 1.7, marginBottom: 16 } }, hasCFI ? 'Your first CFI™ establishes your baseline. Retake it as you train to see your Clarity Delta™ over time.' : 'Take your CFI™ assessment to establish your starting point.'),
-                  React.createElement(CPButton, { variant: 'outline', onClick: () => setView('cfi') }, hasCFI ? 'Retake CFI™ →' : 'Take CFI™ →')
+                  React.createElement("div", { style: { fontSize: 13.5, color: CP.muted, lineHeight: 1.7, marginBottom: 16 } }, hasCFI ? 'Your first CFI establishes your baseline. Retake it as you train to see your Clarity Delta over time.' : 'Take your CFI assessment to establish your starting point.'),
+                  React.createElement(CPButton, { variant: 'outline', onClick: () => setView('cfi') }, hasCFI ? 'Retake CFI →' : 'Take CFI →')
                 )
           )
         )
@@ -4976,8 +4976,8 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
               onUpgrade: handleProPayment }),
 
             React.createElement(CPEyebrow, null, 'Explore the Academy'),
-            React.createElement("h2", {style: { ...syne, fontSize:'clamp(18px,4vw,24px)', fontWeight:800, color:CP.ink, marginBottom:16, lineHeight:1.15 }}, 'The complete NeuralFusion™ curriculum'),
-            React.createElement("p", {style: { fontSize:14, color:CP.muted, maxWidth:560, lineHeight:1.8, marginBottom:40 }}, 'Structured manuals that form the complete NeuralFusion™ curriculum. Each is a cognitive transformation, not just information.'),
+            React.createElement("h2", {style: { ...syne, fontSize:'clamp(18px,4vw,24px)', fontWeight:800, color:CP.ink, marginBottom:16, lineHeight:1.15 }}, 'The complete NeuralFusion curriculum'),
+            React.createElement("p", {style: { fontSize:14, color:CP.muted, maxWidth:560, lineHeight:1.8, marginBottom:40 }}, 'Structured manuals that form the complete NeuralFusion curriculum. Each is a cognitive transformation, not just information.'),
 
             categorized.map(cat => (
               React.createElement("div", {key: cat.name, style: { marginBottom:36 }},
@@ -5025,11 +5025,11 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
               React.createElement(CPButton, {onClick: handleProPayment, style: paystackLoading ? { opacity:0.6, pointerEvents:'none' } : {}}, paystackLoading ? 'Opening...' : `Upgrade to Pro: ₦${(proPrice/100).toLocaleString()} →`)
             ),
             !isEnterprise && React.createElement(CPCard, {style: { marginTop:20, padding:'40px', textAlign:'center', borderColor:'#3E7CA655', background:'#F5F9FB' }},
-              React.createElement(CPEyebrow, {color: '#3E7CA6'}, 'NeuralFusion™ Enterprise'),
+              React.createElement(CPEyebrow, {color: '#3E7CA6'}, 'NeuralFusion Enterprise'),
               React.createElement("div", {style: { ...syne, fontSize:15, fontWeight:800, color:CP.ink, marginBottom:8 }}, 'Deploy it across your organisation'),
               React.createElement("div", {style: { ...syne, fontSize:14, fontWeight:800, color:'#3E7CA6', marginBottom:2 }}, 'Contact us'),
               React.createElement("div", {style: { fontSize:12, color:CP.faint, marginBottom:16 }}, 'Custom pricing · billed in Naira'),
-              React.createElement("div", {style: { fontSize:14, color:CP.muted, marginBottom:32, maxWidth:480, margin:'0 auto 32px', lineHeight:1.8 }}, 'Cohort management · CFI data entry · Facilitator dashboard · 5-lesson programme · Clarity Delta™ reporting'),
+              React.createElement("div", {style: { fontSize:14, color:CP.muted, marginBottom:32, maxWidth:480, margin:'0 auto 32px', lineHeight:1.8 }}, 'Cohort management · CFI data entry · Facilitator dashboard · 5-lesson programme · Clarity Delta reporting'),
               React.createElement("a", {href: '/contact', style: {
                 display:'inline-block', textDecoration:'none', textAlign:'center',
                 ...syne, fontSize:14, fontWeight:700, letterSpacing:'0.02em',
@@ -5044,16 +5044,16 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
     // ═══════════════════════════════════════════════════════════════════
     function AboutView({ setView }) {
       const faqs = [
-        { q:'What is NeuralFusion™?', a:'NeuralFusion™ is the world\'s first Cognitive Performance Operating System (OS). It measures, trains, and optimizes how you think across the brain\'s four natural thinking modes. Not a productivity tool, not a wellness app. A trainable cognitive skill system.' },
-        { q:'What are the four thinking modes?', a:'NeuralFusion™ trains four natural thinking modes: Analytical, Intuitive, Associative, Reflective. Most people default to one or two. NeuralFusion™ teaches deliberate activation and coordination of all four.' },
-        { q:'What is the CFI assessment?', a:'The Cognitive Fragmentation Index (CFI™) identifies fragmented thinking across five cognitive dimensions. It produces a score, a band rating, and a personalized training recommendation to improve decision-making, collaboration, and performance.' },
+        { q:'What is NeuralFusion?', a:'NeuralFusion is the world\'s first Cognitive Performance Operating System (OS). It measures, trains, and optimizes how you think across the brain\'s four natural thinking modes. Not a productivity tool, not a wellness app. A trainable cognitive skill system.' },
+        { q:'What are the four thinking modes?', a:'NeuralFusion trains four natural thinking modes: Analytical, Intuitive, Associative, Reflective. Most people default to one or two. NeuralFusion teaches deliberate activation and coordination of all four.' },
+        { q:'What is the CFI assessment?', a:'The Cognitive Fragmentation Index (CFI) identifies fragmented thinking across five cognitive dimensions. It produces a score, a band rating, and a personalized training recommendation to improve decision-making, collaboration, and performance.' },
         { q:'How long before I see results?', a:'Most users report increased clarity within 1–3 sessions. The Core Integration Loop runs in under 90 seconds once trained. Full cognitive fluency typically installs within 21–42 days of daily practice.' },
-        { q:'How is this different from therapy or mindfulness?', a:'Therapy addresses psychological history. Mindfulness addresses present-moment awareness. NeuralFusion™ addresses cognitive architecture: the operating system behind how you think. A skill system, not a wellness practice.' },
+        { q:'How is this different from therapy or mindfulness?', a:'Therapy addresses psychological history. Mindfulness addresses present-moment awareness. NeuralFusion addresses cognitive architecture: the operating system behind how you think. A skill system, not a wellness practice.' },
       ];
       const [openFaq, setOpenFaq] = useState(null);
 
       return (
-        React.createElement("div", {style: { paddingTop:80, paddingBottom:100 }}, React.createElement("div", {style: { maxWidth:1200, margin:'0 auto', padding:'60px 24px' }}, React.createElement("div", {style: { display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(min(300px, 100%), 1fr))', gap:64, alignItems:'center', marginBottom:80 }}, React.createElement("div", null, React.createElement("div", {style: { ...mono, fontSize:11, letterSpacing:1.5, color:C.cyan, marginBottom:20 }}, 'About NeuralFusion™'), React.createElement("h1", {style: { ...syne, fontSize:17, fontWeight:800, color:C.text, marginBottom:24, lineHeight:1.05, overflowWrap:'break-word', minWidth:0}}, 'Teaching humanity', React.createElement("br", null), React.createElement("span", {style: {color:C.cyan}}, 'how to think.')), React.createElement("p", {style: { fontSize:15, color:C.muted, lineHeight:1.9, marginBottom:20 }}, 'NeuralFusion™ is the world\'s first Cognitive Performance Operating System (OS) that measures, trains, and optimizes how people think across the brain\'s four natural thinking modes.'), React.createElement("p", {style: { fontSize:15, color:C.muted, lineHeight:1.9 }}, 'Using our Cognitive Fragmentation Index (CFI™), we identify fragmented thinking and deliver personalized cognitive training to improve decision-making, collaboration, innovation, and performance for individuals and organizations.')), React.createElement("div", {className: "card", style: { padding:'40px', position:'relative', overflow:'hidden' }}, React.createElement(ScanLine, null), React.createElement("div", {style: { ...mono, fontSize:11, letterSpacing:1, color:C.cyan, marginBottom:24 }}, 'Mission'), React.createElement("div", {style: { ...syne, fontSize:14, fontWeight:800, color:C.text, lineHeight:1.2, marginBottom:24, overflowWrap:'break-word', minWidth:0}}, '"Teach people how to think using structured cognitive systems."'), React.createElement("div", {style: { ...mono, fontSize:10, letterSpacing:1, color:C.muted }}, 'Life Edet, creator of NeuralFusion™'), React.createElement("div", {style: { marginTop:40 }}, [
+        React.createElement("div", {style: { paddingTop:80, paddingBottom:100 }}, React.createElement("div", {style: { maxWidth:1200, margin:'0 auto', padding:'60px 24px' }}, React.createElement("div", {style: { display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(min(300px, 100%), 1fr))', gap:64, alignItems:'center', marginBottom:80 }}, React.createElement("div", null, React.createElement("div", {style: { ...mono, fontSize:11, letterSpacing:1.5, color:C.cyan, marginBottom:20 }}, 'About NeuralFusion'), React.createElement("h1", {style: { ...syne, fontSize:17, fontWeight:800, color:C.text, marginBottom:24, lineHeight:1.05, overflowWrap:'break-word', minWidth:0}}, 'Teaching humanity', React.createElement("br", null), React.createElement("span", {style: {color:C.cyan}}, 'how to think.')), React.createElement("p", {style: { fontSize:15, color:C.muted, lineHeight:1.9, marginBottom:20 }}, 'NeuralFusion is the world\'s first Cognitive Performance Operating System (OS) that measures, trains, and optimizes how people think across the brain\'s four natural thinking modes.'), React.createElement("p", {style: { fontSize:15, color:C.muted, lineHeight:1.9 }}, 'Using our Cognitive Fragmentation Index (CFI), we identify fragmented thinking and deliver personalized cognitive training to improve decision-making, collaboration, innovation, and performance for individuals and organizations.')), React.createElement("div", {className: "card", style: { padding:'40px', position:'relative', overflow:'hidden' }}, React.createElement(ScanLine, null), React.createElement("div", {style: { ...mono, fontSize:11, letterSpacing:1, color:C.cyan, marginBottom:24 }}, 'Mission'), React.createElement("div", {style: { ...syne, fontSize:14, fontWeight:800, color:C.text, lineHeight:1.2, marginBottom:24, overflowWrap:'break-word', minWidth:0}}, '"Teach people how to think using structured cognitive systems."'), React.createElement("div", {style: { ...mono, fontSize:10, letterSpacing:1, color:C.muted }}, 'Life Edet, creator of NeuralFusion'), React.createElement("div", {style: { marginTop:40 }}, [
                     { label:'Cognitive modes', value:'4' },
                     { label:'CFI dimensions', value:'5' },
                     { label:'Training protocols', value:'6+' },
@@ -5083,7 +5083,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
         {
           tag: 'Cognitive Training',
           icon: '◎',
-          title: '30 Days NeuralFusion™ Cognitive Training',
+          title: '30 Days NeuralFusion Cognitive Training',
           description: 'A structured 30-day programme engineered to rebuild how you think. Not motivation. Not mindset. A repeatable cognitive system that installs clarity, decisiveness, and integrated thinking, permanently.',
           price: 'Get Access',
           url: 'https://selar.com/72b11e1167',
@@ -5106,12 +5106,12 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
 
             // Header
             React.createElement('div', { style: { marginBottom: 64 } },
-              React.createElement('div', { style: { ...mono, fontSize: 11, letterSpacing: 1.5, color: C.cyan, marginBottom: 16 } }, 'NeuralFusion™ Resources'),
+              React.createElement('div', { style: { ...mono, fontSize: 11, letterSpacing: 1.5, color: C.cyan, marginBottom: 16 } }, 'NeuralFusion Resources'),
               React.createElement('h1', { style: { ...syne, fontSize: 17, fontWeight: 800, color: C.text, marginBottom: 16, lineHeight: 1.05 } },
                 'Tools for the ', React.createElement('span', { style: { color: C.cyan } }, 'integrated mind.')
               ),
               React.createElement('p', { style: { fontSize: 14, color: C.muted, lineHeight: 1.9, maxWidth: 560 } },
-                'Companion resources built to extend your NeuralFusion™ training, designed for depth, not distraction.'
+                'Companion resources built to extend your NeuralFusion training, designed for depth, not distraction.'
               )
             ),
 
@@ -5163,7 +5163,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
             React.createElement('div', { style: { marginTop: 64, padding: '32px 40px', background: C.deep, border: `1px solid ${C.border}`, display: 'flex', alignItems: 'center', gap: 20, flexWrap: 'wrap' } },
               React.createElement('div', { style: { ...mono, fontSize: 18, color: C.cyan } }, '◈'),
               React.createElement('div', null,
-                React.createElement('div', { style: { ...syne, fontSize: 13, fontWeight: 700, color: C.text, marginBottom: 4 } }, 'All resources are built on the NeuralFusion™ Four Brains Framework'),
+                React.createElement('div', { style: { ...syne, fontSize: 13, fontWeight: 700, color: C.text, marginBottom: 4 } }, 'All resources are built on the NeuralFusion Four Brains Framework'),
                 React.createElement('div', { style: { fontSize: 12, color: C.muted } }, 'Analytical · Intuitive · Associative · Reflective, fully integrated.')
               )
             )
@@ -5224,7 +5224,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
       ];
 
       const PrivacyContent = () => (
-        React.createElement("div", null, React.createElement(Section, {num: "01", title: "Who we are"}, React.createElement(P, null, 'NeuralFusion™ is a cognitive performance platform developed and operated by', React.createElement("strong", {style: {color:C.text}}, 'Life Edet'), ', accessible at tryneuralfusion.com. The platform delivers a structured cognitive training programme teaching participants to work across four thinking modes through a curriculum delivered to individual users and organisational cohorts.'), React.createElement(P, null, '"We," "us," and "our" refer to NeuralFusion™ and its operator. "You" refers to any individual who accesses or uses the platform, including individual subscribers, enterprise participants, and facilitators.')), React.createElement(Section, {num: "02", title: "Information we collect"}, React.createElement(P, null, 'We collect the following categories of personal information:'), React.createElement(UL, {items: [
+        React.createElement("div", null, React.createElement(Section, {num: "01", title: "Who we are"}, React.createElement(P, null, 'NeuralFusion is a cognitive performance platform developed and operated by', React.createElement("strong", {style: {color:C.text}}, 'Life Edet'), ', accessible at tryneuralfusion.com. The platform delivers a structured cognitive training programme teaching participants to work across four thinking modes through a curriculum delivered to individual users and organisational cohorts.'), React.createElement(P, null, '"We," "us," and "our" refer to NeuralFusion and its operator. "You" refers to any individual who accesses or uses the platform, including individual subscribers, enterprise participants, and facilitators.')), React.createElement(Section, {num: "02", title: "Information we collect"}, React.createElement(P, null, 'We collect the following categories of personal information:'), React.createElement(UL, {items: [
               'Account Information: Name, email address, and password when you register.',
               'Assessment Data: CFI responses, scoring results across five cognitive dimensions (Decision Latency, Mode Rigidity, Emotional Reactivity, Thought Interruption, Cognitive Overload), and composite scores.',
               'Learning Progress: Lesson completion records, module progress, and programme milestone data.',
@@ -5233,7 +5233,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
               'Usage Data: IP address, browser type, device type, pages visited, and session data collected automatically.',
             ]})), React.createElement(Section, {num: "03", title: "How we use your information"}, React.createElement(UL, {items: [
               'To create and manage your account and provide access to the platform.',
-              'To deliver the NeuralFusion™ cognitive training programme and track your progress.',
+              'To deliver the NeuralFusion cognitive training programme and track your progress.',
               'To generate your cognitive profile and provide personalised insights from CFI assessments.',
               'To facilitate enterprise cohort management, enabling facilitators to view cohort-level data.',
               'To process payments and manage subscription or enterprise access.',
@@ -5250,8 +5250,8 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
               'Enterprise Facilitators: If you participate in an organisational cohort, your assessment results may be accessible to designated facilitator(s) of that cohort.',
               'Legal Requirements: Where required by law, court order, or government authority.',
               'Business Transfers: In the event of a merger or acquisition, subject to equivalent privacy protections.',
-            ]}), React.createElement(HB, {title: "Enterprise Participants"}, 'Your cohort facilitator has access to your assessment results and progress data for the duration of the programme. If you have concerns, please contact your organisation before completing assessments.')), React.createElement(Section, {num: "06", title: "Data storage & security"}, React.createElement(P, null, 'Your data is stored on Supabase infrastructure. We implement appropriate technical and organisational measures including TLS/HTTPS encryption in transit, row-level security and access control policies, and secure session management via Supabase Auth.'), React.createElement(P, null, 'We retain your personal data for as long as your account is active or as necessary to fulfil the purposes described here, and thereafter as required by applicable law.')), React.createElement(Section, {num: "07", title: "Your rights"}, React.createElement(P, null, 'Under the Nigeria Data Protection Act 2023, you have the right of access, rectification, erasure, restriction, data portability, and the right to object to certain processing. To exercise any right, contact us at the details below. We will respond within 30 days.')), React.createElement(Section, {num: "08", title: "Children's privacy"}, React.createElement(P, null, 'NeuralFusion™ is designed for professional and organisational use and is not directed at children under 13. We do not knowingly collect personal information from children.')), React.createElement(Section, {num: "09", title: "Changes & contact"}, React.createElement(P, null, 'We may update this policy from time to time. Continued use after changes constitutes acceptance. For privacy queries, contact us:'), React.createElement(ContactCard, {items: [
-              { label: 'Platform', value: 'NeuralFusion™' },
+            ]}), React.createElement(HB, {title: "Enterprise Participants"}, 'Your cohort facilitator has access to your assessment results and progress data for the duration of the programme. If you have concerns, please contact your organisation before completing assessments.')), React.createElement(Section, {num: "06", title: "Data storage & security"}, React.createElement(P, null, 'Your data is stored on Supabase infrastructure. We implement appropriate technical and organisational measures including TLS/HTTPS encryption in transit, row-level security and access control policies, and secure session management via Supabase Auth.'), React.createElement(P, null, 'We retain your personal data for as long as your account is active or as necessary to fulfil the purposes described here, and thereafter as required by applicable law.')), React.createElement(Section, {num: "07", title: "Your rights"}, React.createElement(P, null, 'Under the Nigeria Data Protection Act 2023, you have the right of access, rectification, erasure, restriction, data portability, and the right to object to certain processing. To exercise any right, contact us at the details below. We will respond within 30 days.')), React.createElement(Section, {num: "08", title: "Children's privacy"}, React.createElement(P, null, 'NeuralFusion is designed for professional and organisational use and is not directed at children under 13. We do not knowingly collect personal information from children.')), React.createElement(Section, {num: "09", title: "Changes & contact"}, React.createElement(P, null, 'We may update this policy from time to time. Continued use after changes constitutes acceptance. For privacy queries, contact us:'), React.createElement(ContactCard, {items: [
+              { label: 'Platform', value: 'NeuralFusion' },
               { label: 'Operator', value: 'Life Edet' },
               { label: 'Website', value: 'tryneuralfusion.com' },
               { label: 'Subject Line', value: 'Privacy Request: NeuralFusion' },
@@ -5259,7 +5259,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
       );
 
       const TermsContent = () => (
-        React.createElement("div", null, React.createElement(Section, {num: "01", title: "Acceptance of terms"}, React.createElement(P, null, 'By accessing or using the NeuralFusion™ platform at tryneuralfusion.com, you agree to be bound by these Terms and Conditions. If you do not agree, you must not access or use the platform.'), React.createElement(P, null, 'These Terms constitute a legally binding agreement between you and', React.createElement("strong", {style: {color:C.text}}, 'Life Edet'), ', the developer and operator of NeuralFusion™. If using the platform on behalf of an organisation, you represent that you have authority to bind that organisation.')), React.createElement(Section, {num: "02", title: "Description of service"}, React.createElement(P, null, 'NeuralFusion™ is a cognitive performance platform delivering:'), React.createElement(UL, {items: [
+        React.createElement("div", null, React.createElement(Section, {num: "01", title: "Acceptance of terms"}, React.createElement(P, null, 'By accessing or using the NeuralFusion platform at tryneuralfusion.com, you agree to be bound by these Terms and Conditions. If you do not agree, you must not access or use the platform.'), React.createElement(P, null, 'These Terms constitute a legally binding agreement between you and', React.createElement("strong", {style: {color:C.text}}, 'Life Edet'), ', the developer and operator of NeuralFusion. If using the platform on behalf of an organisation, you represent that you have authority to bind that organisation.')), React.createElement(Section, {num: "02", title: "Description of service"}, React.createElement(P, null, 'NeuralFusion is a cognitive performance platform delivering:'), React.createElement(UL, {items: [
               'A structured 5-lesson, 7-week cognitive curriculum.',
               'The Cognitive Fragmentation Index (CFI) Edition 2.0 assessment.',
               'Individual cognitive profiling across five dimensions.',
@@ -5271,8 +5271,8 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
               'Share, resell, or sublicense your account access to third parties.',
               'Use automated tools, bots, or scripts to access or interact with the platform.',
               'Use the platform for any unlawful purpose.',
-            ]})), React.createElement(Section, {num: "07", title: "Intellectual property"}, React.createElement(P, null, 'All content on the NeuralFusion™ platform, including the curriculum, CFI assessment, cognitive framework, scoring methodologies, interface design, and software, is the intellectual property of', React.createElement("strong", {style: {color:C.text}}, 'Life Edet'), 'and is protected by Nigerian and international copyright law.'), React.createElement(P, null, 'The NeuralFusion™ name and logo are trademarks of Life Edet. You may not use these marks without prior written consent.')), React.createElement(Section, {num: "08", title: "Assessment Content & Accuracy"}, React.createElement("div", {style: { background: 'rgba(200,60,60,0.06)', border: '1px solid rgba(200,60,60,0.2)', borderLeft: '3px solid rgba(200,80,80,0.6)', padding: '18px 22px', margin: '0 0 16px', fontSize: 14, color: C.muted, lineHeight: 1.8 }}, React.createElement("div", {style: { ...syne, fontSize: 12, fontWeight: 700, color: 'rgba(240,160,160,0.85)', marginBottom: 6, textTransform: 'uppercase', letterSpacing: 1 }}, 'Not Clinical or Diagnostic'), 'NeuralFusion™ assessments are not clinical, psychological, or diagnostic tools. Results should not be used as a basis for medical or clinical evaluation. If you have concerns about your cognitive health, consult a qualified healthcare professional.'), React.createElement(P, null, 'We make no warranty that assessment results are accurate, complete, or suitable for any specific purpose beyond the developmental and training context for which they are designed.')), React.createElement(Section, {num: "09", title: "Disclaimers & Limitation of Liability"}, React.createElement(P, null, 'The platform is provided on an "as is" and "as available" basis. We disclaim all warranties, express or implied. To the maximum extent permitted by Nigerian law, our total aggregate liability shall not exceed the amount paid by you in the 12 months preceding any claim.')), React.createElement(Section, {num: "10", title: "Governing Law, Changes & Contact"}, React.createElement(P, null, 'These Terms are governed by the laws of the', React.createElement("strong", {style: {color:C.text}}, 'Federal Republic of Nigeria'), '. We may modify these Terms from time to time; continued use after changes constitutes acceptance.'), React.createElement(ContactCard, {items: [
-              { label: 'Platform', value: 'NeuralFusion™' },
+            ]})), React.createElement(Section, {num: "07", title: "Intellectual property"}, React.createElement(P, null, 'All content on the NeuralFusion platform, including the curriculum, CFI assessment, cognitive framework, scoring methodologies, interface design, and software, is the intellectual property of', React.createElement("strong", {style: {color:C.text}}, 'Life Edet'), 'and is protected by Nigerian and international copyright law.'), React.createElement(P, null, 'The NeuralFusion name and logo are trademarks of Life Edet. You may not use these marks without prior written consent.')), React.createElement(Section, {num: "08", title: "Assessment Content & Accuracy"}, React.createElement("div", {style: { background: 'rgba(200,60,60,0.06)', border: '1px solid rgba(200,60,60,0.2)', borderLeft: '3px solid rgba(200,80,80,0.6)', padding: '18px 22px', margin: '0 0 16px', fontSize: 14, color: C.muted, lineHeight: 1.8 }}, React.createElement("div", {style: { ...syne, fontSize: 12, fontWeight: 700, color: 'rgba(240,160,160,0.85)', marginBottom: 6, textTransform: 'uppercase', letterSpacing: 1 }}, 'Not Clinical or Diagnostic'), 'NeuralFusion assessments are not clinical, psychological, or diagnostic tools. Results should not be used as a basis for medical or clinical evaluation. If you have concerns about your cognitive health, consult a qualified healthcare professional.'), React.createElement(P, null, 'We make no warranty that assessment results are accurate, complete, or suitable for any specific purpose beyond the developmental and training context for which they are designed.')), React.createElement(Section, {num: "09", title: "Disclaimers & Limitation of Liability"}, React.createElement(P, null, 'The platform is provided on an "as is" and "as available" basis. We disclaim all warranties, express or implied. To the maximum extent permitted by Nigerian law, our total aggregate liability shall not exceed the amount paid by you in the 12 months preceding any claim.')), React.createElement(Section, {num: "10", title: "Governing Law, Changes & Contact"}, React.createElement(P, null, 'These Terms are governed by the laws of the', React.createElement("strong", {style: {color:C.text}}, 'Federal Republic of Nigeria'), '. We may modify these Terms from time to time; continued use after changes constitutes acceptance.'), React.createElement(ContactCard, {items: [
+              { label: 'Platform', value: 'NeuralFusion' },
               { label: 'Operator', value: 'Life Edet' },
               { label: 'Website', value: 'tryneuralfusion.com' },
               { label: 'Subject Line', value: 'Terms Query: NeuralFusion' },
@@ -5280,9 +5280,9 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
       );
 
       const DataContent = () => (
-        React.createElement("div", null, React.createElement(Section, {num: "01", title: "Our Commitment"}, React.createElement(P, null, 'NeuralFusion™ is committed to protecting the personal data of every individual who interacts with the platform. We process personal data lawfully, fairly, and transparently in accordance with the', React.createElement("strong", {style: {color:C.text}}, 'Nigeria Data Protection Act 2023 (NDPA)'), 'and regulations issued by the Nigeria Data Protection Commission (NDPC).'), React.createElement(HB, {title: "Regulatory Framework"}, 'This policy is written in compliance with the NDPA 2023. Where enterprise clients operate across jurisdictions subject to additional frameworks (such as GDPR), this policy is designed to be compatible with those requirements.')), React.createElement(Section, {num: "02", title: "Data controller"}, React.createElement(ContactCard, {items: [
+        React.createElement("div", null, React.createElement(Section, {num: "01", title: "Our Commitment"}, React.createElement(P, null, 'NeuralFusion is committed to protecting the personal data of every individual who interacts with the platform. We process personal data lawfully, fairly, and transparently in accordance with the', React.createElement("strong", {style: {color:C.text}}, 'Nigeria Data Protection Act 2023 (NDPA)'), 'and regulations issued by the Nigeria Data Protection Commission (NDPC).'), React.createElement(HB, {title: "Regulatory Framework"}, 'This policy is written in compliance with the NDPA 2023. Where enterprise clients operate across jurisdictions subject to additional frameworks (such as GDPR), this policy is designed to be compatible with those requirements.')), React.createElement(Section, {num: "02", title: "Data controller"}, React.createElement(ContactCard, {items: [
               { label: 'Controller', value: 'Life Edet' },
-              { label: 'Trading As', value: 'NeuralFusion™' },
+              { label: 'Trading As', value: 'NeuralFusion' },
               { label: 'Platform', value: 'tryneuralfusion.com' },
               { label: 'Jurisdiction', value: 'Federal Republic of Nigeria' },
             ]})), React.createElement(Section, {num: "03", title: "Data we process"}, React.createElement(DataTable, {rows: [
@@ -5309,7 +5309,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
               'Authentication: Secure session-based authentication via Supabase Auth with password hashing and token management.',
               'Administrative access: Restricted and subject to strong credential requirements.',
             ]})), React.createElement(Section, {num: "07", title: "Your data rights"}, React.createElement(P, null, 'Under the NDPA 2023, you have the right to be informed, the right of access, rectification, erasure, restriction of processing, data portability, and the right to object to certain processing. To exercise any right, contact us at the details below. We will respond within', React.createElement("strong", {style: {color:C.text}}, '30 days'), '.')), React.createElement(Section, {num: "08", title: "Data Breach Response"}, React.createElement(P, null, 'In the event of a personal data breach, we will assess the breach without undue delay, notify the NDPC within 72 hours where required, notify affected individuals where there is high risk to their rights, and take appropriate remedial action.')), React.createElement(Section, {num: "09", title: "Contact & Complaints"}, React.createElement(P, null, 'For all data protection enquiries or to report a security concern:'), React.createElement(ContactCard, {items: [
-              { label: 'Data Controller', value: 'Life Edet / NeuralFusion™' },
+              { label: 'Data Controller', value: 'Life Edet / NeuralFusion' },
               { label: 'Website', value: 'tryneuralfusion.com' },
               { label: 'Subject Line', value: 'Data Protection: NeuralFusion' },
               { label: 'Response Time', value: 'Within 30 days' },
@@ -5317,7 +5317,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
       );
 
       return (
-        React.createElement("div", {style: { paddingTop: 80, paddingBottom: 120, minHeight: '100vh' }}, React.createElement("div", {style: { maxWidth: 900, margin: '0 auto', padding: '60px 24px 0' }}, React.createElement("div", {style: { marginBottom: 48 }}, React.createElement("div", {style: { ...mono, fontSize: 9, letterSpacing: 4, color: C.cyan, marginBottom: 16, textTransform: 'uppercase', display: 'flex', alignItems: 'center', gap: 12 }}, React.createElement("span", {style: { width: 28, height: 1, background: C.cyan, opacity: 0.5, display: 'inline-block' }}), 'Legal Documentation'), React.createElement("h1", {style: { ...syne, fontSize: 'clamp(16px,1.5vw,20px)', fontWeight: 800, color: C.text, letterSpacing: '-0.04em', lineHeight: 0.96, marginBottom: 16 }}, 'Legal &', React.createElement("span", {style: { color: C.cyan }}, 'Compliance')), React.createElement("p", {style: { fontSize: 14, color: C.muted, maxWidth: 520, lineHeight: 1.8 }}, 'Our commitments to your privacy, the terms governing your use of NeuralFusion™, and our data protection practices under the Nigeria Data Protection Act 2023.'), React.createElement("div", {style: { display: 'flex', gap: 32, marginTop: 24, paddingTop: 24, borderTop: `1px solid ${C.border}`, flexWrap: 'wrap' }}, [{ label: 'Effective', value: '4 June 2026' }, { label: 'Governing Law', value: 'Nigeria (NDPA 2023)' }, { label: 'Controller', value: 'Life Edet' }].map((m,i) => (
+        React.createElement("div", {style: { paddingTop: 80, paddingBottom: 120, minHeight: '100vh' }}, React.createElement("div", {style: { maxWidth: 900, margin: '0 auto', padding: '60px 24px 0' }}, React.createElement("div", {style: { marginBottom: 48 }}, React.createElement("div", {style: { ...mono, fontSize: 9, letterSpacing: 4, color: C.cyan, marginBottom: 16, textTransform: 'uppercase', display: 'flex', alignItems: 'center', gap: 12 }}, React.createElement("span", {style: { width: 28, height: 1, background: C.cyan, opacity: 0.5, display: 'inline-block' }}), 'Legal Documentation'), React.createElement("h1", {style: { ...syne, fontSize: 'clamp(16px,1.5vw,20px)', fontWeight: 800, color: C.text, letterSpacing: '-0.04em', lineHeight: 0.96, marginBottom: 16 }}, 'Legal &', React.createElement("span", {style: { color: C.cyan }}, 'Compliance')), React.createElement("p", {style: { fontSize: 14, color: C.muted, maxWidth: 520, lineHeight: 1.8 }}, 'Our commitments to your privacy, the terms governing your use of NeuralFusion, and our data protection practices under the Nigeria Data Protection Act 2023.'), React.createElement("div", {style: { display: 'flex', gap: 32, marginTop: 24, paddingTop: 24, borderTop: `1px solid ${C.border}`, flexWrap: 'wrap' }}, [{ label: 'Effective', value: '4 June 2026' }, { label: 'Governing Law', value: 'Nigeria (NDPA 2023)' }, { label: 'Controller', value: 'Life Edet' }].map((m,i) => (
                   React.createElement("div", {key: i}, React.createElement("div", {style: { ...mono, fontSize: 9, letterSpacing: 2, color: C.muted, textTransform: 'uppercase', marginBottom: 3 }}, m.label), React.createElement("div", {style: { fontSize: 13, color: C.cyan, fontWeight: 500 }}, m.value))
                 )))), React.createElement("div", {style: { borderBottom: `1px solid ${C.border}`, marginBottom: 48, display: 'flex', gap: 4, overflowX: 'auto' }}, tabs.map(t => (
                 React.createElement("button", {key: t.id, style: tabStyle(t.id), onClick: () => setTab(t.id)}, t.label)
@@ -5349,7 +5349,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
                 React.createElement("button", {key: l.v, onClick: ()=>setView(l.v), style: { background:'none', border:'none', color:C.muted, fontSize:12, cursor:'pointer' }}, l.label)
               ))), React.createElement("div", {style: { display:'flex', justifyContent:'center', flexWrap:'wrap', gap:20, marginBottom:32, paddingTop:16, borderTop:`1px solid ${C.border}` }}, legalLinks.map(l=>(
                 React.createElement("a", {key: l.label, href: l.href, style: { background:'none', border:'none', color:C.dim, fontSize:10, cursor:'pointer', fontFamily:"'Space Mono', monospace", letterSpacing:1, textDecoration:'none' }}, l.label)
-              ))), React.createElement("div", {style: { ...mono, fontSize:11, letterSpacing:1, color:C.dim }}, '© 2026 LIFE EDET · NEURALFUSION™ COGNITIVE PERFORMANCE OS · ALL RIGHTS RESERVED')))
+              ))), React.createElement("div", {style: { ...mono, fontSize:11, letterSpacing:1, color:C.dim }}, '© 2026 LIFE EDET · NEURALFUSION COGNITIVE PERFORMANCE OS · ALL RIGHTS RESERVED')))
       );
     }
 
@@ -5855,7 +5855,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
       const avgChangeRetested = changeCount ? Math.round((changeSum/changeCount)*10)/10 : null;
 
       return (
-        React.createElement("div", {style: { paddingTop:80, paddingBottom:60, minHeight:'100vh' }}, React.createElement("div", {style: { maxWidth:1280, margin:'0 auto', padding:'32px 24px' }}, React.createElement("div", {style: { display:'flex', alignItems:'flex-start', justifyContent:'space-between', flexWrap:'wrap', gap:16, marginBottom:32 }}, React.createElement("div", null, React.createElement("div", {style: { ...mono, fontSize:11, letterSpacing:1, color:C.cyan, marginBottom:8 }}, 'ADMIN PORTAL · NEURALFUSION™'), React.createElement("div", {style: { ...syne, fontSize:14, fontWeight:800, color:C.text, marginBottom:4, overflowWrap:'break-word', minWidth:0}}, 'Control Dashboard'), React.createElement("div", {style: { fontSize:13, color:C.muted }}, 'Signed in as', React.createElement("span", {style: { color:C.cyan }}, user?.email))), React.createElement("div", {style: { display:'flex', gap:10, alignItems:'center' }}, actionMsg && (
+        React.createElement("div", {style: { paddingTop:80, paddingBottom:60, minHeight:'100vh' }}, React.createElement("div", {style: { maxWidth:1280, margin:'0 auto', padding:'32px 24px' }}, React.createElement("div", {style: { display:'flex', alignItems:'flex-start', justifyContent:'space-between', flexWrap:'wrap', gap:16, marginBottom:32 }}, React.createElement("div", null, React.createElement("div", {style: { ...mono, fontSize:11, letterSpacing:1, color:C.cyan, marginBottom:8 }}, 'ADMIN PORTAL · NEURALFUSION'), React.createElement("div", {style: { ...syne, fontSize:14, fontWeight:800, color:C.text, marginBottom:4, overflowWrap:'break-word', minWidth:0}}, 'Control Dashboard'), React.createElement("div", {style: { fontSize:13, color:C.muted }}, 'Signed in as', React.createElement("span", {style: { color:C.cyan }}, user?.email))), React.createElement("div", {style: { display:'flex', gap:10, alignItems:'center' }}, actionMsg && (
                   React.createElement("div", {style: { padding:'8px 16px', background:`rgba(${actionType==='error'?'248,113,113':actionType==='success'?'122,175,207':'196,160,80'},0.1)`, border:`1px solid rgba(${actionType==='error'?'248,113,113':actionType==='success'?'122,175,207':'196,160,80'},0.3)`, borderRadius:2, ...mono, fontSize:10, color:msgColor }}, actionMsg)
                 ), React.createElement("button", {className: "btn-outline", style: { fontSize:10 }, onClick: loadAdminData}, '↺ Refresh'), React.createElement("button", {className: "btn-ghost", style: { fontSize:10 }, onClick: () => setView('home')}, '← Exit Admin'))), React.createElement("div", {style: { display:'flex', gap:4, marginBottom:32, background:C.deep, padding:4, borderRadius:4, flexWrap:'wrap' }}, tabs.map(t => (
                 React.createElement("button", {key: t.id, onClick: () => setTab(t.id), style: {
@@ -6181,7 +6181,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
                   React.createElement("div", {style: { display:'grid', gridTemplateColumns:'repeat(auto-fit,minmax(min(400px,100%),1fr))', gap:20 }}, React.createElement("div", {className: "card", style: { padding:'40px', position:'relative', overflow:'hidden', borderColor:'rgba(196,160,80,0.3)' }}, React.createElement(ScanLine, null), React.createElement("div", {style: { ...mono, fontSize:11, letterSpacing:1, color:C.cyan, marginBottom:16 }}, 'PRO plan pricing'), React.createElement("div", {style: { ...syne, fontSize:17, fontWeight:800, color:C.text, marginBottom:8, overflowWrap:'break-word', minWidth:0}}, 'Edit Pro Price'), React.createElement("div", {style: { fontSize:13, color:C.muted, marginBottom:28, lineHeight:1.7 }}, 'Updates the price shown on the platform and passed to Paystack for payment processing.'), React.createElement("div", {style: { marginBottom:20 }}, React.createElement("div", {style: { ...mono, fontSize:9, letterSpacing:1, color:C.muted, marginBottom:8 }}, 'CURRENT PRICE (NAIRA)'), React.createElement("div", {style: { ...syne, fontSize:14, fontWeight:800, color:C.cyan, lineHeight:1.2, marginBottom:4, overflowWrap:'break-word', minWidth:0}}, `₦${(proPrice/100).toLocaleString()}`), React.createElement("div", {style: { ...mono, fontSize:9, color:C.muted }}, '=', proPrice.toLocaleString(), 'kobo')), React.createElement("div", {style: { marginBottom:20 }}, React.createElement("div", {style: { ...mono, fontSize:9, letterSpacing:1, color:C.muted, marginBottom:8 }}, 'NEW PRICE (₦)'), React.createElement("div", {style: { display:'flex', gap:12, alignItems:'center' }}, React.createElement("div", {style: { position:'relative', flex:1 }}, React.createElement("div", {style: { position:'absolute', left:16, top:'50%', transform:'translateY(-50%)', ...syne, fontSize:14, fontWeight:700, color:C.muted, overflowWrap:'break-word', minWidth:0}}, '₦'), React.createElement("input", {type: "number", value: priceInput, onChange: e => setPriceInput(e.target.value), style: { paddingLeft:36, fontSize:14, ...syne, fontWeight:700, overflowWrap:'break-word', minWidth:0}, min: "100", step: "100"})), React.createElement("button", {className: "btn-primary", onClick: savePrice, style: { whiteSpace:'nowrap' }}, priceSaved ? '✓ Saved!' : 'Save Price'))), React.createElement("div", {style: { padding:'20px', background:C.deep, borderRadius:2, border:`1px solid ${C.border}` }}, React.createElement("div", {style: { ...mono, fontSize:11, letterSpacing:1, color:C.muted, marginBottom:8 }}, 'Paystack integration'), React.createElement("div", {style: { fontSize:13, color:C.muted, lineHeight:1.7 }}, 'Live key:', React.createElement("span", {style: { color:C.cyan, fontFamily:'monospace' }}, 'loaded from platform_settings at runtime'), React.createElement("br", null), 'Currency: NGN · Gateway: Paystack inline · Verified server-side'))), React.createElement("div", {className: "card", style: { padding:'40px', position:'relative', overflow:'hidden', borderColor:'rgba(196,160,80,0.2)', gridColumn:'1 / -1' }}, React.createElement(ScanLine, null), React.createElement("div", {style: { ...mono, fontSize:11, letterSpacing:1, color:'#E2BE78', marginBottom:16 }}, 'Payment gateway'), React.createElement("div", {style: { ...syne, fontSize:17, fontWeight:800, color:C.text, marginBottom:8, overflowWrap:'break-word', minWidth:0}}, 'Paystack Public Key'), React.createElement("div", {style: { fontSize:13, color:C.muted, marginBottom:28, lineHeight:1.7 }}, 'Your Paystack public key (pk_live_... or pk_test_...). Stored in platform_settings and loaded at runtime, so no redeploy is needed.'), React.createElement("div", {style: { display:'flex', gap:12, alignItems:'center' }}, React.createElement("input", {type: "text", value: paystackKeyInput, onChange: e => setPaystackKeyInput(e.target.value), placeholder: 'pk_live_...', style: { flex:1, fontSize:13, fontFamily:'monospace', letterSpacing:'0.02em', overflowWrap:'break-word', minWidth:0 }}), React.createElement("button", {className: "btn-primary", onClick: savePaystackKey, style: { whiteSpace:'nowrap' }}, keySaved ? '✓ Saved!' : 'Save Key')), paystackKeyInput && React.createElement("div", {style: { marginTop:16, padding:'12px 16px', background:C.deep, borderRadius:2, border:`1px solid ${C.border}`, ...mono, fontSize:10, color:C.muted }}, 'Active: ', React.createElement("span", {style: { color:'#E2BE78' }}, paystackKeyInput.slice(0,12), '...', paystackKeyInput.slice(-6)))))
                 ), tab === 'settings' && (
                   React.createElement("div", {style: { maxWidth:680 }}, React.createElement("div", {className: "card", style: { padding:'36px', marginBottom:16 }}, React.createElement("div", {style: { ...mono, fontSize:11, letterSpacing:1, color:C.cyan, marginBottom:16 }}, 'Platform info'), [
-                        { label:'Platform',      value:'NeuralFusion™ Cognitive OS' },
+                        { label:'Platform',      value:'NeuralFusion Cognitive OS' },
                         { label:'Admin Access',   value:'Supabase RLS · profiles.is_admin' },
                         { label:'Supabase URL',   value:'ckrxgbosyohcmjtemrvu.supabase.co' },
                         { label:'Supabase Ref',   value:'ckrxgbosyohcmjtemrvu' },
@@ -6276,17 +6276,17 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
     ];
     const ENT_LESSONS = [
       { num:1, week:2, title:'Foundation of Integrated Thinking', skill:'Cognitive Mode Awareness', level:'Beginner', duration:90,
-        framing:'Lesson One creates the cognitive baseline from which everything else builds. Your job is not to convince participants NeuralFusion™ works; give them their first conscious experience of a NeuralFusion™ cycle and let the experience do the convincing. By the end, every participant should have completed the Core Loop at least once with a real problem.',
+        framing:'Lesson One creates the cognitive baseline from which everything else builds. Your job is not to convince participants NeuralFusion works; give them their first conscious experience of a NeuralFusion cycle and let the experience do the convincing. By the end, every participant should have completed the Core Loop at least once with a real problem.',
         plan:[
           {t:'0–10 min',act:'Welcome & Programme Context',detail:'Explain 7-week structure, what the CFI measures, and what participants will be able to do by Week 5. Do NOT reveal CFI pre-scores.'},
-          {t:'10–20 min',act:'Read Lesson One aloud',detail:'Cover: What is NeuralFusion™, the Problem it Solves, the Four Modes, the Core Loop. Speak slowly and clearly.'},
+          {t:'10–20 min',act:'Read Lesson One aloud',detail:'Cover: What is NeuralFusion, the Problem it Solves, the Four Modes, the Core Loop. Speak slowly and clearly.'},
           {t:'20–30 min',act:'Pair Discussion',detail:'"Which thinking mode do you default to most? When does that cause problems?" (8 min pairs + 2 min group feedback).'},
           {t:'30–55 min',act:'Guided Practice (Group Format)',detail:'Walk the whole cohort through the First Guided Practice simultaneously. 25 minutes.'},
           {t:'55–70 min',act:'Group Debrief',detail:'Use the debrief prompts. Capture key responses on the whiteboard.'},
           {t:'70–80 min',act:'Key Insight Delivery',detail:'Read the Key Insight of Lesson One. Ask each participant to write it in their own words.'},
           {t:'80–90 min',act:'Assignment Brief',detail:'Issue the 24-hour assignment. Set expectation for Lesson Two.'},
         ],
-        practice:["'Sit comfortably, feet flat, pen in hand. We are going to run NeuralFusion™ together for the first time.'","'Think of a simple challenge you are currently facing at work, in your studies, or in a decision. Write it in one sentence. You have 90 seconds.'","'Now write only the FACTS about this challenge. No opinions, no feelings; only what is provably true.' [Pause 2 min]","'Put your pen down. Close your eyes for 30 seconds. What does your gut tell you about this situation?' [After 30 sec] 'Open your eyes and write that down in one sentence.'","'Write three ideas or connections this situation brings to mind, even unusual or unrelated ones.' [Pause 2 min]","'Finally, what does this challenge mean for you? What lesson is it offering? Write one sentence.' [Pause 2 min]","'Look at your page. You have just completed one NeuralFusion™ cycle. You activated all four modes in sequence. Notice how your relationship with the challenge has shifted.'"],
+        practice:["'Sit comfortably, feet flat, pen in hand. We are going to run NeuralFusion together for the first time.'","'Think of a simple challenge you are currently facing at work, in your studies, or in a decision. Write it in one sentence. You have 90 seconds.'","'Now write only the FACTS about this challenge. No opinions, no feelings; only what is provably true.' [Pause 2 min]","'Put your pen down. Close your eyes for 30 seconds. What does your gut tell you about this situation?' [After 30 sec] 'Open your eyes and write that down in one sentence.'","'Write three ideas or connections this situation brings to mind, even unusual or unrelated ones.' [Pause 2 min]","'Finally, what does this challenge mean for you? What lesson is it offering? Write one sentence.' [Pause 2 min]","'Look at your page. You have just completed one NeuralFusion cycle. You activated all four modes in sequence. Notice how your relationship with the challenge has shifted.'"],
         debrief:['What was the most uncomfortable mode to enter? Why?','Which mode felt most natural to you? What does that tell you about your default?','Did the challenge feel different after completing the cycle? How?','What surprised you about the exercise?','Where in your daily work do you skip one of these modes entirely?'],
         watchpoints:["Participants who say they 'don't have gut feelings'; redirect: gut feeling is any immediate non-analytical response. It does not have to feel dramatic.","Those who overthink the Associative mode step; reassure them: unusual connections are the point.","Participants writing nothing during Reflective mode are stuck in Analysis. Prompt: 'What is one word that describes what this experience means for you?'","If someone shares something very personal, acknowledge briefly and redirect to cognitive mechanics: 'That is exactly what Lesson Four addresses.'"],
         assignment:'24-hour assignment: Observe which thinking mode you default to in at least three situations today. Record the situation, the mode, and what happened as a result.',
@@ -6310,7 +6310,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
         keyInsight:'Mental freedom is not doing whatever you feel; it is choosing which faculty of your mind to lead with in any given moment.',
       },
       { num:3, week:3, title:'Synthesis & Decision Mastery', skill:'Multi-mode Integration', level:'Intermediate', duration:90,
-        framing:"Lesson Three is the technical core of NeuralFusion™. This is where the framework moves from interesting to practical, and where visible behaviour change is most likely to emerge. Ask at the start: 'Did you bring a real decision?' If not, invite them to identify one in the first 5 minutes.",
+        framing:"Lesson Three is the technical core of NeuralFusion. This is where the framework moves from interesting to practical, and where visible behaviour change is most likely to emerge. Ask at the start: 'Did you bring a real decision?' If not, invite them to identify one in the first 5 minutes.",
         plan:[
           {t:'0–10 min',act:'Assignment Review',detail:'Ask who practiced mode-switching. Ask for one example of a mode shift that changed an outcome. Validate and reinforce.'},
           {t:'10–25 min',act:'Read Lesson Three content',detail:'Why Decisions Fail, What Synthesis Means, The Synthesis Framework (Extract → Align → Compress → Decide). Slow and clear.'},
@@ -6322,7 +6322,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
         ],
         practice:['Phase 1: Individual Extraction (12 min): Each participant writes their decision at the top of a page.','ANALYTICAL (2.5 min): "List the facts and constraints of this decision only."','INTUITIVE (2.5 min): "What is your strongest gut signal about this? One sentence."','ASSOCIATIVE (2.5 min): "What is the most useful idea or angle you have not yet considered?"','REFLECTIVE (2.5 min): "What does your deepest value or lesson tell you here?"','Phase 2: Synthesis (10 min): "Underline the single most powerful output from each mode. What is the common direction they are pointing to? Write one sentence beginning with: My decision is..."','Phase 3: Commitment Lock (8 min): Ask 3–4 volunteers to read their decision sentence to the group. After each one, ask the group: "Is that a clear, committed decision or is it still a question?"'],
         debrief:['What did your four modes agree on? Where did they conflict?','Was the decision you wrote at the end different from what you expected at the start?','What happened when you read the decision sentence aloud?','Has anyone experienced the opposite: making a decision and then endlessly revisiting it? What mode was driving that?','How would your team or department operate differently if this process was normal?'],
-        watchpoints:['Decision sentences that are still questions ("I think I might need to..."); push: "Rephrase that as a committed statement."','If someone cannot produce a one-sentence decision: "Your mind is still negotiating. What mode is blocking synthesis?"','The Commitment Lock discussion can provoke strong reactions in corporate environments where decisions are frequently revisited.','Watch for "decisions" about someone else\'s behaviour. Redirect: "NeuralFusion™ synthesises YOUR thinking. What is YOUR decision here?"'],
+        watchpoints:['Decision sentences that are still questions ("I think I might need to..."); push: "Rephrase that as a committed statement."','If someone cannot produce a one-sentence decision: "Your mind is still negotiating. What mode is blocking synthesis?"','The Commitment Lock discussion can provoke strong reactions in corporate environments where decisions are frequently revisited.','Watch for "decisions" about someone else\'s behaviour. Redirect: "NeuralFusion synthesises YOUR thinking. What is YOUR decision here?"'],
         assignment:'72-hour assignment: Apply the full Synthesis Framework to one real decision you are currently facing. Make the decision. Notice what happens.',
         keyInsight:'Clarity is not finding the right answer; it is unifying the mind.',
       },
@@ -6337,9 +6337,9 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
           {t:'72–82 min',act:'Key Insight',detail:'"Mental mastery is not calm thinking; it is stable thinking." Ask: What is the difference?'},
           {t:'82–90 min',act:'Assignment Brief',detail:'72-hour assignment: apply stabilization during one real stressful event.'},
         ],
-        practice:['Part A: Individual Recall (8 min): "Think of a recent stressful situation where your thinking became unclear or you acted in a way you later questioned."','"Write: (1) What was the situation. (2) Which mode dominated your thinking at the time. (3) What did you do or decide as a result." [6 min silent writing]','Part B: Retroactive Stabilization (8 min): "Now re-run that situation through NeuralFusion™ stabilization."','"Apply ONE cognitive anchor; write a short internal statement that would have locked your clarity."','"Apply temporal compression; what mattered most in the next 10 minutes of that situation?"','"Apply mode containment; name the mode that was flaring and write: I acknowledge [mode] and return authority to synthesis."','Part C: Forward Application (4 min): "Write one upcoming situation where you predict you will need stabilization. Write your cognitive anchor for it now, in advance."'],
+        practice:['Part A: Individual Recall (8 min): "Think of a recent stressful situation where your thinking became unclear or you acted in a way you later questioned."','"Write: (1) What was the situation. (2) Which mode dominated your thinking at the time. (3) What did you do or decide as a result." [6 min silent writing]','Part B: Retroactive Stabilization (8 min): "Now re-run that situation through NeuralFusion stabilization."','"Apply ONE cognitive anchor; write a short internal statement that would have locked your clarity."','"Apply temporal compression; what mattered most in the next 10 minutes of that situation?"','"Apply mode containment; name the mode that was flaring and write: I acknowledge [mode] and return authority to synthesis."','Part C: Forward Application (4 min): "Write one upcoming situation where you predict you will need stabilization. Write your cognitive anchor for it now, in advance."'],
         debrief:['What mode most commonly dominates your thinking under pressure?','Has anyone been in a situation where one person\'s emotional reactivity destabilized an entire team? What mode were they in?','What does a cognitive anchor feel like compared to positive thinking or affirmations?','Where in your role does temporal compression have the most practical value?','What are your top two personal relapse triggers? What do you now know to do?'],
-        watchpoints:['This session can surface genuine workplace trauma. Stay alert. If anyone becomes visibly distressed, offer a private break. Do not allow the session to become a group debriefing of workplace grievances.','Some conflate stabilization with emotional suppression. Be clear: "Stabilization does not mean you stop feeling. It means the feeling does not take over your cognitive process."','Participants wanting to apply this to others; redirect: "Your assignment is your own stability first. Leading others with NeuralFusion™ is a Level Two competency."','Cognitive anchors should be short, personal, and grounded. If someone writes a long statement, help them compress: "What is the one sentence that locks clarity for you?"'],
+        watchpoints:['This session can surface genuine workplace trauma. Stay alert. If anyone becomes visibly distressed, offer a private break. Do not allow the session to become a group debriefing of workplace grievances.','Some conflate stabilization with emotional suppression. Be clear: "Stabilization does not mean you stop feeling. It means the feeling does not take over your cognitive process."','Participants wanting to apply this to others; redirect: "Your assignment is your own stability first. Leading others with NeuralFusion is a Level Two competency."','Cognitive anchors should be short, personal, and grounded. If someone writes a long statement, help them compress: "What is the one sentence that locks clarity for you?"'],
         assignment:'72-hour assignment: Apply at least one stabilizer (Cognitive Anchor, Temporal Compression, or Mode Containment) during one real stressful event this week. Record what happened.',
         keyInsight:'Mental mastery is not calm thinking; it is stable thinking.',
       },
@@ -6347,17 +6347,17 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
         framing:'Lesson Five completes the programme. The tone shifts from training to installation; you are not teaching new content, you are consolidating a cognitive habit. Many participants will arrive differently from how they arrived to Lesson One. Acknowledge that shift without dramatising it.',
         plan:[
           {t:'0–15 min',act:'Assignment Review & Reflection',detail:'Ask who applied stabilization in a stressful event. Invite 3–4 to share briefly. Then ask the whole group: "How has your thinking changed across the five weeks?"'},
-          {t:'15–30 min',act:'Read Lesson Five content',detail:'Cognitive Fluency, From Skill to Instinct (three stages), The Automatic Fusion Trigger, Living NeuralFusion™.'},
+          {t:'15–30 min',act:'Read Lesson Five content',detail:'Cognitive Fluency, From Skill to Instinct (three stages), The Automatic Fusion Trigger, Living NeuralFusion.'},
           {t:'30–50 min',act:'Fluency Installation: Group Format',detail:'20 minutes.'},
           {t:'50–65 min',act:'Signs of Completion Discussion',detail:'Read the five signs of completion aloud one by one. Ask the group to mark which they recognise in themselves.'},
           {t:'65–75 min',act:'Group Debrief',detail:'Use prompts below.'},
           {t:'75–82 min',act:'Final Insight Delivery',detail:'Read the Final Insight slowly and allow silence after.'},
           {t:'82–90 min',act:'Programme Closing',detail:'Announce CFI post-assessment (Week 6), Clarity Delta report and certification (Week 7). Thank the cohort.'},
         ],
-        practice:['Part A: One Word Fusion (6 min): "Sit calmly and comfortably. Eyes open or closed, your choice."','"Think of any current situation: work, a relationship, a project, a decision, whatever is live in your mind right now."','"Internally, say the word: Fuse."','"Do not force anything. Just allow the mind to begin organising itself. Trust the four lessons you have completed. Observe what happens." [2 min silence]','"Write down one sentence, whatever arrived. It might be a clarity, a decision, a feeling, an insight." [90 seconds]','Part B: Group Fluency Round (8 min): Ask each table group to share their one sentence. 4 min. Then invite 2–3 from the room to share with the full group.','Part C: Lifetime Protocol Installation (6 min): "Write three personal commitments: (1) Use NeuralFusion™ daily; in what context specifically? (2) Teach it through behaviour; what behaviour will change first? (3) Return to structure when clarity fades; what is your first early warning signal?"'],
-        debrief:['What does "thinking with structure" feel like differently from how you thought before this programme?','Which of the five Signs of Completion resonates most strongly for you right now?','What is the most important thing you are taking out of this programme?','Where in your professional or personal life will NeuralFusion™ have the most immediate impact?','What would you say to someone beginning this programme tomorrow?'],
+        practice:['Part A: One Word Fusion (6 min): "Sit calmly and comfortably. Eyes open or closed, your choice."','"Think of any current situation: work, a relationship, a project, a decision, whatever is live in your mind right now."','"Internally, say the word: Fuse."','"Do not force anything. Just allow the mind to begin organising itself. Trust the four lessons you have completed. Observe what happens." [2 min silence]','"Write down one sentence, whatever arrived. It might be a clarity, a decision, a feeling, an insight." [90 seconds]','Part B: Group Fluency Round (8 min): Ask each table group to share their one sentence. 4 min. Then invite 2–3 from the room to share with the full group.','Part C: Lifetime Protocol Installation (6 min): "Write three personal commitments: (1) Use NeuralFusion daily; in what context specifically? (2) Teach it through behaviour; what behaviour will change first? (3) Return to structure when clarity fades; what is your first early warning signal?"'],
+        debrief:['What does "thinking with structure" feel like differently from how you thought before this programme?','Which of the five Signs of Completion resonates most strongly for you right now?','What is the most important thing you are taking out of this programme?','Where in your professional or personal life will NeuralFusion have the most immediate impact?','What would you say to someone beginning this programme tomorrow?'],
         watchpoints:['Do not allow Lesson Five to become a celebration. The completion is real but the programme is a beginning; Level Two exists.','If participants say they "don\'t feel different", do not force it. The CFI will show the data.','Some participants will want to continue the conversation after the session. Invite them to the Week 7 certification session and encourage peer practice groups.','Remind clearly: Week 6 is the CFI post-assessment. Same format as Week 1. Same conditions.'],
-        assignment:'Lifetime Protocol: three personal commitments for how you will use NeuralFusion™ going forward.',
+        assignment:'Lifetime Protocol: three personal commitments for how you will use NeuralFusion going forward.',
         keyInsight:'You do not control the mind by force. You train it by structure.',
       },
     ];
@@ -6689,7 +6689,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
         : [['assessment','Assessment'],['programme','Programme']]);
       return entH("nav", {className: "nf-enterprise-nav", "aria-label": "Enterprise portal"},
         entH("div", {className: "nf-enterprise-nav__inner"},
-          entH("div", {className: "nf-enterprise-brand"}, entH(NFMark, {size: 22, color: ET.goldDark}), entH("span", null, 'NEURALFUSION™'), entH("small", null, 'Enterprise')),
+          entH("div", {className: "nf-enterprise-brand"}, entH(NFMark, {size: 22, color: ET.goldDark}), entH("span", null, 'NEURALFUSION'), entH("small", null, 'Enterprise')),
           tabs.length > 0 && entH("div", {className: "nf-enterprise-tabs"}, tabs.map(([id,label]) =>
             entH("button", {key: id, type: "button", className: "nf-enterprise-tab", "aria-current": view===id ? 'page' : undefined, onClick: ()=>setView(id)}, label)
           )),
@@ -6744,7 +6744,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
         entH("div", {className: "nf-enterprise"},
           entH(EntNavBar, {minimal: true, onExit}),
           entH(EntMain, {width: 'narrow', tabs: false},
-            entH(EntHeader, {center: true, eyebrow: 'Enterprise Cohort System', title: 'NeuralFusion™ Enterprise Portal', lead: 'Select your role to enter the programme. Facilitators access session controls, CFI data entry, and live cohort results. Participants join a cohort and complete assessments.'}),
+            entH(EntHeader, {center: true, eyebrow: 'Enterprise Cohort System', title: 'NeuralFusion Enterprise Portal', lead: 'Select your role to enter the programme. Facilitators access session controls, CFI data entry, and live cohort results. Participants join a cohort and complete assessments.'}),
             entH("div", {className: "nf-enterprise-rolegrid"},
               entH("section", {className: "nf-enterprise-card nf-enterprise-card--shadow nf-enterprise-stack", "aria-labelledby": "ent-role-fac"},
                 entH("div", {className: "nf-enterprise-eyebrow", style: {marginBottom: 0}}, 'Facilitator'),
@@ -7444,7 +7444,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
       const [isPro, setIsPro] = useState(false);
       const [isEnterprise, setIsEnterprise] = useState(false);
       const [cfiResult, setCfiResult] = useState(null);
-      const [cfiHistory, setCfiHistory] = useState([]);   // full CFI attempt history, oldest→newest, for Clarity Delta™
+      const [cfiHistory, setCfiHistory] = useState([]);   // full CFI attempt history, oldest→newest, for Clarity Delta
       const [lessonProgress, setLessonProgress] = useState({});
       const [proPrice, setProPrice] = useState(() => parseInt(localStorage.getItem('nf_pro_price') || '600000'));
       const [entPrice, setEntPrice] = useState(() => parseInt(localStorage.getItem('nf_ent_price') || '5000000'));
@@ -7528,7 +7528,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
             setIsEnterprise(isAdmin || !!prof.is_enterprise);
           }
           setLessonProgress(lp);
-          // Load full CFI history from Supabase (needed for Clarity Delta™, not just the latest result)
+          // Load full CFI history from Supabase (needed for Clarity Delta, not just the latest result)
           // IMPORTANT: only 'completed' rows have total_score/band/dim_scores populated.
           // 'in_progress' draft rows (auto-saved while taking the assessment) do not,
           // and including them here was causing Analytics to render blank whenever the
@@ -7576,7 +7576,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
       };
 
       // Opens the auth modal on a specific tab (e.g. 'signup' or 'login'). Used by
-      // the CFI™ account gate so "Create Free Account" and "Sign In" land on the
+      // the CFI account gate so "Create Free Account" and "Sign In" land on the
       // right tab instead of always defaulting to login.
       const openAuth = (tab='login') => { setAuthInitialTab(tab); setShowAuth(true); };
 
@@ -7698,14 +7698,14 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
 
     return Shell([
       h('div', { key: 'hero', style: { textAlign: 'center', padding: '40px 0 64px' } },
-        h('div', { style: { ...mono, fontSize: 11, letterSpacing: 2, color: C.cyan, marginBottom: 20 } }, 'NEURALFUSION\u2122 FOR ORGANIZATIONS'),
+        h('div', { style: { ...mono, fontSize: 11, letterSpacing: 2, color: C.cyan, marginBottom: 20 } }, 'NEURALFUSION FOR ORGANIZATIONS'),
         h('h1', { style: { ...syne, fontSize: 'clamp(30px,5vw,52px)', fontWeight: 900, lineHeight: 1.1, margin: '0 0 20px' } }, 'Understand how your team thinks under pressure.'),
         h('p', { style: { fontSize: 16, color: C.muted, maxWidth: 640, margin: '0 auto 32px', lineHeight: 1.8 } }, 'Measure cognitive fragmentation. Understand team thinking patterns. Strengthen integrated thinking. Improve decision-making.'),
         h('div', { style: { display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap' } },
           h(Btn, { onClick: () => { track('start_team_assessment_clicked'); scrollTo('nf-packages'); } }, 'START A TEAM ASSESSMENT'),
           h(Btn, { variant: 'ghost', onClick: () => scrollTo('nf-explore') }, 'EXPLORE ENTERPRISE'))),
       h('div', { key: 'explore', id: 'nf-explore' }, sec('WHAT YOUR TEAM GETS', [
-        ['CFI\u2122 assessment', 'A 13-item Cognitive Fragmentation Index each team member completes in about four minutes.'],
+        ['CFI assessment', 'A 13-item Cognitive Fragmentation Index each team member completes in about four minutes.'],
         ['Cognitive fragmentation', 'How scattered or integrated thinking becomes under load, scored on the CFI 13 to 65 scale.'],
         ['Four Thinking Modes', 'Analytical, Intuitive, Associative and Reflective patterns, shown at team level.'],
         ['Team-level insight', 'Aggregate results for your team. Individual profiles stay private to each person.'],
@@ -7916,7 +7916,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
     const start = () => { sessionStorage.setItem('nf_org_assess', JSON.stringify({ org: org.id, t: Date.now() })); track('cfi_started', { organisation_id: org.id }); setView('cfi'); };
     if (!ov) return h('div', { style: { color: C.muted } }, 'Loading...');
     return h('div', { style: card({ maxWidth: 640 }) },
-      h('div', { style: { fontSize: 15, lineHeight: 1.8, marginBottom: 20 } }, "You've been invited to complete the NeuralFusion\u2122 CFI\u2122 as part of your organization's team assessment."),
+      h('div', { style: { fontSize: 15, lineHeight: 1.8, marginBottom: 20 } }, "You've been invited to complete the NeuralFusion CFI as part of your organization's team assessment."),
       ov.my_assessment_completed ? h('div', { style: { color: '#4CF7C0' } }, 'You have completed the assessment. Thank you. Your own result is on your Analytics page.') :
       h('div', null, h(Btn, { onClick: start }, 'START ASSESSMENT'), h('div', { style: { fontSize: 12, color: C.muted, marginTop: 14, lineHeight: 1.7 } }, org.name + ' will see aggregate team results and whether you have completed the assessment. Your individual answers and score are not shown to your organisation.')));
   }
@@ -7942,7 +7942,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
     return Shell(h('div', { style: card({ maxWidth: 600, margin: '0 auto' }) },
       h('div', { style: { ...mono, fontSize: 11, letterSpacing: 2, color: C.cyan, marginBottom: 12 } }, 'TEAM INVITATION'),
       h('div', { style: { ...syne, fontSize: 22, fontWeight: 800, marginBottom: 12 } }, pv.org_name),
-      h('div', { style: { fontSize: 15, lineHeight: 1.8, marginBottom: 16 } }, "You've been invited to complete the NeuralFusion\u2122 CFI\u2122 as part of your organization's team assessment."),
+      h('div', { style: { fontSize: 15, lineHeight: 1.8, marginBottom: 16 } }, "You've been invited to complete the NeuralFusion CFI as part of your organization's team assessment."),
       h('div', { style: { fontSize: 13, color: C.muted, marginBottom: 20, lineHeight: 1.7 } }, 'Invitation sent to ' + pv.email_hint + '. Your organisation sees aggregate team results and whether you completed the assessment. It does not see your individual answers or score.'),
       dead ? h(Msg, { m: { type: 'error', text: pv.expired ? ERR.invitation_expired : ERR.invitation_not_active } }) : null,
       h(Msg, { m: msg }),
