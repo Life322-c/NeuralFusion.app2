@@ -1,4 +1,4 @@
-# NeuralFusion™ - Post-Fix Deployment Guide
+# NeuralFusion - Post-Fix Deployment Guide
 
 ## What Was Fixed
 
