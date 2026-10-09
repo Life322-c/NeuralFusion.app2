@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════════════════════════
-   NEURALFUSION™ · COGNITIVE OPERATING SYSTEM · v5.0
+   NEURALFUSION · COGNITIVE OPERATING SYSTEM · v5.0
    Premium Typography Architecture · Editorial × Futuristic
 ═══════════════════════════════════════════════════════════════ */
 
@@ -1599,7 +1599,7 @@ h1, h2, h3, h4, h5, h6,
   text-size-adjust: none;
 }
 
-/* ── CFI™ report print styles (Download PDF report button) ────────── */
+/* ── CFI report print styles (Download PDF report button) ────────── */
 @media print {
   body * { visibility: hidden; }
   #cfi-report, #cfi-report * { visibility: visible; }
