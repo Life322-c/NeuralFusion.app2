@@ -93,7 +93,7 @@
   <!-- Blog index -->
   <url>
     <loc>https://tryneuralfusion.com/blog</loc>
-    <lastmod>2026-08-30</lastmod>
+    <lastmod>2026-10-12</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
@@ -115,7 +115,7 @@
 
   <url>
     <loc>https://tryneuralfusion.com/blog/cognitive-performance-operating-system</loc>
-    <lastmod>2026-08-30</lastmod>
+    <lastmod>2026-10-12</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -123,6 +123,13 @@
   <url>
     <loc>https://tryneuralfusion.com/blog/level-one-core-manual</loc>
     <lastmod>2026-08-30</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+
+  <url>
+    <loc>https://tryneuralfusion.com/blog/how-to-think-more-clearly</loc>
+    <lastmod>2026-10-12</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
