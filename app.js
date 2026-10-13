@@ -5344,9 +5344,19 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
         { label:'Privacy policy', href:'/privacy' },
         { label:'Terms & conditions', href:'/terms' },
       ];
+      const articleLinks = [
+        { label:'How to improve cognitive performance', href:'/blog/cognitive-performance-operating-system' },
+        { label:'How to think more clearly', href:'/blog/how-to-think-more-clearly' },
+        { label:'How to make decisions under pressure', href:'/blog/how-to-make-decisions-under-pressure' },
+        { label:'Signs of cognitive fragmentation', href:'/blog/signs-of-cognitive-fragmentation' },
+        { label:'Using AI without losing critical thinking', href:'/blog/how-to-use-ai-without-losing-critical-thinking' },
+        { label:'All articles', href:'/blog' },
+      ];
       return (
         React.createElement("footer", {className: "nf-footer", style: { borderTop:`1px solid ${C.border}`, padding:'48px 24px 32px', textAlign:'center' }}, React.createElement("div", {style: { maxWidth:1200, margin:'0 auto' }}, React.createElement("div", {style: { display:'flex', alignItems:'center', justifyContent:'center', marginBottom:32 }}, React.createElement(NFLogoLockup, {iconSize: 26, gap: 10, wordmarkColor: C.text})), React.createElement("div", {style: { display:'flex', justifyContent:'center', flexWrap:'wrap', gap:24, marginBottom:20 }}, links.map(l=>(
                 React.createElement("button", {key: l.v, onClick: ()=>setView(l.v), style: { background:'none', border:'none', color:C.muted, fontSize:12, cursor:'pointer' }}, l.label)
+              ))), React.createElement("div", {style: { marginBottom:12, paddingTop:16, borderTop:`1px solid ${C.border}`, ...mono, fontSize:10, letterSpacing:1, color:C.dim }}, 'LATEST ARTICLES'), React.createElement("div", {style: { display:'flex', justifyContent:'center', flexWrap:'wrap', gap:20, marginBottom:24 }}, articleLinks.map(l=>(
+                React.createElement("a", {key: l.href, href: l.href, style: { color:C.muted, fontSize:12, textDecoration:'none' }}, l.label)
               ))), React.createElement("div", {style: { display:'flex', justifyContent:'center', flexWrap:'wrap', gap:20, marginBottom:32, paddingTop:16, borderTop:`1px solid ${C.border}` }}, legalLinks.map(l=>(
                 React.createElement("a", {key: l.label, href: l.href, style: { background:'none', border:'none', color:C.dim, fontSize:10, cursor:'pointer', fontFamily:"'Space Mono', monospace", letterSpacing:1, textDecoration:'none' }}, l.label)
               ))), React.createElement("div", {style: { ...mono, fontSize:11, letterSpacing:1, color:C.dim }}, '© 2026 LIFE EDET · NEURALFUSION COGNITIVE PERFORMANCE OS · ALL RIGHTS RESERVED')))
