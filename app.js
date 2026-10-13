@@ -5794,7 +5794,6 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
         { id:'cfi',        label:'CFI Results',  icon:'◎' },
         { id:'pro',        label:'Pro Subs',     icon:'★' },
         { id:'organisations', label:'Organisations', icon:'⬡' },
-        { id:'teams',      label:'Teams',        icon:'◈' },
         { id:'cohorts',    label:'Cohorts',      icon:'⊞' },
         { id:'ent-results',label:'Ent Results',  icon:'◇' },
         { id:'lessons',    label:'Lessons',      icon:'▤' },
@@ -5941,8 +5940,6 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
                           )))), React.createElement("div", {className: "card", style: { padding:'28px', borderColor:'rgba(196,160,80,0.25)' }}, React.createElement("div", {style: { ...mono, fontSize:11, letterSpacing:1, color:C.cyan, marginBottom:20 }}, 'Revenue snapshot'), [
                           { label:'Pro Price', value:`₦${(proPrice/100).toLocaleString()}`, color:C.cyan },
                           { label:'Est. Pro Revenue', value:`₦${((proUsers.length * proPrice)/100).toLocaleString()}`, color:'#E2BE78' },
-                          { label:'Enterprise Price', value:`₦${(entPrice/100).toLocaleString()}`, color:'#7AAFCF' },
-                          { label:'Est. Ent Revenue', value:`₦${((entUsers.length * entPrice)/100).toLocaleString()}`, color:'#4CF7C0' },
                           { label:'Pro Conversion', value:`${users.length ? Math.round(proUsers.length/users.length*100) : 0}%`, color:'#D4AF6A' },
                         ].map((r,i) => (
                           React.createElement("div", {key: i, style: { display:'flex', justifyContent:'space-between', padding:'10px 0', borderBottom:`1px solid ${C.border}` }}, React.createElement("div", {style: { ...mono, fontSize:9, color:C.muted, letterSpacing:1.5 }}, r.label.toUpperCase()), React.createElement("div", {style: { ...syne, fontSize:15, fontWeight:700, color:r.color, overflowWrap:'break-word', minWidth:0}}, r.value))
@@ -6027,16 +6024,9 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
                                 color:'#F87171', borderRadius:2,
                               }}, 'Revoke')))
                         )))))
-                ), tab === 'teams' && React.createElement(window.NF_ORG.AdminTeamsPanel, null), tab === 'organisations' && (
+                ), tab === 'organisations' && (
                   React.createElement("div", null,
-                    React.createElement("div", { className:"card", style: { padding:'28px', marginBottom:24, borderColor:'rgba(76,247,192,0.2)', maxWidth:480 } },
-                      React.createElement("div", { style: { ...mono, fontSize:11, letterSpacing:1, color:'#4CF7C0', marginBottom:16 } }, 'Create organisation'),
-                      React.createElement("div", { style: { display:'flex', gap:10 } },
-                        React.createElement("input", { type:'text', value:newOrgName, onChange:e=>setNewOrgName(e.target.value), placeholder:'e.g. Acme Ltd', style: { fontSize:13, flex:1 } }),
-                        React.createElement("button", { className:"btn-primary", onClick:createOrg }, 'Create →')
-                      ),
-                      orgMsg && React.createElement("div", { style: { fontSize:12, color:C.muted, marginTop:10 } }, orgMsg)
-                    ),
+                    React.createElement(window.NF_ORG.AdminOnboardPanel, { onDone: reloadOrganisations }),
                     React.createElement("div", { className:"card", style: { overflow:'hidden' } },
                       React.createElement("div", { style: { display:'grid', gridTemplateColumns:'1.5fr 100px 100px 1fr', gap:12, padding:'14px 20px', borderBottom:`1px solid ${C.border}`, background:C.deep } }, ['NAME','COHORTS','FACILITATORS','COHORT CODES'].map(h => (
                         React.createElement("div", { key:h, style: { ...mono, fontSize:11, letterSpacing:1, color:C.muted } }, h)
@@ -6057,7 +6047,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
                 ), tab === 'cohorts' && openCohortId && (
                   (() => {
                     const openCohort = localCohorts.find(c => c.id === openCohortId);
-                    if (!openCohort) { setOpenCohortId(null); return null; }
+                    if (!openCohort) { return null; }
                     return React.createElement(CohortDetailsPanel, {
                       cohort: openCohort, users,
                       onBack: () => setOpenCohortId(null),
@@ -6722,7 +6712,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
     // Access requirements.
     function EntRoleGate({ user, setShowAuth, onSelect, onEnterMyCohorts, onExit }) {
       const [cohort, setCohort] = useState('');
-      const [joinCode, setJoinCode] = useState('');
+      const [joinCode, setJoinCode] = useState(() => { try { return sessionStorage.getItem('nf_cohort_code') || ''; } catch (_) { return ''; } });
       const [facError, setFacError] = useState('');
       const [joinError, setJoinError] = useState('');
       const [checking, setChecking] = useState(false);
@@ -7357,8 +7347,6 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
       const [entSession, setEntSession] = useState(null);
       const [entView, setEntView]       = useState(null);
       const [entResults, setEntResults] = useState([]);
-      const [paystackLoading, setPaystackLoading] = useState(false);
-      const paystackHandlerRef = React.useRef(null);
       useEnterpriseStyles();
 
       // (pre-warm removed: initiate-payment is called on click)
@@ -7372,52 +7360,10 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
         }
       },[entSession?.cohort]);
 
-      // Open Paystack popup synchronously on click (Enterprise)
-      // NOTE: openIframe() must be called in the same synchronous call stack as the
-      // user gesture; any await before it causes browsers to block the popup.
-      const loadPaystackScript = () => new Promise((resolve, reject) => {
-        if (typeof PaystackPop !== 'undefined') { resolve(); return; }
-        const s = document.createElement('script');
-        s.src = 'https://js.paystack.co/v1/inline.js';
-        s.onload = resolve; s.onerror = reject;
-        document.head.appendChild(s);
-      });
-
-      const handleUnlock = () => {
-        if (!user) { setShowAuth(true); return; }
-        const PAYSTACK_KEY = paystackKey || 'pk_live_dfa71eca29f942cadc337cb8e41834857e2b129b';
-        setPaystackLoading(true);
-        loadPaystackScript().then(() => {
-          const handler = PaystackPop.setup({
-            key: PAYSTACK_KEY,
-            email: user.email,
-            amount: entPrice || ENTERPRISE_PRICE_KOBO,
-            currency: 'NGN',
-            ref: 'nf_ent_' + Date.now() + '_' + user.id.slice(0, 8),
-            metadata: { user_id: user.id, plan: 'enterprise' },
-            onSuccess: async (transaction) => {
-              setPaystackLoading(false);
-              try {
-                const res = await fetch(SUPABASE_URL + '/functions/v1/verify-payment', {
-                  method: 'POST',
-                  headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + session.access_token },
-                  body: JSON.stringify({ reference: transaction.reference, plan: 'enterprise' }),
-                });
-                const data = await res.json();
-                if (res.ok && data.success) { setIsEnterprise(true); }
-                else { alert('Payment received but verification failed. Contact support with ref: ' + transaction.reference); }
-              } catch(e) { alert('Network error during verification. Contact support with ref: ' + transaction.reference); }
-            },
-            onCancel: ()=>{ setPaystackLoading(false); },
-          });
-          handler.openIframe();
-        }).catch(() => { setPaystackLoading(false); alert('Could not load payment system. Check your connection and try again.'); });
-      };
-
-      // If not enterprise, show paywall
-      // Non-enterprise visitors get the self-serve team purchase experience (org.js).
+      // Enterprise is custom: no self-serve purchase. Visitors see how onboarding works
+      // (contact the founder first, admin onboards the organisation, owner invites the team).
       if (!isEnterprise) {
-        return React.createElement(window.NF_ORG.EnterpriseLanding, { user, session, setShowAuth });
+        return React.createElement(window.NF_ORG.EnterpriseLanding, { user, setShowAuth, setView, setIsEnterprise });
       }
 
       // If enterprise, show the app
@@ -7598,9 +7544,11 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
     }
 
     // ═══ NEURALFUSION_ORG_MODULE_START (self-serve team assessments, formerly org.js) ═══
-// NeuralFusion self-serve team assessments (B2B). Loaded BEFORE app.js; it only touches the globals
+// NeuralFusion organisation module (B2B). Enterprise is custom: the founder is contacted first, an admin onboards the
+// organisation, and the organisation owner then invites the team. There is no self-serve purchase.
+// It only touches the globals
 // app.js defines (React, sb, SUPABASE_URL, C, mono, syne, inter) at call time, inside functions.
-// All authority lives in Supabase RPCs/RLS and the team-checkout / paystack-webhook Edge Functions.
+// All authority lives in Supabase RPCs/RLS (admin_onboard_organisation is platform-admin only).
 (function () {
   const h = React.createElement;
   const { useState, useEffect } = React;
@@ -7613,46 +7561,29 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
     if (error) { console.error('[NF_ORG ' + name + ']', error); return { ok: false, error: 'request_failed' }; }
     return data;
   };
-  const callCheckout = async (session, body) => {
-    try {
-      const res = await fetch(SUPABASE_URL + '/functions/v1/team-checkout', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + session.access_token },
-        body: JSON.stringify(body),
-      });
-      const text = await res.text();
-      try { return JSON.parse(text); }
-      catch (_) {
-        console.error('[team-checkout] non-JSON response', res.status, text.slice(0, 300));
-        return { success: false, error: 'server_error' };
-      }
-    } catch (e) {
-      console.error('[team-checkout] fetch failed (CORS, offline or blocked)', e);
-      return { success: false, error: 'network' };
-    }
-  };
   const ERR = {
     not_signed_in: 'Please sign in first.', not_authorised: 'You do not have permission to do that.',
-    plan_unavailable: 'That package is not available right now.', invalid_org_name: 'Enter an organisation name (2 to 120 characters).',
-    seat_price_not_set: 'Extra seats are not enabled yet. Contact enterprise.', invalid_quantity: 'Enter a valid number of seats.',
-    organisation_inactive: 'This organisation is not active.', invalid_invitation: 'This invitation link is not valid.',
+    invalid_org_name: 'Enter an organisation name (2 to 120 characters).', invalid_email: 'Enter a valid owner email address.',
+    invalid_seats: 'Enter a seat count between 1 and 100000.', org_exists: 'An organisation with that name already exists.',
+    invalid_quantity: 'Enter a valid number of seats.', organisation_inactive: 'This organisation is not active.',
+    invalid_invitation: 'This invitation link is not valid.',
     invitation_not_active: 'This invitation has already been used or was withdrawn.', invitation_expired: 'This invitation has expired. Ask your organisation for a new one.',
     email_mismatch: 'This invitation was sent to a different email address. Sign in with the invited email.',
-    amount_mismatch: 'The amount paid did not match the order. Contact support with your reference.',
+    seats_below_used: 'Seat limit cannot be lower than the seats already in use.',
     network: 'Network error. Please try again.', server_error: 'Something went wrong. Please try again.', request_failed: 'Something went wrong. Please try again.',
   };
   const errText = (r) => ERR[r && r.error] || 'Something went wrong. Please try again.';
 
-  // ---------- URL entry points (payment return, invitation links) ----------
+  // ---------- URL entry points (team invitation links, cohort invite links) ----------
   function initialView() {
     try {
       const p = new URLSearchParams(window.location.search);
-      const ref = p.get('team_ref'), inv = p.get('invite');
-      if (ref) sessionStorage.setItem('nf_team_ref', ref);
+      const inv = p.get('invite'), code = p.get('code'), ent = p.get('enterprise');
       if (inv) localStorage.setItem('nf_invite_token', inv);
-      if (ref || inv) window.history.replaceState({}, '', window.location.pathname);
+      if (ent && code) sessionStorage.setItem('nf_cohort_code', code.trim().slice(0, 40));
+      if (inv || (ent && code)) window.history.replaceState({}, '', window.location.pathname);
       if (inv || localStorage.getItem('nf_invite_token')) return 'invite';
-      if (ref) return 'org';
+      if (ent) return 'enterprise';
     } catch (_) {}
     return null;
   }
@@ -7677,51 +7608,70 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
     return h('button', { onClick, disabled, style: Object.assign({ ...syne, fontSize: 13, fontWeight: 700, letterSpacing: '0.06em', padding: '14px 28px', borderRadius: 2, cursor: disabled ? 'not-allowed' : 'pointer', opacity: disabled ? 0.5 : 1,
       background: ghost ? 'transparent' : C.cyan, color: ghost ? C.cyan : C.void, border: '1px solid ' + C.cyan }, style || {}) }, children);
   }
+  function LinkBtn({ href, children, onClick, style }) {
+    return h('a', { href, onClick, style: Object.assign({ ...syne, display: 'inline-block', textDecoration: 'none', textAlign: 'center', fontSize: 13, fontWeight: 700, letterSpacing: '0.06em', padding: '14px 28px', borderRadius: 2, cursor: 'pointer', background: C.cyan, color: C.void, border: '1px solid ' + C.cyan }, style || {}) }, children);
+  }
   const Stat = (l, v, sub) => h('div', { key: l, style: card({ padding: 20 }) }, h('div', { style: label }, l), h('div', { style: { ...syne, fontSize: 26, fontWeight: 800, color: C.cyanBright } }, v), sub ? h('div', { style: { fontSize: 12, color: C.muted, marginTop: 4 } }, sub) : null);
   const Msg = ({ m }) => m ? h('div', { style: { padding: '12px 16px', marginBottom: 16, borderRadius: 2, fontSize: 13, background: m.type === 'error' ? 'rgba(248,113,113,0.1)' : 'rgba(76,247,192,0.08)', border: '1px solid ' + (m.type === 'error' ? 'rgba(248,113,113,0.3)' : 'rgba(76,247,192,0.3)'), color: m.type === 'error' ? '#F87171' : '#4CF7C0' } }, m.text) : null;
   const Shell = (children) => h('div', { style: { background: C.void, minHeight: '100vh', paddingTop: 90, paddingBottom: 100, color: C.text } }, h('div', { style: { maxWidth: 1000, margin: '0 auto', padding: '0 24px' } }, children));
 
   // ====================================================================
-  // ENTERPRISE LANDING + SELF-SERVE CHECKOUT
+  // ENTERPRISE LANDING (custom: contact the founder, admin onboards)
   // ====================================================================
-  function EnterpriseLanding({ user, session, setShowAuth }) {
-    const [plans, setPlans] = useState(null);
-    const [sel, setSel] = useState(null);
-    const [orgName, setOrgName] = useState('');
+  const FOUNDER_EMAIL = 'edetlife94@gmail.com';
+  const ENTERPRISE_MAILTO = 'mailto:' + FOUNDER_EMAIL + '?subject=' + encodeURIComponent('Enterprise Enquiry: NeuralFusion') +
+    '&body=' + encodeURIComponent('Organisation:\nCountry:\nApproximate team size:\nWhat you want to achieve:\n');
+
+  function EnterpriseLanding({ user, setShowAuth, setView, setIsEnterprise }) {
+    const [orgs, setOrgs] = useState(null);
+    const [code, setCode] = useState(() => { try { return sessionStorage.getItem('nf_cohort_code') || ''; } catch (_) { return ''; } });
     const [busy, setBusy] = useState(false);
     const [msg, setMsg] = useState(null);
-    const [pendingPay, setPendingPay] = useState(false);
 
+    useEffect(() => { track('enterprise_page_viewed'); }, []);
     useEffect(() => {
-      track('enterprise_page_viewed');
-      sb.from('team_plans').select('*').eq('is_active', true).order('sort_order').then(({ data }) => setPlans(data || []));
-    }, []);
-    useEffect(() => { if (pendingPay && user && session) { setPendingPay(false); startCheckout(); } }, [pendingPay, user, session]);
+      if (!user) { setOrgs(null); return; }
+      let live = true;
+      loadMyOrgs().then((l) => { if (live) setOrgs(l); });
+      return () => { live = false; };
+    }, [user && user.id]);
 
     const scrollTo = (id) => { const el = document.getElementById(id); if (el) el.scrollIntoView({ behavior: 'smooth' }); };
-    const startCheckout = async () => {
-      if (!sel) { setMsg({ type: 'error', text: 'Choose a package first.' }); return; }
-      if (orgName.trim().length < 2) { setMsg({ type: 'error', text: ERR.invalid_org_name }); return; }
-      if (!user || !session) { setPendingPay(true); setShowAuth(true); return; }
-      setBusy(true); setMsg(null); track('checkout_started', { package: sel.code });
-      const r = await callCheckout(session, { action: 'init', type: 'new_team', package_code: sel.code, org_name: orgName.trim() });
-      if (!r.success) { setBusy(false); setMsg({ type: 'error', text: errText(r) }); return; }
-      window.location.href = r.authorization_url; // Paystack hosted checkout; verified server-side on return
+    const joinCohort = async () => {
+      if (!code.trim()) { setMsg({ type: 'error', text: 'Enter your cohort code.' }); return; }
+      if (!user) { setShowAuth(true); return; }
+      setBusy(true); setMsg(null);
+      const res = await joinCohortByCode(code);
+      setBusy(false);
+      if (!res || !res.ok) { setMsg({ type: 'error', text: JOIN_COHORT_ERRORS[res && res.error] || JOIN_COHORT_ERRORS.unknown }); return; }
+      try { sessionStorage.removeItem('nf_cohort_code'); } catch (_) {}
+      if (setIsEnterprise) setIsEnterprise(true);
     };
 
     const sec = (title, items) => h('div', { style: { marginBottom: 56 } },
       h('div', { style: { ...mono, fontSize: 11, letterSpacing: 2, color: C.cyan, marginBottom: 20 } }, title),
       h('div', { style: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(260px,1fr))', gap: 16 } },
         items.map(([t, d]) => h('div', { key: t, style: card() }, h('div', { style: { ...syne, fontSize: 16, fontWeight: 800, marginBottom: 8 } }, t), h('div', { style: { fontSize: 13, color: C.muted, lineHeight: 1.7 } }, d)))));
+    const step = (n, t, d) => h('div', { key: n, style: card() },
+      h('div', { style: { ...mono, fontSize: 11, letterSpacing: 1.5, color: C.cyan, marginBottom: 10 } }, 'STEP ' + n),
+      h('div', { style: { ...syne, fontSize: 16, fontWeight: 800, marginBottom: 8 } }, t),
+      h('div', { style: { fontSize: 13, color: C.muted, lineHeight: 1.7 } }, d));
+    const hasOrg = Array.isArray(orgs) && orgs.length > 0;
 
     return Shell([
       h('div', { key: 'hero', style: { textAlign: 'center', padding: '40px 0 64px' } },
         h('div', { style: { ...mono, fontSize: 11, letterSpacing: 2, color: C.cyan, marginBottom: 20 } }, 'NEURALFUSION FOR ORGANIZATIONS'),
         h('h1', { style: { ...syne, fontSize: 'clamp(30px,5vw,52px)', fontWeight: 900, lineHeight: 1.1, margin: '0 0 20px' } }, 'Understand how your team thinks under pressure.'),
-        h('p', { style: { fontSize: 16, color: C.muted, maxWidth: 640, margin: '0 auto 32px', lineHeight: 1.8 } }, 'Measure cognitive fragmentation. Understand team thinking patterns. Strengthen integrated thinking. Improve decision-making.'),
+        h('p', { style: { fontSize: 16, color: C.muted, maxWidth: 640, margin: '0 auto 32px', lineHeight: 1.8 } }, 'Measure cognitive fragmentation. Understand team thinking patterns. Strengthen integrated thinking. Improve decision-making. Every enterprise engagement is custom-scoped with the founder.'),
         h('div', { style: { display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap' } },
-          h(Btn, { onClick: () => { track('start_team_assessment_clicked'); scrollTo('nf-packages'); } }, 'START A TEAM ASSESSMENT'),
-          h(Btn, { variant: 'ghost', onClick: () => scrollTo('nf-explore') }, 'EXPLORE ENTERPRISE'))),
+          h(LinkBtn, { href: ENTERPRISE_MAILTO, onClick: () => track('contact_founder_clicked') }, 'CONTACT THE FOUNDER'),
+          hasOrg ? h(Btn, { variant: 'ghost', onClick: () => setView('org') }, 'OPEN YOUR TEAM DASHBOARD') : h(Btn, { variant: 'ghost', onClick: () => scrollTo('nf-how') }, 'HOW IT WORKS'))),
+      h('div', { key: 'how', id: 'nf-how', style: { marginBottom: 56 } },
+        h('div', { style: { ...mono, fontSize: 11, letterSpacing: 2, color: C.cyan, marginBottom: 20 } }, 'HOW ENTERPRISE ONBOARDING WORKS'),
+        h('div', { style: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(260px,1fr))', gap: 16 } },
+          step(1, 'Contact the founder', 'Tell us about your organisation, team size and goals. We agree scope, seats and rollout together before anything is set up.'),
+          step(2, 'We onboard your organisation', 'The NeuralFusion admin creates your organisation workspace and assigns your owner. There is nothing to buy online.'),
+          step(3, 'You invite your team', 'Sign in as the owner, then invite your team by email or link. Aggregate team results appear as people complete the CFI.'))),
       h('div', { key: 'explore', id: 'nf-explore' }, sec('WHAT YOUR TEAM GETS', [
         ['CFI assessment', 'A 13-item Cognitive Fragmentation Index each team member completes in about four minutes.'],
         ['Cognitive fragmentation', 'How scattered or integrated thinking becomes under load, scored on the CFI 13 to 65 scale.'],
@@ -7732,26 +7682,17 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
         ['Cohort analytics', 'Completion tracking and aggregate trends across cohorts.'],
         ['Enterprise development', 'Facilitated programmes and custom rollout for larger organizations.'],
       ])),
-      h('div', { key: 'pk', id: 'nf-packages', style: { marginBottom: 40 } },
-        h('div', { style: { ...mono, fontSize: 11, letterSpacing: 2, color: C.cyan, marginBottom: 20 } }, 'CHOOSE A TEAM ASSESSMENT'),
-        plans === null ? h('div', { style: { color: C.muted } }, 'Loading packages...') :
-        plans.length === 0 ? h('div', { style: card() }, h('div', { style: { color: C.muted, lineHeight: 1.7 } }, 'Team packages are not open for online purchase yet. Use Contact Enterprise below to be notified.')) :
-        h('div', { style: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(220px,1fr))', gap: 16 } },
-          plans.map((p) => h('div', { key: p.code, onClick: () => { setSel(p); track('package_selected', { package: p.code }); },
-            style: card({ cursor: 'pointer', borderColor: sel && sel.code === p.code ? C.cyan : C.border, boxShadow: sel && sel.code === p.code ? '0 0 30px rgba(196,160,80,0.2)' : 'none' }) },
-            h('div', { style: { ...mono, fontSize: 11, letterSpacing: 1.5, color: C.cyan } }, p.name.toUpperCase()),
-            h('div', { style: { ...syne, fontSize: 30, fontWeight: 900, margin: '10px 0 4px' } }, naira(p.price_kobo)),
-            h('div', { style: { fontSize: 13, color: C.muted } }, p.seats + ' participant seats'))))),
-      sel ? h('div', { key: 'co', style: card({ maxWidth: 520, margin: '0 auto 48px', borderColor: C.borderBright }) },
-        h('div', { style: label }, 'Organisation or team name'),
-        h('input', { value: orgName, onChange: (e) => setOrgName(e.target.value), placeholder: 'e.g. Acme Leadership Team', style: Object.assign({}, inputStyle, { marginBottom: 16 }), maxLength: 120 }),
+      h('div', { key: 'join', style: card({ maxWidth: 520, margin: '0 auto 40px' }) },
+        h('div', { style: label }, 'Already onboarded? Have a cohort code?'),
+        h('input', { value: code, onChange: (e) => setCode(e.target.value), placeholder: 'Cohort code', maxLength: 40, style: Object.assign({}, inputStyle, { marginBottom: 14 }) }),
         h(Msg, { m: msg }),
-        h(Btn, { onClick: startCheckout, disabled: busy, style: { width: '100%' } }, busy ? 'REDIRECTING TO PAYSTACK...' : (user ? 'PAY ' + naira(sel.price_kobo) + ' FOR ' + sel.name.toUpperCase() : 'CREATE ACCOUNT OR SIGN IN TO PAY')),
-        h('div', { style: { fontSize: 12, color: C.muted, marginTop: 12, lineHeight: 1.6 } }, 'You become the organisation owner. Payment is confirmed server-side before your workspace is created.')) : null,
-      h('div', { key: 'ent', style: Object.assign(card({ textAlign: 'center' })) },
-        h('div', { style: { ...syne, fontSize: 18, fontWeight: 800, marginBottom: 8 } }, 'Larger organization?'),
-        h('div', { style: { fontSize: 13, color: C.muted, marginBottom: 16 } }, 'Custom seat counts, facilitated cohorts and enterprise development programmes.'),
-        h('a', { href: '/contact', style: { ...syne, color: C.cyan, fontSize: 13, fontWeight: 700, letterSpacing: '0.06em' } }, 'CONTACT ENTERPRISE \u2192')),
+        h(Btn, { onClick: joinCohort, disabled: busy, style: { width: '100%' } }, busy ? 'JOINING...' : (user ? 'JOIN COHORT' : 'SIGN IN TO JOIN')),
+        h('div', { style: { fontSize: 12, color: C.muted, marginTop: 12, lineHeight: 1.6 } }, 'Team invitations arrive as a link from your organisation owner. Cohort codes come from your facilitator.')),
+      h('div', { key: 'ent', style: card({ textAlign: 'center' }) },
+        h('div', { style: { ...syne, fontSize: 18, fontWeight: 800, marginBottom: 8 } }, 'Ready to start?'),
+        h('div', { style: { fontSize: 13, color: C.muted, marginBottom: 16, lineHeight: 1.7 } }, 'Email the founder with your organisation name, country and team size. You will get a reply with next steps.'),
+        h('a', { href: ENTERPRISE_MAILTO, onClick: () => track('contact_founder_clicked'), style: { ...syne, color: C.cyan, fontSize: 13, fontWeight: 700, letterSpacing: '0.06em' } }, 'EMAIL THE FOUNDER \u2192'),
+        h('div', { style: { marginTop: 10 } }, h('a', { href: '/contact', style: { ...mono, fontSize: 11, color: C.muted } }, 'Other contact details'))),
     ]);
   }
 
@@ -7768,23 +7709,13 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
     useEffect(() => {
       if (!user || !session) return;
       (async () => {
-        const ref = sessionStorage.getItem('nf_team_ref');
-        if (ref) {
-          setNotice({ type: 'ok', text: 'Confirming your payment...' });
-          const r = await callCheckout(session, { action: 'verify', reference: ref });
-          sessionStorage.removeItem('nf_team_ref');
-          if (r.success) {
-            track('payment_successful'); if (r.organisation_id) { sessionStorage.setItem('nf_active_org', r.organisation_id); setActive(r.organisation_id); track('organisation_created'); }
-            setNotice({ type: 'ok', text: 'Payment confirmed. Your workspace is ready.' });
-          } else setNotice({ type: 'error', text: errText(r) + ' Reference: ' + ref + '. If you were charged, the workspace will appear shortly once Paystack confirms; contact support if it does not.' });
-        }
         await reload();
       })();
     }, [user && user.id, session && session.access_token]);
 
     if (!user) return Shell(h('div', { style: card({ textAlign: 'center' }) }, h('div', { style: { marginBottom: 16 } }, 'Sign in to open your team dashboard.'), h(Btn, { onClick: () => setShowAuth(true) }, 'SIGN IN')));
     if (orgs === null) return Shell(h('div', { style: { color: C.muted } }, notice ? notice.text : 'Loading...'));
-    if (orgs.length === 0) return Shell([h(Msg, { key: 'm', m: notice }), h('div', { key: 'c', style: card({ textAlign: 'center' }) }, h('div', { style: { ...syne, fontSize: 18, fontWeight: 800, marginBottom: 12 } }, 'No team workspace yet'), h(Btn, { onClick: () => setView('enterprise') }, 'START A TEAM ASSESSMENT'))]);
+    if (orgs.length === 0) return Shell([h(Msg, { key: 'm', m: notice }), h('div', { key: 'c', style: card({ textAlign: 'center' }) }, h('div', { style: { ...syne, fontSize: 18, fontWeight: 800, marginBottom: 12 } }, 'No team workspace yet'), h('div', { style: { fontSize: 14, color: C.muted, lineHeight: 1.7, marginBottom: 16 } }, 'Organisation workspaces are set up by NeuralFusion after you speak with the founder. If you were told your organisation is onboarded, sign in with the email address it was onboarded under, or open your invitation link.'), h(Btn, { onClick: () => setView('enterprise') }, 'HOW ENTERPRISE WORKS'))]);
     const org = orgs.find((o) => o.id === active) || orgs[0];
     const pick = (id) => { sessionStorage.setItem('nf_active_org', id); setActive(id); };
     const header = h('div', { key: 'hd', style: { marginBottom: 28 } },
@@ -7801,7 +7732,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
     const [ov, setOv] = useState(null);
     const refresh = async () => setOv(await rpc('org_overview', { p_org: org.id }));
     useEffect(() => { refresh(); }, [org.id]);
-    const tabs = [['overview', 'Overview'], ['invite', 'Invite'], ['results', 'Team Results'], ['team', 'Team and Cohorts'], ['billing', 'Billing and Seats']];
+    const tabs = [['overview', 'Overview'], ['invite', 'Invite'], ['results', 'Team Results'], ['team', 'Team and Cohorts'], ['billing', 'Plan and Seats']];
     if (!ov) return h('div', { style: { color: C.muted } }, 'Loading...');
     if (!ov.ok) return h(Msg, { m: { type: 'error', text: errText(ov) } });
     return h('div', null,
@@ -7810,7 +7741,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
       tab === 'invite' ? h(InviteTab, { org, ov, refresh, go: setTab, role: ov.role }) : null,
       tab === 'results' ? h(ResultsTab, { org }) : null,
       tab === 'team' ? h(TeamTab, { org, role: ov.role, refresh }) : null,
-      tab === 'billing' ? h(BillingTab, { org, ov, session }) : null);
+      tab === 'billing' ? h(BillingTab, { org, ov }) : null);
   }
 
   function OverviewTab({ ov, go }) {
@@ -7856,7 +7787,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
         h('textarea', { value: text, onChange: (e) => setText(e.target.value), rows: 4, placeholder: 'name@company.com', style: Object.assign({}, inputStyle, { marginBottom: 12 }) }),
         role === 'owner' ? h('select', { value: kind, onChange: (e) => setKind(e.target.value), style: Object.assign({}, inputStyle, { marginBottom: 12 }) }, [['participant', 'Participant'], ['facilitator', 'Facilitator'], ['admin', 'Organisation admin']].map(([v, l]) => h('option', { key: v, value: v }, l))) : null,
         h(Msg, { m: msg }),
-        h('div', { style: { display: 'flex', gap: 12, flexWrap: 'wrap' } }, h(Btn, { onClick: send, disabled: busy || full }, busy ? 'SENDING...' : 'SEND INVITATIONS'), full ? h(Btn, { variant: 'ghost', onClick: () => go('billing') }, 'ADD MORE SEATS') : null),
+        h('div', { style: { display: 'flex', gap: 12, flexWrap: 'wrap' } }, h(Btn, { onClick: send, disabled: busy || full }, busy ? 'SENDING...' : 'SEND INVITATIONS'), full ? h(Btn, { variant: 'ghost', onClick: () => go('billing') }, 'REQUEST MORE SEATS') : null),
         h('div', { style: { fontSize: 12, color: C.muted, marginTop: 12 } }, ov.seats.remaining + ' of ' + ov.seats.limit + ' seats remaining. Invitees receive an email when email delivery is configured; you can always copy the link below.')),
       h('div', { style: card({ marginBottom: 20 }) }, h('div', { style: label }, 'Pending invitations'),
         !data ? 'Loading...' : (data.invitations || []).length === 0 ? h('div', { style: { color: C.muted, fontSize: 13 } }, 'None pending.') :
@@ -7907,25 +7838,16 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
         h('div', { style: { display: 'flex', gap: 8, marginTop: 14 } }, h('input', { value: name, onChange: (e) => setName(e.target.value), placeholder: 'New cohort name', style: inputStyle }), h(Btn, { onClick: async () => { await act('create_org_cohort', { p_org: org.id, p_name: name }); setName(''); } }, 'CREATE'))));
   }
 
-  function BillingTab({ org, ov, session }) {
-    const [qty, setQty] = useState(5); const [price, setPrice] = useState(0); const [msg, setMsg] = useState(null); const [busy, setBusy] = useState(false);
-    useEffect(() => { getPlatformSetting('team_extra_seat_price_kobo').then((v) => setPrice(parseInt(v) || 0)); }, []);
-    const buy = async () => {
-      setBusy(true); track('add_seats_started', { organisation_id: org.id });
-      const r = await callCheckout(session, { action: 'init', type: 'add_seats', organisation_id: org.id, quantity: parseInt(qty) });
-      if (!r.success) { setBusy(false); setMsg({ type: 'error', text: errText(r) }); return; }
-      window.location.href = r.authorization_url;
-    };
+  function BillingTab({ org, ov }) {
     const row = (l, v) => h('div', { key: l, style: { display: 'flex', justifyContent: 'space-between', padding: '10px 0', borderBottom: '1px solid ' + C.border, fontSize: 14 } }, h('span', { style: { color: C.muted } }, l), h('span', null, v));
+    const seatMail = 'mailto:' + FOUNDER_EMAIL + '?subject=' + encodeURIComponent('Seat request: ' + org.name) + '&body=' + encodeURIComponent('Organisation: ' + org.name + '\nSeats needed:\n');
     return h('div', null,
-      h('div', { style: card({ marginBottom: 20 }) }, h('div', { style: label }, 'Plan and payment'),
-        row('Current plan', ov.plan.name || 'Custom'), row('Purchased seats', ov.seats.limit), row('Used seats', ov.seats.used), row('Remaining seats', ov.seats.remaining),
-        row('Payment status', ov.organisation.payment_status || 'n/a'), row('Transaction reference', ov.organisation.payment_reference || 'n/a'),
-        row('Purchase date', ov.purchase_date ? new Date(ov.purchase_date).toLocaleDateString() : 'n/a')),
-      h('div', { style: card() }, h('div', { style: label }, 'Add seats'),
-        price > 0 ? h('div', null, h('div', { style: { fontSize: 13, color: C.muted, marginBottom: 12 } }, naira(price) + ' per additional seat.'),
-          h('div', { style: { display: 'flex', gap: 12, alignItems: 'center', flexWrap: 'wrap' } }, h('input', { type: 'number', min: 1, max: 500, value: qty, onChange: (e) => setQty(e.target.value), style: Object.assign({}, inputStyle, { width: 120 }) }), h(Btn, { onClick: buy, disabled: busy }, busy ? 'REDIRECTING...' : 'PAY ' + naira(price * (parseInt(qty) || 0)))), h(Msg, { m: msg }))
-          : h('div', { style: { fontSize: 14, color: C.muted, lineHeight: 1.7 } }, 'Online seat top-ups are not enabled yet. ', h('a', { href: '/contact', style: { color: C.cyan } }, 'Contact Enterprise'), ' to add seats or move to a custom plan.')));
+      h('div', { style: card({ marginBottom: 20 }) }, h('div', { style: label }, 'Your enterprise plan'),
+        row('Organisation', org.name), row('Plan', (ov.plan && ov.plan.name) || 'Custom enterprise'), row('Seats', ov.seats.limit), row('Used seats', ov.seats.used), row('Remaining seats', ov.seats.remaining),
+        row('Onboarded', ov.purchase_date ? new Date(ov.purchase_date).toLocaleDateString() : 'n/a')),
+      h('div', { style: card() }, h('div', { style: label }, 'Need more seats?'),
+        h('div', { style: { fontSize: 14, color: C.muted, lineHeight: 1.7, marginBottom: 16 } }, 'Enterprise plans are custom. Email the founder and your seat limit will be updated by the NeuralFusion admin.'),
+        h(LinkBtn, { href: seatMail }, 'REQUEST MORE SEATS')));
   }
 
   function ParticipantPanel({ org, setView }) {
@@ -7968,47 +7890,77 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
   }
 
   // ====================================================================
-  // ADMIN > TEAMS (platform admin only; enforced by RLS and RPC checks)
+  // ADMIN > ORGANISATIONS: onboard an enterprise client (platform admin only;
+  // enforced by RLS and the RPC's own is_admin check)
   // ====================================================================
-  function AdminTeamsPanel() {
-    const [plans, setPlans] = useState([]); const [orgs, setOrgs] = useState([]); const [msg, setMsg] = useState(null);
-    const [seatPrice, setSeatPrice] = useState(''); const [thr, setThr] = useState('');
+  function AdminOnboardPanel({ onDone }) {
+    const [orgs, setOrgs] = useState([]); const [msg, setMsg] = useState(null); const [busy, setBusy] = useState(false);
+    const [name, setName] = useState(''); const [email, setEmail] = useState(''); const [seats, setSeats] = useState('25');
+    const [thr, setThr] = useState('5'); const [invite, setInvite] = useState(null);
     const load = async () => {
-      const { data } = await sb.from('team_plans').select('*').order('sort_order'); setPlans(data || []);
-      const r = await rpc('admin_list_organisations'); setOrgs(r.ok ? r.organisations : []);
-      const sp = await getPlatformSetting('team_extra_seat_price_kobo'); setSeatPrice(String(Math.round((parseInt(sp) || 0) / 100)));
+      const r = await rpc('admin_list_organisations'); setOrgs(r && r.ok && Array.isArray(r.organisations) ? r.organisations : []);
       const t = await getPlatformSetting('org_min_report_threshold'); setThr(String(parseInt(t) || 5));
     };
     useEffect(() => { load(); }, []);
-    const savePlan = async (p) => {
-      const { error } = await sb.from('team_plans').update({ name: p.name, seats: p.seats, price_kobo: p.price_kobo, is_active: p.is_active, updated_at: new Date().toISOString() }).eq('id', p.id);
-      setMsg(error ? { type: 'error', text: error.message } : { type: 'ok', text: 'Saved ' + p.name }); load();
+    const isMissingFn = (e) => !!e && (e.code === 'PGRST202' || e.code === '42883' || /could not find the function|does not exist/i.test(e.message || ''));
+    const onboard = async () => {
+      const n = name.trim(), em = email.trim().toLowerCase(), st = parseInt(seats, 10);
+      if (n.length < 2 || n.length > 120) { setMsg({ type: 'error', text: ERR.invalid_org_name }); return; }
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(em)) { setMsg({ type: 'error', text: ERR.invalid_email }); return; }
+      if (!(st >= 1 && st <= 100000)) { setMsg({ type: 'error', text: ERR.invalid_seats }); return; }
+      setBusy(true); setMsg(null); setInvite(null);
+      const { data, error } = await sb.rpc('admin_onboard_organisation', { p_name: n, p_owner_email: em, p_seats: st });
+      setBusy(false);
+      if (error) {
+        console.error('[admin_onboard_organisation]', error);
+        setMsg({ type: 'error', text: isMissingFn(error) ? 'Organisation onboarding is not enabled on the database yet. Run migration_admin_onboarding.sql in the Supabase SQL editor, then try again.' : 'Could not onboard this organisation. Please try again.' });
+        return;
+      }
+      if (!data || !data.ok) { setMsg({ type: 'error', text: errText(data) }); return; }
+      track('organisation_onboarded', { organisation_id: data.organisation_id });
+      if (data.owner_status === 'invited' && data.invite_token) {
+        setInvite(window.location.origin + '/?invite=' + data.invite_token);
+        setMsg({ type: 'ok', text: n + ' onboarded. The owner has no account yet: send them the link below. They sign up with ' + em + ' and accept it.' });
+      } else setMsg({ type: 'ok', text: n + ' onboarded. ' + em + ' now sees the team dashboard under My Team and can invite their team.' });
+      setName(''); setEmail(''); setSeats('25'); load(); if (onDone) onDone();
     };
-    const edit = (id, k, v) => setPlans((ps) => ps.map((p) => p.id === id ? Object.assign({}, p, { [k]: v }) : p));
-    const saveSettings = async () => {
-      await sb.from('platform_settings').upsert({ key: 'team_extra_seat_price_kobo', value: Math.round((parseFloat(seatPrice) || 0) * 100) }, { onConflict: 'key' });
-      await sb.from('platform_settings').upsert({ key: 'org_min_report_threshold', value: Math.max(2, parseInt(thr) || 5) }, { onConflict: 'key' });
-      setMsg({ type: 'ok', text: 'Settings saved.' });
+    const copyInvite = () => { try { navigator.clipboard.writeText(invite); setMsg({ type: 'ok', text: 'Owner link copied.' }); } catch (_) { window.prompt('Copy this link', invite); } };
+    const editSeats = async (o) => {
+      const v = window.prompt('Seat limit for ' + o.name, String(o.seat_limit));
+      if (v === null) return;
+      const st = parseInt(v, 10);
+      if (!(st >= 1 && st <= 100000)) { setMsg({ type: 'error', text: ERR.invalid_seats }); return; }
+      const { data, error } = await sb.rpc('admin_set_org_seats', { p_org: o.id, p_seats: st });
+      if (error) { console.error('[admin_set_org_seats]', error); setMsg({ type: 'error', text: isMissingFn(error) ? 'Seat editing needs migration_admin_onboarding.sql to be run first.' : ERR.server_error }); return; }
+      if (!data || !data.ok) { setMsg({ type: 'error', text: errText(data) }); return; }
+      setMsg({ type: 'ok', text: 'Seat limit updated.' }); load();
+    };
+    const saveThreshold = async () => {
+      const { error } = await sb.from('platform_settings').upsert({ key: 'org_min_report_threshold', value: Math.max(2, parseInt(thr) || 5) }, { onConflict: 'key' });
+      setMsg(error ? { type: 'error', text: ERR.server_error } : { type: 'ok', text: 'Saved.' });
     };
     const cell = { padding: '8px 6px', fontSize: 12, borderBottom: '1px solid ' + C.border };
-    return h('div', null, h(Msg, { m: msg }),
-      h('div', { style: card({ marginBottom: 20 }) }, h('div', { style: label }, 'Team packages (price in naira)'),
-        plans.map((p) => h('div', { key: p.id, style: { display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap', marginBottom: 10 } },
-          h('input', { value: p.name, onChange: (e) => edit(p.id, 'name', e.target.value), style: Object.assign({}, inputStyle, { width: 150 }) }),
-          h('input', { type: 'number', value: p.seats, onChange: (e) => edit(p.id, 'seats', parseInt(e.target.value) || 1), style: Object.assign({}, inputStyle, { width: 90 }) }),
-          h('input', { type: 'number', value: Math.round(p.price_kobo / 100), onChange: (e) => edit(p.id, 'price_kobo', Math.round((parseFloat(e.target.value) || 0) * 100)), style: Object.assign({}, inputStyle, { width: 140 }) }),
-          h('label', { style: { fontSize: 12 } }, h('input', { type: 'checkbox', checked: p.is_active, disabled: p.is_custom, onChange: (e) => edit(p.id, 'is_active', e.target.checked) }), ' active'),
-          p.is_custom ? h('span', { style: { ...mono, fontSize: 10, color: C.muted } }, 'custom, not purchasable online') : null,
-          h(Btn, { onClick: () => savePlan(p), style: { padding: '8px 16px' } }, 'SAVE')))),
-      h('div', { style: card({ marginBottom: 20 }) }, h('div', { style: label }, 'Extra seat price (naira, 0 disables) and minimum completions for aggregate results'),
-        h('div', { style: { display: 'flex', gap: 8, flexWrap: 'wrap' } }, h('input', { type: 'number', value: seatPrice, onChange: (e) => setSeatPrice(e.target.value), style: Object.assign({}, inputStyle, { width: 160 }) }), h('input', { type: 'number', value: thr, onChange: (e) => setThr(e.target.value), style: Object.assign({}, inputStyle, { width: 120 }) }), h(Btn, { onClick: saveSettings, style: { padding: '8px 16px' } }, 'SAVE'))),
-      h('div', { style: card({ overflowX: 'auto' }) }, h('div', { style: label }, 'Organisations (' + orgs.length + ')'),
-        h('table', { style: { width: '100%', borderCollapse: 'collapse', color: C.text } }, h('thead', null, h('tr', null, ['Organisation', 'Owner', 'Plan', 'Seats', 'Payment', 'Members', 'Completed', 'Cohorts', 'Created', 'Active'].map((x) => h('th', { key: x, style: Object.assign({}, cell, { ...mono, fontSize: 10, color: C.muted, textAlign: 'left' }) }, x)))),
-          h('tbody', null, orgs.map((o) => h('tr', { key: o.id }, [o.name, o.owner_email || o.source, o.plan || 'n/a', o.active_members + o.pending_invites + ' / ' + o.seat_limit, o.payment_status || 'n/a', o.active_members, o.completed, o.cohorts, new Date(o.created_at).toLocaleDateString()].map((v, i) => h('td', { key: i, style: cell }, String(v))),
-            h('td', { style: cell }, h('button', { onClick: async () => { await rpc('admin_set_org_active', { p_org: o.id, p_active: !o.is_active }); load(); }, style: { ...mono, fontSize: 10, background: 'none', border: '1px solid ' + C.border, color: o.is_active ? '#4CF7C0' : '#F87171', padding: '4px 8px', cursor: 'pointer' } }, o.is_active ? 'ON' : 'OFF'))))))));
+    return h('div', { style: { marginBottom: 24 } }, h(Msg, { m: msg }),
+      invite ? h('div', { style: card({ marginBottom: 20 }) }, h('div', { style: label }, 'Owner invitation link'), h('div', { style: { fontSize: 12, wordBreak: 'break-all', color: C.muted, marginBottom: 12 } }, invite), h(Btn, { onClick: copyInvite, style: { padding: '8px 16px' } }, 'COPY LINK')) : null,
+      h('div', { style: card({ marginBottom: 20 }) }, h('div', { style: label }, 'Onboard an enterprise organisation'),
+        h('div', { style: { fontSize: 13, color: C.muted, lineHeight: 1.7, marginBottom: 14 } }, 'Use this after agreeing scope with the client. The owner then invites their own team from their dashboard.'),
+        h('div', { style: { display: 'flex', gap: 8, flexWrap: 'wrap' } },
+          h('input', { value: name, onChange: (e) => setName(e.target.value), placeholder: 'Organisation name', maxLength: 120, style: Object.assign({}, inputStyle, { flex: '2 1 200px', width: 'auto' }) }),
+          h('input', { type: 'email', value: email, onChange: (e) => setEmail(e.target.value), placeholder: 'Owner email', style: Object.assign({}, inputStyle, { flex: '2 1 200px', width: 'auto' }) }),
+          h('input', { type: 'number', min: 1, value: seats, onChange: (e) => setSeats(e.target.value), placeholder: 'Seats', style: Object.assign({}, inputStyle, { flex: '0 0 110px', width: 110 }) }),
+          h(Btn, { onClick: onboard, disabled: busy, style: { padding: '12px 22px' } }, busy ? 'ONBOARDING...' : 'ONBOARD'))),
+      h('div', { style: card({ marginBottom: 20, overflowX: 'auto' }) }, h('div', { style: label }, 'Onboarded organisations (' + orgs.length + ')'),
+        orgs.length === 0 ? h('div', { style: { color: C.muted, fontSize: 13 } }, 'None yet.') :
+        h('table', { style: { width: '100%', borderCollapse: 'collapse', color: C.text } }, h('thead', null, h('tr', null, ['Organisation', 'Owner', 'Seats used', 'Completed', 'Created', 'Seat limit', 'Active'].map((x) => h('th', { key: x, style: Object.assign({}, cell, { ...mono, fontSize: 10, color: C.muted, textAlign: 'left' }) }, x)))),
+          h('tbody', null, orgs.map((o) => h('tr', { key: o.id },
+            [o.name, o.owner_email || 'pending', (o.active_members || 0) + (o.pending_invites || 0) + ' / ' + o.seat_limit, o.completed || 0, o.created_at ? new Date(o.created_at).toLocaleDateString() : 'n/a'].map((v, i) => h('td', { key: i, style: cell }, String(v))),
+            h('td', { style: cell }, h('button', { onClick: () => editSeats(o), style: { ...mono, fontSize: 10, background: 'none', border: '1px solid ' + C.border, color: C.cyan, padding: '4px 8px', cursor: 'pointer' } }, 'EDIT')),
+            h('td', { style: cell }, h('button', { onClick: async () => { await rpc('admin_set_org_active', { p_org: o.id, p_active: !o.is_active }); load(); }, style: { ...mono, fontSize: 10, background: 'none', border: '1px solid ' + C.border, color: o.is_active ? '#4CF7C0' : '#F87171', padding: '4px 8px', cursor: 'pointer' } }, o.is_active ? 'ON' : 'OFF'))))))),
+      h('div', { style: card() }, h('div', { style: label }, 'Minimum completions before aggregate team results are shown'),
+        h('div', { style: { display: 'flex', gap: 8, flexWrap: 'wrap' } }, h('input', { type: 'number', min: 2, value: thr, onChange: (e) => setThr(e.target.value), style: Object.assign({}, inputStyle, { width: 120 }) }), h(Btn, { onClick: saveThreshold, style: { padding: '8px 16px' } }, 'SAVE'))));
   }
 
-  window.NF_ORG = { EnterpriseLanding, OrgPortal, InvitePage, AdminTeamsPanel, initialView, loadMyOrgs, afterCfiSaved, track };
+  window.NF_ORG = { EnterpriseLanding, OrgPortal, InvitePage, AdminOnboardPanel, initialView, loadMyOrgs, afterCfiSaved, track };
 })();
 
     // ═══ NEURALFUSION_ORG_MODULE_END ═══
