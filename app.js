@@ -7620,8 +7620,16 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
         headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + session.access_token },
         body: JSON.stringify(body),
       });
-      return await res.json();
-    } catch (e) { return { success: false, error: 'network' }; }
+      const text = await res.text();
+      try { return JSON.parse(text); }
+      catch (_) {
+        console.error('[team-checkout] non-JSON response', res.status, text.slice(0, 300));
+        return { success: false, error: 'server_error' };
+      }
+    } catch (e) {
+      console.error('[team-checkout] fetch failed (CORS, offline or blocked)', e);
+      return { success: false, error: 'network' };
+    }
   };
   const ERR = {
     not_signed_in: 'Please sign in first.', not_authorised: 'You do not have permission to do that.',
