@@ -1264,6 +1264,7 @@ Most learners take four to six weeks working through the lessons at the suggeste
       try {
         const { data, error } = await sb.from('decision_sessions').insert({ user_id: userId, ...payload }).select().single();
         if (error) throw error;
+        nfjInvalidate('dec:');
         return data;
       } catch (e) { console.error('[DECISION SAVE ERROR]', e); return null; }
     };
@@ -1278,6 +1279,7 @@ Most learners take four to six weeks working through the lessons at the suggeste
       try {
         const { data, error } = await sb.from('decision_sessions').update(patch).eq('id', id).select().single();
         if (error) throw error;
+        nfjInvalidate('dec:');
         return data;
       } catch (e) { console.error('[DECISION UPDATE ERROR]', e); return null; }
     };
@@ -2254,7 +2256,7 @@ function HomeDecisionPanel({ user, setView }) {
   const [decisions, setDecisions] = useState([]);
   useEffect(() => {
     if (!user) return;
-    listDecisionSessions(user.id).then(rows => setDecisions(rows.slice(0, 3)));
+    nfjLoadDecisions(user.id).then(rows => setDecisions(rows.slice(0, 3))).catch(() => {});
   }, [user]);
   if (!user) return null;
   return (
@@ -2282,7 +2284,395 @@ function HomeDecisionPanel({ user, setView }) {
   );
 }
 
-function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
+// ═══ NEURALFUSION TRANSFORMATION LAYER (NFJ) ═══════════════════════════════
+// One unified journey on top of existing systems. Nothing here changes CFI scoring,
+// auth, payments, RLS or roles. It only READS existing data (cfi_results history,
+// lesson progress, decision_sessions) plus the optional practice_logs table, and
+// derives journey state from what the user has actually done. Nothing is fabricated:
+// a stage is only "done" when real recorded activity supports it.
+//
+// DISCOVER → UNDERSTAND → TRAIN → APPLY → REFLECT → MEASURE → INTEGRATE
+
+const NFJ_STAGES = [
+  { key: 'discover',   label: 'DISCOVER',   value: 'Answer the 13-question CFI and see how your four thinking modes work together.', view: 'cfi' },
+  { key: 'understand', label: 'UNDERSTAND', value: 'Read what your result may mean, where friction can show up, and what to work on.', view: 'cfi' },
+  { key: 'train',      label: 'TRAIN',      value: 'Practise the thinking mode your profile suggests developing.', view: 'lessons' },
+  { key: 'apply',      label: 'APPLY',      value: 'Work a real decision through the Decision Room.', view: 'protocol' },
+  { key: 'reflect',    label: 'REFLECT',    value: 'Record what you noticed and what you would do differently.', view: 'decisions' },
+  { key: 'measure',    label: 'MEASURE',    value: 'Retake the CFI later and compare it with your starting point.', view: 'cfi' },
+  { key: 'integrate',  label: 'INTEGRATE',  value: 'See your evidence build up over time and choose what to practise next.', view: 'analytics' },
+];
+
+// ── Light caching so Home, Analytics and Academy never duplicate the same request ──
+const nfjCache = {};
+function nfjCached(key, ttl, loader) {
+  const c = nfjCache[key];
+  if (c && Date.now() - c.t < ttl) return c.p;
+  const p = loader().catch(e => { delete nfjCache[key]; throw e; });
+  nfjCache[key] = { t: Date.now(), p };
+  return p;
+}
+function nfjInvalidate(prefix) { Object.keys(nfjCache).forEach(k => { if (k.indexOf(prefix) === 0) delete nfjCache[k]; }); }
+
+const nfjLoadDecisions = (uid) => nfjCached('dec:' + uid, 15000, async () => {
+  const { data, error } = await sb.from('decision_sessions')
+    .select('id,title,decision,status,confidence,outcome,lesson_learned,review_date,reviewed_at,created_at')
+    .eq('user_id', uid).order('created_at', { ascending: false });
+  if (error) throw error;
+  return data || [];
+});
+
+function nfjMissingTable(error) {
+  const m = String((error && (error.message || error.details)) || '');
+  return !!error && (error.code === '42P01' || error.code === 'PGRST205' || /does not exist|Could not find the table|schema cache/i.test(m));
+}
+// practice_logs is created by migration_practice_logs.sql. If it hasn't been applied yet we
+// degrade honestly: practices are reported as "not recorded", never as zero progress.
+const nfjLoadPractices = (uid) => nfjCached('prc:' + uid, 15000, async () => {
+  const { data, error } = await sb.from('practice_logs')
+    .select('id,dimension,label,created_at').eq('user_id', uid).order('created_at', { ascending: false }).limit(200);
+  if (error) { if (nfjMissingTable(error)) return { available: false, rows: [] }; throw error; }
+  return { available: true, rows: data || [] };
+});
+
+async function nfjSavePractice(uid, { dimension, label, response }) {
+  try {
+    const { error } = await sb.from('practice_logs').insert({
+      user_id: uid, dimension, label, response: (response || '').trim().slice(0, 2000) || null,
+    });
+    if (error) { if (nfjMissingTable(error)) return { ok: false, unavailable: true }; throw error; }
+    nfjInvalidate('prc:' + uid);
+    return { ok: true };
+  } catch (e) { console.error('[PRACTICE SAVE ERROR]', e); return { ok: false }; }
+}
+
+function useNFJourneyData(user) {
+  const uid = user && user.id;
+  const [tick, setTick] = useState(0);
+  const [st, setSt] = useState({ status: uid ? 'loading' : 'idle', decisions: [], practices: [], practicesAvailable: true });
+  useEffect(() => {
+    if (!uid) { setSt({ status: 'idle', decisions: [], practices: [], practicesAvailable: true }); return; }
+    let alive = true;
+    setSt(s => ({ ...s, status: 'loading' }));
+    Promise.all([nfjLoadDecisions(uid), nfjLoadPractices(uid)])
+      .then(([d, p]) => { if (alive) setSt({ status: 'ready', decisions: d, practices: p.rows, practicesAvailable: p.available }); })
+      .catch(e => { console.error('[JOURNEY LOAD ERROR]', e); if (alive) setSt(s => ({ ...s, status: 'error' })); });
+    return () => { alive = false; };
+  }, [uid, tick]);
+  return { ...st, reload: () => { if (uid) { nfjInvalidate('dec:' + uid); nfjInvalidate('prc:' + uid); } setTick(t => t + 1); } };
+}
+
+// Device-local "I looked at this" markers (non-sensitive). Used only to decide the UNDERSTAND stage
+// and the "review your evolution" nudge. Later real activity also counts as having understood.
+function nfjFlagGet(uid, name) { try { return !!(uid && localStorage.getItem('nfj_' + name + '_' + uid)); } catch (_) { return false; } }
+function nfjFlagSet(uid, name) { try { if (uid) localStorage.setItem('nfj_' + name + '_' + uid, '1'); } catch (_) {} }
+
+// ── Journey state: pure function of real data ───────────────────────────────
+function nfjComputeState({ user, cfiResult, cfiHistory, lessonProgress, decisions, practices, practicesAvailable }) {
+  const hist = cfiHistory || [];
+  const lp = lessonProgress || {};
+  const decs = decisions || [];
+  const prac = practices || [];
+  const uid = user && user.id;
+  const lessonsDone = Object.values(lp).filter(v => v === 100).length;
+  const practiceCount = prac.length;
+  const trainingCount = practiceCount + lessonsDone;
+  const reviewed = decs.filter(d => d.status === 'reviewed');
+  const reflections = decs.filter(d => (d.lesson_learned && String(d.lesson_learned).trim()) || d.reviewed_at);
+  const today = new Date();
+  const readyForReview = decs.filter(d => d.status !== 'reviewed' && !d.reviewed_at && d.review_date && new Date(d.review_date) <= today);
+  const hasCFI = !!cfiResult;
+  const baseline = hist.length ? hist[0] : null;
+  const latest = hist.length ? hist[hist.length - 1] : null;
+  const delta = hist.length >= 2 ? baseline.total_score - latest.total_score : null; // positive = less fragmentation
+  const daysSince = latest ? Math.floor((Date.now() - new Date(latest.created_at).getTime()) / 86400000) : null;
+  const flags = { profileViewed: nfjFlagGet(uid, 'profile'), evolutionViewed: nfjFlagGet(uid, 'evolution') };
+  const understood = hasCFI && (flags.profileViewed || trainingCount > 0 || decs.length > 0);
+  // Product heuristic (not a clinical threshold): suggest a retest after 14+ days AND 3+ real practice/decision events.
+  const reassessReady = hasCFI && daysSince !== null && daysSince >= 14 && (trainingCount + decs.length) >= 3;
+  const done = {
+    discover: hasCFI, understand: understood, train: trainingCount > 0, apply: decs.length > 0,
+    reflect: reflections.length > 0, measure: hist.length >= 2, integrate: false, // integrate is ongoing by nature
+  };
+  const currentKey = (NFJ_STAGES.find(s => !done[s.key]) || NFJ_STAGES[NFJ_STAGES.length - 1]).key;
+  return { signedIn: !!user, hasCFI, hist, baseline, latest, delta, daysSince, lessonsDone, practiceCount,
+    practicesAvailable: practicesAvailable !== false, trainingCount, decisions: decs, reviewed, reflections,
+    readyForReview, reassessReady, flags, done, currentKey };
+}
+
+// ── Development focus: ONE place that turns the existing CFI profile into recommendations ──
+function nfjDevelopmentFocus(cfiResult) {
+  const p = cfiResult && cfiResult.profile;
+  if (!p || !p.weakestDim) return null;
+  const d = p.weakestDim;
+  const label = CFI_DIM_LABELS[d];
+  const stepByDim = { A: 'DECOMPOSE', I: 'SENSE', S: 'EXPAND', R: 'REFLECT' }; // the existing Protocol step where each mode does its work
+  const prac = DAILY_PRACTICE[d];
+  return {
+    dim: d, label, lead: CFI_DIM_LABELS[p.primaryDim], step: stepByDim[d] || null,
+    why: p.decisionBlindSpots,
+    practiceLabel: prac ? prac.label : 'Practice',
+    practice: prac ? prac.prompt : (cfiResult.plan && cfiResult.plan.dailyExercise) || '',
+    apply: stepByDim[d] ? `In your next real decision, give the ${stepByDim[d]} step extra time. That is where ${label.toLowerCase()} does its work.` : 'Bring this mode in deliberately in your next real decision.',
+    reflect: 'Afterwards, note what this mode showed you that you might otherwise have missed.',
+  };
+}
+
+// ── Next best action: always exactly one ────────────────────────────────────
+function nfjNextAction(st, focus) {
+  if (!st.signedIn) return { key: 'discover', title: 'Discover how you naturally think', body: 'Thirteen questions. You get a personal profile straight away. A free account saves it.', cta: 'Take the CFI assessment', view: 'cfi' };
+  if (!st.hasCFI) return { key: 'discover', title: 'Complete your Cognitive Profile', body: 'The CFI takes 13 questions and gives you a starting point to build on.', cta: 'Start the CFI', view: 'cfi' };
+  if (!st.done.understand) return { key: 'understand', title: 'Explore what your profile means', body: 'See where your modes work together, where friction can show up, and what to work on first.', cta: 'Open my profile', view: 'cfi' };
+  if (st.readyForReview.length) return { key: 'review', title: 'A decision is ready for review', body: `You set a review date for ${st.readyForReview[0].title || 'a decision'}. Record what happened and what you learned.`, cta: 'Review it', view: 'decisions' };
+  if (!st.done.train) return { key: 'train', title: 'Complete your recommended practice', body: focus ? `Your suggested focus is ${focus.label.toLowerCase()}. ${focus.practice}` : 'Start with your first practice in the Academy.', cta: 'Start practice', view: 'lessons' };
+  if (!st.done.apply) return { key: 'apply', title: 'Apply it to a real decision', body: 'Take something you are actually deciding and work it through the Decision Room.', cta: 'Analyze a decision', view: 'protocol' };
+  if (!st.done.reflect) return { key: 'reflect', title: 'Reflect on what you noticed', body: 'Open a saved decision and record what happened, what you learned, and what you would do differently. "Still unfolding" is a valid answer.', cta: 'Open Decision Vault', view: 'decisions' };
+  if (st.reassessReady) return { key: 'measure', title: 'Reassess your CFI', body: 'You have practised and applied your thinking since your last assessment. Open your profile and choose Retake assessment to compare.', cta: 'Open my profile', view: 'cfi' };
+  if (st.done.measure && !st.flags.evolutionViewed) return { key: 'integrate', title: 'Review your Cognitive Evolution', body: 'Compare your starting point with where you are now.', cta: 'See my evolution', view: 'analytics' };
+  const next = st.latest ? new Date(new Date(st.latest.created_at).getTime() + 14 * 86400000).toLocaleDateString() : null;
+  if (st.decisions.length <= st.practiceCount) return { key: 'apply', title: 'Apply your latest practice to a decision', body: 'Each real decision adds evidence to your journey.' + (next && !st.reassessReady ? ` A reassessment makes most sense after ${next}.` : ''), cta: 'Analyze a decision', view: 'protocol' };
+  return { key: 'train', title: 'Keep practising your development area', body: 'Regular practice is what gives a later reassessment something to show.' + (next && !st.reassessReady ? ` A reassessment makes most sense after ${next}.` : ''), cta: 'Open Academy', view: 'lessons' };
+}
+
+function nfjMilestones(st) {
+  return [
+    { label: 'Discovered your cognitive pattern', done: st.done.discover },
+    { label: 'Identified your development opportunity', done: st.done.understand },
+    { label: 'Completed your first practice', done: st.trainingCount > 0 },
+    { label: 'Applied NeuralFusion to a real decision', done: st.decisions.length > 0 },
+    { label: 'Reflected on a decision', done: st.reflections.length > 0 },
+    { label: 'Completed multiple practices', done: st.trainingCount >= 3 },
+    { label: 'Completed a reassessment', done: st.hist.length >= 2 },
+    { label: 'Compared your development', done: st.hist.length >= 2 && st.flags.evolutionViewed },
+  ];
+}
+
+// ── UI kit ───────────────────────────────────────────────────────────────────
+function nfjTheme(light) {
+  return light
+    ? { light: true, ink: CP.ink, text: CP.text, muted: CP.muted, border: CP.border, strong: CP.borderStrong, card: CP.card, tint: CP.goldTint, accent: CP.goldDeep, onAccent: '#FFFFFF', done: '#2F7D4F' }
+    : { light: false, ink: C.text, text: C.text, muted: C.muted, border: C.border, strong: C.borderBright, card: C.surface, tint: C.cyanDim, accent: C.cyan, onAccent: '#050C1A', done: '#7AAFCF' };
+}
+function nfjEnsureStyles() {
+  if (typeof document === 'undefined' || document.getElementById('nfj-styles')) return;
+  const s = document.createElement('style');
+  s.id = 'nfj-styles';
+  s.textContent = '.nfj-btn{min-height:48px;padding:12px 22px;border-radius:8px;font-weight:700;font-size:15px;cursor:pointer;border:1px solid transparent;font-family:"DM Sans",sans-serif;max-width:100%;text-align:center}'
+    + '.nfj-btn:focus-visible,.nfj-link:focus-visible{outline:2px solid #E2BE78;outline-offset:3px}'
+    + '.nfj-light .nfj-btn:focus-visible,.nfj-light .nfj-link:focus-visible{outline-color:#8F701F}'
+    + '.nfj-btn[disabled]{opacity:.6;cursor:not-allowed}.nfj-wrap{overflow-wrap:anywhere;min-width:0}'
+    + '@media (min-width:720px){.nfj-two{display:grid;grid-template-columns:1fr 1fr;gap:20px}}';
+  document.head.appendChild(s);
+}
+function useNFJStyles() { useEffect(nfjEnsureStyles, []); }
+
+function NFJButton({ T, onClick, children, variant, disabled }) {
+  const outline = variant === 'outline';
+  return React.createElement('button', { className: 'nfj-btn', onClick, disabled,
+    style: { background: outline ? 'transparent' : T.accent, color: outline ? T.accent : T.onAccent, borderColor: T.accent } }, children);
+}
+function NFJEyebrow({ T, children }) {
+  return React.createElement('div', { style: { fontFamily: "'Space Mono',monospace", fontSize: 11, letterSpacing: '0.14em', color: T.accent, marginBottom: 10, textTransform: 'uppercase' } }, children);
+}
+function NFJPanel({ T, children, style }) {
+  return React.createElement('div', { className: 'nfj-wrap', style: Object.assign({ background: T.card, border: '1px solid ' + T.border, borderRadius: 12, padding: '22px 20px', marginBottom: 16 }, style || {}) }, children);
+}
+function NFJState({ T, status, onRetry, children }) {
+  if (status === 'loading') return React.createElement('div', { role: 'status', style: { color: T.muted, fontSize: 14, padding: '12px 0' } }, 'Loading your journey…');
+  if (status === 'error') return React.createElement('div', { role: 'alert', style: { color: T.text, fontSize: 14, padding: '12px 0' } },
+    React.createElement('div', { style: { marginBottom: 10 } }, "We couldn't load your journey data. Your progress is safe."),
+    React.createElement(NFJButton, { T, variant: 'outline', onClick: onRetry }, 'Try again'));
+  return children;
+}
+const nfjPlural = (n, w) => n + ' ' + w + (n === 1 ? '' : 's');
+const nfjShort = (s, n) => { s = String(s || '').trim(); return s.length > n ? s.slice(0, n - 1).trimEnd() + '…' : s; };
+
+function NFJNextAction({ T, st, focus, setView, setShowAuth }) {
+  const a = nfjNextAction(st, focus);
+  const go = () => { if (!st.signedIn && a.view !== 'cfi') { setShowAuth && setShowAuth(true); return; } setView(a.view); };
+  return React.createElement(NFJPanel, { T, style: { background: T.tint, border: '1px solid ' + T.strong } },
+    React.createElement(NFJEyebrow, { T }, 'Your next step'),
+    React.createElement('h2', { style: { fontFamily: "'Syne',sans-serif", fontSize: 'clamp(20px,5vw,26px)', fontWeight: 800, color: T.ink, margin: '0 0 8px', lineHeight: 1.2 } }, a.title),
+    React.createElement('p', { style: { fontSize: 15, color: T.text, lineHeight: 1.65, margin: '0 0 18px' } }, a.body),
+    React.createElement(NFJButton, { T, onClick: go }, a.cta + ' →'));
+}
+
+function nfjEvidence(key, st) {
+  if (key === 'discover' && st.hasCFI) return st.latest ? `CFI ${st.latest.total_score} · ${cfiCoordinationLabel(st.latest.band)}` : 'CFI completed';
+  if (key === 'understand' && st.done.understand) return 'Profile explored';
+  if (key === 'train' && st.done.train) return [st.practicesAvailable ? nfjPlural(st.practiceCount, 'practice') : null, nfjPlural(st.lessonsDone, 'lesson') + ' completed'].filter(Boolean).join(' · ');
+  if (key === 'apply' && st.done.apply) return nfjPlural(st.decisions.length, 'decision') + ' worked through';
+  if (key === 'reflect' && st.done.reflect) return nfjPlural(st.reflections.length, 'reflection') + ' recorded';
+  if (key === 'measure' && st.done.measure) return nfjPlural(st.hist.length, 'assessment') + ' · Clarity Delta ' + (st.delta > 0 ? '+' : '') + st.delta;
+  if (key === 'integrate' && st.done.measure) return 'Ongoing: keep practising, applying and reassessing';
+  return null;
+}
+
+// The 7-stage journey. preview=true is the signed-out "what you will do" version with no status.
+function NFJJourney({ T, st, preview, setView }) {
+  const cur = st && st.currentKey;
+  const idx = cur ? NFJ_STAGES.findIndex(s => s.key === cur) + 1 : 0;
+  return React.createElement(NFJPanel, { T },
+    React.createElement(NFJEyebrow, { T }, preview ? 'How NeuralFusion works' : 'Your cognitive journey'),
+    !preview && React.createElement('div', { style: { fontSize: 14, color: T.muted, marginBottom: 6 } }, `You are at stage ${idx} of ${NFJ_STAGES.length}: ${NFJ_STAGES[idx - 1].label.charAt(0) + NFJ_STAGES[idx - 1].label.slice(1).toLowerCase()}`),
+    React.createElement('ol', { style: { listStyle: 'none', margin: 0, padding: 0 } },
+      NFJ_STAGES.map((s, i) => {
+        const done = !preview && st.done[s.key];
+        const current = !preview && s.key === cur;
+        const ev = !preview ? nfjEvidence(s.key, st) : null;
+        const mark = done ? '✓' : current ? '●' : '○';
+        const state = preview ? '' : done ? 'Completed. ' : current ? 'Current stage. ' : 'Upcoming. ';
+        return React.createElement('li', { key: s.key, 'aria-current': current ? 'step' : undefined,
+          style: { display: 'grid', gridTemplateColumns: '28px 1fr', gap: 12, padding: '14px 0', borderTop: i ? '1px solid ' + T.border : 'none' } },
+          React.createElement('div', { 'aria-hidden': 'true', style: { fontSize: 16, color: done ? T.done : current ? T.accent : T.muted, lineHeight: '24px', textAlign: 'center' } }, mark),
+          React.createElement('div', { className: 'nfj-wrap' },
+            React.createElement('div', { style: { fontFamily: "'Space Mono',monospace", fontSize: 12, letterSpacing: '0.1em', color: current ? T.accent : T.ink, marginBottom: 4 } }, React.createElement('span', { style: { position: 'absolute', width: 1, height: 1, overflow: 'hidden', clip: 'rect(0 0 0 0)' } }, state), s.label),
+            React.createElement('div', { style: { fontSize: 14, color: T.text, lineHeight: 1.6 } }, s.value),
+            ev && React.createElement('div', { style: { fontSize: 13, color: done ? T.done : T.muted, marginTop: 6 } }, ev)));
+      })));
+}
+
+function NFJTrainingPath({ T, cfiResult, setView }) {
+  const f = nfjDevelopmentFocus(cfiResult);
+  if (!f) return React.createElement(NFJPanel, { T },
+    React.createElement(NFJEyebrow, { T }, 'Your training path'),
+    React.createElement('p', { style: { fontSize: 14.5, color: T.text, lineHeight: 1.65, margin: '0 0 16px' } }, 'Complete the CFI and your training path appears here: one development focus, with a practice, a real-world application and a reflection.'),
+    React.createElement(NFJButton, { T, onClick: () => setView('cfi') }, 'Take the CFI →'));
+  const row = (k, v) => React.createElement('div', { key: k, style: { padding: '12px 0', borderTop: '1px solid ' + T.border } },
+    React.createElement('div', { style: { fontFamily: "'Space Mono',monospace", fontSize: 11, letterSpacing: '0.1em', color: T.accent, marginBottom: 4 } }, k),
+    React.createElement('div', { style: { fontSize: 14.5, color: T.text, lineHeight: 1.65 } }, v));
+  return React.createElement(NFJPanel, { T },
+    React.createElement(NFJEyebrow, { T }, 'Your training path'),
+    React.createElement('div', { style: { fontFamily: "'Syne',sans-serif", fontSize: 20, fontWeight: 800, color: T.ink, marginBottom: 4 } }, f.label),
+    React.createElement('div', { style: { fontSize: 13, color: T.muted, marginBottom: 8 } }, 'Recommended focus, based on your latest CFI. Not a diagnosis, and not a ranking of your ability.'),
+    row('WHY THIS MATTERS', f.why), row('PRACTICE · ' + f.practiceLabel.toUpperCase(), f.practice), row('APPLY', f.apply), row('REFLECT', f.reflect));
+}
+
+// First-value moment, shown at the top of the CFI result.
+function NFJFirstValue({ T, cfiResult, setView }) {
+  useNFJStyles();
+  const f = nfjDevelopmentFocus(cfiResult);
+  if (!f) return null;
+  const sec = (k, v) => React.createElement('div', { key: k, style: { marginBottom: 18 } },
+    React.createElement(NFJEyebrow, { T }, k),
+    React.createElement('div', { style: { fontSize: 15, color: T.text, lineHeight: 1.7 } }, v));
+  return React.createElement('div', { className: 'nfj-light nfj-wrap', style: { background: T.tint, border: '1px solid ' + T.strong, borderRadius: 14, padding: '24px 20px', marginBottom: 32 } },
+    sec('You just discovered something about how you think', `You lead with ${f.lead.toLowerCase()}. ${f.label} contributes less often in your decisions right now.`),
+    sec('What this may mean', f.why + ' This is a self-report snapshot of how you answered today. It is not a diagnosis and not a measure of intelligence.'),
+    sec('Your development opportunity', f.practice),
+    React.createElement(NFJEyebrow, { T }, 'Your next step'),
+    React.createElement('p', { style: { fontSize: 15, color: T.text, lineHeight: 1.65, margin: '0 0 16px' } }, 'Try your first practice, then apply it to a real decision.'),
+    React.createElement(NFJButton, { T, onClick: () => setView('lessons') }, 'Start your first practice →'));
+}
+
+function NFJCFIScope({ T }) {
+  const col = (title, items) => React.createElement('div', { key: title },
+    React.createElement('div', { style: { fontFamily: "'Syne',sans-serif", fontSize: 15, fontWeight: 800, color: T.ink, marginBottom: 8 } }, title),
+    React.createElement('ul', { style: { margin: 0, paddingLeft: 18, color: T.text, fontSize: 14, lineHeight: 1.7 } }, items.map(i => React.createElement('li', { key: i }, i))));
+  return React.createElement(NFJPanel, { T },
+    React.createElement(NFJEyebrow, { T }, 'About the CFI'),
+    React.createElement('div', { className: 'nfj-two' },
+      col('What it measures', ['How consistently your four thinking modes (analytical, intuitive, associative, reflective) work together', 'Your self-reported steadiness under pressure', '13 self-report questions, scored 13 to 65. Lower means better coordinated']),
+      col('What it does not measure', ['Intelligence or ability', 'Personality type or character', 'Mental health. It is not a diagnosis or clinical tool', 'Future performance. It is a snapshot of how you answered today'])));
+}
+
+function NFJHomeSection({ user, setView, setShowAuth, cfiResult, cfiHistory, lessonProgress, authLoading }) {
+  useNFJStyles();
+  const T = nfjTheme(false);
+  const data = useNFJourneyData(user);
+  const wrap = (kids) => React.createElement('section', { 'aria-label': 'Your cognitive journey', style: { maxWidth: 760, margin: '0 auto', padding: '0 20px 40px' } }, kids);
+  if (!user) return wrap([
+    React.createElement(NFJJourney, { key: 'j', T, preview: true, setView }),
+    React.createElement(NFJCFIScope, { key: 's', T }),
+    React.createElement(NFJButton, { key: 'b', T, onClick: () => setView('cfi') }, 'Take the CFI assessment →'),
+  ]);
+  if (authLoading) return wrap(React.createElement('div', { role: 'status', style: { color: T.muted, fontSize: 14 } }, 'Loading your journey…'));
+  return wrap(React.createElement(NFJState, { T, status: data.status === 'idle' ? 'loading' : data.status, onRetry: data.reload }, (() => {
+    const st = nfjComputeState({ user, cfiResult, cfiHistory, lessonProgress, decisions: data.decisions, practices: data.practices, practicesAvailable: data.practicesAvailable });
+    const focus = nfjDevelopmentFocus(cfiResult);
+    return React.createElement(React.Fragment, null,
+      React.createElement(NFJNextAction, { T, st, focus, setView, setShowAuth }),
+      React.createElement(NFJJourney, { T, st, setView }),
+      !st.practicesAvailable && React.createElement('div', { style: { fontSize: 12.5, color: T.muted, marginBottom: 12 } }, 'Practice completions are not being recorded yet, so only lessons count toward Train.'));
+  })()));
+}
+
+// ── Cognitive Evolution: every row comes from real data or shows an empty state ──
+function NFJEvolution({ user, cfiResult, cfiHistory, lessonProgress, setView }) {
+  useNFJStyles();
+  const T = nfjTheme(false);
+  const data = useNFJourneyData(user);
+  const st = nfjComputeState({ user, cfiResult, cfiHistory, lessonProgress, decisions: data.decisions, practices: data.practices, practicesAvailable: data.practicesAvailable });
+  useEffect(() => { if (user && st.hist.length >= 2 && data.status === 'ready') nfjFlagSet(user.id, 'evolution'); }, [user && user.id, st.hist.length, data.status]);
+  const focus = nfjDevelopmentFocus(cfiResult);
+  const next = nfjNextAction(st, focus);
+  const fmt = (d) => new Date(d).toLocaleDateString();
+  const doneLessons = LESSONS.filter(l => (lessonProgress || {})[l.id] === 100).map(l => l.title);
+  const latestReflection = st.decisions.find(d => d.lesson_learned && String(d.lesson_learned).trim());
+  const items = [
+    { k: 'START', has: st.hist.length > 0 || st.hasCFI,
+      body: st.baseline ? `Assessment #${st.baseline.assessment_number || 1} on ${fmt(st.baseline.created_at)}: CFI ${st.baseline.total_score}, ${cfiCoordinationLabel(st.baseline.band)}.` : 'Your first assessment is your starting point.',
+      empty: 'Your initial assessment becomes the starting point here.', cta: ['Take the CFI', 'cfi'] },
+    { k: 'DISCOVERY', has: !!focus,
+      body: focus ? `You lead with ${focus.lead.toLowerCase()}. ${focus.label} is your current development area.` : '',
+      empty: 'What you learn about your thinking appears here after the CFI.' },
+    { k: 'PRACTICE', has: st.trainingCount > 0,
+      body: [st.practicesAvailable && st.practiceCount ? nfjPlural(st.practiceCount, 'practice') + ' recorded' : null, doneLessons.length ? 'Lessons completed: ' + doneLessons.join('; ') : null].filter(Boolean).join('. ') + '.',
+      empty: 'Your practice and completed lessons will appear here.', cta: ['Start a practice', 'lessons'] },
+    { k: 'APPLICATION', has: st.decisions.length > 0,
+      body: nfjPlural(st.decisions.length, 'real decision') + ' worked through. Most recent: ' + st.decisions.slice(0, 3).map(d => '"' + nfjShort(d.title || d.decision || 'Untitled', 60) + '"').join(', ') + '.',
+      empty: 'Your first real decision becomes part of your cognitive journey here.', cta: ['Analyze a decision', 'protocol'] },
+    { k: 'REFLECTION', has: !!latestReflection,
+      body: latestReflection ? `${nfjPlural(st.reflections.length, 'reflection')} recorded. Latest, in your words: "${nfjShort(latestReflection.lesson_learned, 160)}"` : '',
+      empty: 'Your reflections will appear here as you apply NeuralFusion.', cta: ['Open Decision Vault', 'decisions'] },
+    { k: 'MEASUREMENT', has: st.hist.length >= 2,
+      body: st.hist.length >= 2 ? `Starting CFI ${st.baseline.total_score} → current CFI ${st.latest.total_score}. ${st.delta > 0 ? `Clarity Delta +${st.delta}: your score is ${st.delta} points lower, which indicates less fragmentation.` : st.delta < 0 ? `Clarity Delta ${st.delta}: your score is ${-st.delta} points higher, which indicates more fragmentation on this measure.` : 'Clarity Delta 0: no change from your starting point.'} These are self-reported answers at two points in time. They show what changed, not what caused it.` : '',
+      empty: 'Complete another CFI assessment later to compare your development.', cta: st.hasCFI ? ['Open my profile', 'cfi'] : null },
+    { k: 'NOW', has: st.hasCFI, body: (focus ? `Current development focus: ${focus.label}. ` : '') + `Next step: ${next.title}.`, empty: 'Your current focus appears here once you have a profile.', cta: [next.cta, next.view] },
+  ];
+  return React.createElement('section', { 'aria-label': 'Your cognitive evolution', style: { marginBottom: 40 } },
+    React.createElement(NFJPanel, { T },
+      React.createElement(NFJEyebrow, { T }, 'Your cognitive evolution'),
+      React.createElement(NFJState, { T, status: data.status === 'idle' ? 'ready' : data.status, onRetry: data.reload },
+        React.createElement('ol', { style: { listStyle: 'none', margin: 0, padding: 0 } },
+          items.map((it, i) => React.createElement('li', { key: it.k, style: { padding: '14px 0 14px 16px', borderLeft: '2px solid ' + (it.has ? T.accent : T.border), marginLeft: 6 } },
+            React.createElement('div', { style: { fontFamily: "'Space Mono',monospace", fontSize: 11, letterSpacing: '0.12em', color: it.has ? T.accent : T.muted, marginBottom: 4 } }, it.k),
+            React.createElement('div', { style: { fontSize: 14.5, color: it.has ? T.text : T.muted, lineHeight: 1.65 } }, it.has ? it.body : it.empty),
+            (!it.has || it.k === 'NOW') && it.cta && React.createElement('div', { style: { marginTop: 10 } }, React.createElement(NFJButton, { T, variant: 'outline', onClick: () => setView(it.cta[1]) }, it.cta[0])))))
+      )),
+    data.status === 'ready' && React.createElement(NFJPanel, { T },
+      React.createElement(NFJEyebrow, { T }, 'Milestones'),
+      React.createElement('ul', { style: { listStyle: 'none', margin: 0, padding: 0 } },
+        nfjMilestones(st).map(m => React.createElement('li', { key: m.label, style: { padding: '8px 0', fontSize: 14.5, color: m.done ? T.text : T.muted } },
+          React.createElement('span', { 'aria-hidden': 'true', style: { color: m.done ? T.done : T.muted, marginRight: 10 } }, m.done ? '✓' : '○'),
+          React.createElement('span', { style: { position: 'absolute', width: 1, height: 1, overflow: 'hidden', clip: 'rect(0 0 0 0)' } }, m.done ? 'Reached: ' : 'Not yet: '), m.label)))));
+}
+
+// ── Enterprise team journey: uses ONLY aggregate counts the org_overview RPC already returns ──
+function NFJEnterpriseJourney({ ov }) {
+  useNFJStyles();
+  const T = nfjTheme(false);
+  const unlocked = ov.completed >= ov.report_threshold;
+  const rows = [
+    { k: 'MEASURE', done: ov.completed > 0, text: `${ov.completed} of ${ov.invited_total} invited people have completed the CFI.` },
+    { k: 'UNDERSTAND', done: unlocked, text: unlocked ? 'Aggregate team patterns are available. They appear only above the minimum group size, which protects individuals.' : `Aggregate patterns unlock at ${ov.report_threshold} completions (${ov.completed} so far).` },
+    { k: 'TRAIN', done: null, text: 'Train integrated thinking with the Academy. Team-level training progress is not tracked in this dashboard yet.' },
+    { k: 'APPLY', done: null, text: 'Apply the framework to real team decisions. Not tracked in this dashboard yet.' },
+    { k: 'MEASURE AGAIN', done: null, text: 'Retest later and compare team patterns. Team pre/post comparison is not available in this dashboard yet.' },
+    { k: 'DEVELOP', done: null, text: 'Decide what the team develops next, using the measured patterns above.' },
+  ];
+  return React.createElement(NFJPanel, { T, style: { marginBottom: 20 } },
+    React.createElement(NFJEyebrow, { T }, 'Team journey'),
+    React.createElement('ol', { style: { listStyle: 'none', margin: 0, padding: 0 } }, rows.map((r, i) => React.createElement('li', { key: r.k, style: { display: 'grid', gridTemplateColumns: '28px 1fr', gap: 12, padding: '12px 0', borderTop: i ? '1px solid ' + T.border : 'none' } },
+      React.createElement('div', { 'aria-hidden': 'true', style: { textAlign: 'center', color: r.done ? T.done : T.muted } }, r.done ? '✓' : '○'),
+      React.createElement('div', { className: 'nfj-wrap' },
+        React.createElement('div', { style: { fontFamily: "'Space Mono',monospace", fontSize: 11, letterSpacing: '0.1em', color: r.done ? T.done : T.ink, marginBottom: 3 } }, r.k, r.done === null ? ' · not yet tracked' : ''),
+        React.createElement('div', { style: { fontSize: 14, color: T.text, lineHeight: 1.6 } }, r.text))))),
+    React.createElement('div', { style: { fontSize: 12.5, color: T.muted, lineHeight: 1.6, marginTop: 8 } }, 'Everything marked complete is measured platform activity. Any business implication is something to explore with your team, not a measured result. Individual results are never shown to employers.'));
+}
+// ═══ END NEURALFUSION TRANSFORMATION LAYER ═══════════════════════════════════
+
+function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonProgress, authLoading }) {
   const completedLessons = Object.values(lessonProgress || {}).filter(v => v === 100).length;
   const [openFaq, setOpenFaq] = useState(0);
   // Framework graphic: 200px on tablet/desktop (unchanged); on phones it scales
@@ -2431,6 +2821,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
       )
     ),
 
+    React.createElement(NFJHomeSection, { user, setView, setShowAuth, cfiResult, cfiHistory, lessonProgress, authLoading }),
     React.createElement(HomeDecisionPanel, { user, setView }),
 
     // ══════════════════════════════════════════════════════════
@@ -2895,7 +3286,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
 
       return (
         React.createElement("div", { style: { padding: '26px 24px', background: AC.surface, border: `2px solid ${AC.goldDark}`, borderRadius: 16, marginBottom: 24 } },
-          React.createElement("div", { style: { fontFamily: AC.font, fontSize: 14, fontWeight: 700, letterSpacing: '0.04em', color: AC.goldDark, marginBottom: 6, textTransform: 'uppercase' } }, 'Save This Decision'),
+          React.createElement("div", { style: { fontFamily: AC.font, fontSize: 14, fontWeight: 700, letterSpacing: '0.04em', color: AC.goldDark, marginBottom: 6, textTransform: 'uppercase' } }, 'Decide: save this decision'),
           React.createElement("p", { style: { fontSize: 13.5, color: AC.muted, lineHeight: 1.6, marginBottom: 18 } }, 'Turn this session into a decision record you can revisit, review, and learn from.'),
           React.createElement("label", { style: { display: 'block', fontSize: 13, fontWeight: 700, color: AC.text, marginBottom: 6 } }, 'Decision, in one line'),
           React.createElement("input", { type: 'text', value: title, onChange: e => setTitle(e.target.value), placeholder: 'e.g. Leave my job to build my company', className: "nf-a11y-textarea", style: { width: '100%', padding: '12px 14px', fontSize: 15, border: `2px solid ${AC.border}`, borderRadius: 12, marginBottom: 16, fontFamily: AC.font, color: AC.text } }),
@@ -3295,7 +3686,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
       };
       return (
         React.createElement("div", { style: { padding: '20px', background: C.deep, borderRadius: 2, border: `1px solid ${C.border}`, marginTop: 16 } },
-          React.createElement("div", { style: { ...mono, fontSize: 11, letterSpacing: 1, color: C.cyan, marginBottom: 14 } }, 'What happened?'),
+          React.createElement("div", { style: { ...mono, fontSize: 11, letterSpacing: 1, color: C.cyan, marginBottom: 14 } }, 'Review: what happened?'),
           React.createElement("div", { style: { display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 16 } },
             options.map(o => React.createElement("button", {
               key: o, onClick: () => setOutcome(o), style: {
@@ -3717,6 +4108,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
       const integrationScore = cfiResult.integrationScore ?? Math.max(0, 100 - cfiResult.total * 2);
 
       const [shareState, setShareState] = useState('idle');
+      useEffect(() => { if (user && cfiResult) nfjFlagSet(user.id, 'profile'); }, [user && user.id]);
 
       // Inject scoped hover/focus styles once. Kept separate from the app's
       // global dark-theme CSS since this page is intentionally a light theme.
@@ -3786,6 +4178,8 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
               React.createElement("h1", { style: { ...syne, fontSize: 'clamp(24px,5.5vw,34px)', fontWeight: 800, color: CP.ink, marginBottom: 14, lineHeight: 1.15 } }, "Now you can see how your thinking works."),
               React.createElement("div", { style: { fontSize: 13.5, color: CP.muted, lineHeight: 1.7, maxWidth: 480, margin: '0 auto' } }, "The CFI measures thinking clarity and how well your four thinking modes work together. It is not a personality test, mental health screening, or medical evaluation.")
             ),
+
+            React.createElement(NFJFirstValue, { T: nfjTheme(true), cfiResult, setView }),
 
             // ── SECTION 1: Profile overview ──
             React.createElement(CPCard, { style: { padding: '36px 28px', marginBottom: 20 } },
@@ -4447,7 +4841,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
       const dimLabels = { A:'Analytical', I:'Intuitive', S:'Associative', R:'Reflective' };
       const baseline = cfiHistory[0], latest = cfiHistory[cfiHistory.length - 1];
       return React.createElement("div", {className: "card", style: { padding:'32px', marginBottom:40 }},
-        React.createElement("div", {style: { ...mono, fontSize:11, letterSpacing:1, color:C.cyan, marginBottom:24 }}, 'Your Cognitive Journey'),
+        React.createElement("div", {style: { ...mono, fontSize:11, letterSpacing:1, color:C.cyan, marginBottom:24 }}, 'Your CFI history'),
         React.createElement("div", {style: { display:'flex', flexDirection:'column', gap:4 }},
           cfiHistory.map((r, i) => {
             const prev = i > 0 ? cfiHistory[i-1] : null;
@@ -4498,7 +4892,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
 
       // ── Decision data (Your Cognitive Journey) ──────────────────────
       const [decisions, setDecisions] = useState([]);
-      useEffect(() => { if (user) listDecisionSessions(user.id).then(setDecisions); }, [user]);
+      useEffect(() => { if (user) nfjLoadDecisions(user.id).then(setDecisions).catch(() => {}); }, [user]);
       const decisionsProcessed = decisions.length;
       const reviewedDecisions = decisions.filter(d => d.status === 'reviewed');
       const decisionsReviewed = reviewedDecisions.length;
@@ -4508,8 +4902,10 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
       return (
         React.createElement("div", {style: { paddingTop:80, paddingBottom:100 }}, React.createElement("div", {style: { maxWidth:1200, margin:'0 auto', padding:'40px 24px' }}, React.createElement("div", {style: { ...mono, fontSize:11, letterSpacing:1.5, color:C.cyan, marginBottom:16 }}, 'Analytics'), React.createElement("h1", {style: { ...syne, fontSize:17, fontWeight:800, color:C.text, marginBottom:16, overflowWrap:'break-word', minWidth:0}}, 'Your cognitive', React.createElement("br", null), 'performance map'), React.createElement("p", {style: { fontSize:15, color:C.muted, maxWidth:560, lineHeight:1.8, marginBottom:48 }}, 'Track your thinking evolution, mode balance, and training effectiveness.'),
 
+              user && React.createElement(NFJEvolution, { user, cfiResult, cfiHistory, lessonProgress, setView }),
+
               user && decisionsProcessed > 0 && React.createElement("div", { className: "card", style: { padding: '32px', marginBottom: 40 } },
-                React.createElement("div", { style: { ...mono, fontSize: 11, letterSpacing: 1, color: C.cyan, marginBottom: 24 } }, 'Your Cognitive Journey'),
+                React.createElement("div", { style: { ...mono, fontSize: 11, letterSpacing: 1, color: C.cyan, marginBottom: 24 } }, 'Your decision record'),
                 React.createElement("div", { style: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(150px, 100%), 1fr))', gap: 20, marginBottom: decisionsReviewed > 0 ? 20 : 0 } },
                   [
                     { label: 'Decisions processed', value: decisionsProcessed },
@@ -4671,24 +5067,41 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
     // Simplest functional version: no existing daily-practice engine to
     // reuse, so this tracks only in-session state (no DB table exists for
     // it yet): an honest, un-fabricated completion marker for today.
-    function AcademyDailyPractice({ cfiResult }) {
+    function AcademyDailyPractice({ cfiResult, user }) {
       const practice = getDailyPractice(cfiResult);
       const [open, setOpen] = useState(false);
       const [response, setResponse] = useState('');
       const [done, setDone] = useState(false);
+      const [saving, setSaving] = useState(false);
+      const [note, setNote] = useState('');
+      // Completing a practice is recorded in practice_logs (owner-only RLS) so it counts toward the
+      // Train stage and Cognitive Evolution. If that table isn't deployed yet, the practice still
+      // completes for today and the note says plainly that it wasn't recorded.
+      const complete = async () => {
+        setNote('');
+        if (!user) { setDone(true); return; }
+        setSaving(true);
+        const r = await nfjSavePractice(user.id, { dimension: practice.dim, label: practice.label, response });
+        setSaving(false);
+        if (r.ok) { setDone(true); return; }
+        if (r.unavailable) { setDone(true); setNote("Practice marked complete for today. It isn't being recorded in your journey yet."); return; }
+        setNote("We couldn't record this practice. Check your connection and try again.");
+      };
       return (
         React.createElement(CPCard, { style: { padding: '32px 26px', marginBottom: 20 } },
           React.createElement(CPEyebrow, null, "Today's Cognitive Practice"),
           React.createElement("div", { style: { ...syne, fontSize: 15, fontWeight: 800, color: CP.ink, marginBottom: 10 } }, practice.label),
           React.createElement("div", { style: { fontSize: 13.5, color: CP.text, lineHeight: 1.7, marginBottom: open ? 16 : 20 } }, practice.prompt),
           open && !done && React.createElement("div", { style: { marginBottom: 16 } },
+            React.createElement("label", { htmlFor: 'nf-practice-response', style: { display: 'block', fontSize: 13, color: CP.muted, marginBottom: 6 } }, 'Your response'),
             React.createElement("textarea", {
-              value: response, onChange: e => setResponse(e.target.value), rows: 3, placeholder: 'Write a sentence or two…',
-              style: { width: '100%', boxSizing: 'border-box', padding: '12px 14px', borderRadius: 10, border: `1px solid ${CP.borderStrong}`, fontFamily: inter.fontFamily, fontSize: 13.5, color: CP.text, resize: 'vertical' }
+              id: 'nf-practice-response', value: response, onChange: e => setResponse(e.target.value), rows: 3, placeholder: 'Write a sentence or two…',
+              style: { width: '100%', boxSizing: 'border-box', padding: '12px 14px', borderRadius: 10, border: `1px solid ${CP.borderStrong}`, fontFamily: inter.fontFamily, fontSize: 15, color: CP.text, resize: 'vertical' }
             })
           ),
-          done && React.createElement("div", { style: { fontSize: 13, color: CP.goldDeep, marginBottom: 16 } }, "✓ Today's practice complete. Come back tomorrow for the next one."),
-          !done && React.createElement(CPButton, { onClick: () => { if (!open) { setOpen(true); } else { setDone(true); } } }, open ? 'Mark Practice Complete →' : "Start Today's Practice →")
+          done && React.createElement("div", { role: 'status', style: { fontSize: 13, color: CP.goldDeep, marginBottom: 16 } }, "✓ Today's practice complete. Next: apply it to a real decision."),
+          note && React.createElement("div", { role: done ? 'status' : 'alert', style: { fontSize: 13, color: CP.muted, marginBottom: 16 } }, note),
+          !done && React.createElement(CPButton, { onClick: () => { if (!open) { setOpen(true); } else if (!saving) { complete(); } } }, saving ? 'Saving…' : open ? 'Mark Practice Complete →' : "Start Today's Practice →")
         )
       );
     }
@@ -4828,7 +5241,8 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
           ),
 
           // ── SECTION 7: Daily practice ──
-          React.createElement(AcademyDailyPractice, { cfiResult }),
+          React.createElement(NFJTrainingPath, { T: nfjTheme(true), cfiResult, setView }),
+          React.createElement(AcademyDailyPractice, { cfiResult, user }),
 
           // ── SECTION 8: Integration Protocol ──
           completedCount > 0 && React.createElement(CPCard, { style: { padding: '32px 26px', marginBottom: 20 } },
@@ -7536,7 +7950,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
       // right tab instead of always defaulting to login.
       const openAuth = (tab='login') => { setAuthInitialTab(tab); setShowAuth(true); };
 
-      const viewProps = { setView, user, session, paystackKey, setShowAuth, openAuth, isPro, setIsPro, isEnterprise, setIsEnterprise, cfiResult, setCfiResult, cfiHistory, lessonProgress, setLessonProgress, proPrice };
+      const viewProps = { authLoading, setView, user, session, paystackKey, setShowAuth, openAuth, isPro, setIsPro, isEnterprise, setIsEnterprise, cfiResult, setCfiResult, cfiHistory, lessonProgress, setLessonProgress, proPrice };
 
       return (
         React.createElement("div", {style: { background:C.void, minHeight:'100vh', color:C.text }}, showAuth && React.createElement(AuthModal, {initialTab: authInitialTab, onClose: ()=>{ setShowAuth(false); setAuthInitialTab('login'); }, onSuccess: ()=>{ setShowAuth(false); setAuthInitialTab('login'); }}), React.createElement(Navbar, {view: view, setView: setView, user: user, profile: profile, setShowAuth: setShowAuth, onSignOut: handleSignOut, authLoading: authLoading, hasOrg: hasOrg}), React.createElement("main", null, view==='home'        && React.createElement(HomeView, viewProps), view==='four-brains' && React.createElement(FourBrainsView, viewProps), view==='cfi'         && React.createElement(CFIView, viewProps), view==='protocol'    && React.createElement(ProtocolView, viewProps), view==='decisions'   && React.createElement(DecisionVaultView, viewProps), view==='pressure'    && React.createElement(PressureModeView, viewProps), view==='analytics'   && React.createElement(AnalyticsView, viewProps), view==='lessons'     && React.createElement(LessonsView, viewProps), view==='about'       && React.createElement(AboutView, viewProps), view==='resources'   && React.createElement(ResourcesView, viewProps), view==='legal'       && React.createElement(LegalView, {setView: setView}), view==='enterprise'  && React.createElement(EnterpriseView, {user: user, session: session, paystackKey: paystackKey, setShowAuth: setShowAuth, isEnterprise: isEnterprise, setIsEnterprise: setIsEnterprise, proPrice: proPrice, entPrice: entPrice, setView: setView}), view==='teams'       && React.createElement(window.NF_ORG.EnterpriseLanding, {user: user, session: session, setShowAuth: setShowAuth}), view==='org'         && React.createElement(window.NF_ORG.OrgPortal, {user: user, session: session, setView: setView, setShowAuth: setShowAuth, onOrgsChanged: l => setHasOrg(l.length > 0)}), view==='invite'      && React.createElement(window.NF_ORG.InvitePage, {user: user, session: session, setView: setView, setShowAuth: setShowAuth, onOrgsChanged: l => setHasOrg(l.length > 0)}), view==='admin'       && profile?.is_admin === true && React.createElement(AdminView, {user: user, setView: setView, onPriceChange: setProPrice, onEntPriceChange: setEntPrice})), React.createElement(Footer, {setView: setView}), view !== 'enterprise' && React.createElement(BottomNav, {view: view, setView: setView, user: user}))
@@ -7747,6 +8161,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, lessonProgress }) {
   function OverviewTab({ ov, go }) {
     const s = ov.seats;
     return h('div', null,
+      h(NFJEnterpriseJourney, { ov }),
       h('div', { style: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(180px,1fr))', gap: 14, marginBottom: 24 } },
         Stat('Team Assessment', ov.plan.name || 'Custom'), Stat('Seats', s.used + ' / ' + s.limit + ' used', s.remaining + ' remaining'),
         Stat('Invited', ov.invited_total), Stat('Completed', ov.completed), Stat('Awaiting assessment', ov.awaiting_assessment), Stat('Completion rate', ov.completion_rate + '%')),
