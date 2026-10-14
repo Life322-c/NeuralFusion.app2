@@ -2497,6 +2497,25 @@ function NFJNextAction({ T, st, focus, setView, setShowAuth }) {
     React.createElement(NFJButton, { T, onClick: go }, a.cta + ' →'));
 }
 
+
+// Compact version of the next step for secondary pages (Academy, Decision Vault). Same logic, same
+// single action; the button is hidden when the recommended page IS the page the user is on.
+function NFJNextStrip({ light, here, user, cfiResult, cfiHistory, lessonProgress, setView }) {
+  useNFJStyles();
+  const T = nfjTheme(!!light);
+  const data = useNFJourneyData(user);
+  if (!user || data.status === 'loading' || data.status === 'idle') return null;
+  if (data.status === 'error') return null; // secondary surface: stay quiet rather than add an error banner
+  const st = nfjComputeState({ user, cfiResult, cfiHistory, lessonProgress, decisions: data.decisions, practices: data.practices, practicesAvailable: data.practicesAvailable });
+  const a = nfjNextAction(st, nfjDevelopmentFocus(cfiResult));
+  return React.createElement('div', { className: (light ? 'nfj-light ' : '') + 'nfj-wrap', role: 'region', 'aria-label': 'Your next step',
+    style: { background: T.tint, border: '1px solid ' + T.strong, borderRadius: 12, padding: '16px 18px', marginBottom: 24 } },
+    React.createElement(NFJEyebrow, { T }, 'Your next step'),
+    React.createElement('div', { style: { fontSize: 15, fontWeight: 700, color: T.ink, marginBottom: 4 } }, a.title),
+    React.createElement('div', { style: { fontSize: 14, color: T.text, lineHeight: 1.6, marginBottom: a.view === here ? 0 : 12 } }, a.view === here ? a.body + ' You are in the right place.' : a.body),
+    a.view !== here && React.createElement(NFJButton, { T, onClick: () => setView(a.view) }, a.cta + ' →'));
+}
+
 function nfjEvidence(key, st) {
   if (key === 'discover' && st.hasCFI) return st.latest ? `CFI ${st.latest.total_score} · ${cfiCoordinationLabel(st.latest.band)}` : 'CFI completed';
   if (key === 'understand' && st.done.understand) return 'Profile explored';
@@ -2561,8 +2580,8 @@ function NFJFirstValue({ T, cfiResult, setView }) {
     sec('What this may mean', f.why + ' This is a self-report snapshot of how you answered today. It is not a diagnosis and not a measure of intelligence.'),
     sec('Your development opportunity', f.practice),
     React.createElement(NFJEyebrow, { T }, 'Your next step'),
-    React.createElement('p', { style: { fontSize: 15, color: T.text, lineHeight: 1.65, margin: '0 0 16px' } }, 'Try your first practice, then apply it to a real decision.'),
-    React.createElement(NFJButton, { T, onClick: () => setView('lessons') }, 'Start your first practice →'));
+    React.createElement('p', { style: { fontSize: 15, color: T.text, lineHeight: 1.65, margin: '0 0 16px' } }, 'Try a practice for this focus, then apply it to a real decision.'),
+    React.createElement(NFJButton, { T, onClick: () => setView('lessons') }, 'Go to your practice →'));
 }
 
 function NFJCFIScope({ T }) {
@@ -3737,7 +3756,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
       );
     }
 
-    function DecisionVaultView({ user, setShowAuth, setView }) {
+    function DecisionVaultView({ user, setShowAuth, setView, cfiResult, cfiHistory, lessonProgress }) {
       const [decisions, setDecisions] = useState([]);
       const [loading, setLoading] = useState(true);
       const [filter, setFilter] = useState('all');
@@ -3782,6 +3801,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
           React.createElement("div", { style: { maxWidth: 820, margin: '0 auto', padding: '40px 24px' } },
             React.createElement("div", { style: { ...mono, fontSize: 11, letterSpacing: 1.5, color: C.cyan, marginBottom: 16 } }, 'Decision Vault'),
             React.createElement("h1", { style: { ...syne, fontSize: 20, fontWeight: 800, color: C.text, marginBottom: 16, overflowWrap: 'break-word' } }, 'Your real decisions, thought through and remembered.'),
+            React.createElement(NFJNextStrip, { here: 'decisions', user, cfiResult, cfiHistory, lessonProgress, setView }),
             React.createElement("div", { style: { marginBottom: 28 } },
               React.createElement("button", { className: "btn-primary", onClick: () => setView('protocol') }, 'Think Through a Decision')
             ),
@@ -4370,7 +4390,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
       );
     }
 
-    function CFIView({ setView, user, setShowAuth, openAuth, cfiResult, setCfiResult }) {
+    function CFIView({ setView, user, setShowAuth, openAuth, cfiResult, setCfiResult, refreshCfiHistory }) {
       const [started, setStarted] = useState(false);
       const [step, setStep] = useState(0);
       const [answers, setAnswers] = useState({});
@@ -4574,6 +4594,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
               setSaveErrorMsg(error.message || JSON.stringify(error));
             } else {
               setSaveState('saved');
+              if (refreshCfiHistory) refreshCfiHistory();
               setSaveErrorMsg('row id: ' + (data && data[0] && data[0].id ? data[0].id : '(insert, id not returned)'));
               setDraftId(null);
             }
@@ -5140,6 +5161,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
 
       return (
         React.createElement("div", { style: { marginBottom: 56 } },
+          React.createElement(NFJNextStrip, { light: true, here: 'lessons', user, cfiResult, cfiHistory, lessonProgress, setView }),
 
           // ── Header ──
           React.createElement("div", { style: { marginBottom: 32 } },
@@ -7950,7 +7972,14 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
       // right tab instead of always defaulting to login.
       const openAuth = (tab='login') => { setAuthInitialTab(tab); setShowAuth(true); };
 
-      const viewProps = { authLoading, setView, user, session, paystackKey, setShowAuth, openAuth, isPro, setIsPro, isEnterprise, setIsEnterprise, cfiResult, setCfiResult, cfiHistory, lessonProgress, setLessonProgress, proPrice };
+      const refreshCfiHistory = async () => {
+        if (!user) return;
+        const { data, error } = await sb.from('cfi_results').select('*').eq('user_id', user.id).eq('status', 'completed').order('created_at', { ascending: false });
+        if (error) { console.error('[CFI HISTORY REFRESH ERROR]', error); return; }
+        if (data) setCfiHistory([...data].reverse()); // oldest → newest, same shape as loadUser
+      };
+
+      const viewProps = { refreshCfiHistory, authLoading, setView, user, session, paystackKey, setShowAuth, openAuth, isPro, setIsPro, isEnterprise, setIsEnterprise, cfiResult, setCfiResult, cfiHistory, lessonProgress, setLessonProgress, proPrice };
 
       return (
         React.createElement("div", {style: { background:C.void, minHeight:'100vh', color:C.text }}, showAuth && React.createElement(AuthModal, {initialTab: authInitialTab, onClose: ()=>{ setShowAuth(false); setAuthInitialTab('login'); }, onSuccess: ()=>{ setShowAuth(false); setAuthInitialTab('login'); }}), React.createElement(Navbar, {view: view, setView: setView, user: user, profile: profile, setShowAuth: setShowAuth, onSignOut: handleSignOut, authLoading: authLoading, hasOrg: hasOrg}), React.createElement("main", null, view==='home'        && React.createElement(HomeView, viewProps), view==='four-brains' && React.createElement(FourBrainsView, viewProps), view==='cfi'         && React.createElement(CFIView, viewProps), view==='protocol'    && React.createElement(ProtocolView, viewProps), view==='decisions'   && React.createElement(DecisionVaultView, viewProps), view==='pressure'    && React.createElement(PressureModeView, viewProps), view==='analytics'   && React.createElement(AnalyticsView, viewProps), view==='lessons'     && React.createElement(LessonsView, viewProps), view==='about'       && React.createElement(AboutView, viewProps), view==='resources'   && React.createElement(ResourcesView, viewProps), view==='legal'       && React.createElement(LegalView, {setView: setView}), view==='enterprise'  && React.createElement(EnterpriseView, {user: user, session: session, paystackKey: paystackKey, setShowAuth: setShowAuth, isEnterprise: isEnterprise, setIsEnterprise: setIsEnterprise, proPrice: proPrice, entPrice: entPrice, setView: setView}), view==='teams'       && React.createElement(window.NF_ORG.EnterpriseLanding, {user: user, session: session, setShowAuth: setShowAuth}), view==='org'         && React.createElement(window.NF_ORG.OrgPortal, {user: user, session: session, setView: setView, setShowAuth: setShowAuth, onOrgsChanged: l => setHasOrg(l.length > 0)}), view==='invite'      && React.createElement(window.NF_ORG.InvitePage, {user: user, session: session, setView: setView, setShowAuth: setShowAuth, onOrgsChanged: l => setHasOrg(l.length > 0)}), view==='admin'       && profile?.is_admin === true && React.createElement(AdminView, {user: user, setView: setView, onPriceChange: setProPrice, onEntPriceChange: setEntPrice})), React.createElement(Footer, {setView: setView}), view !== 'enterprise' && React.createElement(BottomNav, {view: view, setView: setView, user: user}))
