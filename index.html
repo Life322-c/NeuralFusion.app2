@@ -1,34 +1,14 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <!-- Consent Mode defaults (must be set before GTM/gtag loads).
-       Site has no cookie/consent banner, so analytics_storage is granted by
-       default; ad storage stays denied. Without this, Consent Mode treats
-       visits as "unknown consent" and can silently drop hits. -->
-  <script>
-    window.dataLayer = window.dataLayer || [];
-    function gtag(){dataLayer.push(arguments);}
-    gtag('consent', 'default', {
-      'ad_storage': 'denied',
-      'ad_user_data': 'denied',
-      'ad_personalization': 'denied',
-      'analytics_storage': 'granted'
-    });
-  </script>
 
-<!-- Google Tag Manager -->
-<script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
-new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
-j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
-'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
-})(window,document,'script','dataLayer','GTM-P47TD9MS');</script>
-<!-- End Google Tag Manager -->
+<script src="/gtm-init.js"></script>
 
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <!-- ── Primary SEO ─────────────────────────────────────────── -->
-  <title>NeuralFusion | Cognitive Operating System for Better Thinking</title>
-  <meta name="description" content="NeuralFusion is a cognitive operating system for understanding how you think, training your thinking, and making better decisions. Discover your cognitive profile with the free CFI assessment." />
+  <title>NeuralFusion | Cognitive Operating System for Thinking</title>
+  <meta name="description" content="NeuralFusion is a cognitive operating system for understanding and training how you think. Take the free CFI assessment to find your cognitive profile." />
   <meta name="author" content="Life Edet" />
   <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
   <meta name="format-detection" content="telephone=no" />
@@ -41,8 +21,8 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
   <meta property="og:type"        content="website" />
   <meta property="og:url"         content="https://tryneuralfusion.com/" />
   <meta property="og:site_name"   content="NeuralFusion" />
-  <meta property="og:title"       content="NeuralFusion | Cognitive Operating System for Better Thinking" />
-  <meta property="og:description" content="NeuralFusion is a cognitive operating system for understanding how you think, training your thinking, and making better decisions." />
+  <meta property="og:title"       content="NeuralFusion | Cognitive Operating System for Thinking" />
+  <meta property="og:description" content="NeuralFusion is a cognitive operating system for understanding and training how you think. Take the free CFI assessment to find your cognitive profile." />
   <meta property="og:image"       content="https://tryneuralfusion.com/icons/og-image.png" />
   <meta property="og:image:width"  content="1200" />
   <meta property="og:image:height" content="630" />
@@ -54,8 +34,8 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
   <meta name="twitter:card"        content="summary_large_image" />
   <meta name="twitter:site"        content="@NeuralFusion" />
   <meta name="twitter:creator"     content="@NeuralFusion" />
-  <meta name="twitter:title"       content="NeuralFusion | Cognitive Operating System for Better Thinking" />
-  <meta name="twitter:description" content="NeuralFusion is a cognitive operating system for understanding how you think, training your thinking, and making better decisions." />
+  <meta name="twitter:title"       content="NeuralFusion | Cognitive Operating System for Thinking" />
+  <meta name="twitter:description" content="NeuralFusion is a cognitive operating system for understanding and training how you think. Take the free CFI assessment to find your cognitive profile." />
   <meta name="twitter:image"       content="https://tryneuralfusion.com/icons/og-image.png" />
   <meta name="twitter:image:alt"   content="NeuralFusion - Train How You Think" />
 
@@ -194,21 +174,18 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
   </script>
 
   <!--
-    SECURITY: SRI hashes below are placeholders.
-    After deployment, run this command for each script to get the real hash:
-      curl -fsSL <URL> | openssl dgst -sha384 -binary | openssl base64 -A
-    Then replace each integrity="TODO" with integrity="sha384-<hash>"
-    Paystack (js.paystack.co) does not support SRI - the CSP allowlist covers it.
+    SECURITY: third-party scripts are pinned to exact versions. Run `npm run sri`
+    (needs network) to add or refresh integrity="sha384-..." on each jsDelivr tag.
+    Paystack (js.paystack.co) does not support SRI, so the CSP allowlist covers it.
+    The Paystack script is loaded on demand by the app when checkout opens.
   -->
   <!-- CDN preconnect hints -->
   <link rel="preconnect" href="https://cdn.jsdelivr.net" />
-  <link rel="preconnect" href="https://unpkg.com" />
   <link rel="preconnect" href="https://js.paystack.co" />
-  <!-- Scripts: switched React to jsDelivr (faster), added defer to all -->
+  <!-- Scripts: jsDelivr, deferred -->
   <script defer crossorigin="anonymous" src="https://cdn.jsdelivr.net/npm/react@18.2.0/umd/react.production.min.js"></script>
   <script defer crossorigin="anonymous" src="https://cdn.jsdelivr.net/npm/react-dom@18.2.0/umd/react-dom.production.min.js"></script>
   <script defer crossorigin="anonymous" src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.3/dist/umd/supabase.min.js"></script>
-  <script async src="https://js.paystack.co/v1/inline.js"></script>
 </head>
 <body>
 <!-- Google Tag Manager (noscript) -->
