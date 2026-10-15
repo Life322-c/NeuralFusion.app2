@@ -8355,7 +8355,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
         h('div', { style: card() },
           h('div', { style: label }, 'Billing terms'),
           entList([
-            'Payment is by invoice, in USDT on the Ethereum (ERC20) network. Payment details are on the invoice you receive.',
+            'Payment is by invoice, in USDT on the TRON (TRC20) network. Payment details are on the invoice you receive.',
             'Packages renew monthly. The renewal price may change with 30 days\u2019 notice.',
             'A team cancels with 30 days\u2019 notice.',
             'Monthly payments are not refundable.',
@@ -8371,7 +8371,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
       ['What does the CFI measure, and what does it not?', 'It measures how consistently your four thinking modes (analytical, intuitive, associative, reflective) work together, and your self-reported steadiness under pressure, on a 13 to 65 scale where lower means better coordinated. It does not measure intelligence, personality type, mental health or future performance. It is not a diagnosis, and it is a snapshot of how someone answered on the day.'],
       ['What will I see as the organisation owner?', 'Invitations and completion tracking, and aggregate team patterns once enough people have completed the CFI. Individual profiles stay private to each person.'],
       ['Can we measure development over time?', 'Each person can retake the CFI and compare with their own starting point. A team-level before-and-after comparison is not in the dashboard yet.'],
-      ['How do we pay?', 'By invoice, in USDT on the Ethereum (ERC20) network. There is no online checkout. Email the founder with your package choice to receive the invoice.'],
+      ['How do we pay?', 'By invoice, in USDT on the TRON (TRC20) network. There is no online checkout. Email the founder with your package choice to receive the invoice.'],
       ['What if we need more than 50 seats?', 'Larger teams, multiple organizations and facilitated programmes are priced individually. Email the founder for a custom proposal.'],
     ];
     return h('div', { key: 'faq', style: { marginBottom: 56 } },
@@ -8467,7 +8467,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
         h('div', { style: { ...mono, fontSize: 11, letterSpacing: 2, color: C.cyan, marginBottom: 20 } }, 'HOW ENTERPRISE ONBOARDING WORKS'),
         h('div', { style: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(260px,1fr))', gap: 16 } },
           step(1, 'Choose a package', 'Pick a seat package above and email the founder. You will receive an invoice with payment details.'),
-          step(2, 'Pay the invoice', 'Packages are paid in USDT (ERC20), as set out on the invoice. There is no online checkout.'),
+          step(2, 'Pay the invoice', 'Packages are paid in USDT (TRC20), as set out on the invoice. There is no online checkout.'),
           step(3, 'We onboard your organisation', 'We create your workspace, set your seat limit and invite the owner by email.'),
           step(4, 'You invite your team', 'Sign in as the owner, then invite your team by email or link. Each person takes the CFI, and aggregate team results appear as people complete it.'))),
       h('div', { key: 'explore', id: 'nf-explore' }, sec('WHAT YOUR TEAM GETS', [
