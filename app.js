@@ -2569,6 +2569,55 @@ function NFJSampleProfile({ T, setView }) {
       React.createElement(NFJButton, { T, onClick: () => setView('cfi') }, 'Get your own profile →')));
 }
 
+// ── Opt-in sharing of a retest with the member's organisation (team before/after) ──
+// Server: migration_team_progress.sql. Consent is per retest and per organisation; nothing is shared unless the
+// person presses "Share". Renders nothing when the person isn't eligible OR when the migration isn't applied yet.
+const nfjRetestRpc = async (name, args) => {
+  const { data, error } = await sb.rpc(name, args);
+  if (error) { console.error('[RETEST ' + name + ']', error); return { ok: false, error: 'request_failed' }; }
+  return data;
+};
+function NFRetestShareView({ T, state, busy, error, onShare, onUnshare }) {
+  if (!state || state.status !== 'ready' || !state.orgs || !state.orgs.length) return null;
+  const thr = state.threshold || 5;
+  return React.createElement('div', { className: 'nfj-light nfj-wrap', role: 'region', 'aria-label': 'Share your retest with your organisation' },
+    state.orgs.map(o => React.createElement('div', { key: o.id, style: { background: T.card, border: '1px solid ' + T.border, borderRadius: 12, padding: '18px 18px', marginBottom: 20 } },
+      React.createElement(NFJEyebrow, { T }, o.shared ? 'Shared with ' + o.name : 'Share this retest?'),
+      React.createElement('div', { style: { fontSize: 14.5, color: T.text, lineHeight: 1.7, marginBottom: 14 } },
+        o.shared
+          ? 'This retest is included in ' + o.name + "'s team averages. " + o.name + ' only ever sees team averages, never your individual result. The first retest you share is the one counted. You can stop sharing at any time.'
+          : 'You can include this retest in ' + o.name + "'s team averages, so the team can see how its thinking patterns develop. " + o.name + ' only ever sees team averages, never your individual result, and only once at least ' + thr + ' people have shared a retest. It is your choice: if you do nothing, nothing is shared. You can stop sharing at any time.'),
+      o.shared
+        ? React.createElement(NFJButton, { T, variant: 'outline', disabled: busy === o.id, onClick: () => onUnshare(o.id) }, busy === o.id ? 'Working…' : 'Stop sharing')
+        : React.createElement(NFJButton, { T, disabled: busy === o.id, onClick: () => onShare(o.id) }, busy === o.id ? 'Working…' : 'Share my retest'))),
+    error && React.createElement('div', { role: 'alert', style: { fontSize: 13.5, color: T.text, marginBottom: 16 } }, error));
+}
+function NFRetestShare({ user, resultId }) {
+  useNFJStyles();
+  const [state, setState] = useState({ status: 'loading', orgs: [], threshold: null });
+  const [busy, setBusy] = useState(null);
+  const [error, setError] = useState('');
+  useEffect(() => {
+    if (!user || !resultId) return;
+    let live = true;
+    nfjRetestRpc('retest_share_options', { p_result_id: resultId }).then(r => {
+      if (!live) return;
+      if (r && r.ok) setState({ status: 'ready', orgs: r.orgs || [], threshold: r.threshold });
+      else setState({ status: 'error', orgs: [], threshold: null });
+    });
+    return () => { live = false; };
+  }, [user && user.id, resultId]);
+  const act = async (fn, orgId, shared) => {
+    setError(''); setBusy(orgId);
+    const r = await nfjRetestRpc(fn, { p_result_id: resultId, p_org: orgId });
+    setBusy(null);
+    if (r && r.ok) setState(st => ({ ...st, orgs: st.orgs.map(o => o.id === orgId ? { ...o, shared } : o) }));
+    else setError("We couldn't update that. Please try again.");
+  };
+  return React.createElement(NFRetestShareView, { T: nfjTheme(true), state, busy, error,
+    onShare: (id) => act('link_cfi_retest_to_org', id, true), onUnshare: (id) => act('unlink_cfi_retest_from_org', id, false) });
+}
+
 function nfjEvidence(key, st) {
   if (key === 'discover' && st.hasCFI) return st.latest ? `CFI ${st.latest.total_score} · ${cfiCoordinationLabel(st.latest.band)}` : 'CFI completed';
   if (key === 'understand' && st.done.understand) return 'Profile explored';
@@ -2722,24 +2771,40 @@ function NFJEvolution({ user, cfiResult, cfiHistory, lessonProgress, setView }) 
 }
 
 // ── Enterprise team journey: uses ONLY aggregate counts the org_overview RPC already returns ──
-function NFJEnterpriseJourney({ ov }) {
-  useNFJStyles();
-  const T = nfjTheme(false);
+// Rows are a pure function of the overview counts and (optionally) the team before/after result.
+function nfjEnterpriseRows(ov, prog) {
   const unlocked = ov.completed >= ov.report_threshold;
-  const rows = [
+  let again;
+  if (prog && prog.ok && prog.unlocked) again = { k: 'MEASURE AGAIN', done: true, text: 'Team before/after is available: ' + prog.members_with_retest + ' people included. See Team Results.' };
+  else if (prog && prog.ok) again = { k: 'MEASURE AGAIN', done: false, text: (prog.members_with_retest || 0) + ' people have shared a retest. The team comparison appears once ' + prog.threshold + ' have.' };
+  else again = { k: 'MEASURE AGAIN', done: null, text: 'Retest later and compare team patterns. The team comparison is not available yet.' };
+  return [
     { k: 'MEASURE', done: ov.completed > 0, text: `${ov.completed} of ${ov.invited_total} invited people have completed the CFI.` },
     { k: 'UNDERSTAND', done: unlocked, text: unlocked ? 'Aggregate team patterns are available. They appear only above the minimum group size, which protects individuals.' : `Aggregate patterns unlock at ${ov.report_threshold} completions (${ov.completed} so far).` },
     { k: 'TRAIN', done: null, text: 'Train integrated thinking with the Academy. Team-level training progress is not tracked in this dashboard yet.' },
     { k: 'APPLY', done: null, text: 'Apply the framework to real team decisions. Not tracked in this dashboard yet.' },
-    { k: 'MEASURE AGAIN', done: null, text: 'Retest later and compare team patterns. Team pre/post comparison is not available in this dashboard yet.' },
+    again,
     { k: 'DEVELOP', done: null, text: 'Decide what the team develops next, using the measured patterns above.' },
   ];
+}
+function NFJEnterpriseJourney({ ov, orgId }) {
+  useNFJStyles();
+  const T = nfjTheme(false);
+  const [prog, setProg] = useState(null);
+  useEffect(() => {
+    if (!orgId || !(ov.completed > 0)) return;
+    let live = true;
+    sb.rpc('org_team_progress', { p_org: orgId }).then(({ data, error }) => { if (live) setProg(error ? null : data); });
+    return () => { live = false; };
+  }, [orgId, ov.completed]);
+  const rows = nfjEnterpriseRows(ov, prog);
+  const notTracked = (r) => r.done === null && r.k !== 'MEASURE AGAIN' ? ' \u00b7 not yet tracked' : (r.done === null ? ' \u00b7 not yet available' : '');
   return React.createElement(NFJPanel, { T, style: { marginBottom: 20 } },
     React.createElement(NFJEyebrow, { T }, 'Team journey'),
     React.createElement('ol', { style: { listStyle: 'none', margin: 0, padding: 0 } }, rows.map((r, i) => React.createElement('li', { key: r.k, style: { display: 'grid', gridTemplateColumns: '28px 1fr', gap: 12, padding: '12px 0', borderTop: i ? '1px solid ' + T.border : 'none' } },
-      React.createElement('div', { 'aria-hidden': 'true', style: { textAlign: 'center', color: r.done ? T.done : T.muted } }, r.done ? '✓' : '○'),
+      React.createElement('div', { 'aria-hidden': 'true', style: { textAlign: 'center', color: r.done ? T.done : T.muted } }, r.done ? '\u2713' : '\u25cb'),
       React.createElement('div', { className: 'nfj-wrap' },
-        React.createElement('div', { style: { fontFamily: "'Space Mono',monospace", fontSize: 12, letterSpacing: '0.1em', color: r.done ? T.done : T.ink, marginBottom: 3 } }, r.k, r.done === null ? ' · not yet tracked' : ''),
+        React.createElement('div', { style: { fontFamily: "'Space Mono',monospace", fontSize: 12, letterSpacing: '0.1em', color: r.done ? T.done : T.ink, marginBottom: 3 } }, r.k, notTracked(r)),
         React.createElement('div', { style: { fontSize: 14, color: T.text, lineHeight: 1.6 } }, r.text))))),
     React.createElement('div', { style: { fontSize: 13, color: T.muted, lineHeight: 1.6, marginTop: 8 } }, 'Everything marked complete is measured platform activity. Any business implication is something to explore with your team, not a measured result. Individual results are never shown to employers.'));
 }
@@ -4173,7 +4238,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
       return React.createElement("button", { className: "nf-cp-btn", onClick, style: { ...base, ...variants[variant], ...style } }, children);
     }
 
-    function CFIResults({ cfiResult, setView, user, setShowAuth, onRetake, saveState }) {
+    function CFIResults({ cfiResult, setView, user, setShowAuth, onRetake, saveState, shareResultId }) {
       const bandColor = CP_BAND_COLORS[cfiResult.band] || CP.gold;
       // Display-only label. cfiResult.band itself (raw DB value / lesson-gating
       // value) is never changed, exactly as in the rest of the app.
@@ -4257,6 +4322,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
             ),
 
             React.createElement(NFJFirstValue, { T: nfjTheme(true), cfiResult, setView }),
+            user && shareResultId && React.createElement(NFRetestShare, { user, resultId: shareResultId }),
 
             // ── SECTION 1: Profile overview ──
             React.createElement(CPCard, { style: { padding: '36px 28px', marginBottom: 20 } },
@@ -4447,7 +4513,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
       );
     }
 
-    function CFIView({ setView, user, setShowAuth, openAuth, cfiResult, setCfiResult, refreshCfiHistory }) {
+    function CFIView({ setView, user, setShowAuth, openAuth, cfiResult, setCfiResult, refreshCfiHistory, cfiHistory }) {
       const [started, setStarted] = useState(false);
       const [step, setStep] = useState(0);
       const [answers, setAnswers] = useState({});
@@ -4467,6 +4533,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
       const [awaitingAuth, setAwaitingAuth] = useState(false);
       const [justAuthed, setJustAuthed] = useState(false);
       const [draftId, setDraftId] = useState(null);
+      const [savedResultId, setSavedResultId] = useState(null);
       const [saveFailed, setSaveFailed] = useState(false);
       const [saveErrorMsg, setSaveErrorMsg] = useState('');
       // saveState drives the "Your progress is saved" message so it reflects
@@ -4652,7 +4719,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
             } else {
               setSaveState('saved');
               if (refreshCfiHistory) refreshCfiHistory();
-              setSaveErrorMsg('row id: ' + (data && data[0] && data[0].id ? data[0].id : '(insert, id not returned)'));
+              setSaveErrorMsg('row id: ' + (data && data[0] && data[0].id ? data[0].id : '(insert, id not returned)')); setSavedResultId(data && data[0] && data[0].id ? data[0].id : null);
               setDraftId(null);
             }
           });
@@ -4697,11 +4764,11 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
                 setSaveState('saving');
                 saveCFIResult(user.id, cfiResult, answers, draftId).then(({ data, error }) => {
                   if (error) { setSaveFailed(true); setSaveState('failed'); setSaveErrorMsg(error.message || JSON.stringify(error)); }
-                  else { setSaveState('saved'); setSaveErrorMsg('row id: ' + (data && data[0] && data[0].id ? data[0].id : '(insert, id not returned)')); setDraftId(null); }
+                  else { setSaveState('saved'); setSaveErrorMsg('row id: ' + (data && data[0] && data[0].id ? data[0].id : '(insert, id not returned)')); setSavedResultId(data && data[0] && data[0].id ? data[0].id : null); setDraftId(null); }
                 });
               }, style: { marginLeft:12, background:'none', border:'1px solid #991B1B', borderRadius:8, color:'#991B1B', padding:'4px 12px', cursor:'pointer', fontSize:13, fontWeight:700 }}, 'Retry')
             ),
-            React.createElement(CFIResults, { cfiResult, setView, user, setShowAuth, onRetake: handleRetake, saveState })
+            React.createElement(CFIResults, { cfiResult, setView, user, setShowAuth, onRetake: handleRetake, saveState, shareResultId: savedResultId || (cfiHistory && cfiHistory.length ? cfiHistory[cfiHistory.length - 1].id : null) })
           )
         );
       }
@@ -8351,7 +8418,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
   function OverviewTab({ ov, go }) {
     const s = ov.seats;
     return h('div', null,
-      h(NFJEnterpriseJourney, { ov }),
+      h(NFJEnterpriseJourney, { ov, orgId: ov.organisation && ov.organisation.id }),
       h('div', { style: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(180px,1fr))', gap: 14, marginBottom: 24 } },
         Stat('Team Assessment', ov.plan.name || 'Custom'), Stat('Seats', s.used + ' / ' + s.limit + ' used', s.remaining + ' remaining'),
         Stat('Invited', ov.invited_total), Stat('Completed', ov.completed), Stat('Awaiting assessment', ov.awaiting_assessment), Stat('Completion rate', ov.completion_rate + '%')),
@@ -8439,7 +8506,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
       h('div', { style: { fontSize: 14, color: C.muted, lineHeight: 1.7, marginBottom: 12 } }, "The before-and-after comparison isn't available right now."),
       h(Btn, { variant: 'ghost', onClick: onRetry }, 'TRY AGAIN')));
     if (!r.unlocked) return shell(h('div', { style: { fontSize: 14, color: C.muted, lineHeight: 1.7 } },
-      'To protect individual privacy, the comparison appears once ' + r.threshold + ' people have retaken the CFI. ' + (r.members_with_retest || 0) + ' so far. Each person can retake it from their own profile.'));
+      'To protect individual privacy, the comparison appears once ' + r.threshold + ' people have shared a retest. ' + (r.members_with_retest || 0) + ' so far. Members choose whether to share when they retake the CFI.'));
     const ch = Number(r.change);
     const meaning = ch > 0 ? 'Team Clarity Delta +' + entNum(ch) + ': the team average is ' + entNum(ch) + ' points lower than at the starting assessment, which indicates less fragmentation.'
       : ch < 0 ? 'Team Clarity Delta ' + entNum(ch) + ': the team average is ' + entNum(-ch) + ' points higher than at the starting assessment, which indicates more fragmentation on this measure.'
@@ -8447,11 +8514,11 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
     const b = r.avg_dimensions_baseline || {}, l = r.avg_dimensions_latest || {};
     return shell([
       h('div', { key: 's', style: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(min(180px,100%),1fr))', gap: 14, marginBottom: 16 } },
-        Stat('Starting average CFI', entNum(r.avg_baseline_total), 'Scale 13 to 65'), Stat('Latest average CFI', entNum(r.avg_latest_total), 'Scale 13 to 65'), Stat('People included', r.members_with_retest, 'Retook the CFI')),
+        Stat('Starting average CFI', entNum(r.avg_baseline_total), 'Scale 13 to 65'), Stat('Retest average CFI', entNum(r.avg_latest_total), 'Scale 13 to 65'), Stat('People included', r.members_with_retest, 'Retook the CFI')),
       h('div', { key: 'm', style: { fontSize: 14, color: C.text, lineHeight: 1.8, marginBottom: 16 } }, meaning),
       h('div', { key: 'd', style: { marginBottom: 12 } }, Object.keys(DIM_LABELS).map((k) => h('div', { key: k, style: { display: 'flex', justifyContent: 'space-between', gap: 12, padding: '10px 0', borderBottom: '1px solid ' + C.border, fontSize: 14 } },
         h('span', null, DIM_LABELS[k]), h('span', { style: mono }, entNum(b[k]) + ' \u2192 ' + entNum(l[k]))))),
-      h('div', { key: 'c', style: { fontSize: 13, color: C.muted, lineHeight: 1.7 } }, 'Only people who completed the CFI at least twice are included, so this can differ from the whole team. These are self-reported answers at two points in time: they show what changed, not what caused it. Mode scores are out of 100, and lower means better coordinated.'),
+      h('div', { key: 'c', style: { fontSize: 13, color: C.muted, lineHeight: 1.7 } }, 'Only people who chose to share a retest are included, so this can differ from the whole team. It uses each person\u2019s first shared retest and updates only when a whole group of ' + (r.batch_size || r.threshold || 5) + ' more people has shared, which protects individuals. These are self-reported answers at two points in time: they show what changed, not what caused it. Mode scores are out of 100, and lower means better coordinated.'),
     ]);
   }
   function EntTeamDevelopment({ org }) {
@@ -8600,7 +8667,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
         h('div', { style: { display: 'flex', gap: 8, flexWrap: 'wrap' } }, h('input', { type: 'number', min: 2, value: thr, onChange: (e) => setThr(e.target.value), style: Object.assign({}, inputStyle, { width: 120 }) }), h(Btn, { onClick: saveThreshold, style: { padding: '8px 16px' } }, 'SAVE'))));
   }
 
-  window.NF_ORG = { TeamDevelopmentView: EntTeamDevelopmentView, EnterpriseLanding, OrgPortal, InvitePage, AdminOnboardPanel, initialView, loadMyOrgs, afterCfiSaved, track };
+  window.NF_ORG = { OverviewTab, TeamDevelopmentView: EntTeamDevelopmentView, EnterpriseLanding, OrgPortal, InvitePage, AdminOnboardPanel, initialView, loadMyOrgs, afterCfiSaved, track };
 })();
 
     // ═══ NEURALFUSION_ORG_MODULE_END ═══
