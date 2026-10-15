@@ -1607,3 +1607,10 @@ h1, h2, h3, h4, h5, h6,
   #cfi-report button, #cfi-report .btn-primary, #cfi-report .btn-outline, #cfi-report .btn-ghost { display: none !important; }
   #cfi-report .card { border: 1px solid #ccc !important; break-inside: avoid; }
 }
+
+
+/* Keyboard focus ring (accessibility). :focus-visible shows it for keyboard users only, so mouse and touch look is unchanged. */
+a:focus-visible, button:focus-visible, summary:focus-visible, [role="button"]:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 3px;
+}
