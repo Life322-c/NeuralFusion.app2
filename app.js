@@ -6,6 +6,84 @@ const { useState, useEffect, useCallback, useRef, useMemo } = React;
     const { createClient } = supabase;
     const sb = createClient(SUPABASE_URL, SUPABASE_ANON);
 
+    // ── Non-blocking notices (replaces alert()) ───────────────────────
+    // opts: { type: 'info'|'success'|'error', sticky, actionLabel, onAction }
+    function nfNotify(text, opts) {
+      opts = opts || {};
+      try {
+        let host = document.getElementById('nf-notices');
+        if (!host) {
+          host = document.createElement('div');
+          host.id = 'nf-notices';
+          host.style.cssText = 'position:fixed;left:50%;bottom:24px;transform:translateX(-50%);z-index:99999;display:flex;flex-direction:column;gap:10px;width:min(440px,calc(100vw - 32px));';
+          document.body.appendChild(host);
+        }
+        const box = document.createElement('div');
+        box.setAttribute('role', opts.type === 'error' ? 'alert' : 'status');
+        const accent = opts.type === 'error' ? '#F87171' : '#C4A050';
+        box.style.cssText = 'background:#112240;color:#F5EDD8;border:1px solid ' + accent + ';border-radius:4px;padding:14px 16px;font:14px/1.5 "DM Sans",sans-serif;box-shadow:0 8px 32px rgba(0,0,0,0.5);';
+        const msg = document.createElement('div');
+        msg.textContent = text;
+        box.appendChild(msg);
+        const close = () => { if (box.parentNode) box.parentNode.removeChild(box); };
+        const row = document.createElement('div');
+        row.style.cssText = 'display:flex;gap:10px;margin-top:10px;justify-content:flex-end;';
+        const mkBtn = (label, onClick, primary) => {
+          const b = document.createElement('button');
+          b.type = 'button';
+          b.textContent = label;
+          b.style.cssText = 'cursor:pointer;border-radius:3px;padding:6px 14px;font:600 12px "DM Sans",sans-serif;border:1px solid ' + accent + ';' + (primary ? 'background:' + accent + ';color:#050C1A;' : 'background:transparent;color:#F5EDD8;');
+          b.addEventListener('click', onClick);
+          return b;
+        };
+        if (opts.actionLabel && typeof opts.onAction === 'function') {
+          row.appendChild(mkBtn(opts.actionLabel, () => { close(); opts.onAction(); }, true));
+        }
+        if (opts.sticky || opts.actionLabel) row.appendChild(mkBtn('Dismiss', close, false));
+        if (row.childNodes.length) box.appendChild(row);
+        host.appendChild(box);
+        if (!opts.sticky) setTimeout(close, 8000);
+      } catch (_) {}
+    }
+
+    // ── Accessibility: make click-only containers keyboard operable ───
+    // Many views attach onClick to div/span/li. This wraps createElement so
+    // those elements get role="button", tabIndex=0 and Enter/Space handling.
+    // Skipped for: fixed-position backdrops, stopPropagation-only wrappers,
+    // and anything with its own role/tabIndex or data-no-a11y.
+    (function () {
+      const baseCreate = React.createElement;
+      React.createElement = function (type, props) {
+        if (typeof type === 'string' && (type === 'div' || type === 'span' || type === 'li') &&
+            props && typeof props.onClick === 'function' &&
+            props.role == null && props.tabIndex == null && !props['data-no-a11y']) {
+          const st = props.style || {};
+          let skip = st.position === 'fixed';
+          if (!skip) {
+            const src = Function.prototype.toString.call(props.onClick);
+            skip = src.length < 90 && src.indexOf('stopPropagation') !== -1;
+          }
+          if (!skip) {
+            const origKey = props.onKeyDown;
+            const origClick = props.onClick;
+            const next = Object.assign({}, props, {
+              role: 'button',
+              tabIndex: 0,
+              onKeyDown: function (e) {
+                if (typeof origKey === 'function') origKey(e);
+                if (e.defaultPrevented || e.target !== e.currentTarget) return;
+                if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); origClick(e); }
+              },
+            });
+            const args = Array.prototype.slice.call(arguments);
+            args[1] = next;
+            return baseCreate.apply(React, args);
+          }
+        }
+        return baseCreate.apply(React, arguments);
+      };
+    })();
+
     // ── Design Tokens: Gold × Navy ───────────────────────────────────
     const C = {
       void: '#050C1A', deep: '#071020', surface: '#0C1A30', panel: '#112240',
@@ -1313,7 +1391,7 @@ Most learners take four to six weeks working through the lessons at the suggeste
 
     // ── Cohort Participant Roster Helpers ────────────────────────────
     // Adding someone here also auto-grants is_enterprise on their profile
-    // (via a Postgres trigger — see migration_cohort_participants.sql), so
+    // (via a Postgres trigger - see migration_cohort_participants.sql), so
     // a facilitator can onboard participants without an admin manually
     // flipping "Ent +" for every person in Admin → Users.
     const listCohortParticipants = async (cohort) => {
@@ -1569,18 +1647,27 @@ Most learners take four to six weeks working through the lessons at the suggeste
     };
     const upsertLessonProgress = async (id, lid, p) => await sb.from('lesson_progress').upsert({user_id:id, lesson_id:lid, progress:p, completed:p===100},{onConflict:'user_id,lesson_id'});
     const loadLessonProgress = async (id) => {
-      const {data} = await sb.from('lesson_progress').select('*').eq('user_id',id);
+      const {data} = await sb.from('lesson_progress').select('lesson_id,progress').eq('user_id',id);
       const map = {}; (data||[]).forEach(r=>{map[r.lesson_id]=r.progress;}); return map;
     };
     // Platform settings helpers
     const getPlatformSetting = async (key) => {
       try { const {data} = await sb.from('platform_settings').select('value,text_value').eq('key',key).maybeSingle(); return data?.text_value ?? data?.value ?? null; } catch(_){ return null; }
     };
+    // Both writers return { ok, error } so callers can surface failures.
     const setPlatformSetting = async (key, value) => {
-      try { await sb.from('platform_settings').upsert({key, value},{onConflict:'key'}); } catch(_){}
+      try {
+        const { error } = await sb.from('platform_settings').upsert({key, value},{onConflict:'key'});
+        if (error) { console.error('[platform_settings write]', key, error); return { ok:false, error }; }
+        return { ok:true };
+      } catch(e){ console.error('[platform_settings write]', key, e); return { ok:false, error:e }; }
     };
     const setTextSetting = async (key, text_value) => {
-      try { await sb.from('platform_settings').upsert({key, text_value},{onConflict:'key'}); } catch(_){}
+      try {
+        const { error } = await sb.from('platform_settings').upsert({key, text_value},{onConflict:'key'});
+        if (error) { console.error('[platform_settings write]', key, error); return { ok:false, error }; }
+        return { ok:true };
+      } catch(e){ console.error('[platform_settings write]', key, e); return { ok:false, error:e }; }
     };
     // Enterprise results helpers
     // Carries the stable IDs the brief's "CFI Result Association" step
@@ -1590,7 +1677,7 @@ Most learners take four to six weeks working through the lessons at the suggeste
     // facilitator entries via EntCFIDataEntry won't have a real user_id).
     const saveEnterpriseResult = async (result) => {
       try {
-        await sb.from('enterprise_results').upsert({
+        const { error } = await sb.from('enterprise_results').upsert({
           pid: result.pid,
           cohort: result.cohort,
           user_id: result.userId || null,
@@ -1604,11 +1691,14 @@ Most learners take four to six weeks working through the lessons at the suggeste
           entered_by: result.enteredBy || 'participant',
           recorded_at: new Date(result.ts).toISOString(),
         }, { onConflict: 'pid,cohort,phase' });
-      } catch(_){}
+        if (error) { console.error('[enterprise_results upsert]', error); return { ok:false, error }; }
+        return { ok:true };
+      } catch(e){ console.error('[enterprise_results upsert]', e); return { ok:false, error:e }; }
     };
     const loadEnterpriseResults = async (cohort) => {
       try {
-        const {data} = await sb.from('enterprise_results').select('*').eq('cohort', cohort);
+        const {data, error} = await sb.from('enterprise_results').select('pid,cohort,phase,group_label,composite,dims,responses,entered_by,recorded_at').eq('cohort', cohort);
+        if (error) console.error('[enterprise_results load]', error);
         return (data||[]).map(r=>({
           pid: r.pid, cohort: r.cohort, phase: r.phase, group: r.group_label,
           composite: r.composite, dims: r.dims, responses: r.responses,
@@ -1748,7 +1838,7 @@ Most learners take four to six weeks working through the lessons at the suggeste
           const uid = data.user?.id;
           if (uid) {
             await sb.from('profiles')
-              .upsert({ id: uid, full_name: name.trim(), is_pro: false }, { onConflict: 'id' });
+              .upsert({ id: uid, full_name: name.trim() }, { onConflict: 'id' });
           }
 
           setLoading(false);
@@ -2963,7 +3053,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
     React.createElement(HomeDecisionPanel, { user, setView }),
 
     // ══════════════════════════════════════════════════════════
-    // SECTION 2: THE PROBLEM — COGNITIVE FRAGMENTATION
+    // SECTION 2: THE PROBLEM - COGNITIVE FRAGMENTATION
     // ══════════════════════════════════════════════════════════
     React.createElement("section", { className: "nf-home-sec", style: { maxWidth:1000, margin:'0 auto', padding:'72px 24px' } },
       React.createElement("div", { className: "nf-home-problem-grid" },
@@ -3140,7 +3230,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
     ),
 
     // ══════════════════════════════════════════════════════════
-    // SECTION 8: CLOSING — two paths
+    // SECTION 8: CLOSING - two paths
     // ══════════════════════════════════════════════════════════
     React.createElement("section", { className: "nf-home-sec", style: { background:H.bgAlt, borderTop:`1px solid ${H.border}`, padding:'96px 24px' } },
       React.createElement("div", { style: { maxWidth:600, margin:'0 auto', textAlign:'center' } },
@@ -5445,6 +5535,40 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
         document.head.appendChild(s);
       });
 
+      // Server-side verification. The edge function checks the amount, currency,
+      // owner and one-time use of the reference before granting Pro.
+      const verifyProPayment = async (reference) => {
+        const pendingKey = 'nf_pending_ref';
+        const fail = (detail) => {
+          try { localStorage.setItem(pendingKey, reference); } catch(_) {}
+          nfNotify('Payment received but not confirmed yet. ' + detail + ' Reference: ' + reference + '. Tap Retry, or contact support with this reference.', {
+            type: 'error', sticky: true, actionLabel: 'Retry', onAction: () => verifyProPayment(reference),
+          });
+        };
+        try {
+          let token = session?.access_token;
+          try { const { data: cur } = await sb.auth.getSession(); token = cur?.session?.access_token || token; } catch(_) {}
+          const res = await fetch(SUPABASE_URL + '/functions/v1/verify-payment', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+            body: JSON.stringify({ reference, plan: 'pro' }),
+          });
+          let data = {};
+          try { data = await res.json(); } catch(_) {}
+          if (res.ok && data.success) {
+            try { localStorage.removeItem(pendingKey); } catch(_) {}
+            setIsPro(true);
+            nfNotify('Payment confirmed. Pro is now active.', { type: 'success' });
+          } else {
+            console.error('[verify-payment]', res.status, data);
+            fail(data && data.error ? String(data.error) + '.' : 'Verification did not succeed.');
+          }
+        } catch(e) {
+          console.error('[verify-payment]', e);
+          fail('Network error during verification.');
+        }
+      };
+
       const handleProPayment = () => {
         if (!user) { setShowAuth(true); return; }
         const PAYSTACK_KEY = paystackKey || 'pk_live_dfa71eca29f942cadc337cb8e41834857e2b129b';
@@ -5459,21 +5583,15 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
             metadata: { user_id: user.id, plan: 'pro' },
             onSuccess: async (transaction) => {
               setPaystackLoading(false);
-              try {
-                const res = await fetch(SUPABASE_URL + '/functions/v1/verify-payment', {
-                  method: 'POST',
-                  headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + session.access_token },
-                  body: JSON.stringify({ reference: transaction.reference, plan: 'pro' }),
-                });
-                const data = await res.json();
-                if (res.ok && data.success) { setIsPro(true); }
-                else { alert('Payment received but verification failed. Contact support with ref: ' + transaction.reference); }
-              } catch(e) { alert('Network error during verification. Contact support with ref: ' + transaction.reference); }
+              await verifyProPayment(transaction.reference);
             },
             onCancel: () => { setPaystackLoading(false); },
           });
           handler.openIframe();
-        }).catch(() => { setPaystackLoading(false); alert('Could not load payment system. Check your connection and try again.'); });
+        }).catch(() => {
+          setPaystackLoading(false);
+          nfNotify('Could not load the payment system. Check your connection and try again.', { type: 'error' });
+        });
       };
 
       const levelColors = { Foundation:C.cyan, Intermediate:'#E2BE78', Advanced:'#C4A050', Mastery:'#7AAFCF', Reference:'#4CF7C0' };
@@ -6000,7 +6118,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
       const invite = async () => {
         const emails = inviteEmails.split(/[\n,]/).map(e => e.trim()).filter(Boolean);
         if (!emails.length) { setInviteMsg('Enter at least one email address.'); return; }
-        if (cohort.status !== 'active') { setInviteMsg('This cohort is archived — reactivate it before inviting participants.'); return; }
+        if (cohort.status !== 'active') { setInviteMsg('This cohort is archived: reactivate it before inviting participants.'); return; }
         let ok = 0, failed = 0;
         for (const email of emails) {
           const res = await addCohortParticipant(email, cohort.code);
@@ -6100,12 +6218,12 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
       const [lastLoaded, setLastLoaded] = useState(null);
 
       // Pricing
-      const [proPrice,    setProPrice]    = useState(() => parseInt(localStorage.getItem('nf_pro_price') || '600000'));
-      const [priceInput,  setPriceInput]  = useState(() => String(parseInt(localStorage.getItem('nf_pro_price') || '600000') / 100));
+      const [proPrice,    setProPrice]    = useState(600000);
+      const [priceInput,  setPriceInput]  = useState('6000');
       const [priceSaved,  setPriceSaved]  = useState(false);
-      const [entPrice,    setEntPrice]    = useState(() => parseInt(localStorage.getItem('nf_ent_price') || '5000000'));
-      const [entPriceInput, setEntPriceInput] = useState(() => String(parseInt(localStorage.getItem('nf_ent_price') || '5000000') / 100));
-      const [paystackKeyInput, setPaystackKeyInput] = useState(() => localStorage.getItem('nf_paystack_key') || '');
+      const [entPrice,    setEntPrice]    = useState(5000000);
+      const [entPriceInput, setEntPriceInput] = useState('50000');
+      const [paystackKeyInput, setPaystackKeyInput] = useState('');
       const [keySaved, setKeySaved] = useState(false);
 
       // Users search / filter
@@ -6195,13 +6313,17 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
           setCfiData(cfiRes.data || []);
           setLastLoaded(new Date());
           try {
-            const { data: s } = await sb.from('platform_settings').select('*').eq('key','pro_price').maybeSingle();
+            const { data: s } = await sb.from('platform_settings').select('value').eq('key','pro_price').maybeSingle();
             if (s?.value) { setProPrice(s.value); setPriceInput(String(s.value/100)); }
-          } catch(_) {}
+          } catch(e) { console.error('[admin load pro_price]', e); }
+          try {
+            const { data: es } = await sb.from('platform_settings').select('value').eq('key','enterprise_price').maybeSingle();
+            if (es?.value) { setEntPrice(es.value); setEntPriceInput(String(es.value/100)); }
+          } catch(e) { console.error('[admin load enterprise_price]', e); }
           try {
             const { data: pk } = await sb.from('platform_settings').select('text_value').eq('key','paystack_public_key').maybeSingle();
-            if (pk?.text_value) { setPaystackKeyInput(pk.text_value); localStorage.setItem('nf_paystack_key', pk.text_value); }
-          } catch(_) {}
+            if (pk?.text_value) { setPaystackKeyInput(pk.text_value); }
+          } catch(e) { console.error('[admin load paystack key]', e); }
         } catch(e) { showMsg('Error loading data: ' + e.message, 'error'); }
         setLoading(false);
       };
@@ -6211,7 +6333,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
         if (!error) {
           setUsers(u => u.map(x => x.id === uid ? {...x, is_pro: !current} : x));
           showMsg(`Pro status ${!current ? 'granted' : 'revoked'}.`, 'success');
-        }
+        } else { console.error('[togglePro]', error); showMsg('Could not update Pro status: ' + error.message, 'error'); }
       };
 
       const toggleEnterprise = async (uid, current) => {
@@ -6219,23 +6341,24 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
         if (!error) {
           setUsers(u => u.map(x => x.id === uid ? {...x, is_enterprise: !current} : x));
           showMsg(`Enterprise access ${!current ? 'granted' : 'revoked'}.`, 'success');
-        }
+        } else { console.error('[toggleEnterprise]', error); showMsg('Could not update Enterprise access: ' + error.message, 'error'); }
       };
 
       const deleteUser = async (uid) => {
         if (!window.confirm('Delete this user profile? This cannot be undone.')) return;
         const { error } = await sb.from('profiles').delete().eq('id', uid);
         if (!error) { setUsers(u => u.filter(x => x.id !== uid)); showMsg('User deleted.', 'success'); }
+        else { console.error('[deleteUser]', error); showMsg('Could not delete user: ' + error.message, 'error'); }
       };
 
       const savePrice = async () => {
         const raw = parseFloat(priceInput);
         if (isNaN(raw) || raw < 100) { showMsg('Enter a valid price (minimum ₦100).', 'error'); return; }
         const kobo = Math.round(raw * 100);
-        localStorage.setItem('nf_pro_price', kobo.toString());
+        const saved = await setPlatformSetting('pro_price', kobo);
+        if (!saved.ok) { showMsg('Could not save Pro price: ' + (saved.error?.message || 'unknown error'), 'error'); return; }
         setProPrice(kobo);
         if (onPriceChange) onPriceChange(kobo);
-        try { await sb.from('platform_settings').upsert({ key:'pro_price', value:kobo }, { onConflict:'key' }); } catch(_) {}
         setPriceSaved(true);
         setTimeout(() => setPriceSaved(false), 3000);
         showMsg('Pro price saved.', 'success');
@@ -6245,20 +6368,19 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
         const raw = parseFloat(entPriceInput);
         if (isNaN(raw) || raw < 100) { showMsg('Invalid enterprise price.', 'error'); return; }
         const kobo = Math.round(raw * 100);
-        localStorage.setItem('nf_ent_price', kobo.toString());
+        // The server-side value (platform_settings) is the only source of truth.
+        const saved = await setPlatformSetting('enterprise_price', kobo);
+        if (!saved.ok) { showMsg('Could not save Enterprise price: ' + (saved.error?.message || 'unknown error'), 'error'); return; }
         setEntPrice(kobo);
         if (onEntPriceChange) onEntPriceChange(kobo);
-        // Persist server-side (platform_settings) so the price actually charged
-        // at checkout - not just this admin's local browser - reflects the change.
-        try { await sb.from('platform_settings').upsert({ key:'enterprise_price', value:kobo }, { onConflict:'key' }); } catch(_) {}
         showMsg('Enterprise price saved.', 'success');
       };
 
       const savePaystackKey = async () => {
         const key = paystackKeyInput.trim();
         if (!key.startsWith('pk_')) { showMsg('Invalid Paystack public key. Must start with pk_', 'error'); return; }
-        localStorage.setItem('nf_paystack_key', key);
-        try { await setTextSetting('paystack_public_key', key); } catch(_) {}
+        const saved = await setTextSetting('paystack_public_key', key);
+        if (!saved.ok) { showMsg('Could not save Paystack key: ' + (saved.error?.message || 'unknown error'), 'error'); return; }
         setKeySaved(true);
         setTimeout(() => setKeySaved(false), 3000);
         showMsg('Paystack key saved.', 'success');
@@ -6267,6 +6389,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
       const deleteCFIResult = async (id) => {
         const { error } = await sb.from('cfi_results').delete().eq('id', id);
         if (!error) { setCfiData(d => d.filter(x => x.id !== id)); showMsg('CFI result deleted.', 'success'); }
+        else { console.error('[deleteCFIResult]', error); showMsg('Could not delete CFI result: ' + error.message, 'error'); }
       };
 
       // Lessons editor
@@ -6617,9 +6740,9 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
                   })()
                 ), tab === 'cohorts' && !openCohortId && (
                   React.createElement("div", null, React.createElement("div", {style: { display:'grid', gridTemplateColumns:'repeat(auto-fit,minmax(300px,1fr))', gap:24, marginBottom:32 }}, React.createElement("div", {className: "card", style: { padding:'28px', borderColor:'rgba(76,247,192,0.2)' }}, React.createElement("div", {style: { ...mono, fontSize:11, letterSpacing:1, color:'#4CF7C0', marginBottom:16 }}, 'Create new cohort'), React.createElement("div", {style: { display:'flex', flexDirection:'column', gap:12 }},
-                            React.createElement("div", null, React.createElement("div", {style: { ...mono, fontSize:11, letterSpacing:1, color:C.muted, marginBottom:5 }}, 'COHORT NAME'), React.createElement("input", {type:'text', value:newCohort.name, onChange:e=>setNewCohort(p=>({...p,name:e.target.value})), placeholder:'e.g. Acme Leadership Cohort — October 2026', style: { fontSize:13, width:'100%' }})),
+                            React.createElement("div", null, React.createElement("div", {style: { ...mono, fontSize:11, letterSpacing:1, color:C.muted, marginBottom:5 }}, 'COHORT NAME'), React.createElement("input", {type:'text', value:newCohort.name, onChange:e=>setNewCohort(p=>({...p,name:e.target.value})), placeholder:'e.g. Acme Leadership Cohort - October 2026', style: { fontSize:13, width:'100%' }})),
                             React.createElement("div", null, React.createElement("div", {style: { ...mono, fontSize:11, letterSpacing:1, color:C.muted, marginBottom:5 }}, 'ORGANISATION'), React.createElement("select", {value:newCohort.orgId, onChange:e=>setNewCohort(p=>({...p,orgId:e.target.value})), style: { fontSize:13, width:'100%', padding:'10px' }},
-                              React.createElement("option", {value:''}, organisations.length ? 'Select organisation…' : 'No organisations yet — create one first'),
+                              React.createElement("option", {value:''}, organisations.length ? 'Select organisation…' : 'No organisations yet: create one first'),
                               organisations.map(o => React.createElement("option", {key:o.id, value:o.id}, o.name))
                             )),
                             React.createElement("div", null, React.createElement("div", {style: { ...mono, fontSize:11, letterSpacing:1, color:C.muted, marginBottom:5 }}, 'FACILITATOR (OPTIONAL)'), React.createElement("select", {value:newCohort.facilitatorUserId, onChange:e=>setNewCohort(p=>({...p,facilitatorUserId:e.target.value})), style: { fontSize:13, width:'100%', padding:'10px' }},
@@ -7407,7 +7530,9 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
         const dims = entCalcDimScores(responses);
         const result = { pid:session.pid, cohort:session.cohort, cohortId:session.cohortId, orgId:session.orgId, userId:session.userId, phase, responses, composite, dims, ts:Date.now() };
         onComplete(result);
-        saveEnterpriseResult(result);
+        saveEnterpriseResult(result).then(r => {
+          if (r && !r.ok) nfNotify('Your answers could not be saved to the server. Check your connection and submit again, or tell your facilitator.', { type:'error', sticky:true });
+        });
         setStep('done');
       }
 
@@ -7729,7 +7854,9 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
         const dims = entCalcDimScores(responses);
         const result = { pid, cohort:session.cohort, group, phase:phaseEntry, responses, composite, dims, ts:Date.now(), enteredBy:'facilitator' };
         onSave(result);
-        saveEnterpriseResult(result);
+        saveEnterpriseResult(result).then(r => {
+          if (r && !r.ok) nfNotify('This entry could not be saved to the server. Check your connection and enter it again.', { type:'error', sticky:true });
+        });
         setSubmitted(true);
         setTimeout(()=>{ setSubmitted(false); setPid(''); setResponses({}); }, 2000);
       }
@@ -7962,25 +8089,27 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
       const [cfiResult, setCfiResult] = useState(null);
       const [cfiHistory, setCfiHistory] = useState([]);   // full CFI attempt history, oldest→newest, for Clarity Delta
       const [lessonProgress, setLessonProgress] = useState({});
-      const [proPrice, setProPrice] = useState(() => parseInt(localStorage.getItem('nf_pro_price') || '600000'));
-      const [entPrice, setEntPrice] = useState(() => parseInt(localStorage.getItem('nf_ent_price') || '5000000'));
-      const [paystackKey, setPaystackKey] = useState(() => localStorage.getItem('nf_paystack_key') || 'pk_live_dfa71eca29f942cadc337cb8e41834857e2b129b');
+      // Display defaults only. The authoritative price is platform_settings on
+      // the server and the verify-payment edge function re-checks the amount.
+      const [proPrice, setProPrice] = useState(600000);
+      const [entPrice, setEntPrice] = useState(5000000);
+      const [paystackKey, setPaystackKey] = useState('pk_live_dfa71eca29f942cadc337cb8e41834857e2b129b');
 
       // Load platform settings from Supabase on mount
       useEffect(()=>{
         getPlatformSetting('pro_price').then(val=>{
           if (val) {
             const p = parseInt(val);
-            if (!isNaN(p)) { setProPrice(p); localStorage.setItem('nf_pro_price', p); }
+            if (!isNaN(p)) { setProPrice(p); }
           }
         });
         getPlatformSetting('paystack_public_key').then(val=>{
-          if (val) { setPaystackKey(val); localStorage.setItem('nf_paystack_key', val); }
+          if (val) { setPaystackKey(val); }
         });
         getPlatformSetting('enterprise_price').then(val=>{
           if (val) {
             const p = parseInt(val);
-            if (!isNaN(p)) { setEntPrice(p); localStorage.setItem('nf_ent_price', p); }
+            if (!isNaN(p)) { setEntPrice(p); }
           }
         });
       },[]);
