@@ -2405,11 +2405,12 @@ function nfjDevelopmentFocus(cfiResult) {
   const p = cfiResult && cfiResult.profile;
   if (!p || !p.weakestDim) return null;
   const d = p.weakestDim;
-  const label = CFI_DIM_LABELS[d];
+  const modeNames = { A: 'Analytical', I: 'Intuitive', S: 'Associative', R: 'Reflective' }; // the Four Thinking Modes, as used across the product
+  const label = modeNames[d] + ' thinking';
   const stepByDim = { A: 'DECOMPOSE', I: 'SENSE', S: 'EXPAND', R: 'REFLECT' }; // the existing Protocol step where each mode does its work
   const prac = DAILY_PRACTICE[d];
   return {
-    dim: d, label, lead: CFI_DIM_LABELS[p.primaryDim], step: stepByDim[d] || null,
+    dim: d, label, dimName: CFI_DIM_LABELS[d], lead: modeNames[p.primaryDim] + ' thinking', step: stepByDim[d] || null,
     why: p.decisionBlindSpots,
     practiceLabel: prac ? prac.label : 'Practice',
     practice: prac ? prac.prompt : (cfiResult.plan && cfiResult.plan.dailyExercise) || '',
@@ -2450,8 +2451,8 @@ function nfjMilestones(st) {
 // ── UI kit ───────────────────────────────────────────────────────────────────
 function nfjTheme(light) {
   return light
-    ? { light: true, ink: CP.ink, text: CP.text, muted: CP.muted, border: CP.border, strong: CP.borderStrong, card: CP.card, tint: CP.goldTint, accent: CP.goldDeep, onAccent: '#FFFFFF', done: '#2F7D4F' }
-    : { light: false, ink: C.text, text: C.text, muted: C.muted, border: C.border, strong: C.borderBright, card: C.surface, tint: C.cyanDim, accent: C.cyan, onAccent: '#050C1A', done: '#7AAFCF' };
+    ? { light: true, ink: CP.ink, text: CP.text, muted: CP.muted, border: CP.border, strong: CP.borderStrong, card: CP.card, tint: CP.goldTint, accent: '#7A5F18', btn: CP.goldDeep, onAccent: '#FFFFFF', done: '#2F7D4F' }
+    : { light: false, ink: C.text, text: C.text, muted: C.muted, border: C.border, strong: C.borderBright, card: C.surface, tint: C.cyanDim, accent: C.cyan, btn: C.cyan, onAccent: '#050C1A', done: '#7AAFCF' };
 }
 function nfjEnsureStyles() {
   if (typeof document === 'undefined' || document.getElementById('nfj-styles')) return;
@@ -2461,6 +2462,7 @@ function nfjEnsureStyles() {
     + '.nfj-btn:focus-visible,.nfj-link:focus-visible{outline:2px solid #E2BE78;outline-offset:3px}'
     + '.nfj-light .nfj-btn:focus-visible,.nfj-light .nfj-link:focus-visible{outline-color:#8F701F}'
     + '.nfj-btn[disabled]{opacity:.6;cursor:not-allowed}.nfj-wrap{overflow-wrap:anywhere;min-width:0}'
+    + '.nfj-sum{list-style:none;justify-content:space-between;gap:12px}.nfj-sum::-webkit-details-marker{display:none}.nfj-sum::after{content:"+";font-size:22px;line-height:1;flex-shrink:0}details[open]>.nfj-sum::after{content:"\\2212"}.nfj-sum:focus-visible{outline:2px solid #E2BE78;outline-offset:2px}'
     + '@media (min-width:720px){.nfj-two{display:grid;grid-template-columns:1fr 1fr;gap:20px}}';
   document.head.appendChild(s);
 }
@@ -2469,10 +2471,10 @@ function useNFJStyles() { useEffect(nfjEnsureStyles, []); }
 function NFJButton({ T, onClick, children, variant, disabled }) {
   const outline = variant === 'outline';
   return React.createElement('button', { className: 'nfj-btn', onClick, disabled,
-    style: { background: outline ? 'transparent' : T.accent, color: outline ? T.accent : T.onAccent, borderColor: T.accent } }, children);
+    style: { background: outline ? 'transparent' : T.btn, color: outline ? T.accent : T.onAccent, borderColor: T.btn } }, children);
 }
 function NFJEyebrow({ T, children }) {
-  return React.createElement('div', { style: { fontFamily: "'Space Mono',monospace", fontSize: 11, letterSpacing: '0.14em', color: T.accent, marginBottom: 10, textTransform: 'uppercase' } }, children);
+  return React.createElement('div', { style: { fontFamily: "'Space Mono',monospace", fontSize: 12, letterSpacing: '0.14em', color: T.accent, marginBottom: 10, textTransform: 'uppercase' } }, children);
 }
 function NFJPanel({ T, children, style }) {
   return React.createElement('div', { className: 'nfj-wrap', style: Object.assign({ background: T.card, border: '1px solid ' + T.border, borderRadius: 12, padding: '22px 20px', marginBottom: 16 }, style || {}) }, children);
@@ -2514,6 +2516,57 @@ function NFJNextStrip({ light, here, user, cfiResult, cfiHistory, lessonProgress
     React.createElement('div', { style: { fontSize: 15, fontWeight: 700, color: T.ink, marginBottom: 4 } }, a.title),
     React.createElement('div', { style: { fontSize: 14, color: T.text, lineHeight: 1.6, marginBottom: a.view === here ? 0 : 12 } }, a.view === here ? a.body + ' You are in the right place.' : a.body),
     a.view !== here && React.createElement(NFJButton, { T, onClick: () => setView(a.view) }, a.cta + ' →'));
+}
+
+// Decision Room x training: flags the protocol step that matches the user's development focus, and
+// prompts a focus check before deciding. Grounded in the existing step->mode mapping (DECOMPOSE =
+// analytical, SENSE = intuitive, EXPAND = associative, REFLECT = reflective). Renders nothing without a profile.
+function NFJFocusNote({ cfiResult, stepTitle, result }) {
+  const f = nfjDevelopmentFocus(cfiResult);
+  if (!f || !f.step) return null;
+  if (!result && stepTitle !== f.step) return null;
+  const T = nfjTheme(true);
+  return React.createElement('div', { role: 'note', className: 'nfj-wrap',
+    style: { background: T.tint, border: '1px solid ' + T.strong, borderRadius: 12, padding: '14px 16px', margin: '0 0 20px', fontSize: 14.5, color: T.text, lineHeight: 1.65 } },
+    React.createElement('div', { style: { fontFamily: "'Space Mono',monospace", fontSize: 12, letterSpacing: '0.12em', color: T.accent, marginBottom: 6 } }, 'YOUR DEVELOPMENT FOCUS · ' + f.label.toUpperCase()),
+    result
+      ? 'Before you decide: did ' + f.label.toLowerCase() + ' get enough room in this decision? Make a note of what you would add. You can record what you noticed when you review the outcome.'
+      : 'This step is where ' + f.label.toLowerCase() + ' does its work, and it is your current development focus. Give it a little extra time here.');
+}
+
+// ── Sample Cognitive Profile: a clearly labelled FICTIONAL example for visitors ──
+// Figures come from fictional answers [1,2,1, 2,2,2, 3,3,4, 2,2,4, 2] to the 13 CFI items under the
+// real scoring (reverse-scored items 9 and 12 inverted): total 26, dim scores A27 I40 S40 R53 E40.
+// They are stored as results so CFI scoring logic is not duplicated here; the profile text is produced by the
+// app's real builders, so the sample always reads exactly like a real profile. Never used as user data.
+const NFJ_SAMPLE = { total: 26, band: 'Moderate fragmentation', dimScores: { A: 27, I: 40, S: 40, R: 53, E: 40 } };
+function nfjSampleResult() {
+  const dimensionReports = {};
+  Object.keys(NFJ_SAMPLE.dimScores).forEach(d => { dimensionReports[d] = buildDimensionReport(d, NFJ_SAMPLE.dimScores[d]); });
+  const integrationScore = cfiIntegrationScore(NFJ_SAMPLE.total);
+  const profile = buildCognitiveProfile(dimensionReports, integrationScore, NFJ_SAMPLE.band);
+  const plan = buildImprovementPlan(dimensionReports, NFJ_SAMPLE.band);
+  return Object.assign({}, NFJ_SAMPLE, { dimensionReports, integrationScore, profile, plan });
+}
+function NFJSampleProfile({ T, setView }) {
+  const r = nfjSampleResult();
+  const f = nfjDevelopmentFocus(r);
+  const ds = r.dimScores;
+  const modes = ['A', 'I', 'S', 'R'].map(d => CFI_DIM_LABELS[d] + ' ' + ds[d]).join(' · ');
+  const sec = (k, v) => React.createElement('div', { key: k, style: { marginBottom: 16 } },
+    React.createElement(NFJEyebrow, { T }, k),
+    React.createElement('div', { style: { fontSize: 14.5, color: T.text, lineHeight: 1.7 } }, v));
+  return React.createElement('details', { className: 'nfj-wrap', style: { background: T.card, border: '1px solid ' + T.border, borderRadius: 12, padding: '4px 20px', marginBottom: 16 } },
+    React.createElement('summary', { className: 'nfj-sum', style: { cursor: 'pointer', minHeight: 48, display: 'flex', alignItems: 'center', fontSize: 15, fontWeight: 700, color: T.ink } }, 'See a sample Cognitive Profile'),
+    React.createElement('div', { style: { padding: '8px 0 20px' } },
+      React.createElement('div', { role: 'note', style: { fontSize: 13, color: T.muted, marginBottom: 16, lineHeight: 1.6 } }, 'SAMPLE: a fictional example, not a real person\u2019s result. Your own profile will differ.'),
+      sec('Result', 'CFI ' + r.total + ' of 13 to 65 · ' + cfiCoordinationLabel(r.band) + '. Lower means better coordinated.'),
+      sec('By thinking mode (score out of 100, lower is better coordinated)', modes),
+      sec('What this person discovered', 'Leads with ' + f.lead.toLowerCase() + '. ' + f.label + ' contributes less often in their decisions right now.'),
+      sec('What this may mean', f.why + ' This is a self-report snapshot, not a diagnosis and not a measure of intelligence.'),
+      sec('Their training path · ' + f.practiceLabel, f.practice),
+      sec('Apply and reflect', f.apply + ' ' + f.reflect),
+      React.createElement(NFJButton, { T, onClick: () => setView('cfi') }, 'Get your own profile →')));
 }
 
 function nfjEvidence(key, st) {
@@ -2558,12 +2611,12 @@ function NFJTrainingPath({ T, cfiResult, setView }) {
     React.createElement('p', { style: { fontSize: 14.5, color: T.text, lineHeight: 1.65, margin: '0 0 16px' } }, 'Complete the CFI and your training path appears here: one development focus, with a practice, a real-world application and a reflection.'),
     React.createElement(NFJButton, { T, onClick: () => setView('cfi') }, 'Take the CFI →'));
   const row = (k, v) => React.createElement('div', { key: k, style: { padding: '12px 0', borderTop: '1px solid ' + T.border } },
-    React.createElement('div', { style: { fontFamily: "'Space Mono',monospace", fontSize: 11, letterSpacing: '0.1em', color: T.accent, marginBottom: 4 } }, k),
+    React.createElement('div', { style: { fontFamily: "'Space Mono',monospace", fontSize: 12, letterSpacing: '0.1em', color: T.accent, marginBottom: 4 } }, k),
     React.createElement('div', { style: { fontSize: 14.5, color: T.text, lineHeight: 1.65 } }, v));
   return React.createElement(NFJPanel, { T },
     React.createElement(NFJEyebrow, { T }, 'Your training path'),
     React.createElement('div', { style: { fontFamily: "'Syne',sans-serif", fontSize: 20, fontWeight: 800, color: T.ink, marginBottom: 4 } }, f.label),
-    React.createElement('div', { style: { fontSize: 13, color: T.muted, marginBottom: 8 } }, 'Recommended focus, based on your latest CFI. Not a diagnosis, and not a ranking of your ability.'),
+    React.createElement('div', { style: { fontSize: 13, color: T.muted, marginBottom: 8 } }, 'Recommended focus, based on your latest CFI (measured there as "' + f.dimName + '"). Not a diagnosis, and not a ranking of your ability.'),
     row('WHY THIS MATTERS', f.why), row('PRACTICE · ' + f.practiceLabel.toUpperCase(), f.practice), row('APPLY', f.apply), row('REFLECT', f.reflect));
 }
 
@@ -2602,6 +2655,7 @@ function NFJHomeSection({ user, setView, setShowAuth, cfiResult, cfiHistory, les
   const wrap = (kids) => React.createElement('section', { 'aria-label': 'Your cognitive journey', style: { maxWidth: 760, margin: '0 auto', padding: '0 20px 40px' } }, kids);
   if (!user) return wrap([
     React.createElement(NFJJourney, { key: 'j', T, preview: true, setView }),
+    React.createElement(NFJSampleProfile, { key: 'sp', T, setView }),
     React.createElement(NFJCFIScope, { key: 's', T }),
     React.createElement(NFJButton, { key: 'b', T, onClick: () => setView('cfi') }, 'Take the CFI assessment →'),
   ]);
@@ -2612,7 +2666,7 @@ function NFJHomeSection({ user, setView, setShowAuth, cfiResult, cfiHistory, les
     return React.createElement(React.Fragment, null,
       React.createElement(NFJNextAction, { T, st, focus, setView, setShowAuth }),
       React.createElement(NFJJourney, { T, st, setView }),
-      !st.practicesAvailable && React.createElement('div', { style: { fontSize: 12.5, color: T.muted, marginBottom: 12 } }, 'Practice completions are not being recorded yet, so only lessons count toward Train.'));
+      !st.practicesAvailable && React.createElement('div', { style: { fontSize: 13, color: T.muted, marginBottom: 12 } }, 'Practice completions are not being recorded yet, so only lessons count toward Train.'));
   })()));
 }
 
@@ -2655,7 +2709,7 @@ function NFJEvolution({ user, cfiResult, cfiHistory, lessonProgress, setView }) 
       React.createElement(NFJState, { T, status: data.status === 'idle' ? 'ready' : data.status, onRetry: data.reload },
         React.createElement('ol', { style: { listStyle: 'none', margin: 0, padding: 0 } },
           items.map((it, i) => React.createElement('li', { key: it.k, style: { padding: '14px 0 14px 16px', borderLeft: '2px solid ' + (it.has ? T.accent : T.border), marginLeft: 6 } },
-            React.createElement('div', { style: { fontFamily: "'Space Mono',monospace", fontSize: 11, letterSpacing: '0.12em', color: it.has ? T.accent : T.muted, marginBottom: 4 } }, it.k),
+            React.createElement('div', { style: { fontFamily: "'Space Mono',monospace", fontSize: 12, letterSpacing: '0.12em', color: it.has ? T.accent : T.muted, marginBottom: 4 } }, it.k),
             React.createElement('div', { style: { fontSize: 14.5, color: it.has ? T.text : T.muted, lineHeight: 1.65 } }, it.has ? it.body : it.empty),
             (!it.has || it.k === 'NOW') && it.cta && React.createElement('div', { style: { marginTop: 10 } }, React.createElement(NFJButton, { T, variant: 'outline', onClick: () => setView(it.cta[1]) }, it.cta[0])))))
       )),
@@ -2685,9 +2739,9 @@ function NFJEnterpriseJourney({ ov }) {
     React.createElement('ol', { style: { listStyle: 'none', margin: 0, padding: 0 } }, rows.map((r, i) => React.createElement('li', { key: r.k, style: { display: 'grid', gridTemplateColumns: '28px 1fr', gap: 12, padding: '12px 0', borderTop: i ? '1px solid ' + T.border : 'none' } },
       React.createElement('div', { 'aria-hidden': 'true', style: { textAlign: 'center', color: r.done ? T.done : T.muted } }, r.done ? '✓' : '○'),
       React.createElement('div', { className: 'nfj-wrap' },
-        React.createElement('div', { style: { fontFamily: "'Space Mono',monospace", fontSize: 11, letterSpacing: '0.1em', color: r.done ? T.done : T.ink, marginBottom: 3 } }, r.k, r.done === null ? ' · not yet tracked' : ''),
+        React.createElement('div', { style: { fontFamily: "'Space Mono',monospace", fontSize: 12, letterSpacing: '0.1em', color: r.done ? T.done : T.ink, marginBottom: 3 } }, r.k, r.done === null ? ' · not yet tracked' : ''),
         React.createElement('div', { style: { fontSize: 14, color: T.text, lineHeight: 1.6 } }, r.text))))),
-    React.createElement('div', { style: { fontSize: 12.5, color: T.muted, lineHeight: 1.6, marginTop: 8 } }, 'Everything marked complete is measured platform activity. Any business implication is something to explore with your team, not a measured result. Individual results are never shown to employers.'));
+    React.createElement('div', { style: { fontSize: 13, color: T.muted, lineHeight: 1.6, marginTop: 8 } }, 'Everything marked complete is measured platform activity. Any business implication is something to explore with your team, not a measured result. Individual results are never shown to employers.'));
 }
 // ═══ END NEURALFUSION TRANSFORMATION LAYER ═══════════════════════════════════
 
@@ -3322,7 +3376,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
     }
 
     // ── Fuse / Result screen ────────────────────────────────────────────
-    function ProtocolResult({ problem, answers, setView, user, setShowAuth, onRestart }) {
+    function ProtocolResult({ problem, answers, setView, user, setShowAuth, onRestart, cfiResult }) {
       useProtocolA11yStyles();
       const synthesis = useMemo(() => synthesizeProtocol(answers), [answers]);
       const AC = PROTOCOL_AC;
@@ -3419,6 +3473,8 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
               ))
             ),
 
+            React.createElement(NFJFocusNote, { cfiResult, result: true }),
+
             // Save this decision to the persistent Decision Vault
             React.createElement(DecisionSavePanel, { problem, answers, synthesis, user, setShowAuth, setView }),
 
@@ -3458,7 +3514,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
       );
     }
 
-    function ProtocolView({ setView, user, setShowAuth }) {
+    function ProtocolView({ setView, user, setShowAuth, cfiResult }) {
       useProtocolA11yStyles();
       const AC = PROTOCOL_AC;
       const [phase, setPhase] = useState('intro'); // intro | steps | result
@@ -3524,7 +3580,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
 
       // ── Result / Fuse ──────────────────────────────────────────────
       if (phase === 'result') {
-        return React.createElement(ProtocolResult, { problem, answers, setView, user, setShowAuth, onRestart: restart });
+        return React.createElement(ProtocolResult, { problem, answers, setView, user, setShowAuth, cfiResult, onRestart: restart });
       }
 
       // ── Steps 1–4 (mirrors the CFI question screen) ────────────────
@@ -3558,6 +3614,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
               ),
               React.createElement("div", {style: { fontFamily:AC.font, fontSize:'clamp(20px,4.5vw,26px)', fontWeight:700, color:AC.text, lineHeight:1.5, marginBottom:14 }}, step.subtitle),
               React.createElement("p", {style: { fontSize:16, color:AC.muted, lineHeight:1.7, marginBottom:24 }}, step.intro),
+              React.createElement(NFJFocusNote, { cfiResult, stepTitle: step.title }),
 
               isDecompose && React.createElement("div", {style: { marginBottom:22 }},
                 React.createElement("label", {style: { display:'block', fontFamily:AC.font, fontSize:14, fontWeight:700, color:AC.text, marginBottom:8 }}, 'What are you trying to understand?'),
@@ -3714,7 +3771,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
               }
             }, o))
           ),
-          React.createElement("div", { style: { fontSize: 12, color: C.muted, marginBottom: 8 } }, 'What did you learn? What would you do differently?'),
+          React.createElement("div", { style: { fontSize: 12, color: C.muted, marginBottom: 8 } }, 'What did you notice? What did you learn? What would you do differently? Write as much or as little as you like.'),
           React.createElement("textarea", { value: lesson, onChange: e => setLesson(e.target.value), rows: 3, style: { width: '100%', padding: '12px', fontSize: 14, background: C.panel, border: `1px solid ${C.border}`, borderRadius: 2, color: C.text, marginBottom: 14, fontFamily: 'inherit' } }),
           React.createElement("button", { className: "btn-primary", disabled: !outcome || saving, onClick: submit, style: { opacity: (!outcome || saving) ? 0.5 : 1 } }, saving ? 'Saving…' : 'Save Outcome')
         )
@@ -5117,7 +5174,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
             React.createElement("label", { htmlFor: 'nf-practice-response', style: { display: 'block', fontSize: 13, color: CP.muted, marginBottom: 6 } }, 'Your response'),
             React.createElement("textarea", {
               id: 'nf-practice-response', value: response, onChange: e => setResponse(e.target.value), rows: 3, placeholder: 'Write a sentence or two…',
-              style: { width: '100%', boxSizing: 'border-box', padding: '12px 14px', borderRadius: 10, border: `1px solid ${CP.borderStrong}`, fontFamily: inter.fontFamily, fontSize: 15, color: CP.text, resize: 'vertical' }
+              style: { width: '100%', boxSizing: 'border-box', padding: '12px 14px', borderRadius: 10, border: `1px solid ${CP.borderStrong}`, fontFamily: inter.fontFamily, fontSize: 16, color: CP.text, resize: 'vertical' }
             })
           ),
           done && React.createElement("div", { role: 'status', style: { fontSize: 13, color: CP.goldDeep, marginBottom: 16 } }, "✓ Today's practice complete. Next: apply it to a real decision."),
@@ -8065,6 +8122,106 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
   const ENTERPRISE_MAILTO = 'mailto:' + FOUNDER_EMAIL + '?subject=' + encodeURIComponent('Enterprise Enquiry: NeuralFusion') +
     '&body=' + encodeURIComponent('Organisation:\nCountry:\nApproximate team size:\nWhat you want to achieve:\n');
 
+
+  // ── Team packages: DISPLAY ONLY. There is no online checkout; payment is by invoice. ──
+  // Prices, seats and terms below come from the NeuralFusion package invoice. Per-seat price is
+  // computed from them so the two can never disagree. Payment details (wallet) stay on the invoice.
+  const ENT_PACKAGES = [
+    { seats: 10, price: 600, bestFor: 'A leadership team or a pilot' },
+    { seats: 25, price: 800, bestFor: 'A department or several teams' },
+    { seats: 50, price: 1000, bestFor: 'A large team or multiple departments' },
+  ];
+  const entUsd = (n) => '$' + n.toLocaleString('en-US');
+  const entPackageMail = (p) => 'mailto:' + FOUNDER_EMAIL + '?subject=' + encodeURIComponent('Package request: ' + p.seats + ' seats') +
+    '&body=' + encodeURIComponent('Package: ' + p.seats + ' seats (' + entUsd(p.price) + ' per month)\nOrganisation:\nCountry:\nContact name:\nContact email:\nTeam size:\n');
+  const entList = (items) => h('ul', { style: { margin: 0, paddingLeft: 18, fontSize: 14, color: C.text, lineHeight: 1.8 } }, items.map((i) => h('li', { key: i }, i)));
+
+  function EntPackages() {
+    return h('div', { key: 'packages', id: 'nf-packages', style: { marginBottom: 56 } },
+      h('div', { style: { ...mono, fontSize: 12, letterSpacing: 2, color: C.cyan, marginBottom: 12 } }, 'TEAM PACKAGES'),
+      h('p', { style: { fontSize: 14, color: C.muted, lineHeight: 1.8, maxWidth: 640, margin: '0 0 24px' } }, 'Choose a seat-based package for your team. One seat is one person on the platform. Prices are in US dollars and billed monthly.'),
+      h('div', { style: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(min(240px,100%),1fr))', gap: 16, marginBottom: 16 } },
+        ENT_PACKAGES.map((p) => h('div', { key: p.seats, style: card({ display: 'flex', flexDirection: 'column' }) },
+          h('div', { style: { ...mono, fontSize: 12, letterSpacing: 1.5, color: C.cyan, marginBottom: 10 } }, p.seats + ' SEATS'),
+          h('div', { style: { ...syne, fontSize: 30, fontWeight: 900, lineHeight: 1.1 } }, entUsd(p.price), h('span', { style: { fontSize: 14, fontWeight: 600, color: C.muted } }, ' / month')),
+          h('div', { style: { fontSize: 14, color: C.text, margin: '8px 0 4px' } }, entUsd(Math.round(p.price / p.seats)) + ' per seat / month'),
+          h('div', { style: { fontSize: 13, color: C.muted, lineHeight: 1.6, marginBottom: 20, flexGrow: 1 } }, 'Best for: ' + p.bestFor),
+          h(LinkBtn, { href: entPackageMail(p), onClick: () => track('package_request_clicked', { seats: p.seats }) }, 'REQUEST AN INVOICE')))),
+      h('div', { style: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(min(280px,100%),1fr))', gap: 16, marginBottom: 16 } },
+        h('div', { style: card() },
+          h('div', { style: label }, 'What every package includes'),
+          entList([
+            'An organization workspace set up by NeuralFusion, with an owner dashboard.',
+            'The CFI self-assessment for every seat, with aggregate team results and completion tracking.',
+            'Invitations by email or link, plus roles for participants, facilitators and admins.',
+            'Access to the Four Brains framework, Academy programme and decision tools for participants.',
+          ])),
+        h('div', { style: card() },
+          h('div', { style: label }, 'Billing terms'),
+          entList([
+            'Payment is by invoice, in USDT on the Ethereum (ERC20) network. Payment details are on the invoice you receive.',
+            'Packages renew monthly. The renewal price may change with 30 days\u2019 notice.',
+            'A team cancels with 30 days\u2019 notice.',
+            'Monthly payments are not refundable.',
+          ]))),
+      h('div', { style: { fontSize: 13, color: C.muted, lineHeight: 1.7 } }, 'More than 50 seats, multiple organizations, or facilitated programmes are priced individually. Email the founder for a custom proposal.'));
+  }
+
+  function EntFAQ() {
+    nfjEnsureStyles();
+    const items = [
+      ['What is a seat?', 'One seat is one person on the platform. Your seat limit is set when we create your workspace.'],
+      ['What will each person actually do?', 'Each person completes the 13-item CFI (about four minutes) and sees their own profile. Participants can then use the Academy and the decision tools.'],
+      ['What does the CFI measure, and what does it not?', 'It measures how consistently your four thinking modes (analytical, intuitive, associative, reflective) work together, and your self-reported steadiness under pressure, on a 13 to 65 scale where lower means better coordinated. It does not measure intelligence, personality type, mental health or future performance. It is not a diagnosis, and it is a snapshot of how someone answered on the day.'],
+      ['What will I see as the organisation owner?', 'Invitations and completion tracking, and aggregate team patterns once enough people have completed the CFI. Individual profiles stay private to each person.'],
+      ['Can we measure development over time?', 'Each person can retake the CFI and compare with their own starting point. A team-level before-and-after comparison is not in the dashboard yet.'],
+      ['How do we pay?', 'By invoice, in USDT on the Ethereum (ERC20) network. There is no online checkout. Email the founder with your package choice to receive the invoice.'],
+      ['What if we need more than 50 seats?', 'Larger teams, multiple organizations and facilitated programmes are priced individually. Email the founder for a custom proposal.'],
+    ];
+    return h('div', { key: 'faq', style: { marginBottom: 56 } },
+      h('div', { style: { ...mono, fontSize: 12, letterSpacing: 2, color: C.cyan, marginBottom: 20 } }, 'QUESTIONS'),
+      items.map(([q, a]) => h('details', { key: q, style: { borderTop: '1px solid ' + C.border, padding: '4px 0' } },
+        h('summary', { className: 'nfj-sum', style: { cursor: 'pointer', minHeight: 48, display: 'flex', alignItems: 'center', fontSize: 15, fontWeight: 700, color: C.text } }, q),
+        h('p', { style: { fontSize: 14, color: C.muted, lineHeight: 1.8, margin: '4px 0 16px' } }, a))));
+  }
+
+  // ── Sample team report: FICTIONAL, display only. Mirrors the Team Results tab (org_team_results). ──
+  // ENT_REPORT_THRESHOLD must match the unlock threshold configured in the database (5). Figures are internally
+  // consistent with CFI-1.0: total = (3*(A+I+S+R) + E) / 20 = (3*174 + 40) / 20 = 28.1, shown as 28 (Moderate band).
+  const ENT_REPORT_THRESHOLD = 5;
+  const ENT_SAMPLE = {
+    members: 10, completed: 8, avgTotal: 28,
+    dims: { analytical: 32, intuitive: 40, associative: 48, reflective: 54, integration: 40 },
+    bands: { 'Moderate fragmentation': 4, 'High fragmentation': 3 },
+  };
+
+  function EntSampleReport() {
+    nfjEnsureStyles();
+    const d = ENT_SAMPLE;
+    const modes = ['analytical', 'intuitive', 'associative', 'reflective'].sort((a, b) => d.dims[a] - d.dims[b]);
+    const lo = modes[0], hi = modes[modes.length - 1];
+    const row = (k, v) => h('div', { key: k, style: { display: 'flex', justifyContent: 'space-between', gap: 12, padding: '10px 0', borderBottom: '1px solid ' + C.border, fontSize: 14 } }, h('span', null, k), h('span', { style: mono }, String(v)));
+    const note = (t) => h('div', { style: { fontSize: 13, color: C.muted, marginTop: 12, lineHeight: 1.6 } }, t);
+    return h('details', { key: 'sample-report', id: 'nf-sample-report', style: { borderTop: '1px solid ' + C.border, borderBottom: '1px solid ' + C.border, marginBottom: 56, padding: '4px 0' } },
+      h('summary', { className: 'nfj-sum', style: { cursor: 'pointer', minHeight: 48, display: 'flex', alignItems: 'center', fontSize: 15, fontWeight: 700, color: C.text } }, 'See a sample team report'),
+      h('div', { style: { padding: '8px 0 20px' } },
+        h('div', { role: 'note', style: { fontSize: 13, color: C.muted, lineHeight: 1.6, marginBottom: 16 } }, 'SAMPLE: a fictional team, not real data. This is the layout an organisation owner sees under Team Results.'),
+        h('div', { style: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(min(200px,100%),1fr))', gap: 14, marginBottom: 20 } },
+          Stat('Team average CFI', d.avgTotal, 'Scale 13 to 65. Higher means more fragmentation.'), Stat('Completed', d.completed + ' of ' + d.members), Stat('Instrument', CFI_VERSION)),
+        h('div', { style: card({ marginBottom: 20 }) }, h('div', { style: label }, 'Average fragmentation by thinking mode'),
+          Object.keys(DIM_LABELS).map((k) => row(DIM_LABELS[k], d.dims[k])),
+          note('Average dimension scores out of 100. Higher means more fragmentation in that area. These describe thinking patterns across the team, not individuals and not performance.')),
+        h('div', { style: card({ marginBottom: 20 }) }, h('div', { style: label }, 'Band distribution'),
+          Object.keys(d.bands).map((b) => row(b, d.bands[b])),
+          note('Counts below 2 are hidden to protect individuals, so the bands shown may not add up to everyone who completed.')),
+        h('div', { style: card({ marginBottom: 20 }) }, h('div', { style: label }, 'How to read this'),
+          h('div', { style: { fontSize: 14, color: C.text, lineHeight: 1.8 } }, 'In this fictional team, ' + DIM_LABELS[hi].toLowerCase() + ' thinking has the highest average fragmentation (' + d.dims[hi] + ') and ' + DIM_LABELS[lo].toLowerCase() + ' thinking the lowest (' + d.dims[lo] + '). That is an observation about team thinking patterns, not a judgment of any person and not a prediction of results.'),
+          note('A prompt for team discussion, not a measured result: run a real team decision through the Decision Room and give the step for the highest-scoring mode extra time.')),
+        h('div', { style: card({ marginBottom: 12 }) }, h('div', { style: label }, 'Before enough people have completed'),
+          h('div', { style: { fontSize: 14, color: C.muted, lineHeight: 1.7 } }, 'Team results are not available yet. To protect individual privacy, aggregate insight appears once ' + ENT_REPORT_THRESHOLD + ' people have completed the CFI.')),
+        note('A team report never shows individual results, and it does not claim business outcomes such as ROI. It shows measured CFI data only.')));
+  }
+
   function EnterpriseLanding({ user, setShowAuth, setView, setIsEnterprise }) {
     const [orgs, setOrgs] = useState(null);
     const [code, setCode] = useState(() => { try { return sessionStorage.getItem('nf_cohort_code') || ''; } catch (_) { return ''; } });
@@ -8108,13 +8265,15 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
         h('p', { style: { fontSize: 16, color: C.muted, maxWidth: 640, margin: '0 auto 32px', lineHeight: 1.8 } }, 'Measure cognitive fragmentation. Understand team thinking patterns. Strengthen integrated thinking. Improve decision-making. Every enterprise engagement is custom-scoped with the founder.'),
         h('div', { style: { display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap' } },
           h(LinkBtn, { href: ENTERPRISE_MAILTO, onClick: () => track('contact_founder_clicked') }, 'CONTACT THE FOUNDER'),
-          hasOrg ? h(Btn, { variant: 'ghost', onClick: () => setView('org') }, 'OPEN YOUR TEAM DASHBOARD') : h(Btn, { variant: 'ghost', onClick: () => scrollTo('nf-how') }, 'HOW IT WORKS'))),
+          hasOrg ? h(Btn, { variant: 'ghost', onClick: () => setView('org') }, 'OPEN YOUR TEAM DASHBOARD') : h(Btn, { variant: 'ghost', onClick: () => scrollTo('nf-packages') }, 'SEE PACKAGES'))),
+      EntPackages(),
       h('div', { key: 'how', id: 'nf-how', style: { marginBottom: 56 } },
         h('div', { style: { ...mono, fontSize: 11, letterSpacing: 2, color: C.cyan, marginBottom: 20 } }, 'HOW ENTERPRISE ONBOARDING WORKS'),
         h('div', { style: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(260px,1fr))', gap: 16 } },
-          step(1, 'Contact the founder', 'Tell us about your organisation, team size and goals. We agree scope, seats and rollout together before anything is set up.'),
-          step(2, 'We onboard your organisation', 'The NeuralFusion admin creates your organisation workspace and assigns your owner. There is nothing to buy online.'),
-          step(3, 'You invite your team', 'Sign in as the owner, then invite your team by email or link. Aggregate team results appear as people complete the CFI.'))),
+          step(1, 'Choose a package', 'Pick a seat package above and email the founder. You will receive an invoice with payment details.'),
+          step(2, 'Pay the invoice', 'Packages are paid in USDT (ERC20), as set out on the invoice. There is no online checkout.'),
+          step(3, 'We onboard your organisation', 'We create your workspace, set your seat limit and invite the owner by email.'),
+          step(4, 'You invite your team', 'Sign in as the owner, then invite your team by email or link. Each person takes the CFI, and aggregate team results appear as people complete it.'))),
       h('div', { key: 'explore', id: 'nf-explore' }, sec('WHAT YOUR TEAM GETS', [
         ['CFI assessment', 'A 13-item Cognitive Fragmentation Index each team member completes in about four minutes.'],
         ['Cognitive fragmentation', 'How scattered or integrated thinking becomes under load, scored on the CFI 13 to 65 scale.'],
@@ -8125,6 +8284,8 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
         ['Cohort analytics', 'Completion tracking and aggregate trends across cohorts.'],
         ['Enterprise development', 'Facilitated programmes and custom rollout for larger organizations.'],
       ])),
+      EntSampleReport(),
+      EntFAQ(),
       h('div', { key: 'join', style: card({ maxWidth: 520, margin: '0 auto 40px' }) },
         h('div', { style: label }, 'Already onboarded? Have a cohort code?'),
         h('input', { value: code, onChange: (e) => setCode(e.target.value), placeholder: 'Cohort code', maxLength: 40, style: Object.assign({}, inputStyle, { marginBottom: 14 }) }),
@@ -8133,7 +8294,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
         h('div', { style: { fontSize: 12, color: C.muted, marginTop: 12, lineHeight: 1.6 } }, 'Team invitations arrive as a link from your organisation owner. Cohort codes come from your facilitator.')),
       h('div', { key: 'ent', style: card({ textAlign: 'center' }) },
         h('div', { style: { ...syne, fontSize: 18, fontWeight: 800, marginBottom: 8 } }, 'Ready to start?'),
-        h('div', { style: { fontSize: 13, color: C.muted, marginBottom: 16, lineHeight: 1.7 } }, 'Email the founder with your organisation name, country and team size. You will get a reply with next steps.'),
+        h('div', { style: { fontSize: 13, color: C.muted, marginBottom: 16, lineHeight: 1.7 } }, 'Email the founder with the package you want, plus your organisation name, country and team size. You will get an invoice and next steps.'),
         h('a', { href: ENTERPRISE_MAILTO, onClick: () => track('contact_founder_clicked'), style: { ...syne, color: C.cyan, fontSize: 13, fontWeight: 700, letterSpacing: '0.06em' } }, 'EMAIL THE FOUNDER \u2192'),
         h('div', { style: { marginTop: 10 } }, h('a', { href: '/contact', style: { ...mono, fontSize: 11, color: C.muted } }, 'Other contact details'))),
     ]);
@@ -8262,7 +8423,42 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
         h('div', { style: { fontSize: 12, color: C.muted, marginTop: 12, lineHeight: 1.6 } }, 'Values are average stored dimension scores from CFI-1.0. Higher means more fragmentation in that area. These describe thinking patterns reported on the CFI, not personality, health or clinical status.')),
       h('div', { style: card() }, h('div', { style: label }, 'Band distribution'),
         Object.keys(r.bands || {}).length === 0 ? 'No data' : Object.keys(r.bands).map((b) => h('div', { key: b, style: { display: 'flex', justifyContent: 'space-between', padding: '8px 0', fontSize: 14 } }, h('span', null, b), h('span', { style: mono }, String(r.bands[b])))),
-        h('div', { style: { fontSize: 12, color: C.muted, marginTop: 8 } }, 'Counts below 2 are hidden to protect individuals.')));
+        h('div', { style: { fontSize: 12, color: C.muted, marginTop: 8 } }, 'Counts below 2 are hidden to protect individuals.')),
+      h(EntTeamDevelopment, { org }));
+  }
+
+  // ── Team development over time (pre/post). Server contract: org_team_progress(p_org) ──
+  // See ORG_TEAM_PROGRESS_SPEC.md. Until that function exists, rpc() returns { ok:false } and this card says
+  // "not available right now" (it never invents numbers). All figures are aggregates over people who retook the CFI.
+  // change = baseline - latest, the same sign convention as Clarity Delta: positive = LOWER fragmentation.
+  const entNum = (v) => (v === null || v === undefined || isNaN(Number(v))) ? '\u2013' : String(Math.round(Number(v) * 10) / 10);
+  function EntTeamDevelopmentView({ r, onRetry }) {
+    const shell = (kids) => h('div', { style: card({ marginTop: 20 }) }, h('div', { style: label }, 'Team development over time'), kids);
+    if (!r) return shell(h('div', { style: { color: C.muted, fontSize: 14 }, role: 'status' }, 'Loading...'));
+    if (!r.ok) return shell(h('div', { role: 'alert' },
+      h('div', { style: { fontSize: 14, color: C.muted, lineHeight: 1.7, marginBottom: 12 } }, "The before-and-after comparison isn't available right now."),
+      h(Btn, { variant: 'ghost', onClick: onRetry }, 'TRY AGAIN')));
+    if (!r.unlocked) return shell(h('div', { style: { fontSize: 14, color: C.muted, lineHeight: 1.7 } },
+      'To protect individual privacy, the comparison appears once ' + r.threshold + ' people have retaken the CFI. ' + (r.members_with_retest || 0) + ' so far. Each person can retake it from their own profile.'));
+    const ch = Number(r.change);
+    const meaning = ch > 0 ? 'Team Clarity Delta +' + entNum(ch) + ': the team average is ' + entNum(ch) + ' points lower than at the starting assessment, which indicates less fragmentation.'
+      : ch < 0 ? 'Team Clarity Delta ' + entNum(ch) + ': the team average is ' + entNum(-ch) + ' points higher than at the starting assessment, which indicates more fragmentation on this measure.'
+      : 'Team Clarity Delta 0: no change in the team average from the starting assessment.';
+    const b = r.avg_dimensions_baseline || {}, l = r.avg_dimensions_latest || {};
+    return shell([
+      h('div', { key: 's', style: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(min(180px,100%),1fr))', gap: 14, marginBottom: 16 } },
+        Stat('Starting average CFI', entNum(r.avg_baseline_total), 'Scale 13 to 65'), Stat('Latest average CFI', entNum(r.avg_latest_total), 'Scale 13 to 65'), Stat('People included', r.members_with_retest, 'Retook the CFI')),
+      h('div', { key: 'm', style: { fontSize: 14, color: C.text, lineHeight: 1.8, marginBottom: 16 } }, meaning),
+      h('div', { key: 'd', style: { marginBottom: 12 } }, Object.keys(DIM_LABELS).map((k) => h('div', { key: k, style: { display: 'flex', justifyContent: 'space-between', gap: 12, padding: '10px 0', borderBottom: '1px solid ' + C.border, fontSize: 14 } },
+        h('span', null, DIM_LABELS[k]), h('span', { style: mono }, entNum(b[k]) + ' \u2192 ' + entNum(l[k]))))),
+      h('div', { key: 'c', style: { fontSize: 13, color: C.muted, lineHeight: 1.7 } }, 'Only people who completed the CFI at least twice are included, so this can differ from the whole team. These are self-reported answers at two points in time: they show what changed, not what caused it. Mode scores are out of 100, and lower means better coordinated.'),
+    ]);
+  }
+  function EntTeamDevelopment({ org }) {
+    const [r, setR] = useState(null);
+    const [tick, setTick] = useState(0);
+    useEffect(() => { let live = true; setR(null); rpc('org_team_progress', { p_org: org.id }).then((x) => { if (live) setR(x); }); return () => { live = false; }; }, [org.id, tick]);
+    return h(EntTeamDevelopmentView, { r, onRetry: () => setTick((t) => t + 1) });
   }
 
   function TeamTab({ org, role, refresh }) {
@@ -8404,7 +8600,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
         h('div', { style: { display: 'flex', gap: 8, flexWrap: 'wrap' } }, h('input', { type: 'number', min: 2, value: thr, onChange: (e) => setThr(e.target.value), style: Object.assign({}, inputStyle, { width: 120 }) }), h(Btn, { onClick: saveThreshold, style: { padding: '8px 16px' } }, 'SAVE'))));
   }
 
-  window.NF_ORG = { EnterpriseLanding, OrgPortal, InvitePage, AdminOnboardPanel, initialView, loadMyOrgs, afterCfiSaved, track };
+  window.NF_ORG = { TeamDevelopmentView: EntTeamDevelopmentView, EnterpriseLanding, OrgPortal, InvitePage, AdminOnboardPanel, initialView, loadMyOrgs, afterCfiSaved, track };
 })();
 
     // ═══ NEURALFUSION_ORG_MODULE_END ═══
