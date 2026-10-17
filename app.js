@@ -2862,7 +2862,7 @@ function NFJEvolution({ user, cfiResult, cfiHistory, lessonProgress, setView }) 
 
 // ── Enterprise team journey: uses ONLY aggregate counts the org_overview RPC already returns ──
 // Rows are a pure function of the overview counts and (optionally) the team before/after result.
-function nfjEnterpriseRows(ov, prog) {
+function nfjEnterpriseRows(ov, prog, tr) {
   const unlocked = ov.completed >= ov.report_threshold;
   let again;
   if (prog && prog.ok && prog.unlocked) again = { k: 'MEASURE AGAIN', done: true, text: 'Team before/after is available: ' + prog.members_with_retest + ' people included. See Team Results.' };
@@ -2871,7 +2871,9 @@ function nfjEnterpriseRows(ov, prog) {
   return [
     { k: 'MEASURE', done: ov.completed > 0, text: `${ov.completed} of ${ov.invited_total} invited people have completed the CFI.` },
     { k: 'UNDERSTAND', done: unlocked, text: unlocked ? 'Aggregate team patterns are available. They appear only above the minimum group size, which protects individuals.' : `Aggregate patterns unlock at ${ov.report_threshold} completions (${ov.completed} so far).` },
-    { k: 'TRAIN', done: null, text: 'Train integrated thinking with the Academy. Team-level training progress is not tracked in this dashboard yet.' },
+    (tr && tr.ok && tr.unlocked) ? { k: 'TRAIN', done: true, text: tr.started + ' people have started the five-lesson programme. See the Programme tab.' }
+      : (tr && tr.ok) ? { k: 'TRAIN', done: false, text: (tr.started || 0) + ' people have started the five-lesson programme. Counts appear once ' + tr.threshold + ' have started.' }
+      : { k: 'TRAIN', done: null, text: 'Run the five-lesson programme from the Programme tab. Team progress is not available yet.' },
     { k: 'APPLY', done: null, text: 'Apply the framework to real team decisions. Not tracked in this dashboard yet.' },
     again,
     { k: 'DEVELOP', done: null, text: 'Decide what the team develops next, using the measured patterns above.' },
@@ -2881,13 +2883,15 @@ function NFJEnterpriseJourney({ ov, orgId }) {
   useNFJStyles();
   const T = nfjTheme(false);
   const [prog, setProg] = useState(null);
+  const [tr, setTr] = useState(null);
   useEffect(() => {
     if (!orgId || !(ov.completed > 0)) return;
     let live = true;
     sb.rpc('org_team_progress', { p_org: orgId }).then(({ data, error }) => { if (live) setProg(error ? null : data); });
+    sb.rpc('org_programme_summary', { p_org: orgId }).then(({ data, error }) => { if (live) setTr(error ? null : data); });
     return () => { live = false; };
   }, [orgId, ov.completed]);
-  const rows = nfjEnterpriseRows(ov, prog);
+  const rows = nfjEnterpriseRows(ov, prog, tr);
   const notTracked = (r) => r.done === null && r.k !== 'MEASURE AGAIN' ? ' \u00b7 not yet tracked' : (r.done === null ? ' \u00b7 not yet available' : '');
   return React.createElement(NFJPanel, { T, style: { marginBottom: 20 } },
     React.createElement(NFJEyebrow, { T }, 'Team journey'),
@@ -7606,7 +7610,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
     }
 
     // ── Enterprise Programme View ──────────────────────────────────────
-    function EntProgrammeView({ session }) {
+    function EntProgrammeView({ session, done, onDone }) {
       const [activeLesson, setActiveLesson] = useState(null);
       const [lessonTab, setLessonTab] = useState('plan');
 
@@ -7665,6 +7669,11 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
             entH("section", {className: "nf-enterprise-card nf-enterprise-card--alt", style: {marginTop: 32, textAlign: 'center', padding: '28px 20px'}},
               entH("div", {className: "nf-enterprise-eyebrow"}, 'Key Insight · Lesson ', L.num),
               entH("p", {style: {fontSize: 'clamp(19px,4vw,24px)', fontWeight: 700, lineHeight: 1.5}}, L.keyInsight)
+            ),
+            onDone && entH("div", {style: {marginTop: 24, textAlign: 'center'}},
+              (done && done.indexOf(L.num) >= 0)
+                ? entH("span", {className: "nf-enterprise-pill"}, 'Lesson completed')
+                : entH("button", {type: "button", className: "nf-enterprise-btn nf-enterprise-btn--primary", onClick: ()=>onDone(L.num)}, 'Mark lesson complete')
             )
           )
         );
@@ -7682,7 +7691,8 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
                 entH("div", {className: "nf-enterprise-meta"},
                   entH("span", {className: "nf-enterprise-pill"}, L.duration, ' min'),
                   entH("span", {className: "nf-enterprise-pill"}, 'Week ', L.week),
-                  entH("span", {className: "nf-enterprise-pill nf-enterprise-pill--wait"}, L.level)
+                  entH("span", {className: "nf-enterprise-pill nf-enterprise-pill--wait"}, L.level),
+                  done && done.indexOf(L.num) >= 0 && entH("span", {className: "nf-enterprise-pill"}, 'Completed')
                 )
               ),
               entH("button", {type: "button", className: "nf-enterprise-btn nf-enterprise-btn--primary", onClick: e => { e.stopPropagation(); setActiveLesson(i); }, "aria-label": 'Start lesson ' + L.num + ': ' + L.title}, 'Start Lesson →')
@@ -8239,6 +8249,8 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
       );
     }
 
+    window.NF_ENT = { EntProgrammeView, useEnterpriseStyles };
+
     // ═══ NEURALFUSION_ORG_MODULE_START (self-serve team assessments, formerly org.js) ═══
 // NeuralFusion organisation module (B2B). Enterprise is custom: the founder is contacted first, an admin onboards the
 // organisation, and the organisation owner then invites the team. There is no self-serve purchase.
@@ -8367,10 +8379,10 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
     nfjEnsureStyles();
     const items = [
       ['What is a seat?', 'One seat is one person on the platform. Your seat limit is set when we create your workspace.'],
-      ['What will each person actually do?', 'Each person completes the 13-item CFI (about four minutes) and sees their own profile. Participants can then use the Academy and the decision tools.'],
+      ['What will each person actually do?', 'Each person completes the 13-item CFI (about four minutes) and sees their own profile. After that, the five-lesson training programme opens for them, and the Academy and decision tools remain available.'],
       ['What does the CFI measure, and what does it not?', 'It measures how consistently your four thinking modes (analytical, intuitive, associative, reflective) work together, and your self-reported steadiness under pressure, on a 13 to 65 scale where lower means better coordinated. It does not measure intelligence, personality type, mental health or future performance. It is not a diagnosis, and it is a snapshot of how someone answered on the day.'],
       ['What will I see as the organisation owner?', 'Invitations and completion tracking, and aggregate team patterns once enough people have completed the CFI. Individual profiles stay private to each person.'],
-      ['Can we measure development over time?', 'Each person can retake the CFI and compare with their own starting point. A team-level before-and-after comparison is not in the dashboard yet.'],
+      ['Can we measure development over time?', 'Yes. After the programme, each person can retake the CFI and compare with their own starting point. If they choose to share the retest, the team before-and-after appears under Team Results once enough people have shared.'],
       ['How do we pay?', 'By invoice, in USDT on the TRON (TRC20) network. There is no online checkout. Email the founder with your package choice to receive the invoice.'],
       ['What if we need more than 50 seats?', 'Larger teams, multiple organizations and facilitated programmes are priced individually. Email the founder for a custom proposal.'],
     ];
@@ -8532,7 +8544,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
     const [ov, setOv] = useState(null);
     const refresh = async () => setOv(await rpc('org_overview', { p_org: org.id }));
     useEffect(() => { refresh(); }, [org.id]);
-    const tabs = [['overview', 'Overview'], ['invite', 'Invite'], ['results', 'Team Results'], ['team', 'Team and Cohorts'], ['billing', 'Plan and Seats']];
+    const tabs = [['overview', 'Overview'], ['invite', 'Invite'], ['results', 'Team Results'], ['programme', 'Programme'], ['team', 'Team and Cohorts'], ['billing', 'Plan and Seats']];
     if (!ov) return h('div', { style: { color: C.muted } }, 'Loading...');
     if (!ov.ok) return h(Msg, { m: { type: 'error', text: errText(ov) } });
     return h('div', null,
@@ -8540,6 +8552,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
       tab === 'overview' ? h(OverviewTab, { ov, go: setTab }) : null,
       tab === 'invite' ? h(InviteTab, { org, ov, refresh, go: setTab, role: ov.role }) : null,
       tab === 'results' ? h(ResultsTab, { org }) : null,
+      tab === 'programme' ? h(ProgrammePanel, { key: org.id, org, role: ov.role }) : null,
       tab === 'team' ? h(TeamTab, { org, role: ov.role, refresh }) : null,
       tab === 'billing' ? h(BillingTab, { org, ov }) : null);
   }
@@ -8686,15 +8699,52 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
         h(LinkBtn, { href: seatMail }, 'REQUEST MORE SEATS')));
   }
 
+  function ProgrammePanel({ org, role, setView, onStart }) {
+    const useStyles = (window.NF_ENT && window.NF_ENT.useEnterpriseStyles) || function () {};
+    useStyles();
+    const [st, setSt] = useState(null); const [sum, setSum] = useState(null); const [msg, setMsg] = useState(null);
+    const lead = role === 'owner' || role === 'admin' || role === 'facilitator';
+    const loadSum = () => rpc('org_programme_summary', { p_org: org.id }).then(setSum);
+    useEffect(() => { rpc('org_programme_state', { p_org: org.id }).then(setSt); if (lead) loadSum(); }, [org.id]);
+    const ENT = window.NF_ENT;
+    const wrap = (kids) => h('div', { style: { marginTop: 8 } }, h('div', { style: { ...mono, fontSize: 11, letterSpacing: 2, color: C.cyan, marginBottom: 12 } }, 'TRAINING PROGRAMME'), kids);
+    if (!ENT) return null;
+    if (!st) return wrap(h('div', { style: { color: C.muted } }, 'Loading...'));
+    if (!st.ok) return wrap(h(Msg, { m: { type: 'error', text: st.error === 'request_failed' ? 'Training is not enabled on the database yet. Run migration_unified_programme.sql.' : errText(st) } }));
+    if (!st.unlocked) return wrap(h('div', { style: card({ maxWidth: 640 }) }, h('div', { style: { fontSize: 15, lineHeight: 1.8, marginBottom: 16 } }, 'The five-lesson training programme opens as soon as you complete the team assessment.'), onStart ? h(Btn, { onClick: onStart }, 'START ASSESSMENT') : null));
+    const done = st.completed_lessons || [];
+    const mark = async (n) => {
+      setMsg(null);
+      const r = await rpc('org_mark_lesson', { p_org: org.id, p_lesson: n });
+      if (r && r.ok) { setSt((x) => Object.assign({}, x, { completed_lessons: Array.from(new Set((x.completed_lessons || []).concat([n]))).sort((a, b) => a - b) })); if (lead) loadSum(); }
+      else setMsg({ type: 'error', text: errText(r) });
+    };
+    const sumBox = lead && sum ? h('div', { style: card({ marginBottom: 20 }) }, h('div', { style: label }, 'Team training progress'),
+      sum.ok && sum.unlocked
+        ? h('div', { style: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(110px,1fr))', gap: 12 } }, (sum.lessons || []).map((l) => h('div', { key: l.num, style: { fontSize: 12, color: C.muted } }, h('div', { style: { ...syne, fontSize: 22, fontWeight: 800, color: C.cyanBright } }, l.completed == null ? 'under ' + sum.threshold : l.completed), 'Lesson ' + l.num + ' completed')))
+        : h('div', { style: { fontSize: 13, color: C.muted, lineHeight: 1.7 } }, sum.ok ? (sum.started || 0) + ' people have started. Progress counts appear once ' + sum.threshold + ' have started, which protects individuals.' : 'Team progress is not available yet.')) : null;
+    const retake = setView && done.length >= 5 ? h('div', { style: card({ marginTop: 20 }) }, h('div', { style: label }, 'Measure again'),
+      h('div', { style: { fontSize: 14, lineHeight: 1.8, marginBottom: 14 } }, 'You have finished the programme. Retake the CFI to see your own change. After your result you can choose to share it, and your organisation only ever sees team averages.'),
+      h(Btn, { onClick: () => setView('cfi') }, 'RETAKE THE CFI')) : null;
+    return wrap(h('div', null,
+      h('div', { style: { fontSize: 13, color: C.muted, marginBottom: 14 } }, done.length + ' of 5 lessons completed' + (lead ? '. You can run these sessions with your team.' : '.')),
+      sumBox, h(Msg, { m: msg }),
+      h('div', { className: 'nf-enterprise', style: { minHeight: 0, borderRadius: 4, overflow: 'hidden' } }, h(ENT.EntProgrammeView, { session: { org: org.id }, done, onDone: mark })),
+      retake));
+  }
+
   function ParticipantPanel({ org, setView }) {
     const [ov, setOv] = useState(null);
     useEffect(() => { rpc('org_overview', { p_org: org.id }).then(setOv); }, [org.id]);
     const start = () => { sessionStorage.setItem('nf_org_assess', JSON.stringify({ org: org.id, t: Date.now() })); track('cfi_started', { organisation_id: org.id }); setView('cfi'); };
     if (!ov) return h('div', { style: { color: C.muted } }, 'Loading...');
-    return h('div', { style: card({ maxWidth: 640 }) },
-      h('div', { style: { fontSize: 15, lineHeight: 1.8, marginBottom: 20 } }, "You've been invited to complete the NeuralFusion CFI as part of your organization's team assessment."),
-      ov.my_assessment_completed ? h('div', { style: { color: '#4CF7C0' } }, 'You have completed the assessment. Thank you. Your own result is on your Analytics page.') :
-      h('div', null, h(Btn, { onClick: start }, 'START ASSESSMENT'), h('div', { style: { fontSize: 12, color: C.muted, marginTop: 14, lineHeight: 1.7 } }, org.name + ' will see aggregate team results and whether you have completed the assessment. Your individual answers and score are not shown to your organisation.')));
+    return h('div', null,
+      h('div', { style: card({ maxWidth: 640, marginBottom: 20 }) },
+        h('div', { style: { fontSize: 15, lineHeight: 1.8, marginBottom: 20 } }, "You've been invited to complete the NeuralFusion CFI as part of your organization's team assessment."),
+        ov.my_assessment_completed
+          ? h('div', null, h('div', { style: { color: '#4CF7C0', marginBottom: 14 } }, 'You have completed the assessment. Your training programme is open below.'), h(Btn, { variant: 'ghost', onClick: () => setView('analytics') }, 'VIEW MY RESULT'))
+          : h('div', null, h(Btn, { onClick: start }, 'START ASSESSMENT'), h('div', { style: { fontSize: 12, color: C.muted, marginTop: 14, lineHeight: 1.7 } }, org.name + ' will see aggregate team results and whether you have completed the assessment. Your individual answers and score are not shown to your organisation.'))),
+      h(ProgrammePanel, { org, role: org.role, setView, onStart: start }));
   }
 
   // ====================================================================
