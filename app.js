@@ -5047,12 +5047,37 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
   const h = React.createElement;
   const { useState, useEffect } = React;
 
+  // ---------- Theme: the SAME accessible light palette as the individual CFI assessment ----------
+  // (white page, gold accents, Atkinson Hyperlegible, rounded cards, 48px+ touch targets).
+  const AC = {
+    bg: '#FFFFFF', surface: '#FFFFFF', surfaceAlt: '#F9FAFB',
+    text: '#111827', muted: '#4B5563', border: '#D1D5DB',
+    gold: '#C8A95A', goldDark: '#8A6D2F', goldTint: '#FBF3E3', focus: '#8A6D2F',
+    error: '#B91C1C', errorTint: '#FEF2F2', success: '#166534', successTint: '#F0FDF4',
+    font: "'Atkinson Hyperlegible', 'Inter', -apple-system, sans-serif",
+  };
+  // Local light tokens. They shadow the app's dark globals (C, mono, syne) for this module only, so every
+  // component below renders in the light CFI look without touching the rest of the app.
+  const C = { void: AC.bg, deep: AC.surfaceAlt, surface: AC.surface, panel: AC.surfaceAlt, border: AC.border, borderBright: AC.border,
+    cyan: AC.goldDark, cyanBright: AC.goldDark, cyanDim: AC.goldTint, text: AC.text, muted: AC.muted, dim: AC.muted };
+  const mono = { fontFamily: AC.font };
+  const syne = { fontFamily: AC.font };
+
+  // Storage can throw (blocked cookies, some in-app browsers). Never let that blank the portal.
+  const ses = {
+    get(k) { try { return window.sessionStorage.getItem(k); } catch (_) { return null; } },
+    set(k, v) { try { window.sessionStorage.setItem(k, v); } catch (_) {} },
+    del(k) { try { window.sessionStorage.removeItem(k); } catch (_) {} },
+  };
+
   // ---------- analytics (existing GTM dataLayer, no new framework) ----------
   const track = (name, props) => { try { (window.dataLayer = window.dataLayer || []).push(Object.assign({ event: 'nf_' + name }, props || {})); } catch (_) {} };
   const rpc = async (name, args) => {
-    const { data, error } = await sb.rpc(name, args || {});
-    if (error) { console.error('[NF_ORG ' + name + ']', error); return { ok: false, error: 'request_failed' }; }
-    return data;
+    try {
+      const { data, error } = await sb.rpc(name, args || {});
+      if (error) { console.error('[NF_ORG ' + name + ']', error); return { ok: false, error: 'request_failed' }; }
+      return data;
+    } catch (e) { console.error('[NF_ORG ' + name + ']', e); return { ok: false, error: 'network' }; }
   };
   const ERR = {
     not_signed_in: 'Please sign in first.', not_authorised: 'You do not have permission to do that.',
@@ -5090,24 +5115,78 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
     try { ctx = JSON.parse(sessionStorage.getItem('nf_org_assess') || 'null'); } catch (_) {}
     if (!ctx || !resultId || Date.now() - ctx.t > 2 * 3600 * 1000) return;
     const r = await rpc('link_cfi_result_to_org', { p_result_id: resultId, p_org: ctx.org });
-    if (r && r.ok) { sessionStorage.removeItem('nf_org_assess'); track('cfi_completed', { organisation_id: ctx.org }); }
+    if (r && r.ok) { ses.del('nf_org_assess'); track('cfi_completed', { organisation_id: ctx.org }); }
   }
 
-  // ---------- small UI kit (matches the existing NeuralFusion look) ----------
-  const card = (extra) => Object.assign({ background: C.surface, border: '1px solid ' + C.border, borderRadius: 4, padding: 28 }, extra || {});
-  const label = { ...mono, fontSize: 10, letterSpacing: 1.5, color: C.muted, marginBottom: 8, textTransform: 'uppercase' };
-  const inputStyle = { width: '100%', background: C.deep, border: '1px solid ' + C.borderBright, color: C.text, padding: '12px 14px', borderRadius: 2, fontSize: 14, boxSizing: 'border-box' };
+  // ---------- UI kit (matches the individual CFI assessment) ----------
+  const card = (extra) => Object.assign({ background: AC.surface, border: '1px solid ' + AC.border, borderRadius: 16, padding: 24, boxShadow: '0 1px 3px rgba(17,24,39,0.06)', minWidth: 0 }, extra || {});
+  const eyebrow = { fontFamily: AC.font, fontSize: 14, fontWeight: 700, letterSpacing: '0.06em', color: AC.goldDark, textTransform: 'uppercase' };
+  const label = Object.assign({}, eyebrow, { marginBottom: 10 });
+  const inputStyle = { width: '100%', background: AC.surface, border: '2px solid ' + AC.border, color: AC.text, padding: '12px 14px', borderRadius: 12, fontSize: 16, minHeight: 48, boxSizing: 'border-box', fontFamily: AC.font };
+  const btnBase = { fontFamily: AC.font, fontSize: 16, fontWeight: 700, minHeight: 48, padding: '12px 24px', borderRadius: 12, cursor: 'pointer', lineHeight: 1.3, textAlign: 'center', maxWidth: '100%' };
+  const cap = (s) => { s = String(s == null ? '' : s); return s.charAt(0).toUpperCase() + s.slice(1); };
+  // Buttons here were written in ALL CAPS; the CFI uses sentence case, so convert all-caps labels.
+  const sentence = (t) => (typeof t === 'string' && t.length > 1 && t === t.toUpperCase())
+    ? t.charAt(0) + t.slice(1).toLowerCase().replace(/\bcfi\b/g, 'CFI').replace(/\bwhatsapp\b/g, 'WhatsApp') : t;
+  const pill = (color, bg) => ({ display: 'inline-block', padding: '4px 12px', borderRadius: 999, border: '1px solid ' + AC.border, background: bg || '#FFFFFF', color: color || AC.text, fontFamily: AC.font, fontSize: 14, fontWeight: 700, lineHeight: 1.4, whiteSpace: 'nowrap' });
   function Btn({ children, onClick, variant, disabled, style }) {
     const ghost = variant === 'ghost';
-    return h('button', { onClick, disabled, style: Object.assign({ ...syne, fontSize: 13, fontWeight: 700, letterSpacing: '0.06em', padding: '14px 28px', borderRadius: 2, cursor: disabled ? 'not-allowed' : 'pointer', opacity: disabled ? 0.5 : 1,
-      background: ghost ? 'transparent' : C.cyan, color: ghost ? C.cyan : C.void, border: '1px solid ' + C.cyan }, style || {}) }, children);
+    return h('button', { type: 'button', onClick, disabled, className: 'nf-pbtn' + (ghost ? ' nf-pbtn--ghost' : ''),
+      style: Object.assign({}, btnBase,
+        ghost ? { background: '#FFFFFF', color: AC.goldDark, border: '2px solid ' + AC.goldDark }
+              : { background: AC.goldDark, color: '#FFFFFF', border: '2px solid ' + AC.goldDark, boxShadow: '0 2px 8px rgba(138,109,47,0.35)' },
+        disabled ? { opacity: 0.5, cursor: 'not-allowed' } : {}, style || {}) }, sentence(children));
   }
   function LinkBtn({ href, children, onClick, style }) {
-    return h('a', { href, onClick, style: Object.assign({ ...syne, display: 'inline-block', textDecoration: 'none', textAlign: 'center', fontSize: 13, fontWeight: 700, letterSpacing: '0.06em', padding: '14px 28px', borderRadius: 2, cursor: 'pointer', background: C.cyan, color: C.void, border: '1px solid ' + C.cyan }, style || {}) }, children);
+    return h('a', { href, onClick, className: 'nf-pbtn',
+      style: Object.assign({}, btnBase, { display: 'inline-flex', alignItems: 'center', justifyContent: 'center', textDecoration: 'none',
+        background: AC.goldDark, color: '#FFFFFF', border: '2px solid ' + AC.goldDark, boxShadow: '0 2px 8px rgba(138,109,47,0.35)' }, style || {}) }, sentence(children));
   }
-  const Stat = (l, v, sub) => h('div', { key: l, style: card({ padding: 20 }) }, h('div', { style: label }, l), h('div', { style: { ...syne, fontSize: 26, fontWeight: 800, color: C.cyanBright } }, v), sub ? h('div', { style: { fontSize: 12, color: C.muted, marginTop: 4 } }, sub) : null);
-  const Msg = ({ m }) => m ? h('div', { style: { padding: '12px 16px', marginBottom: 16, borderRadius: 2, fontSize: 13, background: m.type === 'error' ? 'rgba(248,113,113,0.1)' : 'rgba(76,247,192,0.08)', border: '1px solid ' + (m.type === 'error' ? 'rgba(248,113,113,0.3)' : 'rgba(76,247,192,0.3)'), color: m.type === 'error' ? '#F87171' : '#4CF7C0' } }, m.text) : null;
-  const Shell = (children) => h('div', { style: { background: C.void, minHeight: '100vh', paddingTop: 90, paddingBottom: 100, color: C.text } }, h('div', { style: { maxWidth: 1000, margin: '0 auto', padding: '0 24px' } }, children));
+  const Stat = (l, v, sub) => h('div', { key: l, style: card({ padding: 20 }) }, h('div', { style: label }, l),
+    h('div', { style: { fontFamily: AC.font, fontSize: 30, fontWeight: 800, lineHeight: 1.2, color: AC.goldDark, overflowWrap: 'anywhere' } }, v),
+    sub ? h('div', { style: { fontSize: 15, color: AC.muted, marginTop: 6, lineHeight: 1.5 } }, sub) : null);
+  const Msg = ({ m }) => {
+    if (!m) return null;
+    const err = m.type === 'error';
+    return h('div', { role: err ? 'alert' : 'status', style: { padding: '14px 18px', marginBottom: 16, borderRadius: 12, fontSize: 16, lineHeight: 1.6,
+      background: err ? AC.errorTint : AC.successTint, border: '1px solid ' + (err ? '#FCA5A5' : '#86EFAC'), color: err ? AC.error : AC.success } }, m.text);
+  };
+
+  // Fonts + focus rings + hover states, injected once (same approach as the CFI assessment screens).
+  function ensurePortalStyles() {
+    if (typeof document === 'undefined') return;
+    try { nfjEnsureStyles(); } catch (_) {}
+    if (!document.getElementById('nf-a11y-font')) {
+      const l = document.createElement('link');
+      l.id = 'nf-a11y-font'; l.rel = 'stylesheet';
+      l.href = 'https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Inter:wght@400;600;700;800&display=swap';
+      document.head.appendChild(l);
+    }
+    if (document.getElementById('nf-portal-styles')) return;
+    const s = document.createElement('style');
+    s.id = 'nf-portal-styles';
+    s.textContent = '.nf-portal{font-size:17px;line-height:1.6;-webkit-text-size-adjust:100%;overflow-x:hidden}'
+      + '.nf-portal *,.nf-portal *::before,.nf-portal *::after{box-sizing:border-box}'
+      + '.nf-portal button,.nf-portal input,.nf-portal select,.nf-portal textarea{font-family:inherit}'
+      + '.nf-portal h1,.nf-portal h2,.nf-portal h3,.nf-portal p{margin:0}'
+      + '.nf-portal :focus-visible{outline:3px solid #8A6D2F;outline-offset:3px}'
+      + '.nf-portal .nf-pbtn{transition:background .15s ease,border-color .15s ease}'
+      + '.nf-portal .nf-pbtn:hover:not([disabled]){background:#735A26!important;border-color:#735A26!important;color:#FFFFFF!important}'
+      + '.nf-portal .nf-pbtn--ghost:hover:not([disabled]){background:#FBF3E3!important;color:#8A6D2F!important;border-color:#8A6D2F!important}'
+      + '.nf-portal .nf-tab:hover{border-color:#C8A95A!important;background:#FBF3E3!important}'
+      + '.nf-portal .nf-team{background:transparent!important;min-height:0!important}'
+      + '.nf-portal .nf-team-container{padding:8px 0 32px!important;max-width:none!important}'
+      + '.nf-portal .nfj-sum:focus-visible{outline:3px solid #8A6D2F;outline-offset:3px}'
+      + '@media (max-width:767px){.nf-portal{font-size:16px}}'
+      + '@media (prefers-reduced-motion:reduce){.nf-portal *{animation:none!important;transition:none!important}}';
+    document.head.appendChild(s);
+  }
+  function PortalFrame({ children }) {
+    useEffect(ensurePortalStyles, []);
+    return h('div', { className: 'nf-portal', style: { background: AC.bg, minHeight: '100vh', paddingTop: 80, paddingBottom: 100, color: AC.text, fontFamily: AC.font } },
+      h('div', { style: { maxWidth: 1000, margin: '0 auto', padding: '32px 20px' } }, children));
+  }
+  const Shell = (children) => h(PortalFrame, null, children);
 
   // ====================================================================
   // TEAMS LANDING (create a team, share one link)
@@ -5129,16 +5208,16 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
   }
   function TeamPackages({ teamName }) {
     return h('div', { key: 'pricing', style: { marginBottom: 56 } },
-      h('div', { style: { ...mono, fontSize: 11, letterSpacing: 2, color: C.cyan, marginBottom: 12 } }, 'PRICING'),
-      h('div', { style: { fontSize: 14, color: C.muted, lineHeight: 1.7, marginBottom: 20 } }, 'One seat is one person. Prices are in US dollars, billed monthly. Create your team first and try it with the starter seats, then pick a package when you need more.'),
+      h('div', { style: Object.assign({}, eyebrow, { marginBottom: 12 }) }, 'PRICING'),
+      h('div', { style: { fontSize: 16, color: C.muted, lineHeight: 1.7, marginBottom: 20 } }, 'One seat is one person. Prices are in US dollars, billed monthly. Create your team first and try it with the starter seats, then pick a package when you need more.'),
       h('div', { style: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(220px,1fr))', gap: 16, marginBottom: 16 } },
         TEAM_PACKAGES.map((p) => h('div', { key: p.seats, style: card() },
-          h('div', { style: { ...syne, fontSize: 18, fontWeight: 800, marginBottom: 4 } }, p.seats + ' seats'),
-          h('div', { style: { ...syne, fontSize: 28, fontWeight: 800, color: C.cyan } }, '$' + p.price.toLocaleString(), h('span', { style: { fontSize: 13, color: C.muted, fontWeight: 500 } }, ' / month')),
-          h('div', { style: { fontSize: 13, color: C.muted, margin: '6px 0 12px' } }, '$' + p.per + ' per seat per month'),
-          h('div', { style: { fontSize: 13, color: C.muted, lineHeight: 1.6, marginBottom: 16 } }, 'Best for: ' + p.fit),
+          h('div', { style: { ...syne, fontSize: 20, fontWeight: 800, marginBottom: 4 } }, p.seats + ' seats'),
+          h('div', { style: { ...syne, fontSize: 30, fontWeight: 800, color: C.cyan } }, '$' + p.price.toLocaleString(), h('span', { style: { fontSize: 15, color: C.muted, fontWeight: 500 } }, ' / month')),
+          h('div', { style: { fontSize: 15, color: C.muted, margin: '6px 0 12px' } }, '$' + p.per + ' per seat per month'),
+          h('div', { style: { fontSize: 15, color: C.muted, lineHeight: 1.6, marginBottom: 16 } }, 'Best for: ' + p.fit),
           h(LinkBtn, { href: packageMail(p, teamName), onClick: () => track('team_package_requested', { seats: p.seats }) }, 'REQUEST THIS PACKAGE')))),
-      h('div', { style: { fontSize: 12, color: C.muted, lineHeight: 1.7 } }, 'We email you an invoice with payment details. Packages renew monthly, you can cancel with 30 days\u2019 notice, and monthly payments are not refundable. More than 50 seats? ', h('a', { href: TEAM_MAILTO, style: { color: C.cyan } }, 'Email us for a custom price'), '.'));
+      h('div', { style: { fontSize: 14, color: C.muted, lineHeight: 1.7 } }, 'We email you an invoice with payment details. Packages renew monthly, you can cancel with 30 days\u2019 notice, and monthly payments are not refundable. More than 50 seats? ', h('a', { href: TEAM_MAILTO, style: { color: C.cyan } }, 'Email us for a custom price'), '.'));
   }
 
   const TEAM_VALUES = [
@@ -5164,10 +5243,10 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
       ['What if we need more seats?', 'Every new team starts with a few starter seats so you can try it. When you need more, pick a package (10, 25 or 50 seats) from the pricing section or the Plan and Seats tab.'],
     ];
     return h('div', { key: 'faq', style: { marginBottom: 56 } },
-      h('div', { style: { ...mono, fontSize: 12, letterSpacing: 2, color: C.cyan, marginBottom: 20 } }, 'QUESTIONS'),
+      h('div', { style: Object.assign({}, eyebrow, { marginBottom: 12 }) }, 'QUESTIONS'),
       items.map(([q, a]) => h('details', { key: q, style: { borderTop: '1px solid ' + C.border, padding: '4px 0' } },
-        h('summary', { className: 'nfj-sum', style: { cursor: 'pointer', minHeight: 48, display: 'flex', alignItems: 'center', fontSize: 15, fontWeight: 700, color: C.text } }, q),
-        h('p', { style: { fontSize: 14, color: C.muted, lineHeight: 1.8, margin: '4px 0 16px' } }, a))));
+        h('summary', { className: 'nfj-sum', style: { cursor: 'pointer', minHeight: 48, display: 'flex', alignItems: 'center', fontSize: 17, fontWeight: 700, color: C.text } }, q),
+        h('p', { style: { fontSize: 16, color: C.muted, lineHeight: 1.8, margin: '4px 0 16px' } }, a))));
   }
 
   // ── Sample team report: FICTIONAL, display only. Mirrors the Team Results tab (org_team_results). ──
@@ -5185,12 +5264,12 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
     const d = TEAM_SAMPLE;
     const modes = ['analytical', 'intuitive', 'associative', 'reflective'].sort((a, b) => d.dims[a] - d.dims[b]);
     const lo = modes[0], hi = modes[modes.length - 1];
-    const row = (k, v) => h('div', { key: k, style: { display: 'flex', justifyContent: 'space-between', gap: 12, padding: '10px 0', borderBottom: '1px solid ' + C.border, fontSize: 14 } }, h('span', null, k), h('span', { style: mono }, String(v)));
-    const note = (t) => h('div', { style: { fontSize: 13, color: C.muted, marginTop: 12, lineHeight: 1.6 } }, t);
+    const row = (k, v) => h('div', { key: k, style: { display: 'flex', justifyContent: 'space-between', gap: 12, padding: '10px 0', borderBottom: '1px solid ' + C.border, fontSize: 16 } }, h('span', null, k), h('span', { style: mono }, String(v)));
+    const note = (t) => h('div', { style: { fontSize: 15, color: C.muted, marginTop: 12, lineHeight: 1.6 } }, t);
     return h('details', { key: 'sample-report', id: 'nf-sample-report', style: { borderTop: '1px solid ' + C.border, borderBottom: '1px solid ' + C.border, marginBottom: 56, padding: '4px 0' } },
-      h('summary', { className: 'nfj-sum', style: { cursor: 'pointer', minHeight: 48, display: 'flex', alignItems: 'center', fontSize: 15, fontWeight: 700, color: C.text } }, 'See a sample team report'),
+      h('summary', { className: 'nfj-sum', style: { cursor: 'pointer', minHeight: 48, display: 'flex', alignItems: 'center', fontSize: 17, fontWeight: 700, color: C.text } }, 'See a sample team report'),
       h('div', { style: { padding: '8px 0 20px' } },
-        h('div', { role: 'note', style: { fontSize: 13, color: C.muted, lineHeight: 1.6, marginBottom: 16 } }, 'SAMPLE: a fictional team, not real data. This is the layout a team owner sees under Team Results.'),
+        h('div', { role: 'note', style: { fontSize: 15, color: C.muted, lineHeight: 1.6, marginBottom: 16 } }, 'SAMPLE: a fictional team, not real data. This is the layout a team owner sees under Team Results.'),
         h('div', { style: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(min(200px,100%),1fr))', gap: 14, marginBottom: 20 } },
           Stat('Team average CFI', d.avgTotal, 'Scale 13 to 65. Higher means more scattered thinking.'), Stat('Completed', d.completed + ' of ' + d.members), Stat('Instrument', CFI_VERSION)),
         h('div', { style: card({ marginBottom: 20 }) }, h('div', { style: label }, 'Average fragmentation by way of thinking'),
@@ -5200,10 +5279,10 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
           Object.keys(d.bands).map((b) => row(plainBand(b), d.bands[b])),
           note('Counts below 2 are hidden to protect individuals, so the bands shown may not add up to everyone who completed.')),
         h('div', { style: card({ marginBottom: 20 }) }, h('div', { style: label }, 'How to read this'),
-          h('div', { style: { fontSize: 14, color: C.text, lineHeight: 1.8 } }, 'In this fictional team, ' + DIM_LABELS[hi].toLowerCase() + ' thinking has the highest average fragmentation (' + d.dims[hi] + ') and ' + DIM_LABELS[lo].toLowerCase() + ' thinking the lowest (' + d.dims[lo] + '). That is an observation about team thinking patterns, not a judgment of any person and not a prediction of results.'),
+          h('div', { style: { fontSize: 16, color: C.text, lineHeight: 1.8 } }, 'In this fictional team, ' + DIM_LABELS[hi].toLowerCase() + ' thinking has the highest average fragmentation (' + d.dims[hi] + ') and ' + DIM_LABELS[lo].toLowerCase() + ' thinking the lowest (' + d.dims[lo] + '). That is an observation about team thinking patterns, not a judgment of any person and not a prediction of results.'),
           note('A prompt for team discussion, not a measured result: run a real team decision through the Decision Room and give the step for the highest-scoring mode extra time.')),
         h('div', { style: card({ marginBottom: 12 }) }, h('div', { style: label }, 'Before enough people have completed'),
-          h('div', { style: { fontSize: 14, color: C.muted, lineHeight: 1.7 } }, 'Team results are not available yet. To protect individual privacy, aggregate insight appears once ' + TEAM_REPORT_THRESHOLD + ' people have completed the CFI.')),
+          h('div', { style: { fontSize: 16, color: C.muted, lineHeight: 1.7 } }, 'Team results are not available yet. To protect individual privacy, aggregate insight appears once ' + TEAM_REPORT_THRESHOLD + ' people have completed the CFI.')),
         note('A team report never shows individual results, and it does not claim business outcomes such as ROI. It shows measured CFI data only.')));
   }
 
@@ -5245,7 +5324,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
       h('input', { value: name, onChange: (e) => setName(e.target.value), onKeyDown: (e) => { if (e.key === 'Enter') create(); }, placeholder: 'For example: Acme Sales Team', maxLength: 120, style: Object.assign({}, inputStyle, { marginBottom: 14 }) }),
       h(Msg, { m: msg }),
       h(Btn, { onClick: create, disabled: busy, style: { width: '100%' } }, busy ? 'CREATING...' : (user ? 'CREATE MY TEAM' : 'SIGN UP AND CREATE MY TEAM')),
-      h('div', { style: { fontSize: 12, color: C.muted, marginTop: 12, lineHeight: 1.6 } }, 'Takes under a minute. You become the team owner and get one link to share. Nothing else to set up.'));
+      h('div', { style: { fontSize: 14, color: C.muted, marginTop: 12, lineHeight: 1.6 } }, 'Takes under a minute. You become the team owner and get one link to share. Nothing else to set up.'));
   }
 
   function TeamsLanding({ user, setShowAuth, openAuth, setView, onOrgsChanged }) {
@@ -5257,31 +5336,32 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
       return () => { live = false; };
     }, [user && user.id]);
     const step = (n, t, d) => h('div', { key: n, style: card() },
-      h('div', { style: { ...mono, fontSize: 11, letterSpacing: 1.5, color: C.cyan, marginBottom: 10 } }, 'STEP ' + n),
-      h('div', { style: { ...syne, fontSize: 16, fontWeight: 800, marginBottom: 8 } }, t),
-      h('div', { style: { fontSize: 13, color: C.muted, lineHeight: 1.7 } }, d));
+      h('div', { style: Object.assign({}, eyebrow, { marginBottom: 12 }) }, 'STEP ' + n),
+      h('div', { style: { ...syne, fontSize: 18, fontWeight: 800, marginBottom: 8 } }, t),
+      h('div', { style: { fontSize: 15, color: C.muted, lineHeight: 1.7 } }, d));
     return Shell([
-      h('div', { key: 'hero', style: { textAlign: 'center', padding: '40px 0 40px' } },
-        h('div', { style: { ...mono, fontSize: 11, letterSpacing: 2, color: C.cyan, marginBottom: 20 } }, 'NEURALFUSION FOR TEAMS'),
-        h('h1', { style: { ...syne, fontSize: 'clamp(30px,5vw,52px)', fontWeight: 900, lineHeight: 1.1, margin: '0 0 20px' } }, 'Measure and train how your team thinks. One place.'),
-        h('p', { style: { fontSize: 16, color: C.muted, maxWidth: 640, margin: '0 auto 32px', lineHeight: 1.8 } }, 'Create your team, share one link, and everything else is guided: assessment, training, a weekly thinking challenge, team decisions, practice and results.')),
+      h('div', { key: 'hero', style: { textAlign: 'center', padding: '16px 0 40px', maxWidth: 720, margin: '0 auto' } },
+        h('div', { style: Object.assign({}, eyebrow, { marginBottom: 20 }) }, 'NeuralFusion for Teams'),
+        h('h1', { style: { fontFamily: AC.font, fontSize: 'clamp(26px,5vw,34px)', fontWeight: 800, color: AC.text, margin: '0 0 20px', lineHeight: 1.3 } }, 'Measure and train how your team thinks.', h('br', null), h('span', { style: { color: AC.goldDark } }, 'One place.')),
+        h('p', { style: { fontSize: 19, color: AC.text, maxWidth: 560, margin: '0 auto 20px', lineHeight: 1.7 } }, 'Create your team, share one link, and everything else is guided: assessment, training, a weekly thinking challenge, team decisions, practice and results.'),
+        h('div', { role: 'note', style: { fontSize: 16, color: AC.text, lineHeight: 1.7, maxWidth: 560, margin: '0 auto', padding: '16px 20px', background: AC.goldTint, border: '1px solid ' + AC.gold, borderRadius: 16, textAlign: 'left' } }, 'You see how the team is doing, never anyone\u2019s personal answers. Small groups are hidden to protect individuals.')),
       h('div', { key: 'create', style: { marginBottom: 56 } }, h(CreateTeamCard, { user, setShowAuth, openAuth, setView, onOrgsChanged })),
       h('div', { key: 'how', id: 'nf-how', style: { marginBottom: 56 } },
-        h('div', { style: { ...mono, fontSize: 11, letterSpacing: 2, color: C.cyan, marginBottom: 20 } }, 'HOW IT WORKS'),
+        h('div', { style: Object.assign({}, eyebrow, { marginBottom: 12 }) }, 'HOW IT WORKS'),
         h('div', { style: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(260px,1fr))', gap: 16 } },
           step(1, 'Create your team', 'Name your team. You are the owner and see everything in one dashboard.'),
           step(2, 'Share one link', 'Copy it or send it on WhatsApp. People sign up and land straight in the assessment.'),
           step(3, 'Assess, train, retake', 'Each person takes the CFI, does the five lessons, then retakes it. You see team results as they come in.'))),
       h('div', { key: 'values', id: 'nf-values', style: { marginBottom: 56 } },
-        h('div', { style: { ...mono, fontSize: 11, letterSpacing: 2, color: C.cyan, marginBottom: 20 } }, 'WHAT YOUR TEAM GETS'),
+        h('div', { style: Object.assign({}, eyebrow, { marginBottom: 12 }) }, 'WHAT YOUR TEAM GETS'),
         h('div', { style: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(min(260px,100%),1fr))', gap: 16 } },
           TEAM_VALUES.map(([t, d]) => h('div', { key: t, style: card() },
-            h('div', { style: { ...syne, fontSize: 16, fontWeight: 800, marginBottom: 8 } }, t),
-            h('div', { style: { fontSize: 13, color: C.muted, lineHeight: 1.7 } }, d))))),
+            h('div', { style: { ...syne, fontSize: 18, fontWeight: 800, marginBottom: 8 } }, t),
+            h('div', { style: { fontSize: 15, color: C.muted, lineHeight: 1.7 } }, d))))),
       h(TeamPackages, { key: 'pk', teamName: '' }),
       TeamsSampleReport(),
       TeamsFAQ(),
-      h('div', { key: 'more', style: { textAlign: 'center', fontSize: 13, color: C.muted, lineHeight: 1.7 } }, 'Questions about pricing or a custom plan? ', h('a', { href: TEAM_MAILTO, onClick: () => track('contact_founder_clicked'), style: { color: C.cyan } }, 'Email the founder'), '.'),
+      h('div', { key: 'more', style: { textAlign: 'center', fontSize: 15, color: C.muted, lineHeight: 1.7 } }, 'Questions about pricing or a custom plan? ', h('a', { href: TEAM_MAILTO, onClick: () => track('contact_founder_clicked'), style: { color: C.cyan } }, 'Email the founder'), '.'),
     ]);
   }
 
@@ -5290,27 +5370,25 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
   // ====================================================================
   function OrgPortal({ user, session, setView, setShowAuth, openAuth, onOrgsChanged }) {
     const [orgs, setOrgs] = useState(null);
-    const [active, setActive] = useState(() => sessionStorage.getItem('nf_active_org'));
+    const [active, setActive] = useState(() => ses.get('nf_active_org'));
     const [notice, setNotice] = useState(null);
 
     const reload = async () => { const l = await loadMyOrgs(); setOrgs(l); if (onOrgsChanged) onOrgsChanged(l); return l; };
 
     useEffect(() => {
-      if (!user || !session) return;
-      (async () => {
-        await reload();
-      })();
+      if (!user) return;
+      reload();
     }, [user && user.id, session && session.access_token]);
 
     if (!user) return Shell(h('div', { style: card({ textAlign: 'center' }) }, h('div', { style: { marginBottom: 16 } }, 'Sign in to open your team dashboard.'), h(Btn, { onClick: () => setShowAuth(true) }, 'SIGN IN')));
     if (orgs === null) return Shell(h('div', { style: { color: C.muted } }, notice ? notice.text : 'Loading...'));
-    if (orgs.length === 0) return Shell([h(Msg, { key: 'm', m: notice }), h('div', { key: 'c', style: { textAlign: 'center', marginBottom: 24 } }, h('div', { style: { ...syne, fontSize: 22, fontWeight: 800, marginBottom: 8 } }, 'Create your team'), h('div', { style: { fontSize: 14, color: C.muted, lineHeight: 1.7, marginBottom: 20 } }, 'Name your team and get one link to share. Joining a team? Open the link your team owner sent you.')), h(CreateTeamCard, { key: 'f', user, setShowAuth, openAuth, setView, onOrgsChanged })]);
+    if (orgs.length === 0) return Shell([h(Msg, { key: 'm', m: notice }), h('div', { key: 'c', style: { textAlign: 'center', marginBottom: 24 } }, h('div', { style: { ...syne, fontSize: 24, fontWeight: 800, marginBottom: 8 } }, 'Create your team'), h('div', { style: { fontSize: 16, color: C.muted, lineHeight: 1.7, marginBottom: 20 } }, 'Name your team and get one link to share. Joining a team? Open the link your team owner sent you.')), h(CreateTeamCard, { key: 'f', user, setShowAuth, openAuth, setView, onOrgsChanged })]);
     const org = orgs.find((o) => o.id === active) || orgs[0];
-    const pick = (id) => { sessionStorage.setItem('nf_active_org', id); setActive(id); };
+    const pick = (id) => { ses.set('nf_active_org', id); setActive(id); };
     const header = h('div', { key: 'hd', style: { marginBottom: 28 } },
-      h('div', { style: { ...mono, fontSize: 11, letterSpacing: 2, color: C.cyan, marginBottom: 8 } }, 'YOUR TEAM'),
+      h('div', { style: Object.assign({}, eyebrow, { marginBottom: 8 }) }, 'Your team'),
       h('div', { style: { display: 'flex', gap: 12, alignItems: 'center', flexWrap: 'wrap' } },
-        h('h1', { style: { ...syne, fontSize: 28, fontWeight: 900, margin: 0 } }, org.name),
+        h('h1', { style: { fontFamily: AC.font, fontSize: 'clamp(26px,5vw,34px)', fontWeight: 800, color: AC.text, lineHeight: 1.3, margin: 0, overflowWrap: 'anywhere' } }, org.name),
         orgs.length > 1 ? h('select', { value: org.id, onChange: (e) => pick(e.target.value), style: Object.assign({}, inputStyle, { width: 'auto' }) }, orgs.map((o) => h('option', { key: o.id, value: o.id }, o.name))) : null));
     const body = (org.role === 'owner' || org.role === 'admin') ? h(Dashboard, { key: org.id, org, user, session, reload, setView }) : h(ParticipantPanel, { key: org.id, org, setView });
     return Shell([h(Msg, { key: 'n', m: notice }), header, body]);
@@ -5336,18 +5414,18 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
     const full = ov.seats.remaining <= 0;
     return h('div', { id: 'nf-team-link', style: card({ marginBottom: 20 }) },
       h('div', { style: label }, 'Your team link'),
-      state === 'loading' ? h('div', { style: { color: C.muted, fontSize: 14 } }, 'Loading...') :
-      state === 'error' ? h('div', { style: { color: '#F87171', fontSize: 14, lineHeight: 1.7 } }, 'Team links are not enabled on the database yet. Run migration_self_serve_teams.sql in the Supabase SQL editor, then reload.') :
+      state === 'loading' ? h('div', { style: { color: C.muted, fontSize: 16 } }, 'Loading...') :
+      state === 'error' ? h('div', { style: { color: AC.error, fontSize: 16, lineHeight: 1.7 } }, 'Team links are not enabled on the database yet. Run migration_self_serve_teams.sql in the Supabase SQL editor, then reload.') :
       h('div', null,
-        h('div', { style: { fontSize: 14, color: C.muted, lineHeight: 1.7, marginBottom: 14 } }, 'Send this one link to your team. Each person opens it, creates a free account, and goes straight into the assessment. Nothing else to set up.'),
-        h('div', { style: Object.assign({}, inputStyle, { wordBreak: 'break-all', marginBottom: 14, fontSize: 13 }) }, url),
-        full ? h('div', { style: { color: '#F87171', fontSize: 14, marginBottom: 12 } }, 'All ' + ov.seats.limit + ' seats are used. New people cannot join until you add seats (Plan and Seats tab).') : null,
+        h('div', { style: { fontSize: 16, color: C.muted, lineHeight: 1.7, marginBottom: 14 } }, 'Send this one link to your team. Each person opens it, creates a free account, and goes straight into the assessment. Nothing else to set up.'),
+        h('div', { style: Object.assign({}, inputStyle, { wordBreak: 'break-all', marginBottom: 14, fontSize: 15 }) }, url),
+        full ? h('div', { style: { color: AC.error, fontSize: 16, marginBottom: 12 } }, 'All ' + ov.seats.limit + ' seats are used. New people cannot join until you add seats (Plan and Seats tab).') : null,
         h('div', { style: { display: 'flex', gap: 10, flexWrap: 'wrap' } },
           h(Btn, { onClick: copy, style: { padding: '12px 22px' } }, 'COPY LINK'),
           h(LinkBtn, { href: wa, style: { padding: '12px 22px', background: 'transparent', color: C.cyan } }, 'SHARE ON WHATSAPP'),
-          h('button', { onClick: reset, style: { ...mono, fontSize: 10, background: 'none', border: 'none', color: C.muted, cursor: 'pointer', padding: '0 8px' } }, 'RESET LINK')),
+          h('button', { type: 'button', onClick: reset, style: { fontFamily: AC.font, fontSize: 16, fontWeight: 700, background: 'none', border: 'none', color: AC.muted, textDecoration: 'underline', cursor: 'pointer', minHeight: 48, padding: '0 12px' } }, 'Reset link')),
         h(Msg, { m: msg }),
-        h('div', { style: { fontSize: 12, color: C.muted, marginTop: 12 } }, ov.seats.used + ' of ' + ov.seats.limit + ' seats used.')));
+        h('div', { style: { fontSize: 14, color: C.muted, marginTop: 12 } }, ov.seats.used + ' of ' + ov.seats.limit + ' seats used.')));
   }
 
   // One guided path for everyone: add team (owner), assess, train, retake, results.
@@ -5369,11 +5447,13 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
     return h('div', { style: card({ marginBottom: 20 }) },
       h('div', { style: label }, 'Your path'),
       steps.map((x, i) => h('div', { key: x.k, style: { display: 'flex', gap: 14, alignItems: 'flex-start', padding: '14px 0', borderTop: i ? '1px solid ' + C.border : 'none', opacity: x.open ? 1 : 0.5 } },
-        h('div', { style: { ...mono, flex: '0 0 30px', height: 30, borderRadius: 15, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, background: x.done ? '#4CF7C0' : (i === current ? C.cyan : 'transparent'), color: (x.done || i === current) ? C.void : C.muted, border: '1px solid ' + (x.done ? '#4CF7C0' : (i === current ? C.cyan : C.border)) } }, x.done ? '\u2713' : String(i + 1)),
+        h('div', { 'aria-hidden': true, style: { fontFamily: AC.font, fontWeight: 700, flex: '0 0 36px', height: 36, borderRadius: 18, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16,
+          background: x.done ? AC.success : (i === current ? AC.goldDark : '#FFFFFF'), color: (x.done || i === current) ? '#FFFFFF' : AC.muted,
+          border: '2px solid ' + (x.done ? AC.success : (i === current ? AC.goldDark : AC.border)) } }, x.done ? '✓' : String(i + 1)),
         h('div', { style: { flex: 1, minWidth: 0 } },
-          h('div', { style: { ...syne, fontSize: 15, fontWeight: 800, marginBottom: 2 } }, x.title),
-          h('div', { style: { fontSize: 13, color: C.muted, lineHeight: 1.6 } }, x.text),
-          x.open && !(x.done && x.k !== 'train') ? h('div', { style: { marginTop: 10 } }, h(Btn, { onClick: x.act, variant: i === current ? undefined : 'ghost', style: { padding: '10px 18px', fontSize: 12 } }, x.cta)) : null))));
+          h('div', { style: { ...syne, fontSize: 17, fontWeight: 800, marginBottom: 2 } }, x.title),
+          h('div', { style: { fontSize: 15, color: C.muted, lineHeight: 1.6 } }, x.text),
+          x.open && !(x.done && x.k !== 'train') ? h('div', { style: { marginTop: 10 } }, h(Btn, { onClick: x.act, variant: i === current ? undefined : 'ghost', style: { padding: '10px 18px', fontSize: 14 } }, x.cta)) : null))));
   }
 
   // ====================================================================
@@ -5446,7 +5526,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
     const [open, setOpen] = useState(false);
     useEffect(() => { let live = true; setR(null); rpc('org_team_results', { p_org: org.id }).then((x) => { if (live) setR(x); }); return () => { live = false; }; }, [org.id]);
     const wrap = (kids) => h('div', { style: card({ marginBottom: 20 }) }, h('div', { style: label }, 'Your team\u2019s recommended practice'), kids);
-    if (!r) return wrap(h('div', { style: { color: C.muted, fontSize: 14 }, role: 'status' }, 'Loading...'));
+    if (!r) return wrap(h('div', { style: { color: C.muted, fontSize: 16 }, role: 'status' }, 'Loading...'));
     const rec = recommendPractice(r);
     const general = PRACTICES.integrated;
     let intro;
@@ -5456,17 +5536,17 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
     else intro = 'Your team\u2019s current development priority is ' + (rec.kind === 'integrated' ? 'Integrated Thinking' : MODE_NAME[rec.kind] + ' Thinking') + '. ' + rec.reason;
     const p = rec.practice || general;
     return wrap(h('div', null,
-      h('div', { style: { fontSize: 14, color: C.muted, lineHeight: 1.7, marginBottom: 12 } }, intro),
-      h('div', { style: { ...syne, fontSize: 18, fontWeight: 800, marginBottom: 4 } }, p.title),
-      h('div', { style: { fontSize: 13, color: C.muted, marginBottom: 14 } }, 'Time required: ' + p.minutes + ' minutes'),
-      compact && !open ? h(Btn, { onClick: () => go('practice'), style: { padding: '10px 18px', fontSize: 12 } }, 'START PRACTICE') : null,
-      !compact && !open ? h(Btn, { onClick: () => { setOpen(true); track('practice_started', { organisation_id: org.id, kind: rec.kind || 'general' }); }, style: { padding: '10px 18px', fontSize: 12 } }, 'START PRACTICE') : null,
+      h('div', { style: { fontSize: 16, color: C.muted, lineHeight: 1.7, marginBottom: 12 } }, intro),
+      h('div', { style: { ...syne, fontSize: 20, fontWeight: 800, marginBottom: 4 } }, p.title),
+      h('div', { style: { fontSize: 15, color: C.muted, marginBottom: 14 } }, 'Time required: ' + p.minutes + ' minutes'),
+      compact && !open ? h(Btn, { onClick: () => go('practice'), style: { padding: '10px 18px', fontSize: 14 } }, 'START PRACTICE') : null,
+      !compact && !open ? h(Btn, { onClick: () => { setOpen(true); track('practice_started', { organisation_id: org.id, kind: rec.kind || 'general' }); }, style: { padding: '10px 18px', fontSize: 14 } }, 'START PRACTICE') : null,
       open ? h('div', null,
-        h('ol', { style: { paddingLeft: 20, margin: '0 0 14px', fontSize: 14, lineHeight: 1.8 } }, p.steps.map((s, i) => h('li', { key: i }, s))),
+        h('ol', { style: { paddingLeft: 20, margin: '0 0 14px', fontSize: 16, lineHeight: 1.8 } }, p.steps.map((s, i) => h('li', { key: i }, s))),
         h('div', { style: { display: 'flex', gap: 10, flexWrap: 'wrap' } },
-          h(Btn, { variant: 'ghost', onClick: () => go('programme'), style: { padding: '10px 18px', fontSize: 12 } }, 'OPEN RELATED LESSON'),
-          p.decision ? h(Btn, { onClick: () => startTeamDecision(org, setView), style: { padding: '10px 18px', fontSize: 12 } }, 'START A TEAM DECISION') : null),
-        h('div', { style: { fontSize: 12, color: C.muted, marginTop: 10 } }, 'Related lesson: ' + p.lesson + '. Practice completion is not tracked; lesson progress is tracked in Training.')) : null));
+          h(Btn, { variant: 'ghost', onClick: () => go('programme'), style: { padding: '10px 18px', fontSize: 14 } }, 'OPEN RELATED LESSON'),
+          p.decision ? h(Btn, { onClick: () => startTeamDecision(org, setView), style: { padding: '10px 18px', fontSize: 14 } }, 'START A TEAM DECISION') : null),
+        h('div', { style: { fontSize: 14, color: C.muted, marginTop: 10 } }, 'Related lesson: ' + p.lesson + '. Practice completion is not tracked; lesson progress is tracked in Training.')) : null));
   }
 
   function ChallengeCard({ org, role, go, compact }) {
@@ -5477,25 +5557,25 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
     const load = () => rpc('org_current_challenge', { p_org: org.id }).then(setD);
     useEffect(() => { let live = true; setD(null); rpc('org_current_challenge', { p_org: org.id }).then((x) => { if (live) setD(x); }); return () => { live = false; }; }, [org.id]);
     const wrap = (kids) => h('div', { id: 'nf-challenge', style: card({ marginBottom: 20 }) }, h('div', { style: label }, 'This week\u2019s thinking challenge'), kids);
-    if (!d) return wrap(h('div', { style: { color: C.muted, fontSize: 14 }, role: 'status' }, 'Loading...'));
+    if (!d) return wrap(h('div', { style: { color: C.muted, fontSize: 16 }, role: 'status' }, 'Loading...'));
     if (!d.ok) return wrap(h('div', { role: 'alert' },
-      h('div', { style: { fontSize: 14, color: C.muted, lineHeight: 1.7, marginBottom: 12 } }, lead && d.error === 'request_failed' ? 'The weekly challenge is not enabled on the database yet. Run migration_team_practice_loop.sql in the Supabase SQL editor, then reload.' : 'The weekly challenge is not available right now.'),
-      h(Btn, { variant: 'ghost', onClick: () => { setD(null); load(); }, style: { padding: '10px 18px', fontSize: 12 } }, 'TRY AGAIN')));
+      h('div', { style: { fontSize: 16, color: C.muted, lineHeight: 1.7, marginBottom: 12 } }, lead && d.error === 'request_failed' ? 'The weekly challenge is not enabled on the database yet. Run migration_team_practice_loop.sql in the Supabase SQL editor, then reload.' : 'The weekly challenge is not available right now.'),
+      h(Btn, { variant: 'ghost', onClick: () => { setD(null); load(); }, style: { padding: '10px 18px', fontSize: 14 } }, 'TRY AGAIN')));
     const c = d.challenge;
-    if (!c) return wrap(h('div', { style: { fontSize: 14, color: C.muted, lineHeight: 1.7 } }, 'There is no challenge this week. A new one appears here as soon as it is published.'));
+    if (!c) return wrap(h('div', { style: { fontSize: 16, color: C.muted, lineHeight: 1.7 } }, 'There is no challenge this week. A new one appears here as soon as it is published.'));
     const mine = d.my_response;
-    const title = h('div', { style: { ...syne, fontSize: 18, fontWeight: 800, marginBottom: 8 } }, c.title);
+    const title = h('div', { style: { ...syne, fontSize: 20, fontWeight: 800, marginBottom: 8 } }, c.title);
     if (compact) return wrap(h('div', null, title,
-      h('div', { style: { fontSize: 14, color: mine ? '#4CF7C0' : C.muted, marginBottom: 14 } }, mine ? 'You submitted on ' + fmtDate(mine.submitted_at) + '.' : 'About ' + c.time_minutes + ' minutes. You have not submitted yet.'),
-      h(Btn, { onClick: () => go('practice'), variant: mine ? 'ghost' : undefined, style: { padding: '10px 18px', fontSize: 12 } }, mine ? 'VIEW YOUR RESPONSE' : 'OPEN CHALLENGE')));
-    const scenario = h('div', null, title, h('div', { style: { fontSize: 15, lineHeight: 1.8, marginBottom: 6 } }, c.scenario), h('div', { style: { fontSize: 12, color: C.muted, marginBottom: 18 } }, 'About ' + c.time_minutes + ' minutes. Open until ' + fmtDate(c.ends_on) + '.'));
+      h('div', { style: { fontSize: 16, color: mine ? AC.success : C.muted, marginBottom: 14 } }, mine ? 'You submitted on ' + fmtDate(mine.submitted_at) + '.' : 'About ' + c.time_minutes + ' minutes. You have not submitted yet.'),
+      h(Btn, { onClick: () => go('practice'), variant: mine ? 'ghost' : undefined, style: { padding: '10px 18px', fontSize: 14 } }, mine ? 'VIEW YOUR RESPONSE' : 'OPEN CHALLENGE')));
+    const scenario = h('div', null, title, h('div', { style: { fontSize: 17, lineHeight: 1.8, marginBottom: 6 } }, c.scenario), h('div', { style: { fontSize: 14, color: C.muted, marginBottom: 18 } }, 'About ' + c.time_minutes + ' minutes. Open until ' + fmtDate(c.ends_on) + '.'));
     const opts = Array.isArray(c.options) ? c.options : [];
     if (mine) return wrap(h('div', null, scenario,
       h(Msg, { m: msg }),
-      h('div', { style: { fontSize: 14, color: '#4CF7C0', marginBottom: 12 } }, 'Submitted on ' + fmtDate(mine.submitted_at) + '. Only you can see your answers.'),
-      CHALLENGE_MODES.filter((m) => mine[m[1]]).map((m) => h('div', { key: m[0], style: { marginBottom: 12 } }, h('div', { style: label }, m[3]), h('div', { style: { fontSize: 14, lineHeight: 1.7 } }, mine[m[1]]))),
-      h('div', { style: label }, 'Your recommendation'), h('div', { style: { fontSize: 14, fontWeight: 700, marginBottom: 6 } }, opts[mine.chosen_option] != null ? String(opts[mine.chosen_option]) : ''),
-      h('div', { style: { fontSize: 14, lineHeight: 1.7 } }, mine.reasoning)));
+      h('div', { style: { fontSize: 16, color: AC.success, marginBottom: 12 } }, 'Submitted on ' + fmtDate(mine.submitted_at) + '. Only you can see your answers.'),
+      CHALLENGE_MODES.filter((m) => mine[m[1]]).map((m) => h('div', { key: m[0], style: { marginBottom: 12 } }, h('div', { style: label }, m[3]), h('div', { style: { fontSize: 16, lineHeight: 1.7 } }, mine[m[1]]))),
+      h('div', { style: label }, 'Your recommendation'), h('div', { style: { fontSize: 16, fontWeight: 700, marginBottom: 6 } }, opts[mine.chosen_option] != null ? String(opts[mine.chosen_option]) : ''),
+      h('div', { style: { fontSize: 16, lineHeight: 1.7 } }, mine.reasoning)));
     const set = (k, v) => setF((x) => Object.assign({}, x, { [k]: v }));
     const submit = async () => {
       if (f.option == null) { setMsg({ type: 'error', text: 'Choose the action you recommend.' }); return; }
@@ -5510,17 +5590,17 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
     return wrap(h('div', null, scenario,
       CHALLENGE_MODES.map((m) => h('div', { key: m[0], style: { marginBottom: 14 } },
         h('label', { htmlFor: 'nfc-' + m[0], style: label }, m[3] + ' (optional)'),
-        h('div', { style: { fontSize: 14, marginBottom: 6, lineHeight: 1.6 } }, c[m[2]]),
+        h('div', { style: { fontSize: 16, marginBottom: 6, lineHeight: 1.6 } }, c[m[2]]),
         h('textarea', { id: 'nfc-' + m[0], value: f[m[1]], maxLength: 2000, onChange: (e) => set(m[1], e.target.value), style: textareaStyle }))),
       h('div', { style: label }, 'Decision'),
-      h('div', { style: { fontSize: 14, marginBottom: 8, lineHeight: 1.6 } }, c.decision_prompt),
-      h('div', { role: 'radiogroup', style: { marginBottom: 12 } }, opts.map((o, i) => h('label', { key: i, style: { display: 'flex', gap: 10, alignItems: 'flex-start', padding: '10px 12px', marginBottom: 6, borderRadius: 2, cursor: 'pointer', fontSize: 14, lineHeight: 1.6, border: '1px solid ' + (f.option === i ? C.cyan : C.border) } },
-        h('input', { type: 'radio', name: 'nfc-option', checked: f.option === i, onChange: () => set('option', i), style: { marginTop: 4 } }), h('span', null, String(o))))),
+      h('div', { style: { fontSize: 16, marginBottom: 8, lineHeight: 1.6 } }, c.decision_prompt),
+      h('div', { role: 'radiogroup', style: { marginBottom: 12 } }, opts.map((o, i) => h('label', { key: i, style: { display: 'flex', gap: 10, alignItems: 'flex-start', padding: '10px 12px', marginBottom: 6, borderRadius: 12, cursor: 'pointer', fontSize: 16, lineHeight: 1.6, background: f.option === i ? AC.goldTint : '#FFFFFF', border: '2px solid ' + (f.option === i ? AC.goldDark : AC.border) } },
+        h('input', { type: 'radio', name: 'nfc-option', checked: f.option === i, onChange: () => set('option', i), style: { marginTop: 3, width: 20, height: 20, accentColor: AC.goldDark, flex: '0 0 auto' } }), h('span', null, String(o))))),
       h('label', { htmlFor: 'nfc-reasoning', style: label }, 'Your reasoning'),
       h('textarea', { id: 'nfc-reasoning', value: f.reasoning, maxLength: 2000, onChange: (e) => set('reasoning', e.target.value), style: Object.assign({}, textareaStyle, { marginBottom: 12 }) }),
       h(Msg, { m: msg }),
       h(Btn, { onClick: submit, disabled: busy }, busy ? 'SAVING...' : 'SAVE MY RESPONSE'),
-      h('div', { style: { fontSize: 12, color: C.muted, marginTop: 10 } }, 'You can submit once. Your answers are private to you; your team owner sees participation and the overall split of recommendations only.')));
+      h('div', { style: { fontSize: 14, color: C.muted, marginTop: 10 } }, 'You can submit once. Your answers are private to you; your team owner sees participation and the overall split of recommendations only.')));
   }
 
   function ChallengeSummary({ org }) {
@@ -5528,19 +5608,19 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
     const [tick, setTick] = useState(0);
     useEffect(() => { let live = true; setS(null); rpc('org_challenge_summary', { p_org: org.id }).then((x) => { if (live) setS(x); }); return () => { live = false; }; }, [org.id, tick]);
     const shell = (kids) => h('div', { style: card({ marginBottom: 20 }) }, h('div', { style: label }, 'Team participation (owners and admins)'), kids);
-    if (!s) return shell(h('div', { style: { color: C.muted, fontSize: 14 }, role: 'status' }, 'Loading...'));
-    if (!s.ok) return shell(h('div', { role: 'alert' }, h('div', { style: { fontSize: 14, color: C.muted, marginBottom: 12 } }, 'Participation is not available right now.'), h(Btn, { variant: 'ghost', onClick: () => setTick((t) => t + 1), style: { padding: '10px 18px', fontSize: 12 } }, 'TRY AGAIN')));
+    if (!s) return shell(h('div', { style: { color: C.muted, fontSize: 16 }, role: 'status' }, 'Loading...'));
+    if (!s.ok) return shell(h('div', { role: 'alert' }, h('div', { style: { fontSize: 16, color: C.muted, marginBottom: 12 } }, 'Participation is not available right now.'), h(Btn, { variant: 'ghost', onClick: () => setTick((t) => t + 1), style: { padding: '10px 18px', fontSize: 14 } }, 'TRY AGAIN')));
     if (!s.challenge) return null;
     const dist = s.distribution || [];
     const used = dist.filter((x) => x.count > 0).length;
     return shell(h('div', null,
       h('div', { style: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(min(140px,100%),1fr))', gap: 14, marginBottom: 16 } },
         Stat('Eligible', s.eligible), Stat('Submitted', s.submitted), Stat('Participation', s.participation_pct + '%')),
-      !s.unlocked ? h('div', { style: { fontSize: 14, color: C.muted, lineHeight: 1.7 } }, 'The split of recommendations appears once ' + s.threshold + ' people have submitted, which protects individuals. ' + s.submitted + ' so far.') :
+      !s.unlocked ? h('div', { style: { fontSize: 16, color: C.muted, lineHeight: 1.7 } }, 'The split of recommendations appears once ' + s.threshold + ' people have submitted, which protects individuals. ' + s.submitted + ' so far.') :
       h('div', null, h('div', { style: label }, 'What the team recommended'),
-        dist.map((x) => h('div', { key: x.option, style: { display: 'flex', justifyContent: 'space-between', gap: 12, padding: '10px 0', borderBottom: '1px solid ' + C.border, fontSize: 14 } }, h('span', null, x.label), h('span', { style: mono }, String(x.count)))),
-        h('div', { style: { fontSize: 14, lineHeight: 1.7, marginTop: 12 } }, used > 1 ? 'The team is split across ' + used + ' options. Use the discussion to find out why people chose differently.' : 'Everyone who submitted chose the same option. Ask what could make that choice wrong.')),
-      h('div', { style: { fontSize: 12, color: C.muted, marginTop: 12, lineHeight: 1.7 } }, 'Individual answers and written reasoning are never shown to you. Written answers are not analysed automatically: ask people to share their reasoning when you discuss the challenge as a team.')));
+        dist.map((x) => h('div', { key: x.option, style: { display: 'flex', justifyContent: 'space-between', gap: 12, padding: '10px 0', borderBottom: '1px solid ' + C.border, fontSize: 16 } }, h('span', null, x.label), h('span', { style: mono }, String(x.count)))),
+        h('div', { style: { fontSize: 16, lineHeight: 1.7, marginTop: 12 } }, used > 1 ? 'The team is split across ' + used + ' options. Use the discussion to find out why people chose differently.' : 'Everyone who submitted chose the same option. Ask what could make that choice wrong.')),
+      h('div', { style: { fontSize: 14, color: C.muted, marginTop: 12, lineHeight: 1.7 } }, 'Individual answers and written reasoning are never shown to you. Written answers are not analysed automatically: ask people to share their reasoning when you discuss the challenge as a team.')));
   }
 
   function DecisionEntry({ org, setView, compact }) {
@@ -5549,21 +5629,21 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
     const list = d && d.ok ? (d.decisions || []) : [];
     return h('div', { style: card({ marginBottom: 20 }) },
       h('div', { style: label }, 'Decision room'),
-      h('div', { style: { ...syne, fontSize: 18, fontWeight: 800, marginBottom: 6 } }, 'Have a real decision to make?'),
-      h('div', { style: { fontSize: 14, color: C.muted, lineHeight: 1.7, marginBottom: 14 } }, 'Work through the decision with your team using NeuralFusion\u2019s structured thinking process: facts, signals, alternatives, reflection, then a decision.'),
+      h('div', { style: { ...syne, fontSize: 20, fontWeight: 800, marginBottom: 6 } }, 'Have a real decision to make?'),
+      h('div', { style: { fontSize: 16, color: C.muted, lineHeight: 1.7, marginBottom: 14 } }, 'Work through the decision with your team using NeuralFusion\u2019s structured thinking process: facts, signals, alternatives, reflection, then a decision.'),
       h(Btn, { onClick: () => startTeamDecision(org, setView) }, 'START A TEAM DECISION'),
       h('div', { style: { marginTop: 18 } },
         h('div', { style: label }, compact ? 'Most recent team decision' : 'Recent team decisions'),
-        !d ? h('div', { style: { color: C.muted, fontSize: 14 }, role: 'status' }, 'Loading...') :
-        !d.ok ? h('div', { style: { color: C.muted, fontSize: 13, lineHeight: 1.7 }, role: 'alert' }, 'Team decisions are not available right now.') :
-        list.length === 0 ? h('div', { style: { color: C.muted, fontSize: 14, lineHeight: 1.7 } }, 'No team decisions saved yet. When you save one to the team it appears here.') :
+        !d ? h('div', { style: { color: C.muted, fontSize: 16 }, role: 'status' }, 'Loading...') :
+        !d.ok ? h('div', { style: { color: C.muted, fontSize: 15, lineHeight: 1.7 }, role: 'alert' }, 'Team decisions are not available right now.') :
+        list.length === 0 ? h('div', { style: { color: C.muted, fontSize: 16, lineHeight: 1.7 } }, 'No team decisions saved yet. When you save one to the team it appears here.') :
         list.map((x) => h('div', { key: x.id, style: { padding: '10px 0', borderTop: '1px solid ' + C.border } },
-          h('button', { onClick: () => setOpen(open === x.id ? null : x.id), 'aria-expanded': open === x.id, style: { all: 'unset', cursor: 'pointer', display: 'block', width: '100%', fontSize: 14, fontWeight: 700, lineHeight: 1.5, color: C.text } }, x.title || x.decision || 'Decision'),
-          h('div', { style: { ...mono, fontSize: 11, color: C.muted, marginTop: 4 } }, String(x.status || 'open').toUpperCase() + ' \u00b7 ' + fmtDate(x.created_at) + (x.review_date ? ' \u00b7 review ' + fmtDate(x.review_date) : '')),
-          open === x.id ? h('div', { style: { fontSize: 14, lineHeight: 1.7, marginTop: 8 } },
+          h('button', { onClick: () => setOpen(open === x.id ? null : x.id), 'aria-expanded': open === x.id, style: { all: 'unset', cursor: 'pointer', display: 'block', width: '100%', fontSize: 16, fontWeight: 700, lineHeight: 1.5, color: C.text } }, x.title || x.decision || 'Decision'),
+          h('div', { style: { fontFamily: AC.font, fontSize: 15, color: C.muted, marginTop: 4 } }, cap(x.status || 'open') + ' \u00b7 ' + fmtDate(x.created_at) + (x.review_date ? ' \u00b7 review ' + fmtDate(x.review_date) : '')),
+          open === x.id ? h('div', { style: { fontSize: 16, lineHeight: 1.7, marginTop: 8 } },
             x.next_action ? h('div', null, h('strong', null, 'Agreed action: '), x.next_action) : null,
             x.responsible ? h('div', null, h('strong', null, 'Responsible: '), x.responsible) : null,
-            x.mine ? h('div', { style: { marginTop: 8 } }, h(Btn, { variant: 'ghost', onClick: () => setView('decisions'), style: { padding: '8px 14px', fontSize: 11 } }, 'OPEN IN MY DECISIONS')) : null) : null))));
+            x.mine ? h('div', { style: { marginTop: 8 } }, h(Btn, { variant: 'ghost', onClick: () => setView('decisions'), style: { padding: '8px 14px', fontSize: 14 } }, 'OPEN IN MY DECISIONS')) : null) : null))));
   }
 
   function PracticeTab({ org, role, setView, go }) {
@@ -5581,7 +5661,8 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
       h(DecisionEntry, { org, setView, compact: true }));
   }
   function TabBar({ tabs, tab, setTab }) {
-    return h('div', { role: 'tablist', style: { display: 'flex', gap: 8, marginBottom: 24, flexWrap: 'wrap' } }, tabs.map(([k, l]) => h('button', { key: k, role: 'tab', 'aria-selected': tab === k, onClick: () => setTab(k), style: { ...mono, fontSize: 11, letterSpacing: 1, padding: '10px 16px', cursor: 'pointer', borderRadius: 2, background: tab === k ? C.cyan : 'transparent', color: tab === k ? C.void : C.muted, border: '1px solid ' + (tab === k ? C.cyan : C.border) } }, l.toUpperCase())));
+    return h('div', { role: 'tablist', 'aria-label': 'Team sections', style: { display: 'flex', gap: 8, marginBottom: 28, flexWrap: 'wrap' } }, tabs.map(([k, l]) => h('button', { key: k, type: 'button', role: 'tab', 'aria-selected': tab === k, className: 'nf-tab', onClick: () => setTab(k),
+      style: { fontFamily: AC.font, fontSize: 16, fontWeight: 700, minHeight: 48, padding: '0 20px', cursor: 'pointer', borderRadius: 999, background: tab === k ? AC.goldTint : '#FFFFFF', color: tab === k ? AC.goldDark : AC.text, border: '1px solid ' + (tab === k ? AC.goldDark : AC.border) } }, l)));
   }
 
   function TeamHome({ org, ov, setView, go, role }) {
@@ -5617,18 +5698,18 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
     useEffect(() => { rpc('org_team_results', { p_org: org.id }).then((x) => { setR(x); if (x && x.unlocked) track('team_report_unlocked', { organisation_id: org.id }); }); }, [org.id]);
     if (!r) return h('div', { style: { color: C.muted } }, 'Loading...');
     if (!r.ok) return h(Msg, { m: { type: 'error', text: errText(r) } });
-    if (!r.unlocked) return h('div', { style: card() }, h('div', { style: { ...syne, fontSize: 18, fontWeight: 800, marginBottom: 10 } }, 'Team results are not available yet'),
-      h('div', { style: { color: C.muted, lineHeight: 1.7, fontSize: 14 } }, 'To protect individual privacy, aggregate insight appears once ' + r.threshold + ' people have completed the CFI. ' + r.completed + ' of ' + r.members + ' members have completed it so far.'));
+    if (!r.unlocked) return h('div', { style: card() }, h('div', { style: { ...syne, fontSize: 20, fontWeight: 800, marginBottom: 10 } }, 'Team results are not available yet'),
+      h('div', { style: { color: C.muted, lineHeight: 1.7, fontSize: 16 } }, 'To protect individual privacy, aggregate insight appears once ' + r.threshold + ' people have completed the CFI. ' + r.completed + ' of ' + r.members + ' members have completed it so far.'));
     const dims = r.avg_dimensions || {};
     return h('div', null,
       h('div', { style: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(200px,1fr))', gap: 14, marginBottom: 20 } },
         Stat('Team average CFI', r.avg_total, 'Scale 13 to 65. Higher means more scattered thinking.'), Stat('Completed', r.completed + ' of ' + r.members), Stat('Instrument', r.assessment_version)),
       h('div', { style: card({ marginBottom: 20 }) }, h('div', { style: label }, 'Average fragmentation by way of thinking'),
-        Object.keys(DIM_LABELS).map((k) => h('div', { key: k, style: { display: 'flex', justifyContent: 'space-between', padding: '10px 0', borderBottom: '1px solid ' + C.border, fontSize: 14 } }, h('span', null, DIM_LABELS[k]), h('span', { style: { ...mono, color: C.cyanBright } }, dims[k] == null ? 'n/a' : dims[k]))),
-        h('div', { style: { fontSize: 12, color: C.muted, marginTop: 12, lineHeight: 1.6 } }, 'Values are average stored dimension scores from CFI-1.0. Higher means more scattered thinking in that area. These describe thinking patterns reported on the CFI, not personality, health or clinical status.')),
+        Object.keys(DIM_LABELS).map((k) => h('div', { key: k, style: { display: 'flex', justifyContent: 'space-between', padding: '10px 0', borderBottom: '1px solid ' + C.border, fontSize: 16 } }, h('span', null, DIM_LABELS[k]), h('span', { style: { ...mono, color: C.cyanBright } }, dims[k] == null ? 'n/a' : dims[k]))),
+        h('div', { style: { fontSize: 14, color: C.muted, marginTop: 12, lineHeight: 1.6 } }, 'Values are average stored dimension scores from CFI-1.0. Higher means more scattered thinking in that area. These describe thinking patterns reported on the CFI, not personality, health or clinical status.')),
       h('div', { style: card() }, h('div', { style: label }, 'Band distribution'),
-        Object.keys(r.bands || {}).length === 0 ? 'No data' : Object.keys(r.bands).map((b) => h('div', { key: b, style: { display: 'flex', justifyContent: 'space-between', padding: '8px 0', fontSize: 14 } }, h('span', null, plainBand(b)), h('span', { style: mono }, String(r.bands[b])))),
-        h('div', { style: { fontSize: 12, color: C.muted, marginTop: 8 } }, 'Counts below 2 are hidden to protect individuals.')),
+        Object.keys(r.bands || {}).length === 0 ? 'No data' : Object.keys(r.bands).map((b) => h('div', { key: b, style: { display: 'flex', justifyContent: 'space-between', padding: '8px 0', fontSize: 16 } }, h('span', null, plainBand(b)), h('span', { style: mono }, String(r.bands[b])))),
+        h('div', { style: { fontSize: 14, color: C.muted, marginTop: 8 } }, 'Counts below 2 are hidden to protect individuals.')),
       h(TeamDevelopment, { org }));
   }
 
@@ -5639,11 +5720,11 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
   const teamNum = (v) => (v === null || v === undefined || isNaN(Number(v))) ? '\u2013' : String(Math.round(Number(v) * 10) / 10);
   function TeamDevelopmentView({ r, onRetry }) {
     const shell = (kids) => h('div', { style: card({ marginTop: 20 }) }, h('div', { style: label }, 'Team development over time'), kids);
-    if (!r) return shell(h('div', { style: { color: C.muted, fontSize: 14 }, role: 'status' }, 'Loading...'));
+    if (!r) return shell(h('div', { style: { color: C.muted, fontSize: 16 }, role: 'status' }, 'Loading...'));
     if (!r.ok) return shell(h('div', { role: 'alert' },
-      h('div', { style: { fontSize: 14, color: C.muted, lineHeight: 1.7, marginBottom: 12 } }, "The before-and-after comparison isn't available right now."),
+      h('div', { style: { fontSize: 16, color: C.muted, lineHeight: 1.7, marginBottom: 12 } }, "The before-and-after comparison isn't available right now."),
       h(Btn, { variant: 'ghost', onClick: onRetry }, 'TRY AGAIN')));
-    if (!r.unlocked) return shell(h('div', { style: { fontSize: 14, color: C.muted, lineHeight: 1.7 } },
+    if (!r.unlocked) return shell(h('div', { style: { fontSize: 16, color: C.muted, lineHeight: 1.7 } },
       'To protect individual privacy, the comparison appears once ' + r.threshold + ' people have shared a retest. ' + (r.members_with_retest || 0) + ' so far. Members choose whether to share when they retake the CFI.'));
     const ch = Number(r.change);
     const meaning = ch > 0 ? 'Team change +' + teamNum(ch) + ': the team average is ' + teamNum(ch) + ' points lower than at the starting assessment, which indicates less fragmentation.'
@@ -5653,10 +5734,10 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
     return shell([
       h('div', { key: 's', style: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(min(180px,100%),1fr))', gap: 14, marginBottom: 16 } },
         Stat('Starting average CFI', teamNum(r.avg_baseline_total), 'Scale 13 to 65'), Stat('Retest average CFI', teamNum(r.avg_latest_total), 'Scale 13 to 65'), Stat('People included', r.members_with_retest, 'Retook the CFI')),
-      h('div', { key: 'm', style: { fontSize: 14, color: C.text, lineHeight: 1.8, marginBottom: 16 } }, meaning),
-      h('div', { key: 'd', style: { marginBottom: 12 } }, Object.keys(DIM_LABELS).map((k) => h('div', { key: k, style: { display: 'flex', justifyContent: 'space-between', gap: 12, padding: '10px 0', borderBottom: '1px solid ' + C.border, fontSize: 14 } },
+      h('div', { key: 'm', style: { fontSize: 16, color: C.text, lineHeight: 1.8, marginBottom: 16 } }, meaning),
+      h('div', { key: 'd', style: { marginBottom: 12 } }, Object.keys(DIM_LABELS).map((k) => h('div', { key: k, style: { display: 'flex', justifyContent: 'space-between', gap: 12, padding: '10px 0', borderBottom: '1px solid ' + C.border, fontSize: 16 } },
         h('span', null, DIM_LABELS[k]), h('span', { style: mono }, teamNum(b[k]) + ' \u2192 ' + teamNum(l[k]))))),
-      h('div', { key: 'c', style: { fontSize: 13, color: C.muted, lineHeight: 1.7 } }, 'Only people who chose to share a retest are included, so this can differ from the whole team. It uses each person\u2019s first shared retest and updates only when a whole group of ' + (r.batch_size || r.threshold || 5) + ' more people has shared, which protects individuals. These are self-reported answers at two points in time: they show what changed, not what caused it. Mode scores are out of 100, and lower means better coordinated.'),
+      h('div', { key: 'c', style: { fontSize: 15, color: C.muted, lineHeight: 1.7 } }, 'Only people who chose to share a retest are included, so this can differ from the whole team. It uses each person\u2019s first shared retest and updates only when a whole group of ' + (r.batch_size || r.threshold || 5) + ' more people has shared, which protects individuals. These are self-reported answers at two points in time: they show what changed, not what caused it. Mode scores are out of 100, and lower means better coordinated.'),
     ]);
   }
   function TeamDevelopment({ org }) {
@@ -5670,28 +5751,28 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
     const [data, setData] = useState(null); const [msg, setMsg] = useState(null);
     const load = async () => setData(await rpc('list_org_members', { p_org: org.id }));
     useEffect(() => { load(); }, [org.id]);
-    const act = async (fn, args) => { const r = await rpc(fn, args); setMsg(r.ok ? { type: 'ok', text: 'Updated.' } : { type: 'error', text: errText(r) }); load(); refresh(); };
+    const act = async (fn, args) => { const r = await rpc(fn, args); setMsg(r && r.ok ? { type: 'ok', text: 'Updated.' } : { type: 'error', text: errText(r) }); load(); refresh(); };
     return h('div', null, h(Msg, { m: msg }),
       h('div', { style: card() }, h('div', { style: label }, 'People'),
-        !data || !data.members ? 'Loading...' : data.members.map((m) => h('div', { key: m.user_id, style: { display: 'flex', justifyContent: 'space-between', gap: 8, padding: '10px 0', borderBottom: '1px solid ' + C.border, flexWrap: 'wrap', alignItems: 'center', fontSize: 14 } },
-          h('div', null, m.email),
+        !data || !data.members ? 'Loading...' : data.members.map((m) => h('div', { key: m.user_id, style: { display: 'flex', justifyContent: 'space-between', gap: 8, padding: '10px 0', borderBottom: '1px solid ' + C.border, flexWrap: 'wrap', alignItems: 'center', fontSize: 16 } },
+          h('div', { style: { overflowWrap: 'anywhere', minWidth: 0 } }, m.email || 'Unknown email'),
           h('div', { style: { display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' } },
-            h('span', { style: { ...mono, fontSize: 11, color: m.completed ? '#4CF7C0' : C.muted } }, m.completed ? 'COMPLETED' : 'NOT YET COMPLETED'),
-            m.role === 'owner' ? h('span', { style: { ...mono, fontSize: 11, color: C.cyan } }, 'OWNER') :
-            [role === 'owner' ? h('select', { key: 's', value: m.role, onChange: (e) => act('set_member_role', { p_org: org.id, p_user: m.user_id, p_role: e.target.value }), style: Object.assign({}, inputStyle, { width: 'auto', padding: '6px 10px' }) }, ['participant', 'admin'].map((x) => h('option', { key: x, value: x }, x))) : h('span', { key: 'r', style: { ...mono, fontSize: 11, color: C.muted } }, m.role.toUpperCase()),
-             (role === 'owner' || m.role === 'participant') ? h('button', { key: 'x', onClick: () => { if (window.confirm('Remove this member? Their seat is freed.')) act('remove_org_member', { p_org: org.id, p_user: m.user_id }); }, style: { ...mono, fontSize: 10, background: 'none', border: '1px solid rgba(248,113,113,0.3)', color: '#F87171', padding: '6px 10px', cursor: 'pointer' } }, 'REMOVE') : null]))),
-        h('div', { style: { fontSize: 12, color: C.muted, marginTop: 12 } }, 'You see completion status only. Individual scores are never shown to team owners. To add people, share your team link from the Home tab.')));
+            h('span', { style: pill(m.completed ? AC.success : AC.muted, m.completed ? AC.successTint : AC.surfaceAlt) }, m.completed ? 'Completed' : 'Not yet completed'),
+            m.role === 'owner' ? h('span', { style: pill(AC.goldDark, AC.goldTint) }, 'Owner') :
+            [role === 'owner' ? h('select', { key: 's', 'aria-label': 'Role for ' + (m.email || 'member'), value: m.role, onChange: (e) => act('set_member_role', { p_org: org.id, p_user: m.user_id, p_role: e.target.value }), style: Object.assign({}, inputStyle, { width: 'auto', padding: '6px 10px' }) }, ['participant', 'admin'].map((x) => h('option', { key: x, value: x }, cap(x)))) : h('span', { key: 'r', style: pill(AC.muted, AC.surfaceAlt) }, cap(m.role || 'participant')),
+             (role === 'owner' || m.role === 'participant') ? h('button', { key: 'x', onClick: () => { if (window.confirm('Remove this member? Their seat is freed.')) act('remove_org_member', { p_org: org.id, p_user: m.user_id }); }, style: { fontFamily: AC.font, fontSize: 15, fontWeight: 700, background: '#FFFFFF', border: '1px solid #FCA5A5', color: AC.error, padding: '0 16px', minHeight: 44, borderRadius: 12, cursor: 'pointer' } }, 'Remove') : null]))),
+        h('div', { style: { fontSize: 14, color: C.muted, marginTop: 12 } }, 'You see completion status only. Individual scores are never shown to team owners. To add people, share your team link from the Home tab.')));
   }
 
   function BillingTab({ org, ov }) {
-    const row = (l, v) => h('div', { key: l, style: { display: 'flex', justifyContent: 'space-between', padding: '10px 0', borderBottom: '1px solid ' + C.border, fontSize: 14 } }, h('span', { style: { color: C.muted } }, l), h('span', null, v));
+    const row = (l, v) => h('div', { key: l, style: { display: 'flex', justifyContent: 'space-between', padding: '10px 0', borderBottom: '1px solid ' + C.border, fontSize: 16 } }, h('span', { style: { color: C.muted } }, l), h('span', null, v));
     const seatMail = 'mailto:' + FOUNDER_EMAIL + '?subject=' + encodeURIComponent('Seat request: ' + org.name) + '&body=' + encodeURIComponent('Organisation: ' + org.name + '\nSeats needed:\n');
     return h('div', null,
       h('div', { style: card({ marginBottom: 20 }) }, h('div', { style: label }, 'Your plan'),
         row('Organisation', org.name), row('Plan', (ov.plan && ov.plan.name) || 'Team'), row('Seats', ov.seats.limit), row('Used seats', ov.seats.used), row('Remaining seats', ov.seats.remaining),
         row('Created', ov.purchase_date ? new Date(ov.purchase_date).toLocaleDateString() : 'n/a')),
       h(TeamPackages, { teamName: org.name }),
-      h('div', { style: { fontSize: 13, color: C.muted, lineHeight: 1.7 } }, 'Already paid or need a different number of seats? ', h('a', { href: seatMail, style: { color: C.cyan } }, 'Email us'), ' with your team name and we will update your seat limit.'));
+      h('div', { style: { fontSize: 15, color: C.muted, lineHeight: 1.7 } }, 'Already paid or need a different number of seats? ', h('a', { href: seatMail, style: { color: C.cyan } }, 'Email us'), ' with your team name and we will update your seat limit.'));
   }
 
   function ProgrammePanel({ org, role, setView, onStart }) {
@@ -5702,11 +5783,11 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
     const loadSum = () => rpc('org_programme_summary', { p_org: org.id }).then(setSum);
     useEffect(() => { rpc('org_programme_state', { p_org: org.id }).then(setSt); if (lead) loadSum(); }, [org.id]);
     const ENT = window.NF_TRAINING;
-    const wrap = (kids) => h('div', { style: { marginTop: 8 } }, h('div', { style: { ...mono, fontSize: 11, letterSpacing: 2, color: C.cyan, marginBottom: 12 } }, 'TRAINING PROGRAMME'), kids);
+    const wrap = (kids) => h('div', { style: { marginTop: 8 } }, h('div', { style: Object.assign({}, eyebrow, { marginBottom: 12 }) }, 'TRAINING PROGRAMME'), kids);
     if (!ENT) return null;
     if (!st) return wrap(h('div', { style: { color: C.muted } }, 'Loading...'));
     if (!st.ok) return wrap(h(Msg, { m: { type: 'error', text: st.error === 'request_failed' ? 'Training is not enabled on the database yet. Run migration_unified_programme.sql.' : errText(st) } }));
-    if (!st.unlocked) return wrap(h('div', { style: card({ maxWidth: 640 }) }, h('div', { style: { fontSize: 15, lineHeight: 1.8, marginBottom: 16 } }, 'The five-lesson training programme opens as soon as you complete the team assessment.'), onStart ? h(Btn, { onClick: onStart }, 'START ASSESSMENT') : null));
+    if (!st.unlocked) return wrap(h('div', { style: card({ maxWidth: 640 }) }, h('div', { style: { fontSize: 17, lineHeight: 1.8, marginBottom: 16 } }, 'The five-lesson training programme opens as soon as you complete the team assessment.'), onStart ? h(Btn, { onClick: onStart }, 'START ASSESSMENT') : null));
     const done = st.completed_lessons || [];
     const mark = async (n) => {
       setMsg(null);
@@ -5716,15 +5797,15 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
     };
     const sumBox = lead && sum ? h('div', { style: card({ marginBottom: 20 }) }, h('div', { style: label }, 'Team training progress'),
       sum.ok && sum.unlocked
-        ? h('div', { style: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(110px,1fr))', gap: 12 } }, (sum.lessons || []).map((l) => h('div', { key: l.num, style: { fontSize: 12, color: C.muted } }, h('div', { style: { ...syne, fontSize: 22, fontWeight: 800, color: C.cyanBright } }, l.completed == null ? 'under ' + sum.threshold : l.completed), 'Lesson ' + l.num + ' completed')))
-        : h('div', { style: { fontSize: 13, color: C.muted, lineHeight: 1.7 } }, sum.ok ? (sum.started || 0) + ' people have started. Progress counts appear once ' + sum.threshold + ' have started, which protects individuals.' : 'Team progress is not available yet.')) : null;
+        ? h('div', { style: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(110px,1fr))', gap: 12 } }, (sum.lessons || []).map((l) => h('div', { key: l.num, style: { fontSize: 14, color: C.muted } }, h('div', { style: { ...syne, fontSize: 24, fontWeight: 800, color: C.cyanBright } }, l.completed == null ? 'under ' + sum.threshold : l.completed), 'Lesson ' + l.num + ' completed')))
+        : h('div', { style: { fontSize: 15, color: C.muted, lineHeight: 1.7 } }, sum.ok ? (sum.started || 0) + ' people have started. Progress counts appear once ' + sum.threshold + ' have started, which protects individuals.' : 'Team progress is not available yet.')) : null;
     const retake = setView && done.length >= 5 ? h('div', { style: card({ marginTop: 20 }) }, h('div', { style: label }, 'Measure again'),
-      h('div', { style: { fontSize: 14, lineHeight: 1.8, marginBottom: 14 } }, 'You have finished the programme. Take the test again to see your own change. After your result you can choose to share it, and your organisation only ever sees team averages.'),
+      h('div', { style: { fontSize: 16, lineHeight: 1.8, marginBottom: 14 } }, 'You have finished the programme. Take the test again to see your own change. After your result you can choose to share it, and your organisation only ever sees team averages.'),
       h(Btn, { onClick: () => setView('cfi') }, 'RETAKE THE CFI')) : null;
     return wrap(h('div', null,
-      h('div', { style: { fontSize: 13, color: C.muted, marginBottom: 14 } }, done.length + ' of 5 lessons completed' + (lead ? '. You can run these sessions with your team.' : '.')),
+      h('div', { style: { fontSize: 15, color: C.muted, marginBottom: 14 } }, done.length + ' of 5 lessons completed' + (lead ? '. You can run these sessions with your team.' : '.')),
       sumBox, h(Msg, { m: msg }),
-      h('div', { className: 'nf-team', style: { minHeight: 0, borderRadius: 4, overflow: 'hidden' } }, h(ENT.TeamProgrammeView, { session: { org: org.id }, done, onDone: mark })),
+      h('div', { className: 'nf-team', style: { minHeight: 0, borderRadius: 16, overflow: 'hidden' } }, h(ENT.TeamProgrammeView, { session: { org: org.id }, done, onDone: mark })),
       retake));
   }
 
@@ -5739,7 +5820,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
       tab === 'home' ? h('div', null, h(OrgJourney, { org, ov, role: org.role, setView, go: setTab }), h(HomeCards, { org, role: org.role, go: setTab, setView })) : null,
       tab === 'practice' ? h(PracticeTab, { org, role: org.role, setView, go: setTab }) : null,
       tab === 'programme' ? h('div', { id: 'nf-train' }, h(ProgrammePanel, { org, role: org.role, setView, onStart: () => startAssessment(org, setView) })) : null,
-      h('div', { style: { fontSize: 12, color: C.muted, marginTop: 16, lineHeight: 1.7 } }, org.name + ' sees aggregate team results and whether you have completed each step. Your individual answers and score are not shown to your organisation.'));
+      h('div', { style: { fontSize: 14, color: C.muted, marginTop: 16, lineHeight: 1.7 } }, org.name + ' sees aggregate team results and whether you have completed each step. Your individual answers and score are not shown to your organisation.'));
   }
 
   // ====================================================================
@@ -5773,10 +5854,10 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
     if (!pv.ok) return Shell(h('div', { style: card({ maxWidth: 600, margin: '0 auto' }) }, h(Msg, { m: { type: 'error', text: errText(pv) } }), h(Btn, { variant: 'ghost', onClick: () => setView('home') }, 'GO HOME')));
     const orgName = pv.org_name;
     return Shell(h('div', { style: card({ maxWidth: 600, margin: '0 auto' }) },
-      h('div', { style: { ...mono, fontSize: 11, letterSpacing: 2, color: C.cyan, marginBottom: 12 } }, 'JOIN YOUR TEAM'),
-      h('div', { style: { ...syne, fontSize: 24, fontWeight: 800, marginBottom: 12 } }, orgName),
-      h('div', { style: { fontSize: 15, lineHeight: 1.8, marginBottom: 16 } }, 'Take a 4 minute thinking assessment, then follow a short training programme with your team.'),
-      h('div', { style: { fontSize: 13, color: C.muted, marginBottom: 20, lineHeight: 1.7 } }, orgName + ' sees aggregate team results and whether you completed each step. It does not see your individual answers or score.'),
+      h('div', { style: Object.assign({}, eyebrow, { marginBottom: 12 }) }, 'JOIN YOUR TEAM'),
+      h('div', { style: { ...syne, fontSize: 26, fontWeight: 800, marginBottom: 12 } }, orgName),
+      h('div', { style: { fontSize: 17, lineHeight: 1.8, marginBottom: 16 } }, 'Take a 4 minute thinking assessment, then follow a short training programme with your team.'),
+      h('div', { style: { fontSize: 15, color: C.muted, marginBottom: 20, lineHeight: 1.7 } }, orgName + ' sees aggregate team results and whether you completed each step. It does not see your individual answers or score.'),
       h(Msg, { m: msg }),
       user ? h(Btn, { onClick: joinTeam, disabled: busy }, busy ? 'JOINING...' : (msg ? 'TRY AGAIN' : 'JOIN NOW'))
            : h('div', { style: { display: 'flex', gap: 10, flexWrap: 'wrap' } },
@@ -5811,22 +5892,42 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
       const { error } = await sb.from('platform_settings').upsert({ key: 'org_min_report_threshold', value: Math.max(2, parseInt(thr) || 5) }, { onConflict: 'key' });
       setMsg(error ? { type: 'error', text: ERR.server_error } : { type: 'ok', text: 'Saved.' });
     };
-    const cell = { padding: '8px 6px', fontSize: 12, borderBottom: '1px solid ' + C.border };
+    const cell = { padding: '8px 6px', fontSize: 14, borderBottom: '1px solid ' + C.border };
     const list = orgs || [];
     return h('div', { style: { marginBottom: 24 } }, h(Msg, { m: msg }),
       h('div', { style: card({ marginBottom: 20, overflowX: 'auto' }) }, h('div', { style: label }, 'Teams (' + list.length + ')'),
-        orgs === null ? h('div', { style: { color: C.muted, fontSize: 13 } }, 'Loading...') :
-        list.length === 0 ? h('div', { style: { color: C.muted, fontSize: 13 } }, 'No teams yet. Teams appear here as people create them.') :
-        h('table', { style: { width: '100%', borderCollapse: 'collapse', color: C.text } }, h('thead', null, h('tr', null, ['Team', 'Owner', 'Seats used', 'Completed', 'Created', 'Seat limit', 'Active'].map((x) => h('th', { key: x, style: Object.assign({}, cell, { ...mono, fontSize: 10, color: C.muted, textAlign: 'left' }) }, x)))),
+        orgs === null ? h('div', { style: { color: C.muted, fontSize: 15 } }, 'Loading...') :
+        list.length === 0 ? h('div', { style: { color: C.muted, fontSize: 15 } }, 'No teams yet. Teams appear here as people create them.') :
+        h('table', { style: { width: '100%', borderCollapse: 'collapse', color: C.text } }, h('thead', null, h('tr', null, ['Team', 'Owner', 'Seats used', 'Completed', 'Created', 'Seat limit', 'Active'].map((x) => h('th', { key: x, style: Object.assign({}, cell, { fontWeight: 700, color: C.muted, textAlign: 'left' }) }, x)))),
           h('tbody', null, list.map((o) => h('tr', { key: o.id },
             [o.name, o.owner_email || 'n/a', (o.active_members != null ? o.active_members : 'n/a') + ' / ' + o.seat_limit, o.completed != null ? o.completed : 'n/a', o.created_at ? new Date(o.created_at).toLocaleDateString() : 'n/a'].map((v, i) => h('td', { key: i, style: cell }, String(v))),
-            h('td', { style: cell }, h('button', { onClick: () => editSeats(o), style: { ...mono, fontSize: 10, background: 'none', border: '1px solid ' + C.border, color: C.cyan, padding: '4px 8px', cursor: 'pointer' } }, 'EDIT')),
-            h('td', { style: cell }, h('button', { onClick: async () => { await rpc('admin_set_org_active', { p_org: o.id, p_active: !o.is_active }); load(); }, style: { ...mono, fontSize: 10, background: 'none', border: '1px solid ' + C.border, color: o.is_active ? '#4CF7C0' : '#F87171', padding: '4px 8px', cursor: 'pointer' } }, o.is_active ? 'ON' : 'OFF'))))))),
+            h('td', { style: cell }, h('button', { onClick: () => editSeats(o), style: { fontFamily: AC.font, fontSize: 14, fontWeight: 700, background: '#FFFFFF', border: '1px solid ' + C.border, color: C.cyan, padding: '6px 12px', borderRadius: 8, cursor: 'pointer' } }, 'Edit')),
+            h('td', { style: cell }, h('button', { onClick: async () => { await rpc('admin_set_org_active', { p_org: o.id, p_active: !o.is_active }); load(); }, style: { fontFamily: AC.font, fontSize: 14, fontWeight: 700, background: '#FFFFFF', border: '1px solid ' + C.border, color: o.is_active ? AC.success : AC.error, padding: '6px 12px', borderRadius: 8, cursor: 'pointer' } }, o.is_active ? 'On' : 'Off'))))))),
       h('div', { style: card() }, h('div', { style: label }, 'Minimum completions before aggregate team results are shown'),
         h('div', { style: { display: 'flex', gap: 8, flexWrap: 'wrap' } }, h('input', { type: 'number', min: 2, value: thr, onChange: (e) => setThr(e.target.value), style: Object.assign({}, inputStyle, { width: 120 }) }), h(Btn, { onClick: saveThreshold, style: { padding: '8px 16px' } }, 'SAVE'))));
   }
 
-  window.NF_ORG = { TeamsLanding, OrgPortal, JoinPage, AdminTeamsPanel, initialView, loadMyOrgs, afterCfiSaved, track, getDecisionContext, clearDecisionContext, recommendPractice };
+  // A render error in the portal must never blank the whole site: catch it and offer a reload.
+  class PortalBoundary extends React.Component {
+    constructor(p) { super(p); this.state = { failed: false }; }
+    static getDerivedStateFromError() { return { failed: true }; }
+    componentDidCatch(e) { console.error('[NF_ORG render error]', e); }
+    render() {
+      if (!this.state.failed) return this.props.children;
+      return Shell(h('div', { role: 'alert', style: card({ maxWidth: 600, margin: '0 auto', textAlign: 'center' }) },
+        h('div', { style: Object.assign({}, eyebrow, { marginBottom: 12 }) }, 'Something went wrong'),
+        h('p', { style: { fontSize: 18, lineHeight: 1.7, marginBottom: 20 } }, 'This page hit a problem. Your data is safe. Please reload and try again.'),
+        h(Btn, { onClick: () => window.location.reload() }, 'Reload page')));
+    }
+  }
+  const guard = (Comp) => function Guarded(props) { return h(PortalBoundary, null, h(Comp, props)); };
+  // The admin screen is dark; show the (light) teams panel as one clean white panel inside it.
+  function AdminTeamsFrame() {
+    useEffect(ensurePortalStyles, []);
+    return h('div', { className: 'nf-portal', style: { background: AC.bg, color: AC.text, borderRadius: 16, padding: 20, fontFamily: AC.font, minHeight: 0 } }, h(AdminTeamsPanel));
+  }
+
+  window.NF_ORG = { TeamsLanding: guard(TeamsLanding), OrgPortal: guard(OrgPortal), JoinPage: guard(JoinPage), AdminTeamsPanel: guard(AdminTeamsFrame), initialView, loadMyOrgs, afterCfiSaved, track, getDecisionContext, clearDecisionContext, recommendPractice };
 })();
 
     // ═══ NEURALFUSION_ORG_MODULE_END ═══
