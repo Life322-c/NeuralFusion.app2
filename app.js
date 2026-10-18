@@ -4803,7 +4803,12 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
       );
     }
 
-    function TeamProgrammeView({ session, done, onDone }) {
+    // Seat-based lesson access: a team with 5 seats or fewer gets Lesson 1 only;
+    // 6 seats and above (6-9, 10, 25, 50...) gets all five lessons.
+    const TEAM_FULL_PROGRAMME_SEATS = 6;
+    const teamOpenLessons = (seatLimit) => (seatLimit == null || seatLimit >= TEAM_FULL_PROGRAMME_SEATS) ? 5 : 1;
+
+    function TeamProgrammeView({ session, done, onDone, openCount = 5, seatLimit = null }) {
       const [activeLesson, setActiveLesson] = useState(null);
       const [lessonTab, setLessonTab] = useState('plan');
 
@@ -4875,8 +4880,9 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
       return (
         teamH(TeamMain, {width: 'mid'},
           teamH(TeamHeader, {eyebrow: '5-Lesson Programme · 7 Weeks', title: 'Your Programme', lead: 'Work through the five lessons in order. Each lesson builds on the one before.'}),
+          openCount < 5 && teamH("div", {className: "nf-team-card nf-team-card--tint nf-team-section"}, teamH("p", {className: "nf-team-text"}, 'Your team has ' + (seatLimit != null ? seatLimit : 'a small number of') + ' seats, so Lesson 1 is open. Lessons 2 to 5 open when your team has ' + TEAM_FULL_PROGRAMME_SEATS + ' or more seats.')),
           teamH("div", {className: "nf-team-stack"}, TEAM_LESSONS.map((L,i) => (
-            teamH("article", {key: i, className: "nf-team-card nf-team-card--interactive nf-team-lesson", onClick: ()=>setActiveLesson(i)},
+            teamH("article", {key: i, className: "nf-team-card nf-team-card--interactive nf-team-lesson", onClick: ()=>{ if (L.num <= openCount) setActiveLesson(i); }, style: L.num > openCount ? { opacity: 0.65, cursor: 'default' } : undefined},
               teamH("div", {className: "nf-team-lesson__num", "aria-hidden": "true"}, String(L.num).padStart(2,'0')),
               teamH("div", {style: {minWidth: 0}},
                 teamH("h2", {className: "nf-team-h3", style: {marginBottom: 4}}, teamH("span", {className: "nf-team-small", style: {display: 'block'}}, 'Lesson ', L.num), L.title),
@@ -4885,17 +4891,20 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
                   teamH("span", {className: "nf-team-pill"}, L.duration, ' min'),
                   teamH("span", {className: "nf-team-pill"}, 'Week ', L.week),
                   teamH("span", {className: "nf-team-pill nf-team-pill--wait"}, L.level),
-                  done && done.indexOf(L.num) >= 0 && teamH("span", {className: "nf-team-pill"}, 'Completed')
+                  done && done.indexOf(L.num) >= 0 && teamH("span", {className: "nf-team-pill"}, 'Completed'),
+                  L.num > openCount && teamH("span", {className: "nf-team-pill"}, 'Locked')
                 )
               ),
-              teamH("button", {type: "button", className: "nf-team-btn nf-team-btn--primary", onClick: e => { e.stopPropagation(); setActiveLesson(i); }, "aria-label": 'Start lesson ' + L.num + ': ' + L.title}, 'Start Lesson →')
+              L.num > openCount
+                ? teamH("button", {type: "button", className: "nf-team-btn nf-team-btn--ghost", disabled: true, "aria-label": 'Lesson ' + L.num + ' opens at ' + TEAM_FULL_PROGRAMME_SEATS + ' seats'}, 'Opens at ' + TEAM_FULL_PROGRAMME_SEATS + '+ seats')
+                : teamH("button", {type: "button", className: "nf-team-btn nf-team-btn--primary", onClick: e => { e.stopPropagation(); setActiveLesson(i); }, "aria-label": 'Start lesson ' + L.num + ': ' + L.title}, 'Start Lesson →')
             )
           )))
         )
       );
     }
 
-    window.NF_TRAINING = { TeamProgrammeView, useTeamStyles };
+    window.NF_TRAINING = { TeamProgrammeView, useTeamStyles, teamOpenLessons };
 
 
     // ═══════════════════════════════════════════════════════════════════
@@ -5802,9 +5811,10 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
     const useStyles = (window.NF_TRAINING && window.NF_TRAINING.useTeamStyles) || function () {};
     useStyles();
     const [st, setSt] = useState(null); const [sum, setSum] = useState(null); const [msg, setMsg] = useState(null);
+    const [seatLimit, setSeatLimit] = useState(null);
     const lead = role === 'owner' || role === 'admin';
     const loadSum = () => rpc('org_programme_summary', { p_org: org.id }).then(setSum);
-    useEffect(() => { rpc('org_programme_state', { p_org: org.id }).then(setSt); if (lead) loadSum(); }, [org.id]);
+    useEffect(() => { rpc('org_programme_state', { p_org: org.id }).then(setSt); if (lead) loadSum(); rpc('org_overview', { p_org: org.id }).then((o) => { if (o && o.ok && o.seats && o.seats.limit != null) setSeatLimit(Number(o.seats.limit)); }); }, [org.id]);
     const ENT = window.NF_TRAINING;
     const wrap = (kids) => h('div', { style: { marginTop: 8 } }, h('div', { style: Object.assign({}, eyebrow, { marginBottom: 12 }) }, 'TRAINING PROGRAMME'), kids);
     if (!ENT) return null;
@@ -5812,8 +5822,10 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
     if (!st.ok) return wrap(h(Msg, { m: { type: 'error', text: st.error === 'request_failed' ? 'Training is not enabled on the database yet. Run migration_unified_programme.sql.' : errText(st) } }));
     if (!st.unlocked) return wrap(h('div', { style: card({ maxWidth: 640 }) }, h('div', { style: { fontSize: 17, lineHeight: 1.8, marginBottom: 16 } }, 'The five-lesson training programme opens as soon as you complete the team assessment.'), onStart ? h(Btn, { onClick: onStart }, 'START ASSESSMENT') : null));
     const done = st.completed_lessons || [];
+    const openCount = ENT.teamOpenLessons ? ENT.teamOpenLessons(seatLimit) : 5;
     const mark = async (n) => {
       setMsg(null);
+      if (n > openCount) return;
       const r = await rpc('org_mark_lesson', { p_org: org.id, p_lesson: n });
       if (r && r.ok) { setSt((x) => Object.assign({}, x, { completed_lessons: Array.from(new Set((x.completed_lessons || []).concat([n]))).sort((a, b) => a - b) })); if (lead) loadSum(); }
       else setMsg({ type: 'error', text: errText(r) });
@@ -5822,13 +5834,13 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
       sum.ok && sum.unlocked
         ? h('div', { style: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(110px,1fr))', gap: 12 } }, (sum.lessons || []).map((l) => h('div', { key: l.num, style: { fontSize: 14, color: C.muted } }, h('div', { style: { ...syne, fontSize: 24, fontWeight: 800, color: C.cyanBright } }, l.completed == null ? 'under ' + sum.threshold : l.completed), 'Lesson ' + l.num + ' completed')))
         : h('div', { style: { fontSize: 15, color: C.muted, lineHeight: 1.7 } }, sum.ok ? (sum.started || 0) + ' people have started. Progress counts appear once ' + sum.threshold + ' have started, which protects individuals.' : 'Team progress is not available yet.')) : null;
-    const retake = setView && done.length >= 5 ? h('div', { style: card({ marginTop: 20 }) }, h('div', { style: label }, 'Measure again'),
+    const retake = setView && done.length >= openCount ? h('div', { style: card({ marginTop: 20 }) }, h('div', { style: label }, 'Measure again'),
       h('div', { style: { fontSize: 16, lineHeight: 1.8, marginBottom: 14 } }, 'You have finished the programme. Take the test again to see your own change. After your result you can choose to share it, and your organisation only ever sees team averages.'),
       h(Btn, { onClick: () => setView('cfi') }, 'RETAKE THE CFI')) : null;
     return wrap(h('div', null,
-      h('div', { style: { fontSize: 15, color: C.muted, marginBottom: 14 } }, done.length + ' of 5 lessons completed' + (lead ? '. You can run these sessions with your team.' : '.')),
+      h('div', { style: { fontSize: 15, color: C.muted, marginBottom: 14 } }, done.length + ' of ' + openCount + ' open lessons completed' + (lead ? '. You can run these sessions with your team.' : '.')),
       sumBox, h(Msg, { m: msg }),
-      h('div', { className: 'nf-team', style: { minHeight: 0, borderRadius: 16, overflow: 'hidden' } }, h(ENT.TeamProgrammeView, { session: { org: org.id }, done, onDone: mark })),
+      h('div', { className: 'nf-team', style: { minHeight: 0, borderRadius: 16, overflow: 'hidden' } }, h(ENT.TeamProgrammeView, { session: { org: org.id }, done, onDone: mark, openCount, seatLimit })),
       retake));
   }
 
