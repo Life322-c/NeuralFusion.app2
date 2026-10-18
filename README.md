@@ -16,41 +16,42 @@ Built by Life Edet · [tryneuralFusion.com](https://www.tryneuralFusion.com)
 
 ## Supabase Tables Required
 
-Run `supabase_migration.sql` in your Supabase SQL editor before deploying.
+Run `supabase_migration.sql` in your Supabase SQL editor before deploying, then the team migrations below.
 
 | Table | Purpose |
 |---|---|
-| `profiles` | User profiles, `is_pro`, `is_enterprise` flags |
+| `profiles` | User profiles and `is_pro` flag (`is_enterprise` is no longer used) |
 | `cfi_results` | Individual CFI assessment results |
 | `lesson_progress` | Lesson completion tracking |
-| `platform_settings` | Admin-controlled settings (e.g. pro price) |
-| `enterprise_results` | Enterprise cohort CFI records (pre/post) |
+| `platform_settings` | Admin-controlled settings (e.g. pro price, team report threshold, starter seats) |
+| `organisations`, `org_members`, `org_join_links` | Teams: one row per team, its members and roles, and its one join link |
+
+Old tables `enterprise_results`, `cohorts`, `cohort_participants` and `facilitator_cohorts` are no longer used. `migration_unify_one_system.sql` converts what it can into teams and locks them (data kept).
 
 ---
 
-## Enterprise System
+## Teams (one system)
 
-### Accessing Enterprise
-1. Purchase Enterprise access (₦50,000 one-time via Paystack)
-2. Navigate to Enterprise in the nav
-3. Select role:
-   - **Facilitator** - enter cohort code + facilitator PIN
-   - **Participant** - enter participant ID + cohort code
+There is one team system. Enterprise and Organisation are the same thing.
 
-### Facilitator PIN
-Default: `NF-FAC-2026`  
-To change: update `FACILITATOR_PIN` constant in `index.html` (search for `NF-FAC-2026`).
+1. Anyone creates a team (For Teams page, one field: team name) and becomes its owner.
+2. The owner shares ONE team link (`/?team=TOKEN`, copy or WhatsApp).
+3. People open it, create an account, auto-join (seat limit enforced server-side) and land in the assessment.
+4. Each person: assess, train (5 lessons), retake. The owner sees completion status and aggregate team results (counts below the threshold are hidden).
 
-### Cohort Codes
-Cohort codes are free-form strings (e.g. `ORG2026-A`). Results are segmented by cohort code - use consistent casing.
+Roles: `owner`, `admin`, `participant`. Admin tab **Teams** lists every team and lets a platform admin edit seats, switch a team on/off and set the minimum completions before team results show.
 
-### CFI Results Persistence
-Results are saved to Supabase `enterprise_results` table in real time. Refreshing the page will reload all results for the active cohort.
+Database setup, in order: `migration_self_serve_teams.sql`, then `migration_unify_one_system.sql`.
 
 ---
 
 ## Changelog
 
+- **Simple platform for individuals (plain language)**: Home is now one short page (signed out: what it is, how it works, one button; signed in: your next step). Navigation is Take the test, Lessons, My progress, Decisions, Team. Removed: the Architecture page, Resources page, in-app About page, the 7-stage "journey" layer, daily practice, and the old Analytics/Academy dashboards (now a simple My progress page and a short Lessons start screen). Renamed in plain words: CFI is the Thinking Clarity Test; bands are Clear and balanced / Mostly clear / Often scattered / Very scattered; Clarity Delta is "your change"; Integration Protocol is the Decision helper (Break it down, Check your gut, Look wider, Step back); Decision Vault is My decisions; thinking modes are ways of thinking; lesson titles rewritten. In-app Terms and Privacy updated to match. Fixed Home copy that wrongly said no account is needed (the test needs a free account). The deep text inside the lessons themselves is unchanged. `app.js?v=32`.
+- **One team system (old Enterprise removed)**: there is now a single flow, create a team, share one link, assess, train, retake, results. Removed: the facilitator cohort portal, cohort codes (and the `?enterprise=1&code=` links), facilitator access and cohort admin tabs, Ent Results tab, enterprise results entry and storage, the per-user "Ent +" flag and `isEnterprise` state, email invitations (and `?invite=` links), admin onboarding of organisations, cohorts inside a team, and about 1,600 lines of dead code and styles. Converted: lesson player now lives only inside the team Training tab; member completion status now shows in People; Admin Enterprise/Organisations tabs became one Teams tab (seats, on/off, report threshold); the `enterprise` route is now `teams` and `invite` is now `join`; the Lessons upsell card, Home buttons, legal copy and static pages now describe teams. Old links (`?invite=`, `?enterprise=`) land on the team start page. Run `migration_unify_one_system.sql` after `migration_self_serve_teams.sql`. `app.js?v=31`.
+- **One Teams entry point**: navigation now has a single item. Signed-out or team-less users see For Teams (create a team); anyone in a team sees My Team (their dashboard). Desktop nav, mobile bottom nav and footer all follow this. `app.js?v=30`.
+- **Admin portal cleanup (dead features removed)**: removed the Broadcast, Branding, Lessons and Settings tabs. Broadcast, Branding and Lessons only saved to the admin's own browser (localStorage) and nothing in the app ever read them; the Maintenance and Open Registration toggles changed nothing. Also removed the unused enterprise price code, the unused create-organisation helper, the unreachable `teams` route and leftover constants. Admin tabs now: Overview, Users, CFI Results, Pro Subs, Organisations, Cohorts, Ent Results, Pricing (Pro price and Paystack key). Link audit: no dead links in any page, the app, or the sitemap. `app.js?v=29`.
+- **One-dashboard self-serve teams**: Enterprise and Organisation are now a single flow. Anyone can create a team (Enterprise page, one field: team name) and becomes its owner. They share ONE team link (`/?team=TOKEN`, copy or WhatsApp). People who open it create an account, auto-join (seat limit enforced server-side) and land straight in the assessment. No founder contact, admin onboarding, cohort codes or email invitations in the normal path. The My Team dashboard opens on one guided path: add team, assess, train (5 lessons), retake, results. Owner/admin see the same path plus the link card and completion stats; Team Results, Training, People and Plan and Seats are tabs. Email invitations moved under People > Advanced and legacy invite links still work. Admin onboarding and the facilitator cohort portal are unchanged and still reachable (cohort code box on the Enterprise page). Removed the invoice package cards and pricing FAQ from the Enterprise page. Run `migration_self_serve_teams.sql` (it checks the assumed table names first and stops with a clear message if they differ). Starter seats default to 10 (`platform_settings.team_default_seats`). `app.js?v=28`.
 - **Transformation layer (journey) added**: DISCOVER → UNDERSTAND → TRAIN → APPLY → REFLECT → MEASURE → INTEGRATE, built on top of existing data with no change to CFI scoring, auth, payments or RLS. New block `NEURALFUSION TRANSFORMATION LAYER (NFJ)` in `app.js`: a pure state function (`nfjComputeState`), one recommendation function (`nfjDevelopmentFocus`), one next-action function (`nfjNextAction`), milestones derived only from recorded activity, and components `NFJJourney`, `NFJNextAction`, `NFJTrainingPath`, `NFJFirstValue`, `NFJEvolution`, `NFJCFIScope`, `NFJEnterpriseJourney`. Home shows the journey + one next step (signed-in) or how it works + what the CFI does/doesn't measure (signed-out); the CFI result opens with a first-value block; Academy shows a personalised training path; Analytics shows Cognitive Evolution and milestones; the org Overview tab shows an honest team journey using only aggregate counts the `org_overview` RPC already returns. Decision Room labels now read DECIDE / REVIEW. Daily practice completions are now persisted: run `migration_practice_logs.sql` (until then practices show as "not recorded yet"). Decision/practice reads are cached for 15s to avoid duplicate requests. `app.js?v=16`.
 
 - **Enterprise is now custom and admin-onboarded**: removed the self-serve team packages, the Paystack team checkout and the per-user enterprise unlock. Enterprise page now explains: contact the founder, admin onboards the organisation, owner invites the team. Admin → Teams tab removed; Admin → Organisations now holds the onboarding form (name, owner email, seats), seat editing and the report-threshold setting. Run `migration_admin_onboarding.sql` (review table names first). Also fixed: cohort invite links (`/?enterprise=1&code=`) were never read; setState-during-render in Admin cohort detail. `app.js?v=15`.
