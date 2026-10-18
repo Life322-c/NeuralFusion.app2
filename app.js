@@ -2202,13 +2202,18 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
       });
       const [saving, setSaving] = useState(false);
       const [saved, setSaved] = useState(null);
+      const teamCtx = (window.NF_ORG && window.NF_ORG.getDecisionContext && window.NF_ORG.getDecisionContext()) || null;
+      const [toTeam, setToTeam] = useState(!!teamCtx);
+      const [responsible, setResponsible] = useState('');
       const [error, setError] = useState('');
 
       const handleSave = async () => {
         if (!user) { setShowAuth(true); return; }
         if (!title.trim()) { setError('Give this decision a short title.'); return; }
         setSaving(true); setError('');
+        const teamFields = (teamCtx && toTeam) ? { org_id: teamCtx.org, shared_with_org: true, responsible: responsible.trim() || null } : {};
         const row = await saveDecisionSession(user.id, {
+          ...teamFields,
           title: title.trim(),
           problem,
           decompose_response: answers.decompose,
@@ -2224,7 +2229,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
           status: 'open',
         });
         setSaving(false);
-        if (row) setSaved(row); else setError("Couldn't save right now. Check your connection and try again.");
+        if (row) { if (teamFields.org_id && window.NF_ORG) window.NF_ORG.clearDecisionContext(); setSaved(row); } else setError("Couldn't save right now. Check your connection and try again.");
       };
 
       if (saved) {
@@ -2249,6 +2254,13 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
           React.createElement("input", { type: 'text', value: nextAction, onChange: e => setNextAction(e.target.value), placeholder: 'What happens next?', className: "nf-a11y-textarea", style: { width: '100%', padding: '12px 14px', fontSize: 15, border: `2px solid ${AC.border}`, borderRadius: 12, marginBottom: 16, fontFamily: AC.font, color: AC.text } }),
           React.createElement("label", { style: { display: 'block', fontSize: 13, fontWeight: 700, color: AC.text, marginBottom: 6 } }, 'Review this on'),
           React.createElement("input", { type: 'date', value: reviewDate, onChange: e => setReviewDate(e.target.value), className: "nf-a11y-textarea", style: { padding: '12px 14px', fontSize: 15, border: `2px solid ${AC.border}`, borderRadius: 12, marginBottom: 16, fontFamily: AC.font, color: AC.text } }),
+          teamCtx && React.createElement("div", { style: { marginBottom: 16, padding: '12px 14px', border: `2px solid ${AC.border}`, borderRadius: 12 } },
+            React.createElement("label", { style: { display: 'flex', gap: 10, alignItems: 'flex-start', fontSize: 14, fontWeight: 700, color: AC.text, cursor: 'pointer' } },
+              React.createElement("input", { type: 'checkbox', checked: toTeam, onChange: e => setToTeam(e.target.checked), style: { marginTop: 3 } }),
+              React.createElement("span", null, `Save to my team${teamCtx.name ? ' (' + teamCtx.name + ')' : ''}. Teammates can read this decision, including your answers above.`)),
+            toTeam && React.createElement("div", { style: { marginTop: 12 } },
+              React.createElement("label", { style: { display: 'block', fontSize: 13, fontWeight: 700, color: AC.text, marginBottom: 6 } }, 'Who is responsible for the next action?'),
+              React.createElement("input", { type: 'text', maxLength: 120, value: responsible, onChange: e => setResponsible(e.target.value), placeholder: 'A name or role', className: "nf-a11y-textarea", style: { width: '100%', padding: '12px 14px', fontSize: 15, border: `2px solid ${AC.border}`, borderRadius: 12, fontFamily: AC.font, color: AC.text } }))),
           error && React.createElement("div", { role: 'alert', style: { fontSize: 13, color: '#B42318', marginBottom: 12 } }, error),
           React.createElement("button", { className: "nf-a11y-btn", onClick: handleSave, disabled: saving, style: { fontFamily: AC.font, fontSize: 16, fontWeight: 700, padding: '16px 28px', minHeight: 52, background: AC.goldDark, color: '#FFFFFF', border: 'none', borderRadius: 16, cursor: saving ? 'wait' : 'pointer', opacity: saving ? 0.7 : 1 } }, saving ? 'Saving…' : (user ? 'Save this decision' : 'Sign in to Save →'))
         )
@@ -5050,6 +5062,8 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
     invalid_team_link: 'This team link is not valid or was reset. Ask your team owner for the current link.',
     team_full: 'This team has no seats left. Ask your team owner to add seats.',
     team_limit: 'You have reached the limit for teams created from one account. Contact us if you need more.',
+    challenge_not_open: 'This challenge is no longer open.', already_submitted: 'You have already submitted this challenge.',
+    invalid_option: 'Choose one of the listed actions.', invalid_text: 'Your answers are too long (2000 characters maximum each).',
   };
   const errText = (r) => ERR[r && r.error] || 'Something went wrong. Please try again.';
 
@@ -5127,6 +5141,16 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
       h('div', { style: { fontSize: 12, color: C.muted, lineHeight: 1.7 } }, 'We email you an invoice with payment details. Packages renew monthly, you can cancel with 30 days\u2019 notice, and monthly payments are not refundable. More than 50 seats? ', h('a', { href: TEAM_MAILTO, style: { color: C.cyan } }, 'Email us for a custom price'), '.'));
   }
 
+  const TEAM_VALUES = [
+    ['Measure how your team thinks', 'Each person takes the 13-item CFI in about four minutes. You see aggregate team patterns across the four ways of thinking once enough people have completed it.'],
+    ['Train with five lessons', 'A guided five-lesson programme, with progress tracked for each person and a team progress summary for owners.'],
+    ['Weekly thinking challenge', 'One realistic business scenario each week. Everyone works through it using the four ways of thinking and records a decision. Owners see participation and how the team split, never individual answers.'],
+    ['Decision room', 'Work a real decision through facts, signals, alternatives, reflection and a decision. Save it to the team with an agreed action, a responsible person and a review date.'],
+    ['Recommended practice', 'A short practice matched to your team\u2019s results by simple, visible rules. With too little data you get a general practice instead of a guess.'],
+    ['See change over time', 'Everyone retakes the CFI after training. If they choose to share the retest, your before-and-after appears in Insights once enough people have shared.'],
+    ['Privacy built in', 'Owners see completion status and aggregates, never individual scores or answers. Small groups are hidden to protect individuals.'],
+    ['One link, one dashboard', 'No setup for your team. Share one link, people sign up and land in the assessment, and you manage everything in one place.'],
+  ];
   function TeamsFAQ() {
     nfjEnsureStyles();
     const items = [
@@ -5134,7 +5158,9 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
       ['What will each person do?', 'Each person completes the 13-item CFI (about four minutes), then does the five-lesson training programme, then retakes the CFI to see their own change.'],
       ['What does the CFI measure, and what does it not?', 'It measures how consistently your four ways of thinking (analytical, intuitive, associative, reflective) work together, and your self-reported steadiness under pressure, on a 13 to 65 scale where lower means better coordinated. It does not measure intelligence, personality, health or job performance.'],
       ['What will I see as the team owner?', 'Who has completed what, and aggregate team patterns once enough people have completed the CFI. Individual profiles stay private to each person.'],
-      ['Can we measure development over time?', 'Yes. After the training, each person retakes the CFI. If they choose to share the retest, the team before-and-after appears under Team Results once enough people have shared.'],
+      ['Can we measure development over time?', 'Yes. After the training, each person retakes the CFI. If they choose to share the retest, the team before-and-after appears under Insights once enough people have shared.'],
+      ['What is the weekly challenge?', 'A short business scenario released each week. Each person works through the four ways of thinking and records a decision with their reasoning. You see who took part and how the team split, but not individual answers.'],
+      ['Can we use NeuralFusion for real decisions?', 'Yes. The Decision Room guides a real decision from facts to an agreed action, owner and review date. A decision is shared with your team only if the person saving it chooses to.'],
       ['What if we need more seats?', 'Every new team starts with a few starter seats so you can try it. When you need more, pick a package (10, 25 or 50 seats) from the pricing section or the Plan and Seats tab.'],
     ];
     return h('div', { key: 'faq', style: { marginBottom: 56 } },
@@ -5238,7 +5264,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
       h('div', { key: 'hero', style: { textAlign: 'center', padding: '40px 0 40px' } },
         h('div', { style: { ...mono, fontSize: 11, letterSpacing: 2, color: C.cyan, marginBottom: 20 } }, 'NEURALFUSION FOR TEAMS'),
         h('h1', { style: { ...syne, fontSize: 'clamp(30px,5vw,52px)', fontWeight: 900, lineHeight: 1.1, margin: '0 0 20px' } }, 'Measure and train how your team thinks. One place.'),
-        h('p', { style: { fontSize: 16, color: C.muted, maxWidth: 640, margin: '0 auto 32px', lineHeight: 1.8 } }, 'Create your team, share one link, and everything else is guided: assessment, training, retake and results.')),
+        h('p', { style: { fontSize: 16, color: C.muted, maxWidth: 640, margin: '0 auto 32px', lineHeight: 1.8 } }, 'Create your team, share one link, and everything else is guided: assessment, training, a weekly thinking challenge, team decisions, practice and results.')),
       h('div', { key: 'create', style: { marginBottom: 56 } }, h(CreateTeamCard, { user, setShowAuth, openAuth, setView, onOrgsChanged })),
       h('div', { key: 'how', id: 'nf-how', style: { marginBottom: 56 } },
         h('div', { style: { ...mono, fontSize: 11, letterSpacing: 2, color: C.cyan, marginBottom: 20 } }, 'HOW IT WORKS'),
@@ -5246,6 +5272,12 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
           step(1, 'Create your team', 'Name your team. You are the owner and see everything in one dashboard.'),
           step(2, 'Share one link', 'Copy it or send it on WhatsApp. People sign up and land straight in the assessment.'),
           step(3, 'Assess, train, retake', 'Each person takes the CFI, does the five lessons, then retakes it. You see team results as they come in.'))),
+      h('div', { key: 'values', id: 'nf-values', style: { marginBottom: 56 } },
+        h('div', { style: { ...mono, fontSize: 11, letterSpacing: 2, color: C.cyan, marginBottom: 20 } }, 'WHAT YOUR TEAM GETS'),
+        h('div', { style: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(min(260px,100%),1fr))', gap: 16 } },
+          TEAM_VALUES.map(([t, d]) => h('div', { key: t, style: card() },
+            h('div', { style: { ...syne, fontSize: 16, fontWeight: 800, marginBottom: 8 } }, t),
+            h('div', { style: { fontSize: 13, color: C.muted, lineHeight: 1.7 } }, d))))),
       h(TeamPackages, { key: 'pk', teamName: '' }),
       TeamsSampleReport(),
       TeamsFAQ(),
@@ -5344,10 +5376,219 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
           x.open && !(x.done && x.k !== 'train') ? h('div', { style: { marginTop: 10 } }, h(Btn, { onClick: x.act, variant: i === current ? undefined : 'ghost', style: { padding: '10px 18px', fontSize: 12 } }, x.cta)) : null))));
   }
 
+  // ====================================================================
+  // PRACTICE LOOP: Weekly Thinking Challenge, Decision Room entry, Recommended Practice
+  // Server contract: migration_team_practice_loop.sql (org_current_challenge,
+  // submit_challenge_response, org_challenge_summary, org_recent_decisions).
+  // Recommended Practice reads the existing org_team_results(p_org) and invents no scores.
+  // ====================================================================
+  const textareaStyle = Object.assign({}, inputStyle, { minHeight: 76, resize: 'vertical', fontFamily: 'inherit', lineHeight: 1.6 });
+  const fmtDate = (d) => { try { return new Date(d).toLocaleDateString(); } catch (_) { return ''; } };
+  const MODE_NAME = { analytical: 'Analytical', intuitive: 'Intuitive', associative: 'Associative', reflective: 'Reflective' };
+  const CHALLENGE_MODES = [
+    ['analytical', 'ans_analytical', 'prompt_analytical', 'Analytical'],
+    ['intuitive', 'ans_intuitive', 'prompt_intuitive', 'Intuitive'],
+    ['associative', 'ans_associative', 'prompt_associative', 'Associative'],
+    ['reflective', 'ans_reflective', 'prompt_reflective', 'Reflective'],
+  ];
+
+  // ---- Team decision context: set when a person starts a decision from the Team Portal ----
+  // The Save panel shows an explicit "save to team" checkbox; nothing is shared without it.
+  function startTeamDecision(org, setView) {
+    try { sessionStorage.setItem('nf_decision_org', JSON.stringify({ org: org.id, name: org.name || '', t: Date.now() })); } catch (_) {}
+    track('team_decision_started', { organisation_id: org.id });
+    setView('decisions');
+  }
+  function getDecisionContext() {
+    try {
+      const c = JSON.parse(sessionStorage.getItem('nf_decision_org') || 'null');
+      if (!c || !c.org || Date.now() - c.t > 2 * 3600 * 1000) { sessionStorage.removeItem('nf_decision_org'); return null; }
+      return c;
+    } catch (_) { return null; }
+  }
+  function clearDecisionContext() { try { sessionStorage.removeItem('nf_decision_org'); } catch (_) {} }
+
+  // ---- Recommended Practice: transparent rules over the existing team results ----
+  // Same band cut points the app already uses for CFI-1.0 (13 to 65): <=17, <=28, <=40, above.
+  // The four modes are compared with each other only (the single "pressure" item is not comparable).
+  const PRACTICES = {
+    analytical: { mode: 'Analytical', title: 'Separate facts from assumptions', minutes: 7,
+      steps: ['Pick one problem your team is facing right now.', 'Write two lists: what we know for certain, and what we are assuming.', 'Circle the one missing fact that would change the decision most, and decide who finds it out.'], lesson: 'Lesson 2: Mode Activation & Mental Control' },
+    intuitive: { mode: 'Intuitive', title: 'Name the signals', minutes: 7,
+      steps: ['Pick one problem your team is facing right now.', 'Each person writes three concerns, hunches or patterns they have noticed. No need to justify them yet.', 'Ask: which of these would we most regret ignoring?'], lesson: 'Lesson 2: Mode Activation & Mental Control' },
+    associative: { mode: 'Associative', title: 'Find three alternatives', minutes: 7,
+      steps: ['Pick one problem your team is facing right now.', 'Identify three alternative solutions. Make at least one of them unconventional.', 'For each, write one sentence on what would have to be true for it to work.'], lesson: 'Lesson 2: Mode Activation & Mental Control' },
+    reflective: { mode: 'Reflective', title: 'Run a failure check', minutes: 7,
+      steps: ['Pick one decision your team is about to make.', 'Imagine it has failed in three months. Write the three most likely reasons.', 'For each reason, write one thing you could do now to reduce the risk.'], lesson: 'Lesson 2: Mode Activation & Mental Control' },
+    integrated: { mode: 'Integrated', title: 'Run one decision through all four modes', minutes: 10,
+      steps: ['Pick one real decision. Write what you know and what is missing (Analytical).', 'Write the signals and concerns you may be overlooking (Intuitive).', 'List at least three options (Associative), then the main risks and assumptions behind each (Reflective).', 'Finish with one sentence: what will we do, and who owns it?'], lesson: 'Lesson 3: Synthesis & Decision Mastery', decision: true },
+  };
+  function teamBand(total) { return total <= 17 ? 'Integrated' : total <= 28 ? 'Moderate fragmentation' : total <= 40 ? 'High fragmentation' : 'Critical fragmentation'; }
+  function recommendPractice(r) {
+    if (!r || !r.ok) return { state: 'unavailable' };
+    if (!r.unlocked) return { state: 'insufficient', completed: r.completed || 0, threshold: r.threshold };
+    const total = Number(r.avg_total), d = r.avg_dimensions || {};
+    const modes = ['analytical', 'intuitive', 'associative', 'reflective'];
+    const vals = modes.map((k) => Number(d[k]));
+    if (!isFinite(total) || vals.some((v) => !isFinite(v))) return { state: 'general', kind: 'integrated', practice: PRACTICES.integrated, reason: 'Team results do not yet include enough detail to point to one thinking mode, so this is a general practice.' };
+    const band = teamBand(total);
+    if (band === 'High fragmentation' || band === 'Critical fragmentation')
+      return { state: 'ready', kind: 'integrated', practice: PRACTICES.integrated, reason: 'Your team average falls in the "' + plainBand(band) + '" range on the CFI, so the priority is getting the four ways of thinking to work together.' };
+    const round1 = (v) => Math.round(v * 10) / 10;
+    const top = Math.max.apply(null, vals.map(round1));
+    const leaders = modes.filter((k, i) => round1(vals[i]) === top);
+    if (leaders.length !== 1) return { state: 'general', kind: 'integrated', practice: PRACTICES.integrated, reason: 'No single way of thinking stands out in your team results, so this is a general practice.' };
+    return { state: 'ready', kind: leaders[0], practice: PRACTICES[leaders[0]], reason: 'Of the four ways of thinking, ' + MODE_NAME[leaders[0]] + ' has the highest team average fragmentation score (higher means more scattered).' };
+  }
+
+  function PracticeCard({ org, go, setView, compact }) {
+    const [r, setR] = useState(null);
+    const [open, setOpen] = useState(false);
+    useEffect(() => { let live = true; setR(null); rpc('org_team_results', { p_org: org.id }).then((x) => { if (live) setR(x); }); return () => { live = false; }; }, [org.id]);
+    const wrap = (kids) => h('div', { style: card({ marginBottom: 20 }) }, h('div', { style: label }, 'Your team\u2019s recommended practice'), kids);
+    if (!r) return wrap(h('div', { style: { color: C.muted, fontSize: 14 }, role: 'status' }, 'Loading...'));
+    const rec = recommendPractice(r);
+    const general = PRACTICES.integrated;
+    let intro;
+    if (rec.state === 'insufficient') intro = 'Team-specific recommendations appear once ' + rec.threshold + ' people have completed the assessment (' + rec.completed + ' so far). Until then, here is a general practice.';
+    else if (rec.state === 'unavailable') intro = 'Team results are not available to your role right now, so here is a general practice.';
+    else if (rec.state === 'general') intro = rec.reason;
+    else intro = 'Your team\u2019s current development priority is ' + (rec.kind === 'integrated' ? 'Integrated Thinking' : MODE_NAME[rec.kind] + ' Thinking') + '. ' + rec.reason;
+    const p = rec.practice || general;
+    return wrap(h('div', null,
+      h('div', { style: { fontSize: 14, color: C.muted, lineHeight: 1.7, marginBottom: 12 } }, intro),
+      h('div', { style: { ...syne, fontSize: 18, fontWeight: 800, marginBottom: 4 } }, p.title),
+      h('div', { style: { fontSize: 13, color: C.muted, marginBottom: 14 } }, 'Time required: ' + p.minutes + ' minutes'),
+      compact && !open ? h(Btn, { onClick: () => go('practice'), style: { padding: '10px 18px', fontSize: 12 } }, 'START PRACTICE') : null,
+      !compact && !open ? h(Btn, { onClick: () => { setOpen(true); track('practice_started', { organisation_id: org.id, kind: rec.kind || 'general' }); }, style: { padding: '10px 18px', fontSize: 12 } }, 'START PRACTICE') : null,
+      open ? h('div', null,
+        h('ol', { style: { paddingLeft: 20, margin: '0 0 14px', fontSize: 14, lineHeight: 1.8 } }, p.steps.map((s, i) => h('li', { key: i }, s))),
+        h('div', { style: { display: 'flex', gap: 10, flexWrap: 'wrap' } },
+          h(Btn, { variant: 'ghost', onClick: () => go('programme'), style: { padding: '10px 18px', fontSize: 12 } }, 'OPEN RELATED LESSON'),
+          p.decision ? h(Btn, { onClick: () => startTeamDecision(org, setView), style: { padding: '10px 18px', fontSize: 12 } }, 'START A TEAM DECISION') : null),
+        h('div', { style: { fontSize: 12, color: C.muted, marginTop: 10 } }, 'Related lesson: ' + p.lesson + '. Practice completion is not tracked; lesson progress is tracked in Training.')) : null));
+  }
+
+  function ChallengeCard({ org, role, go, compact }) {
+    const [d, setD] = useState(null);
+    const [f, setF] = useState({ ans_analytical: '', ans_intuitive: '', ans_associative: '', ans_reflective: '', option: null, reasoning: '' });
+    const [busy, setBusy] = useState(false); const [msg, setMsg] = useState(null);
+    const lead = role === 'owner' || role === 'admin';
+    const load = () => rpc('org_current_challenge', { p_org: org.id }).then(setD);
+    useEffect(() => { let live = true; setD(null); rpc('org_current_challenge', { p_org: org.id }).then((x) => { if (live) setD(x); }); return () => { live = false; }; }, [org.id]);
+    const wrap = (kids) => h('div', { id: 'nf-challenge', style: card({ marginBottom: 20 }) }, h('div', { style: label }, 'This week\u2019s thinking challenge'), kids);
+    if (!d) return wrap(h('div', { style: { color: C.muted, fontSize: 14 }, role: 'status' }, 'Loading...'));
+    if (!d.ok) return wrap(h('div', { role: 'alert' },
+      h('div', { style: { fontSize: 14, color: C.muted, lineHeight: 1.7, marginBottom: 12 } }, lead && d.error === 'request_failed' ? 'The weekly challenge is not enabled on the database yet. Run migration_team_practice_loop.sql in the Supabase SQL editor, then reload.' : 'The weekly challenge is not available right now.'),
+      h(Btn, { variant: 'ghost', onClick: () => { setD(null); load(); }, style: { padding: '10px 18px', fontSize: 12 } }, 'TRY AGAIN')));
+    const c = d.challenge;
+    if (!c) return wrap(h('div', { style: { fontSize: 14, color: C.muted, lineHeight: 1.7 } }, 'There is no challenge this week. A new one appears here as soon as it is published.'));
+    const mine = d.my_response;
+    const title = h('div', { style: { ...syne, fontSize: 18, fontWeight: 800, marginBottom: 8 } }, c.title);
+    if (compact) return wrap(h('div', null, title,
+      h('div', { style: { fontSize: 14, color: mine ? '#4CF7C0' : C.muted, marginBottom: 14 } }, mine ? 'You submitted on ' + fmtDate(mine.submitted_at) + '.' : 'About ' + c.time_minutes + ' minutes. You have not submitted yet.'),
+      h(Btn, { onClick: () => go('practice'), variant: mine ? 'ghost' : undefined, style: { padding: '10px 18px', fontSize: 12 } }, mine ? 'VIEW YOUR RESPONSE' : 'OPEN CHALLENGE')));
+    const scenario = h('div', null, title, h('div', { style: { fontSize: 15, lineHeight: 1.8, marginBottom: 6 } }, c.scenario), h('div', { style: { fontSize: 12, color: C.muted, marginBottom: 18 } }, 'About ' + c.time_minutes + ' minutes. Open until ' + fmtDate(c.ends_on) + '.'));
+    const opts = Array.isArray(c.options) ? c.options : [];
+    if (mine) return wrap(h('div', null, scenario,
+      h(Msg, { m: msg }),
+      h('div', { style: { fontSize: 14, color: '#4CF7C0', marginBottom: 12 } }, 'Submitted on ' + fmtDate(mine.submitted_at) + '. Only you can see your answers.'),
+      CHALLENGE_MODES.filter((m) => mine[m[1]]).map((m) => h('div', { key: m[0], style: { marginBottom: 12 } }, h('div', { style: label }, m[3]), h('div', { style: { fontSize: 14, lineHeight: 1.7 } }, mine[m[1]]))),
+      h('div', { style: label }, 'Your recommendation'), h('div', { style: { fontSize: 14, fontWeight: 700, marginBottom: 6 } }, opts[mine.chosen_option] != null ? String(opts[mine.chosen_option]) : ''),
+      h('div', { style: { fontSize: 14, lineHeight: 1.7 } }, mine.reasoning)));
+    const set = (k, v) => setF((x) => Object.assign({}, x, { [k]: v }));
+    const submit = async () => {
+      if (f.option == null) { setMsg({ type: 'error', text: 'Choose the action you recommend.' }); return; }
+      if (!f.reasoning.trim()) { setMsg({ type: 'error', text: 'Explain your reasoning in a sentence or two.' }); return; }
+      setBusy(true); setMsg(null);
+      const r = await rpc('submit_challenge_response', { p_org: org.id, p_challenge: c.id, p_analytical: f.ans_analytical, p_intuitive: f.ans_intuitive, p_associative: f.ans_associative, p_reflective: f.ans_reflective, p_option: f.option, p_reasoning: f.reasoning });
+      setBusy(false);
+      if (r && r.ok) { track('challenge_submitted', { organisation_id: org.id }); setMsg({ type: 'ok', text: 'Saved. Thank you.' }); load(); }
+      else if (r && r.error === 'already_submitted') { setMsg({ type: 'ok', text: 'You have already submitted this challenge.' }); load(); }
+      else setMsg({ type: 'error', text: ERR[r && r.error] || 'Something went wrong. Please try again.' });
+    };
+    return wrap(h('div', null, scenario,
+      CHALLENGE_MODES.map((m) => h('div', { key: m[0], style: { marginBottom: 14 } },
+        h('label', { htmlFor: 'nfc-' + m[0], style: label }, m[3] + ' (optional)'),
+        h('div', { style: { fontSize: 14, marginBottom: 6, lineHeight: 1.6 } }, c[m[2]]),
+        h('textarea', { id: 'nfc-' + m[0], value: f[m[1]], maxLength: 2000, onChange: (e) => set(m[1], e.target.value), style: textareaStyle }))),
+      h('div', { style: label }, 'Decision'),
+      h('div', { style: { fontSize: 14, marginBottom: 8, lineHeight: 1.6 } }, c.decision_prompt),
+      h('div', { role: 'radiogroup', style: { marginBottom: 12 } }, opts.map((o, i) => h('label', { key: i, style: { display: 'flex', gap: 10, alignItems: 'flex-start', padding: '10px 12px', marginBottom: 6, borderRadius: 2, cursor: 'pointer', fontSize: 14, lineHeight: 1.6, border: '1px solid ' + (f.option === i ? C.cyan : C.border) } },
+        h('input', { type: 'radio', name: 'nfc-option', checked: f.option === i, onChange: () => set('option', i), style: { marginTop: 4 } }), h('span', null, String(o))))),
+      h('label', { htmlFor: 'nfc-reasoning', style: label }, 'Your reasoning'),
+      h('textarea', { id: 'nfc-reasoning', value: f.reasoning, maxLength: 2000, onChange: (e) => set('reasoning', e.target.value), style: Object.assign({}, textareaStyle, { marginBottom: 12 }) }),
+      h(Msg, { m: msg }),
+      h(Btn, { onClick: submit, disabled: busy }, busy ? 'SAVING...' : 'SAVE MY RESPONSE'),
+      h('div', { style: { fontSize: 12, color: C.muted, marginTop: 10 } }, 'You can submit once. Your answers are private to you; your team owner sees participation and the overall split of recommendations only.')));
+  }
+
+  function ChallengeSummary({ org }) {
+    const [s, setS] = useState(null);
+    const [tick, setTick] = useState(0);
+    useEffect(() => { let live = true; setS(null); rpc('org_challenge_summary', { p_org: org.id }).then((x) => { if (live) setS(x); }); return () => { live = false; }; }, [org.id, tick]);
+    const shell = (kids) => h('div', { style: card({ marginBottom: 20 }) }, h('div', { style: label }, 'Team participation (owners and admins)'), kids);
+    if (!s) return shell(h('div', { style: { color: C.muted, fontSize: 14 }, role: 'status' }, 'Loading...'));
+    if (!s.ok) return shell(h('div', { role: 'alert' }, h('div', { style: { fontSize: 14, color: C.muted, marginBottom: 12 } }, 'Participation is not available right now.'), h(Btn, { variant: 'ghost', onClick: () => setTick((t) => t + 1), style: { padding: '10px 18px', fontSize: 12 } }, 'TRY AGAIN')));
+    if (!s.challenge) return null;
+    const dist = s.distribution || [];
+    const used = dist.filter((x) => x.count > 0).length;
+    return shell(h('div', null,
+      h('div', { style: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(min(140px,100%),1fr))', gap: 14, marginBottom: 16 } },
+        Stat('Eligible', s.eligible), Stat('Submitted', s.submitted), Stat('Participation', s.participation_pct + '%')),
+      !s.unlocked ? h('div', { style: { fontSize: 14, color: C.muted, lineHeight: 1.7 } }, 'The split of recommendations appears once ' + s.threshold + ' people have submitted, which protects individuals. ' + s.submitted + ' so far.') :
+      h('div', null, h('div', { style: label }, 'What the team recommended'),
+        dist.map((x) => h('div', { key: x.option, style: { display: 'flex', justifyContent: 'space-between', gap: 12, padding: '10px 0', borderBottom: '1px solid ' + C.border, fontSize: 14 } }, h('span', null, x.label), h('span', { style: mono }, String(x.count)))),
+        h('div', { style: { fontSize: 14, lineHeight: 1.7, marginTop: 12 } }, used > 1 ? 'The team is split across ' + used + ' options. Use the discussion to find out why people chose differently.' : 'Everyone who submitted chose the same option. Ask what could make that choice wrong.')),
+      h('div', { style: { fontSize: 12, color: C.muted, marginTop: 12, lineHeight: 1.7 } }, 'Individual answers and written reasoning are never shown to you. Written answers are not analysed automatically: ask people to share their reasoning when you discuss the challenge as a team.')));
+  }
+
+  function DecisionEntry({ org, setView, compact }) {
+    const [d, setD] = useState(null); const [open, setOpen] = useState(null);
+    useEffect(() => { let live = true; setD(null); rpc('org_recent_decisions', { p_org: org.id, p_limit: compact ? 1 : 5 }).then((x) => { if (live) setD(x); }); return () => { live = false; }; }, [org.id, compact]);
+    const list = d && d.ok ? (d.decisions || []) : [];
+    return h('div', { style: card({ marginBottom: 20 }) },
+      h('div', { style: label }, 'Decision room'),
+      h('div', { style: { ...syne, fontSize: 18, fontWeight: 800, marginBottom: 6 } }, 'Have a real decision to make?'),
+      h('div', { style: { fontSize: 14, color: C.muted, lineHeight: 1.7, marginBottom: 14 } }, 'Work through the decision with your team using NeuralFusion\u2019s structured thinking process: facts, signals, alternatives, reflection, then a decision.'),
+      h(Btn, { onClick: () => startTeamDecision(org, setView) }, 'START A TEAM DECISION'),
+      h('div', { style: { marginTop: 18 } },
+        h('div', { style: label }, compact ? 'Most recent team decision' : 'Recent team decisions'),
+        !d ? h('div', { style: { color: C.muted, fontSize: 14 }, role: 'status' }, 'Loading...') :
+        !d.ok ? h('div', { style: { color: C.muted, fontSize: 13, lineHeight: 1.7 }, role: 'alert' }, 'Team decisions are not available right now.') :
+        list.length === 0 ? h('div', { style: { color: C.muted, fontSize: 14, lineHeight: 1.7 } }, 'No team decisions saved yet. When you save one to the team it appears here.') :
+        list.map((x) => h('div', { key: x.id, style: { padding: '10px 0', borderTop: '1px solid ' + C.border } },
+          h('button', { onClick: () => setOpen(open === x.id ? null : x.id), 'aria-expanded': open === x.id, style: { all: 'unset', cursor: 'pointer', display: 'block', width: '100%', fontSize: 14, fontWeight: 700, lineHeight: 1.5, color: C.text } }, x.title || x.decision || 'Decision'),
+          h('div', { style: { ...mono, fontSize: 11, color: C.muted, marginTop: 4 } }, String(x.status || 'open').toUpperCase() + ' \u00b7 ' + fmtDate(x.created_at) + (x.review_date ? ' \u00b7 review ' + fmtDate(x.review_date) : '')),
+          open === x.id ? h('div', { style: { fontSize: 14, lineHeight: 1.7, marginTop: 8 } },
+            x.next_action ? h('div', null, h('strong', null, 'Agreed action: '), x.next_action) : null,
+            x.responsible ? h('div', null, h('strong', null, 'Responsible: '), x.responsible) : null,
+            x.mine ? h('div', { style: { marginTop: 8 } }, h(Btn, { variant: 'ghost', onClick: () => setView('decisions'), style: { padding: '8px 14px', fontSize: 11 } }, 'OPEN IN MY DECISIONS')) : null) : null))));
+  }
+
+  function PracticeTab({ org, role, setView, go }) {
+    const lead = role === 'owner' || role === 'admin';
+    return h('div', null,
+      h(ChallengeCard, { org, role, go }),
+      lead ? h(ChallengeSummary, { org }) : null,
+      h(PracticeCard, { org, go, setView }),
+      h(DecisionEntry, { org, setView }));
+  }
+  function HomeCards({ org, role, go, setView }) {
+    return h('div', null,
+      h(ChallengeCard, { org, role, go, compact: true }),
+      h(PracticeCard, { org, go, setView, compact: true }),
+      h(DecisionEntry, { org, setView, compact: true }));
+  }
+  function TabBar({ tabs, tab, setTab }) {
+    return h('div', { role: 'tablist', style: { display: 'flex', gap: 8, marginBottom: 24, flexWrap: 'wrap' } }, tabs.map(([k, l]) => h('button', { key: k, role: 'tab', 'aria-selected': tab === k, onClick: () => setTab(k), style: { ...mono, fontSize: 11, letterSpacing: 1, padding: '10px 16px', cursor: 'pointer', borderRadius: 2, background: tab === k ? C.cyan : 'transparent', color: tab === k ? C.void : C.muted, border: '1px solid ' + (tab === k ? C.cyan : C.border) } }, l.toUpperCase())));
+  }
+
   function TeamHome({ org, ov, setView, go, role }) {
     return h('div', null,
       h(TeamLinkCard, { org, ov }),
       h(OrgJourney, { org, ov, role, setView, go }),
+      h(HomeCards, { org, role, go, setView }),
       h('div', { style: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(150px,1fr))', gap: 14 } },
         Stat('Seats', ov.seats.used + ' / ' + ov.seats.limit), Stat('Completed', ov.completed), Stat('Awaiting assessment', ov.awaiting_assessment), Stat('Completion rate', ov.completion_rate + '%')));
   }
@@ -5357,12 +5598,13 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
     const [ov, setOv] = useState(null);
     const refresh = async () => setOv(await rpc('org_overview', { p_org: org.id }));
     useEffect(() => { refresh(); }, [org.id]);
-    const tabs = [['home', 'Home'], ['programme', 'Training'], ['results', 'Team Results'], ['team', 'People'], ['billing', 'Plan and Seats']];
+    const tabs = [['home', 'Home'], ['practice', 'Practice'], ['programme', 'Training'], ['results', 'Insights'], ['team', 'People'], ['billing', 'Plan and Seats']];
     if (!ov) return h('div', { style: { color: C.muted } }, 'Loading...');
     if (!ov.ok) return h(Msg, { m: { type: 'error', text: errText(ov) } });
     return h('div', null,
-      h('div', { style: { display: 'flex', gap: 8, marginBottom: 24, flexWrap: 'wrap' } }, tabs.map(([k, l]) => h('button', { key: k, onClick: () => setTab(k), style: { ...mono, fontSize: 11, letterSpacing: 1, padding: '10px 16px', cursor: 'pointer', borderRadius: 2, background: tab === k ? C.cyan : 'transparent', color: tab === k ? C.void : C.muted, border: '1px solid ' + (tab === k ? C.cyan : C.border) } }, l.toUpperCase()))),
+      h(TabBar, { tabs, tab, setTab }),
       tab === 'home' ? h(TeamHome, { org, ov, setView, go: setTab, role: ov.role }) : null,
+      tab === 'practice' ? h(PracticeTab, { org, role: ov.role, setView, go: setTab }) : null,
       tab === 'results' ? h(ResultsTab, { org }) : null,
       tab === 'programme' ? h(ProgrammePanel, { key: org.id, org, role: ov.role, setView, onStart: () => startAssessment(org, setView) }) : null,
       tab === 'team' ? h(TeamTab, { org, role: ov.role, refresh }) : null,
@@ -5488,12 +5730,15 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
 
   function ParticipantPanel({ org, setView }) {
     const [ov, setOv] = useState(null);
+    const [tab, setTab] = useState('home');
     useEffect(() => { rpc('org_overview', { p_org: org.id }).then(setOv); }, [org.id]);
     if (!ov) return h('div', { style: { color: C.muted } }, 'Loading...');
     if (!ov.ok) return h(Msg, { m: { type: 'error', text: errText(ov) } });
     return h('div', null,
-      h(OrgJourney, { org, ov, role: org.role, setView }),
-      h('div', { id: 'nf-train' }, h(ProgrammePanel, { org, role: org.role, setView, onStart: () => startAssessment(org, setView) })),
+      h(TabBar, { tabs: [['home', 'Home'], ['practice', 'Practice'], ['programme', 'Training']], tab, setTab }),
+      tab === 'home' ? h('div', null, h(OrgJourney, { org, ov, role: org.role, setView, go: setTab }), h(HomeCards, { org, role: org.role, go: setTab, setView })) : null,
+      tab === 'practice' ? h(PracticeTab, { org, role: org.role, setView, go: setTab }) : null,
+      tab === 'programme' ? h('div', { id: 'nf-train' }, h(ProgrammePanel, { org, role: org.role, setView, onStart: () => startAssessment(org, setView) })) : null,
       h('div', { style: { fontSize: 12, color: C.muted, marginTop: 16, lineHeight: 1.7 } }, org.name + ' sees aggregate team results and whether you have completed each step. Your individual answers and score are not shown to your organisation.'));
   }
 
@@ -5581,7 +5826,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
         h('div', { style: { display: 'flex', gap: 8, flexWrap: 'wrap' } }, h('input', { type: 'number', min: 2, value: thr, onChange: (e) => setThr(e.target.value), style: Object.assign({}, inputStyle, { width: 120 }) }), h(Btn, { onClick: saveThreshold, style: { padding: '8px 16px' } }, 'SAVE'))));
   }
 
-  window.NF_ORG = { TeamsLanding, OrgPortal, JoinPage, AdminTeamsPanel, initialView, loadMyOrgs, afterCfiSaved, track };
+  window.NF_ORG = { TeamsLanding, OrgPortal, JoinPage, AdminTeamsPanel, initialView, loadMyOrgs, afterCfiSaved, track, getDecisionContext, clearDecisionContext, recommendPractice };
 })();
 
     // ═══ NEURALFUSION_ORG_MODULE_END ═══
