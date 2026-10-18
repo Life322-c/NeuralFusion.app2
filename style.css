@@ -1614,3 +1614,47 @@ a:focus-visible, button:focus-visible, summary:focus-visible, [role="button"]:fo
   outline: 2px solid var(--gold);
   outline-offset: 3px;
 }
+
+/* ═══════════════════════════════════════════════════════════════
+   ADMIN PORTAL: same light look as the CFI assessment
+   (white surfaces, gold accents, Atkinson Hyperlegible).
+   Scoped to .nf-admin so the rest of the app keeps its theme.
+═══════════════════════════════════════════════════════════════ */
+.nf-admin { background:#FFFFFF; color:#111827; font-family:'Atkinson Hyperlegible','Inter',-apple-system,sans-serif; }
+.nf-admin .card,
+.nf-admin .card.bento-shimmer {
+  background:#FFFFFF; border:1px solid #D1D5DB; border-radius:16px;
+  box-shadow:0 1px 3px rgba(17,24,39,0.06);
+  backdrop-filter:none; -webkit-backdrop-filter:none;
+}
+.nf-admin .bento-shimmer::before,
+.nf-admin .bento-shimmer::after { display:none; }
+.nf-admin .btn-primary {
+  background:#8A6D2F; color:#FFFFFF; font-family:inherit; font-size:16px; font-weight:700;
+  letter-spacing:0.02em; text-transform:none; padding:12px 24px; min-height:48px;
+  border-radius:16px; box-shadow:0 2px 8px rgba(138,109,47,0.35);
+}
+.nf-admin .btn-primary::after { display:none; }
+.nf-admin .btn-primary:hover { background:#735A25; box-shadow:0 2px 8px rgba(138,109,47,0.35); transform:none; }
+.nf-admin .btn-outline {
+  background:#FFFFFF; color:#8A6D2F; font-family:inherit; font-size:15px; font-weight:700;
+  letter-spacing:0.02em; text-transform:none; padding:10px 18px; min-height:44px;
+  border:2px solid #C8A95A; border-radius:12px; backdrop-filter:none;
+}
+.nf-admin .btn-outline:hover { background:#FBF3E3; border-color:#8A6D2F; transform:none; }
+.nf-admin .btn-ghost {
+  background:transparent; color:#4B5563; font-family:inherit; font-size:15px; font-weight:600;
+  padding:10px 18px; min-height:44px; border:1px solid #D1D5DB; border-radius:12px;
+}
+.nf-admin .btn-ghost:hover { background:#F9FAFB; color:#111827; }
+.nf-admin input, .nf-admin select, .nf-admin textarea {
+  background:#FFFFFF; color:#111827; font-family:inherit; font-size:15px;
+  padding:12px 14px; border:2px solid #D1D5DB; border-radius:12px;
+}
+.nf-admin input:focus, .nf-admin select:focus, .nf-admin textarea:focus {
+  outline:none; border-color:#8A6D2F; box-shadow:0 0 0 3px rgba(138,109,47,0.12);
+}
+.nf-admin ::placeholder { color:#6B7280; opacity:1; }
+.nf-admin button:focus-visible { outline:3px solid #8A6D2F; outline-offset:3px; }
+.nf-admin ::-webkit-scrollbar-thumb { background:#D1D5DB; }
+@media (prefers-reduced-motion: reduce) { .nf-admin * { animation:none !important; transition:none !important; } }
