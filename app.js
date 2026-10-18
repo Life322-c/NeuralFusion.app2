@@ -4589,7 +4589,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
                               }}, 'Revoke')))
                         )))))
                 ), tab === 'organisations' && (
-                  React.createElement(window.NF_ORG.AdminTeamsPanel, null)
+                  React.createElement(window.NF_ORG.AdminTeamsPanel, {onChanged: loadAdminData})
                 ), tab === 'pricing' && (
                   React.createElement("div", {style: { display:'grid', gridTemplateColumns:'repeat(auto-fit,minmax(min(400px,100%),1fr))', gap:20 }}, React.createElement("div", {className: "card", style: { padding:'40px', position:'relative', overflow:'hidden', borderColor:'#C8A95A' }}, React.createElement("div", {style: { ...mono, fontSize:13, letterSpacing:'0.04em', color:C.cyan, marginBottom:16 }}, 'PRO plan pricing'), React.createElement("div", {style: { ...syne, fontSize:18, fontWeight:800, color:C.text, marginBottom:8, overflowWrap:'break-word', minWidth:0}}, 'Edit Pro Price'), React.createElement("div", {style: { fontSize:15, color:C.muted, marginBottom:28, lineHeight:1.7 }}, 'Updates the price shown on the platform and passed to Paystack for payment processing.'), React.createElement("div", {style: { marginBottom:20 }}, React.createElement("div", {style: { ...mono, fontSize:12, letterSpacing:'0.04em', color:C.muted, marginBottom:8 }}, 'CURRENT PRICE (NAIRA)'), React.createElement("div", {style: { ...syne, fontSize:16, fontWeight:800, color:C.cyan, lineHeight:1.2, marginBottom:4, overflowWrap:'break-word', minWidth:0}}, `₦${(proPrice/100).toLocaleString()}`), React.createElement("div", {style: { ...mono, fontSize:12, color:C.muted }}, '=', proPrice.toLocaleString(), 'kobo')), React.createElement("div", {style: { marginBottom:20 }}, React.createElement("div", {style: { ...mono, fontSize:12, letterSpacing:'0.04em', color:C.muted, marginBottom:8 }}, 'NEW PRICE (₦)'), React.createElement("div", {style: { display:'flex', gap:12, alignItems:'center' }}, React.createElement("div", {style: { position:'relative', flex:1 }}, React.createElement("div", {style: { position:'absolute', left:16, top:'50%', transform:'translateY(-50%)', ...syne, fontSize:16, fontWeight:700, color:C.muted, overflowWrap:'break-word', minWidth:0}}, '₦'), React.createElement("input", {type: "number", value: priceInput, onChange: e => setPriceInput(e.target.value), style: { paddingLeft:36, fontSize:16, ...syne, fontWeight:700, overflowWrap:'break-word', minWidth:0}, min: "100", step: "100"})), React.createElement("button", {className: "btn-primary", onClick: savePrice, style: { whiteSpace:'nowrap' }}, priceSaved ? '✓ Saved!' : 'Save Price'))), React.createElement("div", {style: { padding:'20px', background:C.deep, borderRadius:8, border:`1px solid ${C.border}` }}, React.createElement("div", {style: { ...mono, fontSize:13, letterSpacing:'0.04em', color:C.muted, marginBottom:8 }}, 'Paystack integration'), React.createElement("div", {style: { fontSize:15, color:C.muted, lineHeight:1.7 }}, 'Live key:', React.createElement("span", {style: { color:C.cyan, fontFamily:'monospace' }}, 'loaded from platform_settings at runtime'), React.createElement("br", null), 'Currency: NGN · Gateway: Paystack inline · Verified server-side'))), React.createElement("div", {className: "card", style: { padding:'40px', position:'relative', overflow:'hidden', borderColor:'#C8A95A', gridColumn:'1 / -1' }}, React.createElement("div", {style: { ...mono, fontSize:13, letterSpacing:'0.04em', color:AC.goldDark, marginBottom:16 }}, 'Payment gateway'), React.createElement("div", {style: { ...syne, fontSize:18, fontWeight:800, color:C.text, marginBottom:8, overflowWrap:'break-word', minWidth:0}}, 'Paystack Public Key'), React.createElement("div", {style: { fontSize:15, color:C.muted, marginBottom:28, lineHeight:1.7 }}, 'Your Paystack public key (pk_live_... or pk_test_...). Stored in platform_settings and loaded at runtime, so no redeploy is needed.'), React.createElement("div", {style: { display:'flex', gap:12, alignItems:'center' }}, React.createElement("input", {type: "text", value: paystackKeyInput, onChange: e => setPaystackKeyInput(e.target.value), placeholder: 'pk_live_...', style: { flex:1, fontSize:15, fontFamily:'monospace', letterSpacing:'0.02em', overflowWrap:'break-word', minWidth:0 }}), React.createElement("button", {className: "btn-primary", onClick: savePaystackKey, style: { whiteSpace:'nowrap' }}, keySaved ? '✓ Saved!' : 'Save Key')), paystackKeyInput && React.createElement("div", {style: { marginTop:16, padding:'12px 16px', background:C.deep, borderRadius:8, border:`1px solid ${C.border}`, ...mono, fontSize:13, color:C.muted }}, 'Active: ', React.createElement("span", {style: { color:AC.goldDark }}, paystackKeyInput.slice(0,12), '...', paystackKeyInput.slice(-6)))))
                                 ))
@@ -5105,7 +5105,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
   const ERR = {
     not_signed_in: 'Please sign in first.', not_authorised: 'You do not have permission to do that.',
     invalid_org_name: 'Enter a team name (2 to 120 characters).', invalid_seats: 'Enter a seat count between 1 and 100000.',
-    organisation_inactive: 'This team is not active.', seats_below_used: 'Seat limit cannot be lower than the seats already in use.',
+    organisation_inactive: 'This team is not active.', not_found: 'That team no longer exists.', seats_below_used: 'Seat limit cannot be lower than the seats already in use.',
     network: 'Network error. Please try again.', server_error: 'Something went wrong. Please try again.', request_failed: 'Something went wrong. Please try again.',
     invalid_team_link: 'This team link is not valid or was reset. Ask your team owner for the current link.',
     team_full: 'This team has no seats left. Ask your team owner to add seats.',
@@ -5892,7 +5892,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
   // ADMIN > TEAMS: seats, on/off and report threshold (platform admin only;
   // enforced by RLS and each RPC's own is_admin check)
   // ====================================================================
-  function AdminTeamsPanel() {
+  function AdminTeamsPanel({ onChanged }) {
     const [orgs, setOrgs] = useState(null); const [msg, setMsg] = useState(null); const [thr, setThr] = useState('5');
     const load = async () => {
       const r = await rpc('admin_list_organisations');
@@ -5911,6 +5911,19 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
       if (!data || !data.ok) { setMsg({ type: 'error', text: errText(data) }); return; }
       setMsg({ type: 'ok', text: 'Seat limit updated.' }); load();
     };
+    // Permanently deletes a team, its members/join link and every CFI result linked to the team.
+    // Server-side: admin_delete_organisation (platform admin only). Requires typing the team name.
+    const deleteTeam = async (o) => {
+      const typed = window.prompt('This permanently deletes the team "' + o.name + '", its members and join link, and ALL CFI results linked to this team. This cannot be undone.\n\nType the team name to confirm:');
+      if (typed === null) return;
+      if (typed.trim() !== String(o.name).trim()) { setMsg({ type: 'error', text: 'Team name did not match. Nothing was deleted.' }); return; }
+      const { data, error } = await sb.rpc('admin_delete_organisation', { p_org: o.id, p_delete_results: true });
+      if (error) { console.error('[admin_delete_organisation]', error); setMsg({ type: 'error', text: ERR.server_error }); return; }
+      if (!data || !data.ok) { setMsg({ type: 'error', text: errText(data) }); return; }
+      const n = data.deleted_results != null ? data.deleted_results : 0;
+      setMsg({ type: 'ok', text: 'Team deleted, with ' + n + ' CFI result' + (n === 1 ? '' : 's') + '.' });
+      load(); if (typeof onChanged === 'function') onChanged();
+    };
     const saveThreshold = async () => {
       const { error } = await sb.from('platform_settings').upsert({ key: 'org_min_report_threshold', value: Math.max(2, parseInt(thr) || 5) }, { onConflict: 'key' });
       setMsg(error ? { type: 'error', text: ERR.server_error } : { type: 'ok', text: 'Saved.' });
@@ -5921,11 +5934,12 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
       h('div', { style: card({ marginBottom: 20, overflowX: 'auto' }) }, h('div', { style: label }, 'Teams (' + list.length + ')'),
         orgs === null ? h('div', { style: { color: C.muted, fontSize: 15 } }, 'Loading...') :
         list.length === 0 ? h('div', { style: { color: C.muted, fontSize: 15 } }, 'No teams yet. Teams appear here as people create them.') :
-        h('table', { style: { width: '100%', borderCollapse: 'collapse', color: C.text } }, h('thead', null, h('tr', null, ['Team', 'Owner', 'Seats used', 'Completed', 'Created', 'Seat limit', 'Active'].map((x) => h('th', { key: x, style: Object.assign({}, cell, { fontWeight: 700, color: C.muted, textAlign: 'left' }) }, x)))),
+        h('table', { style: { width: '100%', borderCollapse: 'collapse', color: C.text } }, h('thead', null, h('tr', null, ['Team', 'Owner', 'Seats used', 'Completed', 'Created', 'Seat limit', 'Active', 'Delete'].map((x) => h('th', { key: x, style: Object.assign({}, cell, { fontWeight: 700, color: C.muted, textAlign: 'left' }) }, x)))),
           h('tbody', null, list.map((o) => h('tr', { key: o.id },
             [o.name, o.owner_email || 'n/a', (o.active_members != null ? o.active_members : 'n/a') + ' / ' + o.seat_limit, o.completed != null ? o.completed : 'n/a', o.created_at ? new Date(o.created_at).toLocaleDateString() : 'n/a'].map((v, i) => h('td', { key: i, style: cell }, String(v))),
             h('td', { style: cell }, h('button', { onClick: () => editSeats(o), style: { fontFamily: AC.font, fontSize: 14, fontWeight: 700, background: '#FFFFFF', border: '1px solid ' + C.border, color: C.cyan, padding: '6px 12px', borderRadius: 8, cursor: 'pointer' } }, 'Edit')),
-            h('td', { style: cell }, h('button', { onClick: async () => { await rpc('admin_set_org_active', { p_org: o.id, p_active: !o.is_active }); load(); }, style: { fontFamily: AC.font, fontSize: 14, fontWeight: 700, background: '#FFFFFF', border: '1px solid ' + C.border, color: o.is_active ? AC.success : AC.error, padding: '6px 12px', borderRadius: 8, cursor: 'pointer' } }, o.is_active ? 'On' : 'Off'))))))),
+            h('td', { style: cell }, h('button', { onClick: async () => { await rpc('admin_set_org_active', { p_org: o.id, p_active: !o.is_active }); load(); }, style: { fontFamily: AC.font, fontSize: 14, fontWeight: 700, background: '#FFFFFF', border: '1px solid ' + C.border, color: o.is_active ? AC.success : AC.error, padding: '6px 12px', borderRadius: 8, cursor: 'pointer' } }, o.is_active ? 'On' : 'Off')),
+            h('td', { style: cell }, h('button', { onClick: () => deleteTeam(o), style: { fontFamily: AC.font, fontSize: 14, fontWeight: 700, background: AC.errorTint, border: '1px solid #FCA5A5', color: AC.error, padding: '6px 12px', borderRadius: 8, cursor: 'pointer' } }, 'Delete team'))))))),
       h('div', { style: card() }, h('div', { style: label }, 'Minimum completions before aggregate team results are shown'),
         h('div', { style: { display: 'flex', gap: 8, flexWrap: 'wrap' } }, h('input', { type: 'number', min: 2, value: thr, onChange: (e) => setThr(e.target.value), style: Object.assign({}, inputStyle, { width: 120 }) }), h(Btn, { onClick: saveThreshold, style: { padding: '8px 16px' } }, 'SAVE'))));
   }
@@ -5945,9 +5959,9 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
   }
   const guard = (Comp) => function Guarded(props) { return h(PortalBoundary, null, h(Comp, props)); };
   // The admin screen shares the light CFI look; the teams panel renders directly on it.
-  function AdminTeamsFrame() {
+  function AdminTeamsFrame(props) {
     useEffect(ensurePortalStyles, []);
-    return h('div', { className: 'nf-portal', style: { background: 'transparent', color: AC.text, padding: 0, fontFamily: AC.font, minHeight: 0 } }, h(AdminTeamsPanel));
+    return h('div', { className: 'nf-portal', style: { background: 'transparent', color: AC.text, padding: 0, fontFamily: AC.font, minHeight: 0 } }, h(AdminTeamsPanel, { onChanged: props && props.onChanged }));
   }
 
   window.NF_ORG = { TeamsLanding: guard(TeamsLanding), OrgPortal: guard(OrgPortal), JoinPage: guard(JoinPage), AdminTeamsPanel: guard(AdminTeamsFrame), initialView, loadMyOrgs, afterCfiSaved, track, getDecisionContext, clearDecisionContext, recommendPractice };
