@@ -5103,6 +5103,30 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
     '&body=' + encodeURIComponent('Organisation:\nCountry:\nApproximate team size:\nWhat you want to achieve:\n');
 
 
+  // ---------- Team packages (USD per month; billed manually, see the invoice) ----------
+  const TEAM_PACKAGES = [
+    { seats: 10, price: 600,  per: 60, fit: 'A leadership team or a pilot' },
+    { seats: 25, price: 800,  per: 32, fit: 'A department or several teams' },
+    { seats: 50, price: 1000, per: 20, fit: 'A large team or multiple departments' },
+  ];
+  function packageMail(pkg, teamName) {
+    return 'mailto:' + FOUNDER_EMAIL + '?subject=' + encodeURIComponent('Team package: ' + pkg.seats + ' seats') +
+      '&body=' + encodeURIComponent('Team name: ' + (teamName || '') + '\nPackage: ' + pkg.seats + ' seats, $' + pkg.price + ' per month\nContact name:\nCountry:\n');
+  }
+  function TeamPackages({ teamName }) {
+    return h('div', { key: 'pricing', style: { marginBottom: 56 } },
+      h('div', { style: { ...mono, fontSize: 11, letterSpacing: 2, color: C.cyan, marginBottom: 12 } }, 'PRICING'),
+      h('div', { style: { fontSize: 14, color: C.muted, lineHeight: 1.7, marginBottom: 20 } }, 'One seat is one person. Prices are in US dollars, billed monthly. Create your team first and try it with the starter seats, then pick a package when you need more.'),
+      h('div', { style: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(220px,1fr))', gap: 16, marginBottom: 16 } },
+        TEAM_PACKAGES.map((p) => h('div', { key: p.seats, style: card() },
+          h('div', { style: { ...syne, fontSize: 18, fontWeight: 800, marginBottom: 4 } }, p.seats + ' seats'),
+          h('div', { style: { ...syne, fontSize: 28, fontWeight: 800, color: C.cyan } }, '$' + p.price.toLocaleString(), h('span', { style: { fontSize: 13, color: C.muted, fontWeight: 500 } }, ' / month')),
+          h('div', { style: { fontSize: 13, color: C.muted, margin: '6px 0 12px' } }, '$' + p.per + ' per seat per month'),
+          h('div', { style: { fontSize: 13, color: C.muted, lineHeight: 1.6, marginBottom: 16 } }, 'Best for: ' + p.fit),
+          h(LinkBtn, { href: packageMail(p, teamName), onClick: () => track('team_package_requested', { seats: p.seats }) }, 'REQUEST THIS PACKAGE')))),
+      h('div', { style: { fontSize: 12, color: C.muted, lineHeight: 1.7 } }, 'We email you an invoice with payment details. Packages renew monthly, you can cancel with 30 days\u2019 notice, and monthly payments are not refundable. More than 50 seats? ', h('a', { href: TEAM_MAILTO, style: { color: C.cyan } }, 'Email us for a custom price'), '.'));
+  }
+
   function TeamsFAQ() {
     nfjEnsureStyles();
     const items = [
@@ -5111,7 +5135,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
       ['What does the CFI measure, and what does it not?', 'It measures how consistently your four ways of thinking (analytical, intuitive, associative, reflective) work together, and your self-reported steadiness under pressure, on a 13 to 65 scale where lower means better coordinated. It does not measure intelligence, personality, health or job performance.'],
       ['What will I see as the team owner?', 'Who has completed what, and aggregate team patterns once enough people have completed the CFI. Individual profiles stay private to each person.'],
       ['Can we measure development over time?', 'Yes. After the training, each person retakes the CFI. If they choose to share the retest, the team before-and-after appears under Team Results once enough people have shared.'],
-      ['What if we need more seats?', 'Every new team starts with a starter number of seats. For more seats, email the founder from the Plan and Seats tab.'],
+      ['What if we need more seats?', 'Every new team starts with a few starter seats so you can try it. When you need more, pick a package (10, 25 or 50 seats) from the pricing section or the Plan and Seats tab.'],
     ];
     return h('div', { key: 'faq', style: { marginBottom: 56 } },
       h('div', { style: { ...mono, fontSize: 12, letterSpacing: 2, color: C.cyan, marginBottom: 20 } }, 'QUESTIONS'),
@@ -5222,9 +5246,10 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
           step(1, 'Create your team', 'Name your team. You are the owner and see everything in one dashboard.'),
           step(2, 'Share one link', 'Copy it or send it on WhatsApp. People sign up and land straight in the assessment.'),
           step(3, 'Assess, train, retake', 'Each person takes the CFI, does the five lessons, then retakes it. You see team results as they come in.'))),
+      h(TeamPackages, { key: 'pk', teamName: '' }),
       TeamsSampleReport(),
       TeamsFAQ(),
-      h('div', { key: 'more', style: { textAlign: 'center', fontSize: 13, color: C.muted, lineHeight: 1.7 } }, 'Need more seats than the starter team? ', h('a', { href: TEAM_MAILTO, onClick: () => track('contact_founder_clicked'), style: { color: C.cyan } }, 'Email the founder'), '.'),
+      h('div', { key: 'more', style: { textAlign: 'center', fontSize: 13, color: C.muted, lineHeight: 1.7 } }, 'Questions about pricing or a custom plan? ', h('a', { href: TEAM_MAILTO, onClick: () => track('contact_founder_clicked'), style: { color: C.cyan } }, 'Email the founder'), '.'),
     ]);
   }
 
@@ -5423,9 +5448,8 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
       h('div', { style: card({ marginBottom: 20 }) }, h('div', { style: label }, 'Your plan'),
         row('Organisation', org.name), row('Plan', (ov.plan && ov.plan.name) || 'Team'), row('Seats', ov.seats.limit), row('Used seats', ov.seats.used), row('Remaining seats', ov.seats.remaining),
         row('Created', ov.purchase_date ? new Date(ov.purchase_date).toLocaleDateString() : 'n/a')),
-      h('div', { style: card() }, h('div', { style: label }, 'Need more seats?'),
-        h('div', { style: { fontSize: 14, color: C.muted, lineHeight: 1.7, marginBottom: 16 } }, 'Every team starts with a starter number of seats. Email the founder with your team name and how many seats you need, and the limit will be updated for you.'),
-        h(LinkBtn, { href: seatMail }, 'REQUEST MORE SEATS')));
+      h(TeamPackages, { teamName: org.name }),
+      h('div', { style: { fontSize: 13, color: C.muted, lineHeight: 1.7 } }, 'Already paid or need a different number of seats? ', h('a', { href: seatMail, style: { color: C.cyan } }, 'Email us'), ' with your team name and we will update your seat limit.'));
   }
 
   function ProgrammePanel({ org, role, setView, onStart }) {
