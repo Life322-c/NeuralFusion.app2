@@ -1932,15 +1932,15 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
     .nf-home .nf-home-tile-btn:hover { border-color:${H.goldDeep}; }
   `);
   const steps = [
-    ['1', 'Take the test', 'Answer 13 quick questions. It takes about 4 minutes.'],
-    ['2', 'See your result', 'Find out how you tend to think, in plain words.'],
-    ['3', 'Learn and practise', 'Short lessons help you think and decide better. Take the test again later to see your progress.'],
+    ['01', 'Take the test', '13 quick questions about how you approach situations and decisions.'],
+    ['02', 'See your result', 'Understand your thinking patterns and where your thinking may become fragmented.'],
+    ['03', 'Learn and practise', 'Use short lessons and exercises to build stronger thinking habits.'],
   ];
   const ways = [
-    ['Logic and facts', 'Weighing evidence and working things out step by step.'],
-    ['Gut feeling', 'Sensing what feels right before you can explain why.'],
-    ['Connecting ideas', 'Linking things that do not seem related to find new answers.'],
-    ['Stepping back', 'Pausing to look at the bigger picture and what really matters.'],
+    ['Logic & facts', 'Analytical'],
+    ['Gut feeling', 'Intuitive'],
+    ['Connecting ideas', 'Associative'],
+    ['Stepping back', 'Reflective'],
   ];
   const faq = [
     ['Is this a medical test or a personality test?', 'No. It is not a diagnosis, a personality label or an intelligence test. It shows your thinking habits today, so you can improve them.'],
@@ -1975,10 +1975,11 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
   // ---------- Signed out: what it is, one button ----------
   return E("div", { className: "nf-home", style: { background: H.bg, color: H.text, paddingTop: 60 } }, styles,
     E("div", { style: { ...wrap, padding: '72px 24px 72px', textAlign: 'center' } },
+      E("div", { style: { ...hMono, fontSize: 12, letterSpacing: '0.18em', color: H.goldDeep, marginBottom: 16 } }, 'YOU ARE THE INTELLIGENCE.'),
       E("h1", { style: { ...hDisplay, fontWeight: 600, fontSize: 'clamp(34px,6vw,56px)', lineHeight: 1.08, letterSpacing: '-0.02em', color: H.ink, margin: '0 0 20px' } }, 'Understand how you think. Then think better.'),
-      E("p", { style: { ...para, fontSize: 18, maxWidth: 560, margin: '0 auto 32px' } }, 'A free 4-minute test shows how your mind works. Short lessons help you think more clearly and make better decisions.'),
+      E("p", { style: { ...para, fontSize: 18, maxWidth: 560, margin: '0 auto 32px' } }, 'A free 4-minute assessment helps you understand your thinking patterns today. Short lessons help you think more clearly and make better decisions.'),
       E("button", { className: "nf-home-cta-primary", onClick: () => setView('cfi') }, 'Take the free test'),
-      E("p", { style: { ...para, fontSize: 14, color: H.faint, marginTop: 16 } }, '13 questions · about 4 minutes · free account to save your result')),
+      E("p", { style: { ...para, fontSize: 14, color: H.faint, marginTop: 16 } }, '13 questions \u00b7 About 4 minutes \u00b7 Free account to save your result')),
     section([
       E("h2", { key: 'h', style: { ...h2, textAlign: 'center', marginBottom: 32 } }, 'How it works'),
       E("div", { key: 'g', className: "nf-home-grid" }, steps.map(([n, title, text]) => E("div", { key: n, style: tile },
@@ -1987,8 +1988,8 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
     ], true),
     section([
       E("h2", { key: 'h', style: h2 }, 'Four ways of thinking'),
-      E("p", { key: 'p', style: { ...para, marginBottom: 28 } }, 'Most people lean on one or two. The test shows how well all four work together for you.'),
-      E("div", { key: 'g', className: "nf-home-grid-4" }, ways.map(([title, text]) => E("div", { key: title, style: tile }, E("div", { style: tileTitle }, title), E("p", { style: { ...para, fontSize: 14 } }, text))))
+      E("p", { key: 'p', style: { ...para, marginBottom: 28 } }, 'Most people naturally rely on some ways of thinking more than others. NeuralFusion helps you understand how yours work together.'),
+      E("div", { key: 'g', className: "nf-home-grid-4" }, ways.map(([title, framework]) => E("div", { key: title, style: tile }, E("div", { style: tileTitle }, title), E("div", { style: { ...hMono, fontSize: 12, letterSpacing: '0.08em', color: H.faint } }, framework))))
     ]),
     section([
       E("h2", { key: 'h', style: h2 }, 'Common questions'),
@@ -1996,8 +1997,8 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
     ], true),
     section([
       E("div", { key: 'c', style: { textAlign: 'center' } },
-        E("h2", { style: h2 }, 'Want to do this with your team?'),
-        E("p", { style: { ...para, maxWidth: 520, margin: '0 auto 24px' } }, 'Create a team, share one link, and everyone takes the test and lessons together. You see how the team is doing, never anyone\u2019s personal answers.'),
+        E("h2", { style: h2 }, 'Bring NeuralFusion to your team.'),
+        E("p", { style: { ...para, maxWidth: 520, margin: '0 auto 24px' } }, 'Help your team understand how they think, identify patterns that affect decision-making, and build stronger thinking habits together.'),
         E("div", { style: { display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap' } },
           E("button", { className: "nf-home-cta-outline", onClick: () => setView('teams') }, 'Create a team'),
           E("button", { className: "nf-home-cta-primary", onClick: () => setView('cfi') }, 'Take the free test')))
