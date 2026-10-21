@@ -1930,6 +1930,13 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
     .nf-home details p { margin:0 0 16px; }
     .nf-home .nf-home-tile-btn { cursor:pointer; font:inherit; color:inherit; width:100%; }
     .nf-home .nf-home-tile-btn:hover { border-color:${H.goldDeep}; }
+    .nf-home .nf-home-list { list-style:none; margin:0; padding:0; display:grid; gap:12px; }
+    .nf-home .nf-home-list li { font-family:'Satoshi','DM Sans',sans-serif; font-size:16px; line-height:1.6; color:${H.text}; padding:14px 18px; border-left:2px solid ${H.goldLine}; background:${C.surface}; border-radius:0 6px 6px 0; }
+    .nf-home .nf-home-steps { display:grid; grid-template-columns:repeat(4, 1fr); gap:16px; }
+    @media (max-width: 900px) { .nf-home .nf-home-steps { grid-template-columns:repeat(2, 1fr); } }
+    @media (max-width: 560px) { .nf-home .nf-home-steps { grid-template-columns:1fr; } }
+    .nf-home .nf-home-quote { border-left:2px solid ${H.goldLine}; padding:4px 0 4px 20px; }
+    .nf-home a.nf-home-link { color:${H.goldDeep}; text-decoration:underline; }
   `);
   const steps = [
     ['01', 'Take the test', '13 quick questions about how you approach situations and decisions.'],
@@ -1972,39 +1979,167 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
           E("button", { className: "nf-home-tile-btn", style: tile, onClick: () => setView('analytics') }, E("div", { style: tileTitle }, 'My progress'), E("div", { style: { ...para, fontSize: 14 } }, 'See how your thinking changes over time.')))));
   }
 
-  // ---------- Signed out: what it is, one button ----------
+  // ---------- Signed out: the full homepage ----------
+  const go = () => setView('cfi');
+  const list = (items) => E("ul", { className: "nf-home-list" }, items.map(t => E("li", { key: t }, t)));
+  const centered = { textAlign: 'center' };
+  const symptoms = [
+    'You research a decision for days and still can\u2019t make it.',
+    'You ask AI first and your own head second.',
+    'You know what to do, then freeze when the pressure comes.',
+    'You finish the day tired and can\u2019t say what you actually figured out.',
+    'You jump between ideas and finish none of them.',
+  ];
+  const costs = [
+    ['Decisions that look fine at the time', 'and turn out wrong later.'],
+    ['Decisions that come too late', 'so the opportunity is gone.'],
+    ['Meetings that go in circles', 'because nobody is thinking the same way.'],
+    ['Tiredness from thinking hard', 'without thinking well.'],
+  ];
+  const flow = [
+    ['1', 'Take the test', 'The CFI maps how you think across four modes.'],
+    ['2', 'See your pattern', 'You get your profile and where your thinking breaks down.'],
+    ['3', 'Train it', 'Work a real decision through the Core Loop: break it down, check your gut, widen the options, step back, then land on one position.'],
+    ['4', 'Check your progress', 'Retake the test later. Clarity Delta shows what changed.'],
+  ];
+  const modes = [
+    ['Analytical', 'Facts, logic and evidence.'],
+    ['Intuitive', 'Gut feel and fast pattern recognition.'],
+    ['Associative', 'Connecting ideas that don\u2019t obviously belong together.'],
+    ['Reflective', 'Looking back at your assumptions, your emotions and what it all means.'],
+  ];
+  const gets = [
+    'Your cognitive profile',
+    'Which thinking modes you rely on and which you avoid',
+    'Where your thinking fragments under pressure',
+    'A starting point to measure against later',
+  ];
+  const audience = [
+    ['Students and graduates', 'who want to decide better, not just study more.'],
+    ['Founders and professionals', 'making calls with incomplete information.'],
+    ['Anyone whose thinking feels scattered', 'and wants to know why.'],
+    ['Coaches and trainers', 'who want a structured way to work on thinking.'],
+  ];
+  const trust = [
+    'The scoring method is public. You can read exactly how the CFI works, and where it falls short, on the methodology page.',
+    'The instrument went through an expert content-validity review.',
+    'We say plainly what it is not. It is not a diagnosis, and Clarity Delta is a NeuralFusion measure, not a clinical one.',
+  ];
+  const faqFull = [
+    ['Is this a medical test or a personality test?', 'No. It is not a diagnosis, a personality label or an intelligence test. It shows your thinking habits today, so you can improve them.'],
+    ['How long does it take?', '13 questions, about 4 minutes.'],
+    ['Is it free?', 'The test and the first lesson are free. The full set of lessons is a one-time payment. Teams can create a team, share one link, and take the test and lessons together.'],
+    ['Is this an AI chatbot?', 'No. NeuralFusion trains your own thinking. It does not think for you.'],
+    ['Do I need an account?', 'Yes, a free one. It keeps your result safe so you can come back, take the test again and see how you have improved.'],
+    ['What happens to my data?', null],
+  ];
+  const card = (title, text, key) => E("div", { key: key || title, style: tile }, E("div", { style: tileTitle }, title), E("p", { style: { ...para, fontSize: 14 } }, text));
+
   return E("div", { className: "nf-home", style: { background: H.bg, color: H.text, paddingTop: 60 } }, styles,
-    E("div", { style: { ...wrap, padding: '72px 24px 72px', textAlign: 'center' } },
-      E("div", { style: { ...hMono, fontSize: 12, letterSpacing: '0.18em', color: H.goldDeep, marginBottom: 16 } }, 'YOU ARE THE INTELLIGENCE.'),
-      E("h1", { style: { ...hDisplay, fontWeight: 600, fontSize: 'clamp(34px,6vw,56px)', lineHeight: 1.08, letterSpacing: '-0.02em', color: H.ink, margin: '0 0 20px' } }, 'Understand how you think. Then think better.'),
-      E("p", { style: { ...para, fontSize: 18, maxWidth: 560, margin: '0 auto 32px' } }, 'A free 4-minute assessment helps you understand your thinking patterns today. Short lessons help you think more clearly and make better decisions.'),
-      E("button", { className: "nf-home-cta-primary", onClick: () => setView('cfi') }, 'Take the free test'),
-      E("p", { style: { ...para, fontSize: 14, color: H.faint, marginTop: 16 } }, '13 questions \u00b7 About 4 minutes \u00b7 Free account to save your result')),
+
+    // Hero
+    E("div", { style: { ...wrap, padding: '80px 24px 72px', ...centered } },
+      E("h1", { style: { ...hDisplay, fontWeight: 600, fontSize: 'clamp(34px,6vw,56px)', lineHeight: 1.08, letterSpacing: '-0.02em', color: H.ink, margin: '0 0 20px' } }, 'Why is it so hard to think clearly lately?'),
+      E("p", { style: { ...para, fontSize: 18, maxWidth: 580, margin: '0 auto 32px' } }, 'Too much input, too many decisions, and AI answering before you\u2019ve finished the question. NeuralFusion shows you how you actually think, and trains the parts that are weak.'),
+      E("button", { className: "nf-home-cta-primary", onClick: go }, 'Take the free test'),
+      E("p", { style: { ...para, fontSize: 14, color: H.faint, marginTop: 16 } }, '13 questions, about 4 minutes. Free account to save your result.')),
+
+    // Sound familiar
     section([
-      E("h2", { key: 'h', style: { ...h2, textAlign: 'center', marginBottom: 32 } }, 'How it works'),
-      E("div", { key: 'g', className: "nf-home-grid" }, steps.map(([n, title, text]) => E("div", { key: n, style: tile },
-        E("div", { style: { ...hMono, fontSize: 12, color: H.goldDeep, marginBottom: 10 } }, 'STEP ' + n),
-        E("div", { style: tileTitle }, title), E("p", { style: { ...para, fontSize: 14 } }, text))))
+      E("h2", { key: 'h', style: h2 }, 'Sound familiar?'),
+      E("div", { key: 'l', style: { marginTop: 20 } }, list(symptoms)),
+      E("p", { key: 'p', style: { ...para, marginTop: 20 } }, 'If you nodded at two or more, keep reading.')
     ], true),
+
+    // What is going on
     section([
-      E("h2", { key: 'h', style: h2 }, 'Four ways of thinking'),
-      E("p", { key: 'p', style: { ...para, marginBottom: 28 } }, 'Most people naturally rely on some ways of thinking more than others. NeuralFusion helps you understand how yours work together.'),
-      E("div", { key: 'g', className: "nf-home-grid-4" }, ways.map(([title, framework]) => E("div", { key: title, style: tile }, E("div", { style: tileTitle }, title), E("div", { style: { ...hMono, fontSize: 12, letterSpacing: '0.08em', color: H.faint } }, framework))))
+      E("h2", { key: 'h', style: h2 }, 'What is going on'),
+      E("p", { key: 'a', style: { ...para, marginBottom: 14 } }, 'Most people assume this is a focus problem or a discipline problem. It usually isn\u2019t. We call it cognitive fragmentation: your thinking splits into pieces that don\u2019t talk to each other.'),
+      E("p", { key: 'b', style: { ...para, marginBottom: 14 } }, 'Some people overanalyze. Some run on gut feeling only. Some drown in ideas. Some replay everything and never act.'),
+      E("p", { key: 'c', style: para }, 'It is common, it is not a medical condition, and it can be measured.')
     ]),
+
+    // What it costs
+    section([
+      E("h2", { key: 'h', style: h2 }, 'What it costs you'),
+      E("div", { key: 'g', className: "nf-home-grid-4", style: { marginTop: 20 } }, costs.map(([t, x]) => card(t, x)))
+    ], true),
+
+    // How it works
+    section([
+      E("h2", { key: 'h', style: { ...h2, marginBottom: 28 } }, 'How NeuralFusion works'),
+      E("div", { key: 'g', className: "nf-home-steps" }, flow.map(([n, t, x]) => E("div", { key: n, style: tile },
+        E("div", { style: { ...hMono, fontSize: 13, color: H.goldDeep, marginBottom: 10 } }, n),
+        E("div", { style: tileTitle }, t), E("p", { style: { ...para, fontSize: 14 } }, x))))
+    ]),
+
+    // Four modes
+    section([
+      E("h2", { key: 'h', style: h2 }, 'The four ways you think'),
+      E("p", { key: 'p', style: { ...para, marginBottom: 28 } }, 'Everyone uses four modes of thinking. Most people lean on one or two. Good decisions usually need all four. Bad ones usually skip one.'),
+      E("div", { key: 'g', className: "nf-home-grid-4" }, modes.map(([t, x]) => card(t, x)))
+    ], true),
+
+    // What the free test gives you
+    section([
+      E("h2", { key: 'h', style: h2 }, 'What you get from the free test'),
+      E("div", { key: 'l', style: { marginTop: 20 } }, list(gets)),
+      E("div", { key: 'b', style: { marginTop: 28 } }, E("button", { className: "nf-home-cta-primary", onClick: go }, 'Take the free test'))
+    ]),
+
+    // AI era
+    section([
+      E("h2", { key: 'h', style: h2 }, 'Thinking in the AI era'),
+      E("p", { key: 'a', style: { ...para, marginBottom: 14 } }, 'AI is useful. But if it writes the first draft of all your thinking, your own judgment gets weaker without you noticing.'),
+      E("p", { key: 'b', style: para }, 'NeuralFusion is for people who want to use AI and still be the one who decides.')
+    ], true),
+
+    // Who it is for
+    section([
+      E("h2", { key: 'h', style: h2 }, 'Who it is for'),
+      E("div", { key: 'g', className: "nf-home-grid-4", style: { marginTop: 20 } }, audience.map(([t, x]) => card(t, x)))
+    ]),
+
+    // Teams
+    section([
+      E("div", { key: 'c', style: centered },
+        E("h2", { style: h2 }, 'For teams'),
+        E("p", { style: { ...para, maxWidth: 560, margin: '0 auto 24px' } }, 'Teams rarely fail from a lack of intelligence. They fail because everyone thinks the same way, or because no one does. Create a team, share one link, and see how your group thinks as a whole. It works for leadership teams, HR and training programmes.'),
+        E("button", { className: "nf-home-cta-outline", onClick: () => setView('teams') }, 'Create a team'))
+    ], true),
+
+    // Trust
+    section([
+      E("h2", { key: 'h', style: h2 }, 'Why you can trust this'),
+      E("div", { key: 'l', style: { marginTop: 20 } }, list(trust)),
+      E("p", { key: 'p', style: { ...para, marginTop: 20 } }, E("a", { className: "nf-home-link", href: "/methodology" }, 'Read the CFI methodology'))
+    ]),
+
+    // Founder note
+    section([
+      E("h2", { key: 'h', style: h2 }, 'Why I built this'),
+      E("div", { key: 'q', className: "nf-home-quote" },
+        E("p", { style: { ...para, color: H.text, marginBottom: 14 } }, 'I built NeuralFusion because smart people around me, and I too, kept making poor decisions and feeling mentally tired for no clear reason. I could not find a tool that trained thinking itself, so I built one.'),
+        E("p", { style: { ...para, color: H.text, marginBottom: 14 } }, 'Take the test. If it helps, stay. If it doesn\u2019t, tell me why.'),
+        E("p", { style: { ...para, fontSize: 14 } }, 'Life Edet, Founder'))
+    ], true),
+
+    // FAQ
     section([
       E("h2", { key: 'h', style: h2 }, 'Common questions'),
-      E("div", { key: 'f', style: { marginTop: 16 } }, faq.map(([q, a]) => E("details", { key: q }, E("summary", null, q), E("p", { style: para }, a))))
-    ], true),
-    section([
-      E("div", { key: 'c', style: { textAlign: 'center' } },
-        E("h2", { style: h2 }, 'Bring NeuralFusion to your team.'),
-        E("p", { style: { ...para, maxWidth: 520, margin: '0 auto 24px' } }, 'Help your team understand how they think, identify patterns that affect decision-making, and build stronger thinking habits together.'),
-        E("div", { style: { display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap' } },
-          E("button", { className: "nf-home-cta-outline", onClick: () => setView('teams') }, 'Create a team'),
-          E("button", { className: "nf-home-cta-primary", onClick: () => setView('cfi') }, 'Take the free test')))
-    ]));
-}
+      E("div", { key: 'f', style: { marginTop: 16 } }, faqFull.map(([q, a]) => E("details", { key: q }, E("summary", null, q),
+        a ? E("p", { style: para }, a)
+          : E("p", { style: para }, 'How your data is handled is explained in the ', E("a", { className: "nf-home-link", href: "/privacy" }, 'privacy policy'), '.'))))
+    ]),
 
+    // Final CTA
+    section([
+      E("div", { key: 'c', style: centered },
+        E("h2", { style: { ...h2, fontSize: 'clamp(28px,4vw,40px)' } }, 'Find out how you really think.'),
+        E("p", { style: { ...para, maxWidth: 480, margin: '0 auto 24px' } }, '13 questions, about 4 minutes, free.'),
+        E("button", { className: "nf-home-cta-primary", onClick: go }, 'Take the free test'))
+    ], true));
+}
 
     // ═══════════════════════════════════════════════════════════════════
     //  FOUR BRAINS VIEW
