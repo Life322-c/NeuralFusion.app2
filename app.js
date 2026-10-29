@@ -1906,8 +1906,527 @@ function NFRetestShare({ user, resultId }) {
 function plainBand(b) { return cfiCoordinationLabel(b) || ''; }
 
 // Home: one simple page. Signed out = what it is + one button. Signed in = your next step.
+// ═══════════════════════════════════════════════════════════════════
+//  THINKING FEED: signed-in Home. One place for: ask, continue, today's
+//  challenge, follow-ups and the Thinking Mirror. Built on the existing
+//  Integration Protocol (ProtocolView) and My decisions (decision_sessions).
+//  Server pieces: migration_thinking_feed.sql (drafts, challenge responses,
+//  product_events, review RPC). Nothing here fakes a successful write.
+// ═══════════════════════════════════════════════════════════════════
+const NF_FEED_ANCHOR = '2026-10-01';
+const NF_EXAMPLES = [
+  "I'm struggling with an important decision.",
+  'I have a business idea I want to evaluate.',
+  "I'm trying to understand something difficult.",
+  "I have too many options and don't know which to choose.",
+  'I need to prepare for a difficult conversation.',
+  'I want to challenge an assumption.',
+  "I'm stuck on a problem and need another perspective.",
+];
+
+// Curated challenge library. To add one: append an object (unique id, 3 options).
+// The daily pick rotates through this list by calendar date, so it never changes on refresh.
+const NF_CHALLENGES = [
+  { id: 'decision-trap', title: 'THE DECISION TRAP', mode: 'analytical', minutes: 3, difficulty: 'Easy',
+    scenario: 'You have spent two weeks researching a decision. Every new piece of information creates another question. At what point does more research stop improving your decision?',
+    options: [
+      { key: 'a', label: 'Set a deadline and decide with what I have by then.', feedback: 'A deadline protects you from endless research and forces a choice. The risk is deciding before you have learned the one thing that matters.' },
+      { key: 'b', label: 'Keep researching until the main uncertainty is gone.', feedback: 'This feels safe, but some uncertainty never goes away. Without a stopping rule, research can become a way of avoiding the choice.' },
+      { key: 'c', label: 'Ask what single piece of information would change my choice, then look only for that.', feedback: 'This turns open-ended research into a targeted question. It needs honesty: if nothing could change your mind, more research will not help.' }],
+    explanation: 'Research has diminishing returns. The useful question is not "do I know enough?" but "what would change my decision?"',
+    application: 'Is there a decision where you are still collecting information?',
+    seed: 'I keep researching a decision and I am not sure when to stop.' },
+  { id: 'first-reaction', title: 'THE FIRST REACTION', mode: 'intuitive', minutes: 3, difficulty: 'Easy',
+    scenario: 'You are offered a role that looks good on paper. Your first reaction is a quick "no", but you cannot say why.',
+    options: [
+      { key: 'a', label: 'Trust the reaction and decline.', feedback: 'Quick reactions can carry real information from past experience. They can also come from fear or habit, so declining without a check may close a good door.' },
+      { key: 'b', label: 'Ignore it and decide on the facts only.', feedback: 'Facts give you structure. But a signal you dismiss does not go away, and it may point at something the facts do not show.' },
+      { key: 'c', label: 'Treat it as a question: name what it might be reacting to, then check that.', feedback: 'This keeps the signal without obeying it blindly. It takes a few minutes, and it often turns a vague feeling into something you can test.' }],
+    explanation: 'Intuition is a signal to examine, not a verdict. It becomes useful when you turn it into something you can check.',
+    application: 'Is there a decision where your gut and your reasoning disagree?',
+    seed: 'My gut and my reasoning disagree about a decision and I want to understand why.' },
+  { id: 'third-option', title: 'THE THIRD OPTION', mode: 'associative', minutes: 4, difficulty: 'Medium',
+    scenario: 'You are choosing between two suppliers. One is cheap and unreliable. The other is reliable and expensive. The deadline is in a week.',
+    options: [
+      { key: 'a', label: 'Pick the one that fails less badly in the worst case.', feedback: 'Judging by the worst case is sensible when mistakes are costly. It can hide options that fit the situation better than either choice.' },
+      { key: 'b', label: 'Ask what a third arrangement could look like: split the order, negotiate, or use one as backup.', feedback: 'Two options are often a sign that the framing is too narrow. The trade-off is time: exploring takes effort you may not have this week.' },
+      { key: 'c', label: 'Choose on price, since the difference is measurable.', feedback: 'Measurable things are easy to compare, which is their appeal. The risk is letting what is easy to count outweigh what matters.' }],
+    explanation: 'When you face two imperfect options, widening the frame is often cheaper than choosing between them.',
+    application: 'Is there a choice in your life that feels like "A or B" and may have a third way?',
+    seed: 'I feel stuck choosing between two options and want to look for a third.' },
+  { id: 'long-view', title: 'THE LONG VIEW', mode: 'reflective', minutes: 4, difficulty: 'Medium',
+    scenario: 'A promotion would double your income and halve your free time. Everyone around you says to take it.',
+    options: [
+      { key: 'a', label: 'Take it. The opportunity may not come again.', feedback: 'Opportunities do have timing. The question is whether this one serves what you want, or only what others expect.' },
+      { key: 'b', label: 'Decline. Time matters more to me than money.', feedback: 'Knowing your priority is valuable. Check that it is a considered priority and not a reaction to feeling pressured.' },
+      { key: 'c', label: 'Ask what I would want to be true in five years, then see which option moves me there.', feedback: 'This ties the choice to your own values instead of the crowd. It takes honesty about what you actually want.' }],
+    explanation: 'Reflection asks what matters to you and what each option costs over time, not only which option looks best today.',
+    application: 'Is there a decision where other people\'s opinions are louder than your own?',
+    seed: 'Other people have strong opinions about a decision I face and I want to clarify what I actually want.' },
+  { id: 'ai-answer', title: 'THE CONFIDENT ANSWER', mode: 'analytical', minutes: 3, difficulty: 'Medium',
+    scenario: 'An AI tool gives you a confident, well-written summary of a market you plan to enter. It cites no sources.',
+    options: [
+      { key: 'a', label: 'Use it as a starting point, then verify the claims that my plan depends on.', feedback: 'This uses the speed of the tool and keeps responsibility with you. It costs time, but only for the claims that matter.' },
+      { key: 'b', label: 'Trust it. It reads as accurate and consistent.', feedback: 'Fluent writing is not evidence. A wrong claim can sound exactly as sure as a right one.' },
+      { key: 'c', label: 'Ignore it and do all the research myself.', feedback: 'You avoid the risk of errors, but you also give up a useful map. The balance is knowing which parts to check.' }],
+    explanation: 'Confidence is not evidence. The skill is separating what you have checked from what you have only read.',
+    application: 'Is there something an AI or another source told you recently that you have not verified?',
+    seed: 'I received information from an AI tool and I need to evaluate whether to rely on it.' },
+  { id: 'loud-option', title: 'THE LOUD OPTION', mode: 'reflective', minutes: 4, difficulty: 'Medium',
+    scenario: 'In a meeting, the most senior person strongly favours Plan A. You have doubts, and nobody else has spoken.',
+    options: [
+      { key: 'a', label: 'Stay quiet. They probably know more than I do.', feedback: 'They may. But your doubts could be the information the group is missing, and silence removes it.' },
+      { key: 'b', label: 'Ask a question that exposes the assumption I doubt.', feedback: 'A question invites thinking instead of opposing the person. It works best when it is specific and honest.' },
+      { key: 'c', label: 'Say plainly that I disagree and explain why.', feedback: 'Clear and direct, and it gives the group something to weigh. It may cost goodwill if delivered as opposition.' }],
+    explanation: 'The strength of an opinion is not the strength of its evidence. Useful disagreement is specific about what it doubts.',
+    application: 'Is there a discussion where you have held back a concern?',
+    seed: 'I have a concern I have not voiced in a discussion and I want to work out how to raise it.' },
+  { id: 'small-experiment', title: 'THE SMALL EXPERIMENT', mode: 'associative', minutes: 3, difficulty: 'Easy',
+    scenario: 'You are unsure whether customers would pay for a new feature. Building it would take two months.',
+    options: [
+      { key: 'a', label: 'Build it. Real usage will tell me more than guessing.', feedback: 'Real evidence is the best kind, but two months is a large bet to learn one answer.' },
+      { key: 'b', label: 'Design a one-week test, such as asking ten customers or a simple sign-up page.', feedback: 'A small test buys information cheaply. It will not settle everything, but it can tell you whether to go further.' },
+      { key: 'c', label: 'Decide by discussion and experience, and skip the test.', feedback: 'Experience counts, and testing has a cost. The risk is mistaking a confident discussion for evidence.' }],
+    explanation: 'When a decision is expensive to reverse, look for a smaller version of it that you can learn from first.',
+    application: 'Is there a big commitment you could test in a smaller way first?',
+    seed: 'I am about to commit to something big and want to find a small experiment to learn from first.' },
+  { id: 'sunk-cost', title: 'THE SUNK COST', mode: 'analytical', minutes: 3, difficulty: 'Medium',
+    scenario: 'You have spent six months on a project that is not working. Stopping would mean admitting the time was wasted.',
+    options: [
+      { key: 'a', label: 'Continue. I have already invested too much to stop now.', feedback: 'The time is spent either way. What matters is what the next six months would produce, not what the last six cost.' },
+      { key: 'b', label: 'Ask: if I were starting today with what I know, would I begin this?', feedback: 'This removes the past from the question. It is uncomfortable, which is why it is useful.' },
+      { key: 'c', label: 'Change the project\'s direction and keep the parts that work.', feedback: 'Often the best outcome. Be honest about whether you are adapting or just avoiding the decision to stop.' }],
+    explanation: 'Past cost is not a reason to continue. The useful comparison is between future paths, not between the future and the past.',
+    application: 'Is there something you are continuing mainly because of what you have already put in?',
+    seed: 'I have invested a lot in something that may not be working and I need to decide whether to continue.' },
+  { id: 'gut-check', title: 'THE GUT CHECK', mode: 'intuitive', minutes: 3, difficulty: 'Easy',
+    scenario: 'A candidate looks perfect on paper and interviews well, but something feels slightly off.',
+    options: [
+      { key: 'a', label: 'Hire them. The evidence is strong and the feeling is vague.', feedback: 'Evidence deserves weight. A vague feeling can also be the first sign of something you have not named yet.' },
+      { key: 'b', label: 'Pass. I trust my sense for people.', feedback: 'Your experience may be real. First impressions also carry bias, and rejecting someone on a feeling alone is hard to defend.' },
+      { key: 'c', label: 'Try to name the feeling, then design one question or reference check that tests it.', feedback: 'This respects the signal and the evidence. It takes extra effort, but it can settle the doubt either way.' }],
+    explanation: 'A feeling you cannot name is hard to use. Naming it is the first step toward knowing whether to trust it.',
+    application: 'Is there a situation where something feels off but you have not looked at why?',
+    seed: 'Something feels off about a situation but I cannot name it and I want to examine it.' },
+  { id: 'hard-conversation', title: 'THE HARD CONVERSATION', mode: 'reflective', minutes: 4, difficulty: 'Medium',
+    scenario: 'You need to tell a colleague their work is not meeting the standard. You like them and the timing is awkward.',
+    options: [
+      { key: 'a', label: 'Wait for a better moment.', feedback: 'Timing matters, but a better moment often does not arrive, and the problem can grow while you wait.' },
+      { key: 'b', label: 'Prepare: decide what I want to be true after the conversation, then give specific examples.', feedback: 'Clarity on your purpose and on specifics makes the conversation fairer and easier to act on.' },
+      { key: 'c', label: 'Hint at it and hope they notice.', feedback: 'Hinting feels kind in the moment. It often leaves the person without the information they need to improve.' }],
+    explanation: 'Difficult conversations go better when you know what you want from them and what you can observe, not only what you feel.',
+    application: 'Is there a conversation you have been putting off?',
+    seed: 'I need to prepare for a difficult conversation I have been putting off.' },
+  { id: 'overload', title: 'THE OVERLOAD', mode: 'analytical', minutes: 3, difficulty: 'Easy',
+    scenario: 'You have twelve priorities and time for three. Each one feels important to somebody.',
+    options: [
+      { key: 'a', label: 'Rank them by urgency.', feedback: 'Urgency is easy to see. It tends to push out important work that has no deadline yet.' },
+      { key: 'b', label: 'Ask which three would make the others easier or unnecessary.', feedback: 'This looks for leverage instead of order. It needs you to understand how the priorities connect.' },
+      { key: 'c', label: 'Ask each stakeholder and pick the most common answers.', feedback: 'You learn what people want and share the load of the decision. It can replace your own judgement with a vote.' }],
+    explanation: 'Prioritising is about trade-offs, not ranking. Knowing what you will not do is part of the answer.',
+    application: 'Is there a list in your life that is longer than your time?',
+    seed: 'I have too many priorities and need to decide what to focus on.' },
+  { id: 'unrelated-patterns', title: 'THE REPEATING PATTERN', mode: 'associative', minutes: 3, difficulty: 'Medium',
+    scenario: 'Two unrelated problems at work keep showing up in the same weeks. Nobody has linked them.',
+    options: [
+      { key: 'a', label: 'Treat them as separate and fix each one.', feedback: 'Simple and clear. If they share a cause, you may keep fixing symptoms.' },
+      { key: 'b', label: 'Look for what is common: people, timing, a process, or a decision.', feedback: 'This can reveal a hidden cause. It may also find a pattern that is only a coincidence, so test it before acting.' },
+      { key: 'c', label: 'Ask someone from outside the team what they notice.', feedback: 'A fresh view often sees what insiders cannot. It depends on choosing someone who will be honest.' }],
+    explanation: 'Connections are guesses until tested. They are valuable because they give you something specific to check.',
+    application: 'Is there something that keeps recurring that you have not examined?',
+    seed: 'Something keeps happening repeatedly and I want to understand what connects it.' },
+  { id: 'hidden-assumption', title: 'THE HIDDEN ASSUMPTION', mode: 'analytical', minutes: 3, difficulty: 'Medium',
+    scenario: 'Your plan works well only if customers renew every year. You have never checked how many do.',
+    options: [
+      { key: 'a', label: 'Find the renewal rate before going further.', feedback: 'Checking the assumption the plan stands on is cheap compared with building on it.' },
+      { key: 'b', label: 'Assume renewals will be fine and focus on growth.', feedback: 'Growth feels productive. If the assumption is wrong, growth makes the problem bigger.' },
+      { key: 'c', label: 'List every assumption, then check the one that would hurt most if wrong.', feedback: 'This keeps the work proportionate. It takes discipline to rank assumptions honestly.' }],
+    explanation: 'Every plan stands on assumptions. The risky ones are the ones you have never stated.',
+    application: 'What does one of your current plans assume that you have not checked?',
+    seed: 'I want to find and check the assumptions behind a plan I am working on.' },
+  { id: 'opposite-view', title: 'THE OPPOSITE VIEW', mode: 'reflective', minutes: 4, difficulty: 'Hard',
+    scenario: 'A colleague proposes something you strongly disagree with. You are certain they are wrong.',
+    options: [
+      { key: 'a', label: 'Make my case as strongly as I can.', feedback: 'Clear and fast. It works best when you have also understood their position.' },
+      { key: 'b', label: 'Write down the best version of their argument first.', feedback: 'This tests your own view and may change it. It is harder than arguing, which is why it teaches more.' },
+      { key: 'c', label: 'Ask what they know or want that I might be missing.', feedback: 'Curiosity can uncover a real reason or a misunderstanding. It takes patience and a real willingness to be wrong.' }],
+    explanation: 'Certainty is a feeling, not a measure of being right. Stating the other view well protects you from your own blind spots.',
+    application: 'Is there a disagreement where you may not have fully heard the other side?',
+    seed: 'I strongly disagree with someone and want to make sure I understand their view.' },
+];
+NF_CHALLENGES.forEach((c, i) => { c.published = nfAddDays(NF_FEED_ANCHOR, i); });
+
+function nfPad2(n) { return String(n).padStart(2, '0'); }
+// Local calendar date (the device's timezone) as YYYY-MM-DD. This is the "configured timezone" for the daily pick.
+function nfLocalDate(d) { const x = d || new Date(); return x.getFullYear() + '-' + nfPad2(x.getMonth() + 1) + '-' + nfPad2(x.getDate()); }
+function nfDayNumber(s) { const p = s.split('-').map(Number); return Math.floor(Date.UTC(p[0], p[1] - 1, p[2]) / 86400000); }
+function nfAddDays(s, n) { const p = s.split('-').map(Number); const d = new Date(Date.UTC(p[0], p[1] - 1, p[2] + n)); return d.getUTCFullYear() + '-' + nfPad2(d.getUTCMonth() + 1) + '-' + nfPad2(d.getUTCDate()); }
+function nfChallengeForDate(dateStr) {
+  const len = NF_CHALLENGES.length;
+  const n = nfDayNumber(dateStr) - nfDayNumber(NF_FEED_ANCHOR);
+  return NF_CHALLENGES[((n % len) + len) % len];
+}
+// Library: Supabase table thinking_challenges (auto-published by date). Falls back to the built-in set if it cannot load.
+let NF_LIB_CACHE = null;
+const nfLoadLibrary = async () => {
+  if (NF_LIB_CACHE) return NF_LIB_CACHE;
+  try {
+    const { data, error } = await sb.from('thinking_challenges').select('id,title,scenario,mode,options,explanation,application,seed,minutes,difficulty').eq('active', true).order('sort_order', { ascending: true }).limit(1000);
+    if (error) throw error;
+    const ok = (data || []).filter(c => c && Array.isArray(c.options) && c.options.length === 3);
+    if (ok.length >= 7) { NF_LIB_CACHE = ok; return ok; }
+  } catch (e) { console.warn('[CHALLENGE LIBRARY] using built-in set:', e && e.message); }
+  return NF_CHALLENGES;
+};
+function nfRotate(lib, dateStr) {
+  const n = nfDayNumber(dateStr) - nfDayNumber(NF_FEED_ANCHOR);
+  return lib[((n % lib.length) + lib.length) % lib.length];
+}
+// The mode where the person's own saved sessions have the shortest answers (past days only, so the pick is stable all day).
+function nfWeakestMode(decisions, today) {
+  const past = decisions.filter(d => d.created_at && nfLocalDate(new Date(d.created_at)) < today && d.decompose_response !== undefined);
+  if (past.length < 2) return null;
+  const keys = { analytical: 'decompose_response', intuitive: 'sense_response', associative: 'expand_response', reflective: 'reflect_response' };
+  const avg = {};
+  Object.keys(keys).forEach(m => { avg[m] = past.reduce((t, d) => t + String(d[keys[m]] || '').trim().split(/\s+/).filter(Boolean).length, 0) / past.length; });
+  const sorted = Object.keys(avg).sort((a, b) => avg[a] - avg[b]);
+  return avg[sorted[0]] < avg[sorted[1]] ? sorted[0] : null;
+}
+function nfPickChallenge(today, lib, decisions, rows) {
+  const done = rows.find(r => r.challenge_date === today);
+  if (done) { const c = lib.find(x => x.id === done.challenge_id); if (c) return { ch: c, why: null }; }
+  const plain = nfRotate(lib, today);
+  const weak = nfWeakestMode(decisions, today);
+  if (!weak) return { ch: plain, why: null };
+  const answered = new Set(rows.map(r => r.challenge_id));
+  const pool = lib.filter(c => c.mode === weak && !answered.has(c.id));
+  if (!pool.length) return { ch: plain, why: null };
+  return { ch: pool[nfDayNumber(today) % pool.length], why: weak };
+}
+function nfEarlierDates(today, count) {
+  const out = [];
+  for (let i = 1; i <= count; i++) { const d = nfAddDays(today, -i); if (nfDayNumber(d) >= nfDayNumber(NF_FEED_ANCHOR)) out.push(d); }
+  return out;
+}
+
+// Follow-ups come only from real saved records. Nothing is invented.
+function nfFollowUps(decisions, today) {
+  const out = [];
+  decisions.forEach(d => {
+    if (d.status !== 'open') return;
+    if (d.review_date && d.review_date <= today) out.push({ key: 'due:' + d.id, kind: d.next_action && !d.action_completed_at ? 'action' : 'review', d });
+    else if (!d.review_date && d.created_at && (nfDayNumber(today) - nfDayNumber(nfLocalDate(new Date(d.created_at)))) >= 14) out.push({ key: 'stale:' + d.id, kind: 'stale', d });
+  });
+  return out.slice(0, 2);
+}
+
+// Thinking Mirror: observations only from saved records, always phrased as questions, never as traits.
+function nfMirrorObservations(decisions) {
+  const out = [];
+  if (decisions.length < 2) return out;
+  const tens = decisions.filter(d => d.key_uncertainty);
+  if (tens.length >= 2) out.push({ key: 'tension:' + tens.length + '/' + decisions.length, basis: tens.length + ' of ' + decisions.length + ' saved sessions',
+    text: 'In ' + tens.length + ' of your ' + decisions.length + ' saved sessions, your reasoning and your instincts pulled toward different ideas. Would you like to reopen one and look at the gap?' });
+  const open = decisions.filter(d => d.status === 'open');
+  if (open.length >= 2) out.push({ key: 'open:' + open.length, basis: open.length + ' open decisions',
+    text: 'You have ' + open.length + ' open decisions. Has anything changed on any of them since you saved them?' });
+  const lessons = decisions.filter(d => d.lesson_learned && d.lesson_learned.trim());
+  if (lessons.length >= 2) out.push({ key: 'lessons:' + lessons.length, basis: lessons.length + ' written lessons',
+    text: 'You wrote a lesson on ' + lessons.length + ' reviewed decisions. Would it help to reread them before your next one?' });
+  return out.slice(0, 2);
+}
+
+// ── Storage helpers (all errors surface to the caller; nothing pretends to save) ──
+function nfSetSeed(o) { try { window.sessionStorage.setItem('nf_seed', JSON.stringify(o)); } catch (_) {} }
+function nfConsumeSeed() { try { const r = window.sessionStorage.getItem('nf_seed'); if (!r) return null; window.sessionStorage.removeItem('nf_seed'); return JSON.parse(r); } catch (_) { return null; } }
+function nfReadDismissed(uid) { try { return JSON.parse(window.localStorage.getItem('nf_dismissed:' + uid) || '[]'); } catch (_) { return []; } }
+function nfWriteDismissed(uid, list) { try { window.localStorage.setItem('nf_dismissed:' + uid, JSON.stringify(list.slice(-200))); } catch (_) {} }
+
+// Privacy-conscious events: names plus small numeric/short-string props only. Never session text.
+function nfEvent(name, props) {
+  const clean = {};
+  Object.keys(props || {}).forEach(k => { const v = props[k]; if (typeof v === 'number' || typeof v === 'boolean' || (typeof v === 'string' && v.length <= 40)) clean[k] = v; });
+  try { (window.dataLayer = window.dataLayer || []).push(Object.assign({ event: 'nf_' + name }, clean)); } catch (_) {}
+  try {
+    sb.auth.getSession().then(r => {
+      const s = r && r.data && r.data.session;
+      if (!s) return null;
+      return sb.from('product_events').insert({ user_id: s.user.id, event_name: name, props: clean }).then(x => { if (x.error) console.warn('[NF EVENT]', x.error.message); });
+    }).catch(() => {});
+  } catch (_) {}
+}
+
+const nfSaveDraft = async (uid, d) => {
+  try {
+    const { error } = await sb.from('thinking_drafts').upsert({ user_id: uid, problem: String(d.problem || '').slice(0, 2000), answers: d.answers, step_index: d.stepIndex, updated_at: new Date().toISOString() }, { onConflict: 'user_id' });
+    if (error) throw error; return true;
+  } catch (e) { console.error('[DRAFT SAVE]', e); return false; }
+};
+const nfLoadDraft = async (uid) => {
+  const { data, error } = await sb.from('thinking_drafts').select('problem,answers,step_index,updated_at').eq('user_id', uid).maybeSingle();
+  if (error) throw error; return data || null;
+};
+const nfClearDraft = async (uid) => {
+  try { const { error } = await sb.from('thinking_drafts').delete().eq('user_id', uid); if (error) throw error; return true; }
+  catch (e) { console.error('[DRAFT CLEAR]', e); return false; }
+};
+const nfLoadFeedDecisions = async (uid) => {
+  const { data, error } = await sb.from('decision_sessions')
+    .select('id,title,status,next_action,review_date,reviewed_at,outcome,lesson_learned,key_uncertainty,confidence,created_at,action_completed_at,decompose_response,sense_response,expand_response,reflect_response')
+    .eq('user_id', uid).order('created_at', { ascending: false }).limit(100);
+  if (error) throw error; return data || [];
+};
+const nfLoadChallengeRows = async (uid) => {
+  const { data, error } = await sb.from('thinking_challenge_responses')
+    .select('challenge_id,challenge_date,choice_key,reasoning,applies').eq('user_id', uid).order('challenge_date', { ascending: false }).limit(90);
+  if (error) throw error; return data || [];
+};
+const nfSaveChallengeRow = async (uid, r) => {
+  try {
+    const { data, error } = await sb.from('thinking_challenge_responses').upsert({
+      user_id: uid, challenge_id: r.challenge_id, challenge_date: r.date, choice_key: r.choice,
+      reasoning: r.reasoning ? String(r.reasoning).slice(0, 1000) : null, applies: typeof r.applies === 'boolean' ? r.applies : null,
+    }, { onConflict: 'user_id,challenge_date' }).select('challenge_id,challenge_date,choice_key,reasoning,applies').single();
+    if (error) throw error; return data;
+  } catch (e) { console.error('[CHALLENGE SAVE]', e); return null; }
+};
+const nfDeleteDecision = async (id) => {
+  try { const { error } = await sb.from('decision_sessions').delete().eq('id', id); if (error) throw error; nfjInvalidate('dec:'); return true; }
+  catch (e) { console.error('[DECISION DELETE]', e); return false; }
+};
+
+// ── Today's challenge (also used for earlier days) ──────────────────
+function NFChallenge({ user, date, ch, why: whyPick, latestOpen, row, setView, onSaved, defaultOpen }) {
+  const E = React.createElement;
+  const [open, setOpen] = useState(!!defaultOpen);
+  const [choice, setChoice] = useState('');
+  const [why, setWhy] = useState('');
+  const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState('');
+  const done = !!row;
+  const picked = done ? ch.options.find(o => o.key === row.choice_key) : null;
+  const modeName = ch.mode.charAt(0).toUpperCase() + ch.mode.slice(1);
+
+  const submit = async () => {
+    if (!choice || busy) return;
+    setBusy(true); setErr('');
+    const saved = await nfSaveChallengeRow(user.id, { challenge_id: ch.id, date, choice, reasoning: why.trim() });
+    setBusy(false);
+    if (saved) { nfEvent('daily_challenge_completed', { challenge: ch.id, mode: ch.mode }); onSaved(saved); }
+    else setErr("Couldn't save your answer right now. Check your connection and try again.");
+  };
+  const applyToDecision = () => { nfEvent('primary_cta_clicked', { where: 'challenge_decision' }); nfSetSeed({ problem: String(latestOpen.title || '').slice(0, 300), source: 'challenge' }); setView('protocol'); };
+  const apply = async (yes) => {
+    if (busy) return;
+    setBusy(true);
+    const saved = await nfSaveChallengeRow(user.id, { challenge_id: ch.id, date, choice: row.choice_key, reasoning: row.reasoning, applies: yes });
+    setBusy(false);
+    if (saved) onSaved(saved);
+    if (yes) { nfEvent('primary_cta_clicked', { where: 'challenge' }); nfSetSeed({ problem: ch.seed, source: 'challenge' }); setView('protocol'); }
+  };
+  const open_ = () => { if (!open) nfEvent('daily_challenge_started', { challenge: ch.id, mode: ch.mode }); setOpen(true); };
+
+  return E("div", { className: "nf-feed-block" },
+    E("div", { className: "nf-feed-meta" }, ch.title, ' \u00b7 ', modeName, ' \u00b7 ', ch.minutes, ' min', done ? ' \u00b7 Done' : ''),
+    whyPick && !done && E("p", { className: "nf-feed-note" }, 'Chosen because your answers in the ' + whyPick + ' stage have been the shortest in your saved sessions. That is about how much you wrote, not how well you think.'),
+    E("p", { className: "nf-feed-scenario" }, ch.scenario),
+    !open && !done && E("button", { className: "nf-home-cta-outline", onClick: open_ }, 'Try this challenge'),
+    open && !done && E("div", null,
+      E("fieldset", { style: { border: 'none', padding: 0, margin: '0 0 14px' } },
+        E("legend", { className: "nf-feed-meta", style: { marginBottom: 10 } }, 'What would you do?'),
+        ch.options.map(o => E("label", { key: o.key, className: "nf-feed-opt" + (choice === o.key ? ' nf-feed-opt-on' : '') },
+          E("input", { type: 'radio', name: 'nfc-' + date, value: o.key, checked: choice === o.key, onChange: () => setChoice(o.key) }),
+          E("span", null, o.label)))),
+      E("label", { className: "nf-feed-meta", htmlFor: 'nfc-why-' + date, style: { display: 'block', marginBottom: 6 } }, 'Your reasoning (optional)'),
+      E("textarea", { id: 'nfc-why-' + date, className: "nf-feed-ta", rows: 2, maxLength: 1000, value: why, onChange: e => setWhy(e.target.value), placeholder: 'Why that choice?' }),
+      err && E("div", { role: 'alert', className: "nf-feed-err" }, err),
+      E("button", { className: "nf-home-cta-primary", onClick: submit, disabled: !choice || busy, style: { marginTop: 12, opacity: !choice || busy ? 0.5 : 1 } }, busy ? 'Saving...' : 'See the trade-offs')),
+    done && E("div", null,
+      picked && E("p", { className: "nf-feed-body" }, E("strong", null, 'You chose: '), picked.label),
+      picked && E("p", { className: "nf-feed-body" }, picked.feedback),
+      E("p", { className: "nf-feed-body" }, ch.explanation),
+      E("p", { className: "nf-feed-body", style: { fontWeight: 600 } }, ch.application),
+      E("div", { style: { display: 'flex', gap: 10, flexWrap: 'wrap' } },
+        latestOpen && latestOpen.title && E("button", { className: "nf-home-cta-primary", onClick: applyToDecision }, 'Apply it to: ' + String(latestOpen.title).slice(0, 40)),
+        E("button", { className: latestOpen && latestOpen.title ? "nf-home-cta-outline" : "nf-home-cta-primary", onClick: () => apply(true), disabled: busy }, latestOpen && latestOpen.title ? 'A different situation' : 'Yes, think it through'),
+        row.applies === null || row.applies === undefined ? E("button", { className: "nf-home-cta-outline", onClick: () => apply(false), disabled: busy }, 'Not right now') : null)));
+}
+
+// ── The Thinking Feed ───────────────────────────────────────────────
+function ThinkingFeed({ user, setView }) {
+  const E = React.createElement;
+  const today = nfLocalDate();
+  const reduced = typeof window !== 'undefined' && window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const [q, setQ] = useState('');
+  const [hint, setHint] = useState(false);
+  const [rot, setRot] = useState(0);
+  const [online, setOnline] = useState(typeof navigator === 'undefined' ? true : navigator.onLine !== false);
+  const [data, setData] = useState({ status: 'loading', decisions: [], rows: [], draft: null, errors: {} });
+  const [dismissed, setDismissed] = useState(() => nfReadDismissed(user.id));
+  const [busyId, setBusyId] = useState(null);
+  const [lib, setLib] = useState(NF_CHALLENGES);
+  const taRef = useRef(null);
+  useEffect(() => { let on = true; nfLoadLibrary().then(l => { if (on) setLib(l); }); return () => { on = false; }; }, []);
+
+  const load = useCallback(async () => {
+    const errors = {};
+    const [decisions, rows, draft] = await Promise.all([
+      nfLoadFeedDecisions(user.id).catch(() => { errors.decisions = true; return []; }),
+      nfLoadChallengeRows(user.id).catch(() => { errors.rows = true; return []; }),
+      nfLoadDraft(user.id).catch(() => { errors.draft = true; return null; }),
+    ]);
+    setData({ status: 'ready', decisions, rows, draft, errors });
+  }, [user.id]);
+  useEffect(() => { load(); }, [load]);
+  useEffect(() => {
+    const on = () => setOnline(true), off = () => setOnline(false);
+    window.addEventListener('online', on); window.addEventListener('offline', off);
+    return () => { window.removeEventListener('online', on); window.removeEventListener('offline', off); };
+  }, []);
+  useEffect(() => {
+    if (reduced || q) return undefined;
+    const t = setInterval(() => setRot(r => r + 1), 9000);
+    return () => clearInterval(t);
+  }, [reduced, q]);
+
+  const offset = reduced ? (nfDayNumber(today) % NF_EXAMPLES.length) : (rot + (nfDayNumber(today) % NF_EXAMPLES.length));
+  const chips = [0, 1, 2].map(i => NF_EXAMPLES[(offset + i) % NF_EXAMPLES.length]);
+
+  const start = () => {
+    const t = q.trim().replace(/\s+/g, ' ');
+    if (t.length < 4) { setHint(true); if (taRef.current) taRef.current.focus(); return; }
+    nfEvent('primary_cta_clicked', { where: 'feed' });
+    nfSetSeed({ problem: t.slice(0, 1500), source: 'feed' });
+    setView('protocol');
+  };
+  const dismiss = (key, kind) => {
+    const next = dismissed.concat(key); setDismissed(next); nfWriteDismissed(user.id, next);
+    nfEvent(kind || 'prompt_dismissed', {});
+  };
+  const snooze = async (d, days) => {
+    setBusyId(d.id);
+    const row = await updateDecisionSession(d.id, { review_date: nfAddDays(today, days) });
+    setBusyId(null);
+    if (row) load(); else nfNotify("Couldn't update that right now. Please try again.", { type: 'error' });
+  };
+  const markDone = async (d) => {
+    setBusyId(d.id);
+    const row = await updateDecisionSession(d.id, { action_completed_at: new Date().toISOString() });
+    setBusyId(null);
+    if (row) { nfEvent('follow_up_completed', { source: 'feed' }); load(); } else nfNotify("Couldn't update that right now. Please try again.", { type: 'error' });
+  };
+  const resume = () => { nfEvent('saved_session_revisited', { kind: 'draft' }); nfSetSeed({ resume: true, source: 'resume' }); setView('protocol'); };
+  const discard = async () => { const ok = await nfClearDraft(user.id); if (ok) load(); else nfNotify("Couldn't remove that right now.", { type: 'error' }); };
+
+  const ready = data.status === 'ready';
+  const rowFor = (date) => data.rows.find(r => r.challenge_date === date) || null;
+  const onChallengeSaved = (saved) => setData(prev => ({ ...prev, rows: [saved].concat(prev.rows.filter(r => r.challenge_date !== saved.challenge_date)) }));
+  const followUps = ready ? nfFollowUps(data.decisions, today).filter(f => dismissed.indexOf(f.key) < 0) : [];
+  const mirror = ready ? nfMirrorObservations(data.decisions).filter(m => dismissed.indexOf(m.key) < 0) : [];
+  const reviewed = data.decisions.filter(d => d.status === 'reviewed').length;
+  const hasProgress = data.decisions.length > 0 || data.rows.length > 0;
+  const earlier = nfEarlierDates(today, 6);
+  const pick = ready ? nfPickChallenge(today, lib, data.decisions, data.rows) : null;
+  const stageLabel = data.draft ? 'Stage ' + (Math.min(Math.max(Number(data.draft.step_index) || 0, 0), 3) + 1) + ' of 4' : '';
+
+  const css = `
+    .nf-feed-eyebrow { font-family:'Space Mono',monospace; font-size:12px; letter-spacing:0.14em; color:${H.faint}; margin:0 0 14px; }
+    .nf-feed-ta { width:100%; box-sizing:border-box; font:inherit; font-size:17px; line-height:1.5; padding:14px 16px; min-height:96px; background:${C.surface}; color:${H.ink}; border:1px solid ${H.borderStrong}; border-radius:6px; resize:vertical; }
+    .nf-feed-ta:focus-visible { outline:2px solid ${H.gold}; outline-offset:2px; }
+    .nf-feed-chip { font:inherit; font-size:14px; line-height:1.4; text-align:left; padding:10px 14px; min-height:44px; background:transparent; color:${H.muted}; border:1px solid ${H.border}; border-radius:6px; cursor:pointer; }
+    .nf-feed-chip:hover { border-color:${H.goldDeep}; color:${H.ink}; }
+    .nf-feed-chip:focus-visible, .nf-feed-link:focus-visible { outline:2px solid ${H.gold}; outline-offset:2px; }
+    .nf-feed-sec { border-top:1px solid ${H.border}; padding:28px 0 4px; margin-top:32px; }
+    .nf-feed-meta { font-family:'Space Mono',monospace; font-size:12px; letter-spacing:0.08em; color:${H.faint}; text-transform:uppercase; margin:0 0 10px; }
+    .nf-feed-scenario { font-size:18px; line-height:1.6; color:${H.ink}; margin:0 0 16px; }
+    .nf-feed-body { font-size:16px; line-height:1.7; color:${H.muted}; margin:0 0 12px; }
+    .nf-feed-opt { display:flex; gap:12px; align-items:flex-start; min-height:48px; padding:12px 14px; margin-bottom:8px; border:1px solid ${H.border}; border-radius:6px; cursor:pointer; font-size:16px; line-height:1.5; color:${H.text}; }
+    .nf-feed-opt-on { border-color:${H.goldDeep}; background:${C.surface}; }
+    .nf-feed-opt input { margin-top:4px; flex-shrink:0; }
+    .nf-feed-err { font-size:14px; color:#E5484D; margin-top:10px; }
+    .nf-feed-link { background:none; border:none; padding:0; font:inherit; color:${H.goldDeep}; text-decoration:underline; cursor:pointer; min-height:44px; }
+    .nf-feed-row { display:flex; gap:12px; flex-wrap:wrap; align-items:center; }
+    .nf-feed-note { font-size:14px; line-height:1.6; color:${H.faint}; margin:0 0 12px; }
+    @media (max-width:560px) { .nf-feed-scenario { font-size:17px; } }
+  `;
+
+  return E("div", null, E("style", null, css),
+    !online && E("div", { role: 'status', className: "nf-feed-note", style: { marginBottom: 16 } }, 'You are offline. You can start thinking now, but saving needs a connection.'),
+    E("p", { className: "nf-feed-eyebrow" }, 'NEURALFUSION'),
+    E("h1", { style: { ...hDisplay, fontWeight: 600, fontSize: 'clamp(28px,6vw,40px)', lineHeight: 1.15, color: H.ink, margin: '0 0 10px' } }, "What's on your mind today?"),
+    E("p", { className: "nf-feed-body", style: { marginBottom: 18 } }, "Bring a question, a decision, or a problem. Let's work through it."),
+    E("label", { htmlFor: 'nf-feed-q', style: { position: 'absolute', left: -9999 } }, 'What are you trying to figure out?'),
+    E("textarea", { id: 'nf-feed-q', ref: taRef, className: "nf-feed-ta", rows: 3, maxLength: 1500, value: q, onChange: e => { setQ(e.target.value); if (hint) setHint(false); }, placeholder: 'What are you trying to figure out?' }),
+    hint && E("div", { role: 'alert', className: "nf-feed-err" }, 'Write a few words about what you are working through, then start.'),
+    E("div", { style: { margin: '14px 0 0' } }, E("button", { className: "nf-home-cta-primary", onClick: start }, 'START THINKING')),
+    E("div", { style: { display: 'flex', flexDirection: 'column', gap: 8, marginTop: 16, alignItems: 'flex-start' } },
+      chips.map(c => E("button", { key: c, className: "nf-feed-chip", onClick: () => { setQ(c); if (taRef.current) taRef.current.focus(); } }, c))),
+
+    // Today's challenge
+    E("div", { className: "nf-feed-sec" },
+      E("p", { className: "nf-feed-eyebrow" }, "TODAY'S THINKING CHALLENGE"),
+      ready ? E(NFChallenge, { key: today + (rowFor(today) ? ':done' : ':open') + pick.ch.id, user, date: today, ch: pick.ch, why: pick.why, latestOpen: data.decisions.find(d => d.status === 'open') || null, row: rowFor(today), setView, onSaved: onChallengeSaved }) : E("p", { className: "nf-feed-note" }, 'Loading today\'s challenge...'),
+      data.errors.rows && E("p", { className: "nf-feed-note" }, "Your saved challenge answers couldn't be loaded right now. You can still read today's challenge."),
+      earlier.length > 0 && E("details", { style: { marginTop: 18 } },
+        E("summary", { className: "nf-feed-meta", style: { cursor: 'pointer', minHeight: 44, display: 'flex', alignItems: 'center' } }, 'Earlier challenges'),
+        E("p", { className: "nf-feed-note" }, 'Open any of these whenever you like. Missing a day costs nothing.'),
+        earlier.map(d => { const r = rowFor(d); const c = (r && lib.find(x => x.id === r.challenge_id)) || nfRotate(lib, d);
+          return E("details", { key: d, style: { borderTop: `1px solid ${H.border}`, padding: '4px 0' } },
+            E("summary", { style: { cursor: 'pointer', minHeight: 48, display: 'flex', alignItems: 'center', color: H.ink, fontSize: 16 } }, c.title, r ? '  \u00b7 Done' : ''),
+            E("div", { style: { padding: '8px 0 16px' } }, E(NFChallenge, { user, date: d, ch: c, row: r, setView, onSaved: onChallengeSaved, defaultOpen: true })));
+        }))),
+
+    // Continue a saved, unfinished session
+    ready && data.draft && E("div", { className: "nf-feed-sec" },
+      E("p", { className: "nf-feed-eyebrow" }, 'CONTINUE YOUR LAST THINKING SESSION'),
+      E("p", { className: "nf-feed-scenario", style: { marginBottom: 6 } }, String(data.draft.problem || 'Untitled question').slice(0, 160)),
+      E("p", { className: "nf-feed-note" }, stageLabel, ' \u00b7 not saved to My decisions yet'),
+      E("div", { className: "nf-feed-row" },
+        E("button", { className: "nf-home-cta-primary", onClick: resume }, 'Continue'),
+        E("button", { className: "nf-feed-link", onClick: discard }, 'Discard this draft'))),
+
+    // Recent progress (real counts only)
+    ready && hasProgress && E("div", { className: "nf-feed-sec" },
+      E("p", { className: "nf-feed-eyebrow" }, 'YOUR RECENT WORK'),
+      E("p", { className: "nf-feed-body" },
+        data.decisions.length + (data.decisions.length === 1 ? ' decision saved' : ' decisions saved'), ' \u00b7 ', reviewed + ' reviewed', ' \u00b7 ', data.rows.length + (data.rows.length === 1 ? ' challenge' : ' challenges') + ' completed'),
+      data.decisions.length > 0 && E("button", { className: "nf-feed-link", onClick: () => setView('decisions') }, 'Open my decisions')),
+
+    // Return-to-context prompts
+    followUps.length > 0 && E("div", { className: "nf-feed-sec" },
+      E("p", { className: "nf-feed-eyebrow" }, 'PICK UP WHERE YOU LEFT OFF'),
+      followUps.map(f => { const d = f.d; const title = d.title || 'a decision'; const busy = busyId === d.id;
+        return E("div", { key: f.key, style: { marginBottom: 22 } },
+          E("p", { className: "nf-feed-scenario", style: { marginBottom: 12 } },
+            f.kind === 'action' ? 'You planned this next action for "' + title + '": ' + d.next_action + '. Have you had a chance to take it?'
+            : f.kind === 'review' ? 'The review date for "' + title + '" has arrived. Do you want to record what happened?'
+            : 'You saved "' + title + '" a while ago. Is it still relevant?'),
+          E("div", { className: "nf-feed-row" },
+            f.kind === 'action' && E("button", { className: "nf-home-cta-primary", disabled: busy, onClick: () => markDone(d) }, 'I did it'),
+            f.kind !== 'stale' && E("button", { className: f.kind === 'action' ? "nf-home-cta-outline" : "nf-home-cta-primary", onClick: () => { nfEvent('saved_session_revisited', { kind: 'followup' }); setView('decisions'); } }, 'Record what happened'),
+            f.kind === 'stale' && E("button", { className: "nf-home-cta-outline", disabled: busy, onClick: () => snooze(d, 14) }, 'Still relevant'),
+            f.kind !== 'stale' && E("button", { className: "nf-feed-link", disabled: busy, onClick: () => snooze(d, 7) }, 'Ask me in a week'),
+            E("button", { className: "nf-feed-link", onClick: () => dismiss(f.key, 'followup_dismissed') }, 'Dismiss')));
+      })),
+
+    // Thinking Mirror
+    ready && (mirror.length > 0 || (data.decisions.length < 2 && !data.errors.decisions)) && E("div", { className: "nf-feed-sec" },
+      E("p", { className: "nf-feed-eyebrow" }, 'THE THINKING MIRROR'),
+      mirror.length === 0
+        ? E("p", { className: "nf-feed-body" }, 'Save a couple of thinking sessions and the Mirror can point out patterns in your own work. It has nothing to show yet.')
+        : mirror.map(m => E("div", { key: m.key, style: { marginBottom: 20 } },
+            E("p", { className: "nf-feed-scenario", style: { marginBottom: 6 } }, m.text),
+            E("p", { className: "nf-feed-note" }, 'An observation from ', m.basis, ' of your own records. It is a question, not a conclusion about you.'),
+            E("div", { className: "nf-feed-row" },
+              E("button", { className: "nf-feed-link", onClick: () => dismiss(m.key, 'mirror_corrected') }, 'Not quite right'),
+              E("button", { className: "nf-feed-link", onClick: () => dismiss(m.key, 'mirror_dismissed') }, 'Dismiss'))))),
+    ready && data.errors.decisions && E("p", { className: "nf-feed-note", style: { marginTop: 24 } }, "Your saved decisions couldn't be loaded right now. ", E("button", { className: "nf-feed-link", onClick: load }, 'Try again'))
+  );
+}
+
 function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonProgress, authLoading }) {
   const E = React.createElement;
+  useEffect(() => { if (authLoading) return; nfEvent(user ? 'feed_viewed' : 'homepage_viewed', {}); }, [!!user, !!authLoading]);
   const completedLessons = Object.values(lessonProgress || {}).filter(v => v === 100).length;
   const wrap = { maxWidth: 760, margin: '0 auto', padding: '0 24px' };
   const h2 = { ...hDisplay, fontWeight: 600, fontSize: 'clamp(24px,3vw,32px)', lineHeight: 1.25, color: H.ink, margin: '0 0 12px' };
@@ -1963,24 +2482,21 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
       : completedLessons < 1
         ? { title: 'Start your first lesson', text: 'Short lessons that build better thinking habits.', cta: 'Open lessons', go: 'lessons' }
         : { title: 'Keep going with your lessons', text: completedLessons + (completedLessons === 1 ? ' lesson' : ' lessons') + ' done so far.', cta: 'Continue', go: 'lessons' };
+    const showNext = !hasResult || completedLessons < 1;
     return E("div", { className: "nf-home", style: { background: H.bg, color: H.text, paddingTop: 60, minHeight: '100vh' } }, styles,
-      E("div", { style: { ...wrap, padding: '56px 24px 80px' } },
-        E("h1", { style: { ...hDisplay, fontWeight: 600, fontSize: 'clamp(28px,5vw,40px)', lineHeight: 1.15, color: H.ink, margin: '0 0 28px' } }, 'Welcome back'),
-        E("div", { style: { ...tile, padding: '32px 28px', marginBottom: 20, borderColor: H.goldLine } },
-          E("div", { style: { ...hMono, fontSize: 11, letterSpacing: '0.1em', color: H.faint, marginBottom: 10 } }, 'YOUR NEXT STEP'),
-          E("div", { style: { ...hDisplay, fontWeight: 600, fontSize: 22, color: H.ink, marginBottom: 8 } }, next.title),
-          E("p", { style: { ...para, marginBottom: 20 } }, next.text),
-          E("button", { className: "nf-home-cta-primary", onClick: () => setView(next.go) }, next.cta)),
-        hasResult ? E("p", { style: { ...para, marginBottom: 28 } }, 'Your last result: ', E("strong", { style: { color: H.ink } }, plainBand(cfiResult.band)), '. ',
-          E("button", { onClick: () => setView('analytics'), style: { background: 'none', border: 'none', padding: 0, font: 'inherit', color: H.goldDeep, textDecoration: 'underline', cursor: 'pointer' } }, 'See my progress')) : null,
-        E("div", { className: "nf-home-grid" },
-          E("button", { className: "nf-home-tile-btn", style: tile, onClick: () => setView('lessons') }, E("div", { style: tileTitle }, 'Lessons'), E("div", { style: { ...para, fontSize: 14 } }, 'Short lessons to think better.')),
-          E("button", { className: "nf-home-tile-btn", style: tile, onClick: () => setView('decisions') }, E("div", { style: tileTitle }, 'Make a decision'), E("div", { style: { ...para, fontSize: 14 } }, 'Think a real decision through, step by step.')),
-          E("button", { className: "nf-home-tile-btn", style: tile, onClick: () => setView('analytics') }, E("div", { style: tileTitle }, 'My progress'), E("div", { style: { ...para, fontSize: 14 } }, 'See how your thinking changes over time.')))));
+      E("div", { style: { ...wrap, padding: '32px 24px 80px' } },
+        E(ThinkingFeed, { user, setView }),
+        E("div", { className: "nf-feed-sec", style: { marginTop: 36 } },
+          showNext && E("p", { style: { ...para, marginBottom: 14 } }, E("strong", { style: { color: H.ink } }, next.title + ': '), next.text, ' ',
+            E("button", { onClick: () => setView(next.go), style: { background: 'none', border: 'none', padding: 0, font: 'inherit', color: H.goldDeep, textDecoration: 'underline', cursor: 'pointer', minHeight: 44 } }, next.cta)),
+          hasResult ? E("p", { style: { ...para, marginBottom: 0 } }, 'Your last result: ', E("strong", { style: { color: H.ink } }, plainBand(cfiResult.band)), '. ',
+            E("button", { onClick: () => setView('analytics'), style: { background: 'none', border: 'none', padding: 0, font: 'inherit', color: H.goldDeep, textDecoration: 'underline', cursor: 'pointer', minHeight: 44 } }, 'See my progress'),
+            ' \u00b7 ',
+            E("button", { onClick: () => setView('lessons'), style: { background: 'none', border: 'none', padding: 0, font: 'inherit', color: H.goldDeep, textDecoration: 'underline', cursor: 'pointer', minHeight: 44 } }, 'Lessons')) : null)));
   }
 
   // ---------- Signed out: the full homepage ----------
-  const go = () => setView('cfi');
+  const go = () => { nfEvent('primary_cta_clicked', { where: 'home' }); setView('cfi'); };
   const list = (items) => E("ul", { className: "nf-home-list" }, items.map(t => E("li", { key: t }, t)));
   const centered = { textAlign: 'center' };
   const symptoms = [
@@ -2365,7 +2881,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
           status: 'open',
         });
         setSaving(false);
-        if (row) { if (teamFields.org_id && window.NF_ORG) window.NF_ORG.clearDecisionContext(); setSaved(row); } else setError("Couldn't save right now. Check your connection and try again.");
+        if (row) { if (teamFields.org_id && window.NF_ORG) window.NF_ORG.clearDecisionContext(); nfClearDraft(user.id); nfEvent('thinking_session_saved', { confidence: confidence, hasAction: !!nextAction.trim() }); setSaved(row); } else setError("Couldn't save right now. Check your connection and try again.");
       };
 
       if (saved) {
@@ -2540,16 +3056,39 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
     function ProtocolView({ setView, user, setShowAuth, cfiResult }) {
       useProtocolA11yStyles();
       const AC = PROTOCOL_AC;
-      const [phase, setPhase] = useState('intro'); // intro | steps | result
+      const [seed] = useState(nfConsumeSeed); // set by the Thinking Feed (new question) or by Continue (resume)
+      const [phase, setPhase] = useState(seed && seed.resume && user ? 'loading' : (seed && seed.problem ? 'steps' : 'intro')); // loading | intro | steps | result
       const [stepIndex, setStepIndex] = useState(0);
-      const [problem, setProblem] = useState('');
+      const [problem, setProblem] = useState(seed && seed.problem ? String(seed.problem) : '');
       const [answers, setAnswers] = useState({ decompose:'', sense:'', expand:'', reflect:'' });
+      const [draftNote, setDraftNote] = useState('');
+      const startedRef = useRef(false);
+      const markStarted = (source) => { if (startedRef.current) return; startedRef.current = true; nfEvent('thinking_session_started', { source: source || 'protocol' }); };
 
       useEffect(() => { window.scrollTo(0, 0); }, [phase, stepIndex]);
+      useEffect(() => {
+        if (seed && seed.problem && !seed.resume) markStarted(seed.source || 'feed');
+        if (seed && seed.resume) {
+          if (!user) { return; }
+          nfLoadDraft(user.id).then(d => {
+            if (d && d.problem) {
+              const a = d.answers && typeof d.answers === 'object' ? d.answers : {};
+              setProblem(String(d.problem)); setAnswers({ decompose: String(a.decompose || ''), sense: String(a.sense || ''), expand: String(a.expand || ''), reflect: String(a.reflect || '') });
+              setStepIndex(Math.min(Math.max(Number(d.step_index) || 0, 0), PROTOCOL_STEPS.length - 1));
+              startedRef.current = true; setPhase('steps');
+            } else setPhase('intro');
+          }).catch(() => { setDraftNote("Your saved draft couldn't be loaded. You can start again below."); setPhase('intro'); });
+        }
+      }, []);
 
       const restart = () => {
-        setPhase('intro'); setStepIndex(0); setProblem(''); setAnswers({ decompose:'', sense:'', expand:'', reflect:'' });
+        if (user) nfClearDraft(user.id);
+        setPhase('intro'); setStepIndex(0); setProblem(''); setAnswers({ decompose:'', sense:'', expand:'', reflect:'' }); startedRef.current = false;
       };
+
+      if (phase === 'loading') {
+        return React.createElement("div", { role: 'status', style: { paddingTop: 120, textAlign: 'center', fontFamily: AC.font, color: AC.muted, background: AC.bg, minHeight: '100vh' } }, 'Opening your session...');
+      }
 
       // ── Intro (mirrors the CFI intro screen) ───────────────────────
       if (phase === 'intro') {
@@ -2585,7 +3124,8 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
                   );
                 })
               ),
-              React.createElement("button", {className: "nf-a11y-btn", onClick: ()=>setPhase('steps'), style: {
+              draftNote && React.createElement("div", { role: 'alert', style: { fontSize: 15, color: '#B42318', marginBottom: 16 } }, draftNote),
+              React.createElement("button", {className: "nf-a11y-btn", onClick: ()=>{ markStarted('protocol'); setPhase('steps'); }, style: {
                 fontFamily:AC.font, fontSize:18, fontWeight:700, padding:'18px 40px', minHeight:56,
                 background:AC.goldDark, color:'#FFFFFF', border:'none', borderRadius:16, cursor:'pointer',
                 boxShadow:'0 2px 8px rgba(138,109,47,0.35)', marginBottom:16,
@@ -2617,8 +3157,11 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
       const percent = Math.round(((stepIndex) / PROTOCOL_STEPS.length) * 100);
 
       const goNext = () => {
+        nfEvent('thinking_stage_completed', { stage: step.key, index: stepIndex + 1 });
+        const nextIndex = Math.min(stepIndex + 1, PROTOCOL_STEPS.length - 1);
+        if (user) nfSaveDraft(user.id, { problem, answers, stepIndex: nextIndex }).then(ok => { if (!ok) nfNotify("Couldn't save your draft. Your answers are still here, but check your connection.", { type: 'error' }); });
         if (stepIndex < PROTOCOL_STEPS.length - 1) setStepIndex(i => i + 1);
-        else setPhase('result');
+        else { nfEvent('thinking_session_completed', {}); setPhase('result'); }
       };
       const goBack = () => {
         if (stepIndex > 0) setStepIndex(i => i - 1);
@@ -2780,7 +3323,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
           status, reviewed_at: new Date().toISOString(),
         });
         setSaving(false);
-        if (row) onSaved(row);
+        if (row) { nfEvent('review_recorded', { outcome: outcome }); if (decision.next_action) nfEvent('follow_up_completed', { source: 'review' }); onSaved(row); }
       };
       return (
         React.createElement("div", { style: { padding: '20px', background: C.deep, borderRadius: 2, border: `1px solid ${C.border}`, marginTop: 16 } },
@@ -2800,7 +3343,21 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
       );
     }
 
-    function DecisionCard({ d, expanded, onToggle, onOutcomeSaved }) {
+    function DecisionCard({ d, expanded, onToggle, onOutcomeSaved, onDeleted }) {
+      const [confirmDel, setConfirmDel] = useState(false);
+      const [busy, setBusy] = useState(false);
+      const markDone = async () => {
+        setBusy(true);
+        const row = await updateDecisionSession(d.id, { action_completed_at: new Date().toISOString() });
+        setBusy(false);
+        if (row) { nfEvent('follow_up_completed', { source: 'vault' }); onOutcomeSaved(row); } else nfNotify("Couldn't update that right now. Please try again.", { type: 'error' });
+      };
+      const del = async () => {
+        setBusy(true);
+        const ok = await nfDeleteDecision(d.id);
+        setBusy(false);
+        if (ok) onDeleted(d.id); else nfNotify("Couldn't delete that right now. Please try again.", { type: 'error' });
+      };
       return (
         React.createElement("div", { className: "card", style: { padding: '22px 24px', marginBottom: 16 } },
           React.createElement("div", { style: { display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 12, cursor: 'pointer' }, onClick: onToggle },
@@ -2829,7 +3386,14 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
               React.createElement("div", { style: { fontSize: 13, color: C.text, marginBottom: d.lesson_learned ? 6 : 0 } }, d.outcome),
               d.lesson_learned && React.createElement("div", { style: { fontSize: 13, color: C.muted, lineHeight: 1.6 } }, d.lesson_learned)
             ),
-            (d.status !== 'reviewed') && React.createElement(DecisionOutcomeForm, { decision: d, onSaved: onOutcomeSaved })
+            (d.status !== 'reviewed') && React.createElement(DecisionOutcomeForm, { decision: d, onSaved: onOutcomeSaved }),
+            d.next_action && !d.action_completed_at && React.createElement("button", { className: "btn-outline", disabled: busy, onClick: markDone, style: { marginTop: 14, marginRight: 10 } }, 'Mark next action done'),
+            d.action_completed_at && React.createElement("div", { style: { fontSize: 13, color: C.muted, marginTop: 14 } }, 'Next action done on ', new Date(d.action_completed_at).toLocaleDateString()),
+            !confirmDel
+              ? React.createElement("button", { className: "btn-ghost", disabled: busy, onClick: () => setConfirmDel(true), style: { marginTop: 14 } }, 'Delete this decision')
+              : React.createElement("div", { role: 'alert', style: { marginTop: 14, fontSize: 13, color: C.muted } }, 'Delete this decision and everything you wrote in it? This cannot be undone. ',
+                  React.createElement("button", { className: "btn-outline", disabled: busy, onClick: del, style: { marginRight: 8 } }, 'Yes, delete'),
+                  React.createElement("button", { className: "btn-ghost", onClick: () => setConfirmDel(false) }, 'Cancel'))
           )
         )
       );
@@ -2899,7 +3463,8 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
               )
             ) : filtered.map(d => React.createElement(DecisionCard, {
               key: d.id, d, expanded: expandedId === d.id,
-              onToggle: () => setExpandedId(expandedId === d.id ? null : d.id),
+              onToggle: () => { if (expandedId !== d.id) nfEvent('saved_session_revisited', { kind: 'vault' }); setExpandedId(expandedId === d.id ? null : d.id); },
+              onDeleted: (id) => { setDecisions(prev => prev.filter(x => x.id !== id)); setExpandedId(null); },
               onOutcomeSaved: (row) => { setDecisions(prev => prev.map(x => x.id === row.id ? row : x)); },
             }))
           )
