@@ -2207,10 +2207,12 @@ function NFChallenge({ user, date, ch, why: whyPick, latestOpen, row, setView, o
   const picked = done ? ch.options.find(o => o.key === row.choice_key) : null;
   const modeName = ch.mode.charAt(0).toUpperCase() + ch.mode.slice(1);
 
+  const canSubmit = !!choice || why.trim().length > 0;
   const submit = async () => {
-    if (!choice || busy) return;
+    if (!canSubmit || busy) return;
     setBusy(true); setErr('');
-    const saved = await nfSaveChallengeRow(user.id, { challenge_id: ch.id, date, choice, reasoning: why.trim() });
+    // If the person only wrote their reasoning and did not tap a block, save it as a written answer.
+    const saved = await nfSaveChallengeRow(user.id, { challenge_id: ch.id, date, choice: choice || 'written', reasoning: why.trim() });
     setBusy(false);
     if (saved) { nfEvent('daily_challenge_completed', { challenge: ch.id, mode: ch.mode }); onSaved(saved); }
     else setErr("Couldn't save your answer right now. Check your connection and try again.");
@@ -2227,23 +2229,28 @@ function NFChallenge({ user, date, ch, why: whyPick, latestOpen, row, setView, o
   const open_ = () => { if (!open) nfEvent('daily_challenge_started', { challenge: ch.id, mode: ch.mode }); setOpen(true); };
 
   return E("div", { className: "nf-feed-block" },
-    E("div", { className: "nf-feed-meta" }, ch.title, ' \u00b7 ', modeName, ' \u00b7 ', ch.minutes, ' min', done ? ' \u00b7 Done' : ''),
+    E("h3", { className: "nf-feed-title" }, ch.title),
+    E("div", { className: "nf-feed-meta" }, modeName, ' \u00b7 ', ch.minutes, ' min', done ? ' \u00b7 Done' : ''),
     whyPick && !done && E("p", { className: "nf-feed-note" }, 'Chosen because your answers in the ' + whyPick + ' stage have been the shortest in your saved sessions. That is about how much you wrote, not how well you think.'),
     E("p", { className: "nf-feed-scenario" }, ch.scenario),
     !open && !done && E("button", { className: "nf-home-cta-outline", onClick: open_ }, 'Try this challenge'),
     open && !done && E("div", null,
       E("fieldset", { style: { border: 'none', padding: 0, margin: '0 0 14px' } },
-        E("legend", { className: "nf-feed-meta", style: { marginBottom: 10 } }, 'What would you do?'),
+        E("legend", { className: "nf-feed-why-label", style: { marginTop: 0, marginBottom: 12, padding: 0 } }, 'What would you do? Tap one answer:'),
         ch.options.map(o => E("label", { key: o.key, className: "nf-feed-opt" + (choice === o.key ? ' nf-feed-opt-on' : '') },
           E("input", { type: 'radio', name: 'nfc-' + date, value: o.key, checked: choice === o.key, onChange: () => setChoice(o.key) }),
-          E("span", null, o.label)))),
-      E("label", { className: "nf-feed-meta", htmlFor: 'nfc-why-' + date, style: { display: 'block', marginBottom: 6 } }, 'Your reasoning (optional)'),
-      E("textarea", { id: 'nfc-why-' + date, className: "nf-feed-ta", rows: 2, maxLength: 1000, value: why, onChange: e => setWhy(e.target.value), placeholder: 'Why that choice?' }),
+          E("span", { className: "nf-feed-opt-dot", 'aria-hidden': 'true' }),
+          E("span", { className: "nf-feed-opt-text" }, o.label)))),
+      E("label", { className: "nf-feed-why-label", htmlFor: 'nfc-why-' + date }, 'Or share your reasoning'),
+      E("p", { className: "nf-feed-why-help" }, 'Prefer not to tap an answer? Write what you would do and why, then submit.'),
+      E("textarea", { id: 'nfc-why-' + date, className: "nf-feed-ta", rows: 4, maxLength: 1000, value: why, onChange: e => setWhy(e.target.value), placeholder: 'Write your thinking here, in your own words...' }),
       err && E("div", { role: 'alert', className: "nf-feed-err" }, err),
-      E("button", { className: "nf-home-cta-primary", onClick: submit, disabled: !choice || busy, style: { marginTop: 12, opacity: !choice || busy ? 0.5 : 1 } }, busy ? 'Saving...' : 'See the trade-offs')),
+      E("button", { className: "nf-home-cta-primary", onClick: submit, disabled: !canSubmit || busy, style: { marginTop: 14, opacity: !canSubmit || busy ? 0.5 : 1 } }, busy ? 'Saving...' : 'See the trade-offs')),
     done && E("div", null,
       picked && E("p", { className: "nf-feed-body" }, E("strong", null, 'You chose: '), picked.label),
+      row.reasoning && E("p", { className: "nf-feed-body" }, E("strong", null, picked ? 'Your reasoning: ' : 'You wrote: '), row.reasoning),
       picked && E("p", { className: "nf-feed-body" }, picked.feedback),
+      !picked && ch.options.length > 0 && E("p", { className: "nf-feed-body" }, E("strong", null, 'The trade-offs: '), ch.options.map(o => o.label + ' ' + o.feedback).join(' ')),
       E("p", { className: "nf-feed-body" }, ch.explanation),
       E("p", { className: "nf-feed-body", style: { fontWeight: 600 } }, ch.application),
       E("div", { style: { display: 'flex', gap: 10, flexWrap: 'wrap' } },
@@ -2340,9 +2347,19 @@ function ThinkingFeed({ user, setView }) {
     .nf-feed-meta { font-family:'Space Mono',monospace; font-size:12px; letter-spacing:0.08em; color:${H.faint}; text-transform:uppercase; margin:0 0 10px; }
     .nf-feed-scenario { font-size:18px; line-height:1.6; color:${H.ink}; margin:0 0 16px; }
     .nf-feed-body { font-size:16px; line-height:1.7; color:${H.muted}; margin:0 0 12px; }
-    .nf-feed-opt { display:flex; gap:12px; align-items:flex-start; min-height:48px; padding:12px 14px; margin-bottom:8px; border:1px solid ${H.border}; border-radius:6px; cursor:pointer; font-size:16px; line-height:1.5; color:${H.text}; }
-    .nf-feed-opt-on { border-color:${H.goldDeep}; background:${C.surface}; }
-    .nf-feed-opt input { margin-top:4px; flex-shrink:0; }
+    .nf-feed-opt { position:relative; display:flex; gap:14px; align-items:center; width:100%; box-sizing:border-box; min-height:64px; padding:16px 18px; margin:0 0 12px; border:1.5px solid ${H.borderStrong}; border-radius:8px; cursor:pointer; font-size:17px; line-height:1.55; color:${H.ink}; background:${C.surface}; transition:border-color .15s, background .15s; }
+    .nf-feed-opt:hover { border-color:${H.goldDeep}; }
+    .nf-feed-opt-on { border-color:${H.gold}; box-shadow:0 0 0 1px ${H.gold}; }
+    .nf-feed-opt input { position:absolute; opacity:0; width:1px; height:1px; margin:0; padding:0; pointer-events:none; }
+    .nf-feed-opt:focus-within { outline:2px solid ${H.gold}; outline-offset:2px; }
+    .nf-feed-opt-dot { flex:0 0 24px; width:24px; height:24px; border-radius:50%; border:2px solid ${H.borderStrong}; box-sizing:border-box; display:flex; align-items:center; justify-content:center; }
+    .nf-feed-opt-on .nf-feed-opt-dot { border-color:${H.gold}; background:${H.gold}; }
+    .nf-feed-opt-on .nf-feed-opt-dot::after { content:''; width:8px; height:8px; border-radius:50%; background:#151513; }
+    .nf-feed-opt-text { flex:1 1 auto; min-width:0; font-size:17px; line-height:1.55; color:${H.ink}; }
+    .nf-feed-title { font-family:'Clash Display','Syne',sans-serif; font-weight:600; font-size:20px; letter-spacing:0.02em; color:${H.ink}; margin:0 0 4px; }
+    .nf-feed-why-label { display:block; font-size:17px; font-weight:600; color:${H.ink}; margin:20px 0 4px; }
+    .nf-feed-why-help { font-size:15px; line-height:1.5; color:${H.muted}; margin:0 0 10px; }
+    .nf-feed-ta::placeholder { color:${H.muted}; opacity:0.85; font-size:16px; }
     .nf-feed-err { font-size:14px; color:#E5484D; margin-top:10px; }
     .nf-feed-link { background:none; border:none; padding:0; font:inherit; color:${H.goldDeep}; text-decoration:underline; cursor:pointer; min-height:44px; }
     .nf-feed-row { display:flex; gap:12px; flex-wrap:wrap; align-items:center; }
