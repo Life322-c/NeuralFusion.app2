@@ -1495,6 +1495,7 @@ Most learners take four to six weeks working through the lessons at the suggeste
             return;
           }
 
+          nfEvent('signup', {}); // product_events needs a session; signup dates are also derived from auth.users in the metrics view
           // If email confirmation is required, identities will be empty or session null
           const needsConfirm = !data.session || data.user?.identities?.length === 0;
           if (needsConfirm) {
@@ -2071,9 +2072,9 @@ let NF_LIB_CACHE = null;
 const nfLoadLibrary = async () => {
   if (NF_LIB_CACHE) return NF_LIB_CACHE;
   try {
-    const { data, error } = await sb.from('thinking_challenges').select('id,title,scenario,mode,options,explanation,application,seed,minutes,difficulty').eq('active', true).order('sort_order', { ascending: true }).limit(1000);
+    const { data, error } = await sb.from('thinking_challenges').select('*').eq('active', true).order('sort_order', { ascending: true }).limit(1000);
     if (error) throw error;
-    const ok = (data || []).filter(c => c && Array.isArray(c.options) && c.options.length === 3);
+    const ok = (data || []).filter(c => c && Array.isArray(c.options) && c.options.length >= 3 && c.options.length <= 4);
     if (ok.length >= 7) { NF_LIB_CACHE = ok; return ok; }
   } catch (e) { console.warn('[CHALLENGE LIBRARY] using built-in set:', e && e.message); }
   return NF_CHALLENGES;
@@ -2136,9 +2137,206 @@ function nfMirrorObservations(decisions) {
   return out.slice(0, 2);
 }
 
+// ── Home: practice stats and the ONE recommended next action (pure; built only from records already loaded) ──
+const NF_RETEST_DAYS = 28; // a retest is suggested this many days after the latest verified CFI result
+function nfDaysBetween(fromDate, toDate) { return nfDayNumber(toDate) - nfDayNumber(fromDate); }
+// Practice days = distinct local dates with a completed challenge, a saved decision or a recorded review.
+function nfPracticeStats(decisions, rows, today) {
+  const days = new Set();
+  rows.forEach(r => { if (r.challenge_date) days.add(r.challenge_date); });
+  decisions.forEach(d => {
+    if (d.created_at) days.add(nfLocalDate(new Date(d.created_at)));
+    if (d.reviewed_at) days.add(nfLocalDate(new Date(d.reviewed_at)));
+  });
+  const since = nfAddDays(today, -6);
+  let week = 0; days.forEach(x => { if (x >= since && x <= today) week++; });
+  return { total: days.size, week, challenges: rows.length, saved: decisions.length, reviewed: decisions.filter(d => d.status === 'reviewed').length };
+}
+// One primary recommendation, in this order. Parts whose data failed to load are skipped, never guessed.
+function nfNextAction({ hasCfi, cfiHistory, completedLessons, decisions, rows, today, errors, dueReview }) {
+  const e = errors || {};
+  if (!hasCfi) return { key: 'cfi', title: 'Take your 4-minute Thinking Clarity Test', text: '13 questions about how you approach decisions. It gives you a starting point to practise from.', cta: 'Start the test', go: 'cfi' };
+  if (dueReview && !e.decisions) return { key: 'review', title: 'Review your decision', text: dueReview.text, cta: 'Review it', go: 'decisions' };
+  if (!e.rows && !rows.some(r => r.challenge_date === today)) return { key: 'challenge', title: "Complete today's Thinking Challenge", text: 'A short scenario. Choose an answer or write your own reasoning. About 3 minutes.', cta: 'Start the challenge', act: 'challenge' };
+  const verified = (cfiHistory || []).filter(r => r && r.assessment_version !== 'legacy-unverified' && r.created_at);
+  const last = verified.length ? nfLocalDate(new Date(verified[verified.length - 1].created_at)) : null;
+  if (last && nfDaysBetween(last, today) >= NF_RETEST_DAYS) return { key: 'retest', title: 'Check what changed', text: 'It has been ' + nfDaysBetween(last, today) + ' days since your last test. Retake it to compare with your earlier result.', cta: 'Retake the test', go: 'cfi' };
+  if (completedLessons < 1) return { key: 'lesson', title: 'Start your first lesson', text: 'Short lessons that build deliberate thinking habits. The first one is free.', cta: 'Open lessons', go: 'lessons' };
+  if (!e.decisions && decisions.length < 1) return { key: 'decision', title: 'Apply the method to a real decision', text: 'Bring something you are actually deciding and work through it step by step.', cta: 'Start a decision', act: 'decision' };
+  return { key: 'rest', title: "Today's practice is done", text: 'Your work is saved. Come back tomorrow for a new challenge, or work through a decision now.', cta: 'Work through a decision', act: 'decision' };
+}
+
+// ── NeuralFusion Thinking Passport (Step 6). Levels are computed and issued ON THE SERVER (passport_sync, see
+// migration_passport.sql); the browser only displays what the server returns. Until the migration is applied this
+// returns null and every Passport surface simply renders nothing. It shows practice, never intelligence.
+let NF_PP = { uid: null, at: 0, p: null };
+const nfPassportInvalidate = () => { NF_PP = { uid: null, at: 0, p: null }; };
+const nfPassportSync = (uid) => {
+  if (NF_PP.p && NF_PP.uid === uid && Date.now() - NF_PP.at < 20000) return NF_PP.p;
+  NF_PP = { uid, at: Date.now(), p: null };
+  NF_PP.p = (async () => {
+    try {
+      const { data, error } = await sb.rpc('passport_sync');
+      if (error || !data || !data.ok) { if (error) console.warn('[PASSPORT]', error.message); return null; }
+      (data.new_levels || []).forEach(l => {
+        const lv = (data.levels || []).find(x => x.level === l);
+        nfEvent('passport_level_reached', { level: l });
+        nfNotify('You reached Level ' + l + (lv ? ' \u2014 ' + lv.name : '') + '.');
+      });
+      return data;
+    } catch (e) { console.warn('[PASSPORT]', e && e.message); return null; }
+  })();
+  return NF_PP.p;
+};
+function NFPassportPanel({ pp, t, mode, setView, lessonsDone, lessonsTotal }) {
+  const E = React.createElement;
+  if (!pp || !pp.levels) return null;
+  const cur = pp.levels.find(x => x.level === pp.current_level) || null;
+  const nxt = pp.levels.find(x => x.level === pp.next_level) || null;
+  const metN = nxt ? nxt.requirements.filter(r => r.met).length : 0;
+  const c = pp.counts || {};
+  const box = { border: '1px solid ' + t.border, borderLeft: '3px solid ' + t.accent, borderRadius: 8, padding: '20px 18px', background: t.bg };
+  const eyebrow = { fontFamily: "'Space Mono',monospace", fontSize: 12, letterSpacing: '0.14em', color: t.muted, margin: '0 0 10px' };
+  const title = { fontFamily: "'Clash Display','Syne',sans-serif", fontWeight: 600, fontSize: 'clamp(20px,4.5vw,26px)', lineHeight: 1.2, color: t.ink, margin: '0 0 6px' };
+  const small = { fontSize: 14, lineHeight: 1.6, color: t.muted, margin: '0 0 12px' };
+  const heading = cur ? 'Level ' + cur.level + ' \u2014 ' + cur.name : 'Not started';
+  const nextLine = nxt ? 'Next: Level ' + nxt.level + ' \u2014 ' + nxt.name + '. ' + metN + ' of ' + nxt.requirements.length + ' requirements met.' : 'You have reached every level.';
+  if (mode === 'compact') {
+    return E("div", { style: box, role: 'region', 'aria-label': 'Thinking Passport' },
+      E("p", { style: eyebrow }, 'YOUR THINKING PASSPORT'),
+      E("h2", { style: title }, heading),
+      E("p", { style: small }, nextLine),
+      E("button", { className: "nf-home-cta-outline", onClick: () => { nfEvent('thinking_record_opened', { source: 'passport' }); setView('record'); } }, 'View Thinking Record'));
+  }
+  const stat = (k, v) => E("div", { key: k, style: { padding: '8px 0', borderTop: '1px solid ' + t.border, display: 'flex', justifyContent: 'space-between', gap: 12, fontSize: 15, color: t.ink } }, E("span", { style: { color: t.muted } }, k), E("span", { style: { fontWeight: 600, textAlign: 'right' } }, v));
+  const fmt = (r) => r.need === 1 ? (r.met ? 'Done' : 'Not yet') : r.have + ' of ' + r.need;
+  return E("div", { style: box, role: 'region', 'aria-label': 'Thinking Passport' },
+    E("p", { style: eyebrow }, 'NEURALFUSION THINKING PASSPORT'),
+    E("h2", { style: title }, heading),
+    E("p", { style: small }, 'This shows practice you have done in NeuralFusion. It is not an intelligence score and it is not an external accreditation.'),
+    stat('CFI baseline', c.cfi_completed ? 'Completed' : 'Not yet'),
+    stat('Thinking Challenges', c.challenges || 0),
+    stat('Decision Rooms', c.decisions || 0),
+    stat('Decision reviews', c.reviews || 0),
+    stat('Training', (lessonsDone || 0) + ' of ' + (lessonsTotal || 0) + ' lessons'),
+    stat('Latest retest', c.retest ? 'Completed' : 'Not yet'),
+    stat('Practice days', c.practice_days || 0),
+    nxt && E("div", { style: { marginTop: 18 } },
+      E("p", { style: { ...eyebrow, marginBottom: 6 } }, 'TO REACH LEVEL ' + nxt.level + ' \u2014 ' + nxt.name.toUpperCase()),
+      nxt.level > 1 && E("p", { style: small }, 'Includes everything in Level ' + (nxt.level - 1) + '.'),
+      E("ul", { style: { margin: 0, padding: 0 } }, nxt.requirements.map(r => E("li", { key: r.key, style: { listStyle: 'none', padding: '8px 0', borderTop: '1px solid ' + t.border, fontSize: 15, color: t.ink, display: 'flex', justifyContent: 'space-between', gap: 12 } },
+        E("span", null, (r.met ? '\u2713 ' : '\u25cb ') + r.label), E("span", { style: { color: t.muted, whiteSpace: 'nowrap' } }, E("span", { style: { position: 'absolute', left: -9999 } }, r.met ? 'Met. ' : 'Not met. '), fmt(r)))))),
+    cur && cur.verification_id && E(NFPassportShare, { key: cur.verification_id, cred: cur, t }),
+    pp.levels.filter(x => x.earned).length > 0 && E("p", { style: { ...small, marginTop: 16, marginBottom: 0 } }, pp.levels.filter(x => x.earned).map(x => 'Level ' + x.level + ' earned ' + new Date(x.issued_at).toLocaleDateString()).join(' \u00b7 ')));
+}
+
+// ── Public credential verification (Step 7). /verify/<id> is readable without signing in. The server returns only status,
+// level, issue date, verification ID and requirement names, nothing about the person (see migration_passport_verify.sql).
+const nfVerifyIdFromPath = () => { try { const m = window.location.pathname.match(/^\/verify\/(NF-[0-9A-Fa-f]{16})\/?$/); return m ? m[1].toUpperCase() : null; } catch (_) { return null; } };
+function NFPassportShare({ cred, t }) {
+  const E = React.createElement;
+  const [shared, setShared] = useState(!!cred.shared);
+  const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState('');
+  const url = window.location.origin + '/verify/' + cred.verification_id;
+  const toggle = async (on) => {
+    setBusy(true); setErr('');
+    try {
+      const { data, error } = await sb.rpc('passport_set_sharing', { p_level: cred.level, p_shared: on });
+      if (error || !data || !data.ok) throw error || new Error('not ok');
+      setShared(on); nfPassportInvalidate();
+    } catch (e) { setErr('Could not update sharing. Check your connection and try again.'); }
+    setBusy(false);
+  };
+  const copy = async () => {
+    try { await navigator.clipboard.writeText(url); nfNotify('Link copied.'); nfEvent('passport_shared', { method: 'copy', level: cred.level }); }
+    catch (_) { setErr('Copying failed. Select the link and copy it.'); }
+  };
+  const share = async () => {
+    if (navigator.share) { try { await navigator.share({ title: 'Verify my NeuralFusion Thinking Passport', url }); nfEvent('passport_shared', { method: 'share', level: cred.level }); } catch (_) {} }
+    else copy();
+  };
+  const p = { fontSize: 14, lineHeight: 1.6, color: t.muted, margin: '0 0 12px' };
+  return E("div", { style: { marginTop: 18, paddingTop: 16, borderTop: '1px solid ' + t.border } },
+    E("p", { style: { fontFamily: "'Space Mono',monospace", fontSize: 12, letterSpacing: '0.14em', color: t.muted, margin: '0 0 8px' } }, 'SHARE LEVEL ' + cred.level + ' \u2014 ' + cred.name.toUpperCase()),
+    !shared
+      ? E("div", null,
+          E("p", { style: p }, 'Sharing is off. If you turn it on, anyone with the link can see your level, the date you earned it and the requirements met. Nothing else: no answers, decisions, test results or name.'),
+          E("button", { className: "btn-primary", disabled: busy, onClick: () => toggle(true), style: { minHeight: 48 } }, busy ? 'Working…' : 'Turn on sharing'))
+      : E("div", null,
+          E("p", { style: p }, 'Anyone with this link can verify your level. Turn sharing off any time and the link stops working.'),
+          E("input", { readOnly: true, value: url, 'aria-label': 'Verification link', onFocus: e => e.target.select(), style: { width: '100%', boxSizing: 'border-box', padding: '12px', fontSize: 16, background: 'transparent', color: t.ink, border: '1px solid ' + t.border, borderRadius: 4, marginBottom: 12 } }),
+          E("div", { style: { display: 'flex', flexWrap: 'wrap', gap: 10 } },
+            E("button", { className: "btn-primary", onClick: share, style: { minHeight: 48 } }, 'Share passport'),
+            E("button", { className: "btn-outline", onClick: copy, style: { minHeight: 48 } }, 'Copy link'),
+            E("a", { className: "btn-outline", href: '/verify/' + cred.verification_id, target: '_blank', rel: 'noopener noreferrer', style: { minHeight: 48, display: 'inline-flex', alignItems: 'center', textDecoration: 'none' } }, 'Verify credential'),
+            E("button", { className: "btn-outline", disabled: busy, onClick: () => toggle(false), style: { minHeight: 48 } }, 'Stop sharing'))),
+    err && E("p", { role: 'alert', style: { fontSize: 14, color: '#E5484D', margin: '10px 0 0' } }, err));
+}
+function VerifyCredentialView() {
+  const E = React.createElement;
+  const id = nfVerifyIdFromPath();
+  const [res, setRes] = useState({ status: 'loading' });
+  useEffect(() => {
+    const prevTitle = document.title; document.title = 'NeuralFusion credential verification';
+    const m = document.createElement('meta'); m.name = 'robots'; m.content = 'noindex,nofollow'; document.head.appendChild(m);
+    let on = true;
+    (async () => {
+      if (!id) { setRes({ status: 'done', valid: false }); return; }
+      try {
+        const { data, error } = await sb.rpc('verify_credential', { p_id: id });
+        if (!on) return;
+        if (error) setRes({ status: 'error' }); else setRes({ status: 'done', valid: !!(data && data.valid), d: data });
+      } catch (_) { if (on) setRes({ status: 'error' }); }
+    })();
+    return () => { on = false; document.title = prevTitle; if (m.parentNode) m.parentNode.removeChild(m); };
+  }, []);
+  const box = { maxWidth: 560, margin: '0 auto', padding: '40px 24px' };
+  const eyebrow = { fontFamily: "'Space Mono',monospace", fontSize: 12, letterSpacing: '0.14em', color: C.cyan, margin: '0 0 14px' };
+  const d = res.d;
+  let body;
+  if (res.status === 'loading') body = E("p", { role: 'status', style: { fontSize: 16, color: C.muted } }, 'Checking this credential...');
+  else if (res.status === 'error') body = E("div", null, E("h1", { style: { fontSize: 22, color: C.text, margin: '0 0 10px' } }, "We couldn't check this credential"), E("p", { style: { fontSize: 16, lineHeight: 1.6, color: C.muted } }, 'Check your connection and reload the page.'));
+  else if (!res.valid) body = E("div", null,
+    E("h1", { style: { fontSize: 22, color: C.text, margin: '0 0 10px' } }, 'Credential not available'),
+    E("p", { style: { fontSize: 16, lineHeight: 1.6, color: C.muted } }, 'This link is not valid, or its owner is not sharing it. A credential is only visible while its owner has sharing turned on.'));
+  else body = E("div", null,
+    E("h1", { style: { fontSize: 24, color: C.text, margin: '0 0 6px', overflowWrap: 'break-word' } }, 'Verified: Level ' + d.level + ' \u2014 ' + d.level_name),
+    E("p", { style: { fontSize: 16, lineHeight: 1.6, color: C.muted, margin: '0 0 20px' } }, 'NeuralFusion Thinking Passport'),
+    [['Status', 'Valid'], ['Level', 'Level ' + d.level + ' \u2014 ' + d.level_name], ['Issued', new Date(d.issued_on + 'T00:00:00').toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' })], ['Verification ID', d.verification_id]].map(([k, v]) =>
+      E("div", { key: k, style: { display: 'flex', justifyContent: 'space-between', gap: 16, padding: '10px 0', borderTop: '1px solid ' + C.border, fontSize: 16 } }, E("span", { style: { color: C.muted } }, k), E("span", { style: { color: C.text, fontWeight: 600, textAlign: 'right', overflowWrap: 'anywhere' } }, v))),
+    E("p", { style: { ...eyebrow, margin: '24px 0 8px', color: C.muted } }, 'REQUIREMENTS DEMONSTRATED'),
+    E("ul", { style: { margin: 0, padding: 0 } }, (d.requirements || []).map(r => E("li", { key: r.label, style: { listStyle: 'none', padding: '8px 0', borderTop: '1px solid ' + C.border, fontSize: 15, color: C.text } }, '\u2713 ' + (r.need > 1 ? r.label + ': ' + r.need + ' or more' : r.label)))));
+  return E("div", { style: { paddingTop: 80, paddingBottom: 100 } },
+    E("div", { style: box },
+      E("p", { style: eyebrow }, 'NEURALFUSION CREDENTIAL VERIFICATION'),
+      body,
+      E("p", { style: { fontSize: 14, lineHeight: 1.7, color: C.muted, margin: '28px 0 20px' } }, 'This confirms that a person completed these NeuralFusion practice requirements. It is not an intelligence score, a clinical assessment or an externally accredited qualification. It does not show anyone\u2019s answers, decisions or test results.'),
+      E("a", { className: "btn-outline", href: '/', style: { minHeight: 48, display: 'inline-flex', alignItems: 'center', textDecoration: 'none' } }, 'About NeuralFusion')));
+}
+
 // ── Storage helpers (all errors surface to the caller; nothing pretends to save) ──
 function nfSetSeed(o) { try { window.sessionStorage.setItem('nf_seed', JSON.stringify(o)); } catch (_) {} }
 function nfConsumeSeed() { try { const r = window.sessionStorage.getItem('nf_seed'); if (!r) return null; window.sessionStorage.removeItem('nf_seed'); return JSON.parse(r); } catch (_) { return null; } }
+// Home -> Vault hand-off: open the decision that is due, ready for its review.
+function nfSetReviewFocus(id) { try { window.sessionStorage.setItem('nf_review_focus', String(id)); } catch (_) {} }
+function nfConsumeReviewFocus() { try { const r = window.sessionStorage.getItem('nf_review_focus'); if (r) window.sessionStorage.removeItem('nf_review_focus'); return r || null; } catch (_) { return null; } }
+const NF_REVIEW_RESULTS = [
+  { v: 'worked', label: 'Worked' }, { v: 'partly', label: 'Partly worked' },
+  { v: 'didnt', label: "Didn't work" }, { v: 'unfolding', label: 'Still unfolding' },
+];
+const nfReviewLabel = (d) => { const r = NF_REVIEW_RESULTS.find(x => x.v === d.review_result); return r ? r.label : (d.outcome || ''); };
+// Saves a review. New columns come from migration_decision_review.sql. The legacy outcome text is written too so older
+// screens keep working; if an old check constraint rejects the new wording we retry with the new columns only.
+const nfSaveReview = async (id, patch, legacy) => {
+  const run = (p) => sb.from('decision_sessions').update(p).eq('id', id).select().single();
+  try {
+    let res = await run(Object.assign({}, patch, legacy));
+    if (res.error && /23514|check constraint/i.test((res.error.code || '') + ' ' + (res.error.message || ''))) res = await run(patch);
+    if (res.error) { console.error('[DECISION REVIEW]', res.error); return { row: null, needsMigration: /PGRST204|42703|column/i.test((res.error.code || '') + ' ' + (res.error.message || '')) }; }
+    nfjInvalidate('dec:'); nfPassportInvalidate(); return { row: res.data };
+  } catch (e) { console.error('[DECISION REVIEW]', e); return { row: null }; }
+};
 function nfReadDismissed(uid) { try { return JSON.parse(window.localStorage.getItem('nf_dismissed:' + uid) || '[]'); } catch (_) { return []; } }
 function nfWriteDismissed(uid, list) { try { window.localStorage.setItem('nf_dismissed:' + uid, JSON.stringify(list.slice(-200))); } catch (_) {} }
 
@@ -2181,13 +2379,24 @@ const nfLoadChallengeRows = async (uid) => {
     .select('challenge_id,challenge_date,choice_key,reasoning,applies').eq('user_id', uid).order('challenge_date', { ascending: false }).limit(90);
   if (error) throw error; return data || [];
 };
+const NF_ROW_COLS = 'challenge_id,challenge_date,choice_key,reasoning,applies';
 const nfSaveChallengeRow = async (uid, r) => {
+  const base = {
+    user_id: uid, challenge_id: r.challenge_id, challenge_date: r.date, choice_key: r.choice,
+    reasoning: r.reasoning ? String(r.reasoning).slice(0, 1000) : null, applies: typeof r.applies === 'boolean' ? r.applies : null,
+  };
+  // Timing is only written on first completion (r.started_at present), so the "apply" step never overwrites it.
+  const extra = {};
+  if (r.started_at) {
+    extra.started_at = r.started_at; extra.completed_at = new Date().toISOString();
+    if (typeof r.time_spent_seconds === 'number') extra.time_spent_seconds = Math.max(0, Math.min(3600, Math.round(r.time_spent_seconds)));
+  }
+  const run = async (payload) => sb.from('thinking_challenge_responses').upsert(payload, { onConflict: 'user_id,challenge_date' }).select(NF_ROW_COLS).single();
   try {
-    const { data, error } = await sb.from('thinking_challenge_responses').upsert({
-      user_id: uid, challenge_id: r.challenge_id, challenge_date: r.date, choice_key: r.choice,
-      reasoning: r.reasoning ? String(r.reasoning).slice(0, 1000) : null, applies: typeof r.applies === 'boolean' ? r.applies : null,
-    }, { onConflict: 'user_id,challenge_date' }).select('challenge_id,challenge_date,choice_key,reasoning,applies').single();
-    if (error) throw error; return data;
+    let res = await run(Object.assign({}, base, extra));
+    // Columns missing (migration_challenge_attempts.sql not run yet): save the answer without timing rather than lose it.
+    if (res.error && Object.keys(extra).length && /PGRST204|42703|column/i.test((res.error.code || '') + ' ' + (res.error.message || ''))) res = await run(base);
+    if (res.error) throw res.error; nfPassportInvalidate(); return res.data;
   } catch (e) { console.error('[CHALLENGE SAVE]', e); return null; }
 };
 const nfDeleteDecision = async (id) => {
@@ -2196,13 +2405,14 @@ const nfDeleteDecision = async (id) => {
 };
 
 // ── Today's challenge (also used for earlier days) ──────────────────
-function NFChallenge({ user, date, ch, why: whyPick, latestOpen, row, setView, onSaved, defaultOpen }) {
+function NFChallenge({ user, date, ch, why: whyPick, latestOpen, row, setView, onSaved, defaultOpen, openSignal }) {
   const E = React.createElement;
   const [open, setOpen] = useState(!!defaultOpen);
   const [choice, setChoice] = useState('');
   const [why, setWhy] = useState('');
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState('');
+  const t0 = useRef(defaultOpen ? Date.now() : null); // when the person actually began (for time spent)
   const done = !!row;
   const picked = done ? ch.options.find(o => o.key === row.choice_key) : null;
   const modeName = ch.mode.charAt(0).toUpperCase() + ch.mode.slice(1);
@@ -2212,7 +2422,8 @@ function NFChallenge({ user, date, ch, why: whyPick, latestOpen, row, setView, o
     if (!canSubmit || busy) return;
     setBusy(true); setErr('');
     // If the person only wrote their reasoning and did not tap a block, save it as a written answer.
-    const saved = await nfSaveChallengeRow(user.id, { challenge_id: ch.id, date, choice: choice || 'written', reasoning: why.trim() });
+    const began = t0.current || Date.now();
+    const saved = await nfSaveChallengeRow(user.id, { challenge_id: ch.id, date, choice: choice || 'written', reasoning: why.trim(), started_at: new Date(began).toISOString(), time_spent_seconds: (Date.now() - began) / 1000 });
     setBusy(false);
     if (saved) { nfEvent('daily_challenge_completed', { challenge: ch.id, mode: ch.mode }); onSaved(saved); }
     else setErr("Couldn't save your answer right now. Check your connection and try again.");
@@ -2226,7 +2437,9 @@ function NFChallenge({ user, date, ch, why: whyPick, latestOpen, row, setView, o
     if (saved) onSaved(saved);
     if (yes) { nfEvent('primary_cta_clicked', { where: 'challenge' }); nfSetSeed({ problem: ch.seed, source: 'challenge' }); setView('protocol'); }
   };
-  const open_ = () => { if (!open) nfEvent('daily_challenge_started', { challenge: ch.id, mode: ch.mode }); setOpen(true); };
+  const open_ = () => { if (!open) t0.current = Date.now(); if (!open) nfEvent('daily_challenge_started', { challenge: ch.id, mode: ch.mode }); setOpen(true); };
+
+  useEffect(() => { if (openSignal && !done) open_(); }, [openSignal]);
 
   return E("div", { className: "nf-feed-block" },
     E("h3", { className: "nf-feed-title" }, ch.title),
@@ -2260,7 +2473,7 @@ function NFChallenge({ user, date, ch, why: whyPick, latestOpen, row, setView, o
 }
 
 // ── The Thinking Feed ───────────────────────────────────────────────
-function ThinkingFeed({ user, setView }) {
+function ThinkingFeed({ user, setView, cfiHistory, completedLessons, hasCfi }) {
   const E = React.createElement;
   const today = nfLocalDate();
   const reduced = typeof window !== 'undefined' && window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -2273,6 +2486,8 @@ function ThinkingFeed({ user, setView }) {
   const [busyId, setBusyId] = useState(null);
   const [lib, setLib] = useState(NF_CHALLENGES);
   const taRef = useRef(null);
+  const [pp, setPp] = useState(null);
+  const [openSignal, setOpenSignal] = useState(0); // bumped by the next-step button to open today's challenge
   useEffect(() => { let on = true; nfLoadLibrary().then(l => { if (on) setLib(l); }); return () => { on = false; }; }, []);
 
   const load = useCallback(async () => {
@@ -2334,6 +2549,22 @@ function ThinkingFeed({ user, setView }) {
   const hasProgress = data.decisions.length > 0 || data.rows.length > 0;
   const earlier = nfEarlierDates(today, 6);
   const pick = ready ? nfPickChallenge(today, lib, data.decisions, data.rows) : null;
+  const stats = nfPracticeStats(data.decisions, data.rows, today);
+  useEffect(() => { if (data.status !== 'ready') return undefined; let on = true; nfPassportSync(user.id).then(p => { if (on) setPp(p); }); return () => { on = false; }; }, [user.id, data.status, data.rows.length, data.decisions.length, stats.reviewed]);
+  const reviewItem = followUps.find(f => f.kind !== 'stale') || null;
+  const dueReview = reviewItem ? { d: reviewItem.d, key: reviewItem.key, text: 'You saved \u201c' + String(reviewItem.d.title || 'a decision').slice(0, 80) + '\u201d '
+    + (() => { const n = reviewItem.d.created_at ? nfDaysBetween(nfLocalDate(new Date(reviewItem.d.created_at)), today) : 0; return n < 1 ? 'today' : n + (n === 1 ? ' day ago' : ' days ago'); })() + '. What happened?' } : null;
+  const next = ready ? nfNextAction({ hasCfi: !!hasCfi, cfiHistory, completedLessons: completedLessons || 0, decisions: data.decisions, rows: data.rows, today, errors: data.errors, dueReview }) : null;
+  const dueKey = dueReview ? dueReview.key + '@' + today : '';
+  useEffect(() => { if (!dueKey) return; try { if (window.sessionStorage.getItem('nf_due:' + dueKey)) return; window.sessionStorage.setItem('nf_due:' + dueKey, '1'); } catch (_) {} nfEvent('decision_review_due', {}); }, [dueKey]);
+  const goTo = (el) => { if (el && el.scrollIntoView) el.scrollIntoView({ behavior: reduced ? 'auto' : 'smooth', block: 'start' }); };
+  const runNext = () => {
+    nfEvent('next_action_clicked', { action: next.key });
+    if (next.key === 'review' && dueReview) nfSetReviewFocus(dueReview.d.id);
+    if (next.go) { setView(next.go); return; }
+    if (next.act === 'challenge') { setOpenSignal(n => n + 1); goTo(document.getElementById('nf-today-challenge')); return; }
+    if (next.act === 'decision') { goTo(document.getElementById('nf-ask')); if (taRef.current) taRef.current.focus({ preventScroll: true }); }
+  };
   const stageLabel = data.draft ? 'Stage ' + (Math.min(Math.max(Number(data.draft.step_index) || 0, 0), 3) + 1) + ' of 4' : '';
 
   const css = `
@@ -2364,25 +2595,31 @@ function ThinkingFeed({ user, setView }) {
     .nf-feed-link { background:none; border:none; padding:0; font:inherit; color:${H.goldDeep}; text-decoration:underline; cursor:pointer; min-height:44px; }
     .nf-feed-row { display:flex; gap:12px; flex-wrap:wrap; align-items:center; }
     .nf-feed-note { font-size:14px; line-height:1.6; color:${H.faint}; margin:0 0 12px; }
+    .nf-feed-card { border:1px solid ${H.border}; border-left:3px solid ${H.gold}; border-radius:8px; padding:22px 20px; background:${C.surface}; margin:0 0 8px; }
+    .nf-feed-stats { display:grid; grid-template-columns:repeat(3, 1fr); gap:12px; margin:0 0 10px; }
+    .nf-feed-stat b { display:block; font-family:'Clash Display','Syne',sans-serif; font-weight:600; font-size:26px; color:${H.ink}; line-height:1.2; }
+    .nf-feed-stat span { font-size:14px; line-height:1.4; color:${H.muted}; }
     @media (max-width:560px) { .nf-feed-scenario { font-size:17px; } }
   `;
 
   return E("div", null, E("style", null, css),
     !online && E("div", { role: 'status', className: "nf-feed-note", style: { marginBottom: 16 } }, 'You are offline. You can start thinking now, but saving needs a connection.'),
-    E("p", { className: "nf-feed-eyebrow" }, 'NEURALFUSION'),
-    E("h1", { style: { ...hDisplay, fontWeight: 600, fontSize: 'clamp(28px,6vw,40px)', lineHeight: 1.15, color: H.ink, margin: '0 0 10px' } }, "What's on your mind today?"),
-    E("p", { className: "nf-feed-body", style: { marginBottom: 18 } }, "Bring a question, a decision, or a problem. Let's work through it."),
-    E("label", { htmlFor: 'nf-feed-q', style: { position: 'absolute', left: -9999 } }, 'What are you trying to figure out?'),
-    E("textarea", { id: 'nf-feed-q', ref: taRef, className: "nf-feed-ta", rows: 3, maxLength: 1500, value: q, onChange: e => { setQ(e.target.value); if (hint) setHint(false); }, placeholder: 'What are you trying to figure out?' }),
-    hint && E("div", { role: 'alert', className: "nf-feed-err" }, 'Write a few words about what you are working through, then start.'),
-    E("div", { style: { margin: '14px 0 0' } }, E("button", { className: "nf-home-cta-primary", onClick: start }, 'START THINKING')),
-    E("div", { style: { display: 'flex', flexDirection: 'column', gap: 8, marginTop: 16, alignItems: 'flex-start' } },
-      chips.map(c => E("button", { key: c, className: "nf-feed-chip", onClick: () => { setQ(c); if (taRef.current) taRef.current.focus(); } }, c))),
+    // Your next step: ONE recommendation
+    E("div", { className: "nf-feed-card" },
+      E("p", { className: "nf-feed-eyebrow" }, 'TODAY \u00b7 YOUR NEXT STEP'),
+      next ? E("div", null,
+        E("h1", { style: { ...hDisplay, fontWeight: 600, fontSize: 'clamp(24px,5.5vw,34px)', lineHeight: 1.2, color: H.ink, margin: '0 0 10px' } }, next.title),
+        E("p", { className: "nf-feed-body", style: { marginBottom: 16 } }, next.text),
+        E("div", { className: "nf-feed-row" },
+          E("button", { className: "nf-home-cta-primary", onClick: runNext }, next.cta),
+          next.key === 'review' && dueReview && E("button", { className: "nf-feed-link", disabled: busyId === dueReview.d.id, onClick: () => snooze(dueReview.d, 7) }, 'Ask me in a week'),
+          next.key === 'review' && dueReview && E("button", { className: "nf-feed-link", onClick: () => dismiss(dueReview.key, 'followup_dismissed') }, 'Dismiss')))
+      : E("p", { className: "nf-feed-body", role: 'status' }, 'Loading your next step...')),
 
     // Today's challenge
-    E("div", { className: "nf-feed-sec" },
+    E("div", { id: 'nf-today-challenge', className: "nf-feed-sec", style: { marginTop: 24 } },
       E("p", { className: "nf-feed-eyebrow" }, "TODAY'S THINKING CHALLENGE"),
-      ready ? E(NFChallenge, { key: today + (rowFor(today) ? ':done' : ':open') + pick.ch.id, user, date: today, ch: pick.ch, why: pick.why, latestOpen: data.decisions.find(d => d.status === 'open') || null, row: rowFor(today), setView, onSaved: onChallengeSaved }) : E("p", { className: "nf-feed-note" }, 'Loading today\'s challenge...'),
+      ready ? E(NFChallenge, { key: today + (rowFor(today) ? ':done' : ':open') + pick.ch.id, user, date: today, ch: pick.ch, why: pick.why, latestOpen: data.decisions.find(d => d.status === 'open') || null, row: rowFor(today), setView, onSaved: onChallengeSaved, openSignal }) : E("p", { className: "nf-feed-note" }, 'Loading today\'s challenge...'),
       data.errors.rows && E("p", { className: "nf-feed-note" }, "Your saved challenge answers couldn't be loaded right now. You can still read today's challenge."),
       earlier.length > 0 && E("details", { style: { marginTop: 18 } },
         E("summary", { className: "nf-feed-meta", style: { cursor: 'pointer', minHeight: 44, display: 'flex', alignItems: 'center' } }, 'Earlier challenges'),
@@ -2393,6 +2630,40 @@ function ThinkingFeed({ user, setView }) {
             E("div", { style: { padding: '8px 0 16px' } }, E(NFChallenge, { user, date: d, ch: c, row: r, setView, onSaved: onChallengeSaved, defaultOpen: true })));
         }))),
 
+    // One decision to review
+    ready && dueReview && !(next && next.key === 'review') && E("div", { className: "nf-feed-sec" },
+      E("p", { className: "nf-feed-eyebrow" }, 'ONE DECISION TO REVIEW'),
+      E("p", { className: "nf-feed-scenario", style: { marginBottom: 12 } }, dueReview.text),
+      E("div", { className: "nf-feed-row" },
+        E("button", { className: "nf-home-cta-primary", onClick: () => { nfEvent('decision_review_opened', { source: 'home' }); nfSetReviewFocus(dueReview.d.id); setView('decisions'); } }, 'Review today'),
+        E("button", { className: "nf-feed-link", disabled: busyId === dueReview.d.id, onClick: () => snooze(dueReview.d, 7) }, 'Ask me in a week'),
+        E("button", { className: "nf-feed-link", onClick: () => dismiss(dueReview.key, 'followup_dismissed') }, 'Dismiss'))),
+
+    // Your current practice (real counts only)
+    ready && E("div", { className: "nf-feed-sec" },
+      E("p", { className: "nf-feed-eyebrow" }, 'YOUR CURRENT PRACTICE'),
+      E("div", { className: "nf-feed-stats" },
+        E("div", { className: "nf-feed-stat" }, E("b", null, stats.total), E("span", null, stats.total === 1 ? 'day practiced' : 'days practiced')),
+        E("div", { className: "nf-feed-stat" }, E("b", null, stats.challenges), E("span", null, stats.challenges === 1 ? 'challenge' : 'challenges')),
+        E("div", { className: "nf-feed-stat" }, E("b", null, stats.reviewed), E("span", null, stats.reviewed === 1 ? 'decision reviewed' : 'decisions reviewed'))),
+      E("p", { className: "nf-feed-note" }, stats.week + (stats.week === 1 ? ' day' : ' days') + ' this week \u00b7 ' + stats.saved + (stats.saved === 1 ? ' decision saved' : ' decisions saved') + (data.rows.length >= 90 || data.decisions.length >= 100 ? ' \u00b7 counts cover your most recent records' : '')),
+      data.decisions.length > 0 && E("button", { className: "nf-feed-link", onClick: () => setView('decisions') }, 'Open my decisions')),
+
+    // Your Thinking Record / Passport (server-computed; hidden until the migration is applied)
+    ready && pp && E("div", { className: "nf-feed-sec" }, E(NFPassportPanel, { pp, mode: 'compact', setView, t: { ink: H.ink, muted: H.muted, border: H.border, accent: H.goldDeep, bg: C.surface } })),
+    ready && !pp && E("div", { className: "nf-feed-sec" }, E("button", { className: "nf-feed-link", onClick: () => { nfEvent('thinking_record_opened', { source: 'home' }); setView('record'); } }, 'View my Thinking Record')),
+
+    E("div", { id: 'nf-ask', className: "nf-feed-sec" },
+    E("p", { className: "nf-feed-eyebrow" }, 'WORK THROUGH A DECISION'),
+    E("h2", { style: { ...hDisplay, fontWeight: 600, fontSize: 'clamp(22px,4.5vw,28px)', lineHeight: 1.2, color: H.ink, margin: '0 0 10px' } }, "What decision are you facing?"),
+    E("p", { className: "nf-feed-body", style: { marginBottom: 18 } }, "Bring a real decision or problem. You will break it down, check your signals, look wider, step back and commit."),
+    E("label", { htmlFor: 'nf-feed-q', style: { position: 'absolute', left: -9999 } }, 'What are you trying to figure out?'),
+    E("textarea", { id: 'nf-feed-q', ref: taRef, className: "nf-feed-ta", rows: 3, maxLength: 1500, value: q, onChange: e => { setQ(e.target.value); if (hint) setHint(false); }, placeholder: 'What are you trying to figure out?' }),
+    hint && E("div", { role: 'alert', className: "nf-feed-err" }, 'Write a few words about what you are working through, then start.'),
+    E("div", { style: { margin: '14px 0 0' } }, E("button", { className: "nf-home-cta-primary", onClick: start }, 'START THINKING')),
+    E("div", { style: { display: 'flex', flexDirection: 'column', gap: 8, marginTop: 16, alignItems: 'flex-start' } },
+      chips.map(c => E("button", { key: c, className: "nf-feed-chip", onClick: () => { setQ(c); if (taRef.current) taRef.current.focus(); } }, c)))),
+
     // Continue a saved, unfinished session
     ready && data.draft && E("div", { className: "nf-feed-sec" },
       E("p", { className: "nf-feed-eyebrow" }, 'CONTINUE YOUR LAST THINKING SESSION'),
@@ -2402,17 +2673,10 @@ function ThinkingFeed({ user, setView }) {
         E("button", { className: "nf-home-cta-primary", onClick: resume }, 'Continue'),
         E("button", { className: "nf-feed-link", onClick: discard }, 'Discard this draft'))),
 
-    // Recent progress (real counts only)
-    ready && hasProgress && E("div", { className: "nf-feed-sec" },
-      E("p", { className: "nf-feed-eyebrow" }, 'YOUR RECENT WORK'),
-      E("p", { className: "nf-feed-body" },
-        data.decisions.length + (data.decisions.length === 1 ? ' decision saved' : ' decisions saved'), ' \u00b7 ', reviewed + ' reviewed', ' \u00b7 ', data.rows.length + (data.rows.length === 1 ? ' challenge' : ' challenges') + ' completed'),
-      data.decisions.length > 0 && E("button", { className: "nf-feed-link", onClick: () => setView('decisions') }, 'Open my decisions')),
-
     // Return-to-context prompts
-    followUps.length > 0 && E("div", { className: "nf-feed-sec" },
+    followUps.filter(f => !dueReview || f.key !== dueReview.key).length > 0 && E("div", { className: "nf-feed-sec" },
       E("p", { className: "nf-feed-eyebrow" }, 'PICK UP WHERE YOU LEFT OFF'),
-      followUps.map(f => { const d = f.d; const title = d.title || 'a decision'; const busy = busyId === d.id;
+      followUps.filter(f => !dueReview || f.key !== dueReview.key).map(f => { const d = f.d; const title = d.title || 'a decision'; const busy = busyId === d.id;
         return E("div", { key: f.key, style: { marginBottom: 22 } },
           E("p", { className: "nf-feed-scenario", style: { marginBottom: 12 } },
             f.kind === 'action' ? 'You planned this next action for "' + title + '": ' + d.next_action + '. Have you had a chance to take it?'
@@ -2494,18 +2758,10 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
   // ---------- Signed in: your next step ----------
   if (user) {
     const hasResult = !!cfiResult;
-    const next = !hasResult
-      ? { title: 'Take the test', text: '13 quick questions, about 4 minutes. You will see how you think.', cta: 'Start the test', go: 'cfi' }
-      : completedLessons < 1
-        ? { title: 'Start your first lesson', text: 'Short lessons that build better thinking habits.', cta: 'Open lessons', go: 'lessons' }
-        : { title: 'Keep going with your lessons', text: completedLessons + (completedLessons === 1 ? ' lesson' : ' lessons') + ' done so far.', cta: 'Continue', go: 'lessons' };
-    const showNext = !hasResult || completedLessons < 1;
     return E("div", { className: "nf-home", style: { background: H.bg, color: H.text, paddingTop: 60, minHeight: '100vh' } }, styles,
       E("div", { style: { ...wrap, padding: '32px 24px 80px' } },
-        E(ThinkingFeed, { user, setView }),
+        E(ThinkingFeed, { user, setView, cfiHistory, completedLessons, hasCfi: hasResult }),
         E("div", { className: "nf-feed-sec", style: { marginTop: 36 } },
-          showNext && E("p", { style: { ...para, marginBottom: 14 } }, E("strong", { style: { color: H.ink } }, next.title + ': '), next.text, ' ',
-            E("button", { onClick: () => setView(next.go), style: { background: 'none', border: 'none', padding: 0, font: 'inherit', color: H.goldDeep, textDecoration: 'underline', cursor: 'pointer', minHeight: 44 } }, next.cta)),
           hasResult ? E("p", { style: { ...para, marginBottom: 0 } }, 'Your last result: ', E("strong", { style: { color: H.ink } }, plainBand(cfiResult.band)), '. ',
             E("button", { onClick: () => setView('analytics'), style: { background: 'none', border: 'none', padding: 0, font: 'inherit', color: H.goldDeep, textDecoration: 'underline', cursor: 'pointer', minHeight: 44 } }, 'See my progress'),
             ' \u00b7 ',
@@ -2898,7 +3154,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
           status: 'open',
         });
         setSaving(false);
-        if (row) { if (teamFields.org_id && window.NF_ORG) window.NF_ORG.clearDecisionContext(); nfClearDraft(user.id); nfEvent('thinking_session_saved', { confidence: confidence, hasAction: !!nextAction.trim() }); setSaved(row); } else setError("Couldn't save right now. Check your connection and try again.");
+        if (row) { if (teamFields.org_id && window.NF_ORG) { window.NF_ORG.clearDecisionContext(); nfEvent('team_decision_created', {}); } nfClearDraft(user.id); nfEvent('thinking_session_saved', { confidence: confidence, hasAction: !!nextAction.trim() }); setSaved(row); } else setError("Couldn't save right now. Check your connection and try again.");
       };
 
       if (saved) {
@@ -3327,35 +3583,53 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
     }
 
     function DecisionOutcomeForm({ decision, onSaved }) {
-      const [outcome, setOutcome] = useState('');
-      const [lesson, setLesson] = useState('');
+      const [result, setResult] = useState('');
+      const [changed, setChanged] = useState('');
+      const [learned, setLearned] = useState('');
+      const [different, setDifferent] = useState('');
       const [saving, setSaving] = useState(false);
-      const options = ['Better than expected', 'As expected', 'Worse than expected', 'Still unfolding'];
+      const [err, setErr] = useState('');
+      const ta = { width: '100%', boxSizing: 'border-box', padding: '12px', fontSize: 16, lineHeight: 1.5, background: C.panel, border: `1px solid ${C.border}`, borderRadius: 4, color: C.text, marginBottom: 16, fontFamily: 'inherit', minHeight: 84 };
+      const lab = { display: 'block', fontSize: 15, fontWeight: 600, color: C.text, marginBottom: 6 };
       const submit = async () => {
-        if (!outcome) return;
-        setSaving(true);
-        const status = outcome === 'Still unfolding' ? decision.status : 'reviewed';
-        const row = await updateDecisionSession(decision.id, {
-          outcome, outcome_rating: outcome, lesson_learned: lesson.trim() || null,
-          status, reviewed_at: new Date().toISOString(),
-        });
+        if (!result || saving) return;
+        setSaving(true); setErr('');
+        const unfolding = result === 'unfolding';
+        const label = (NF_REVIEW_RESULTS.find(x => x.v === result) || {}).label;
+        const patch = {
+          review_result: result, review_changed: changed.trim() || null, review_different: different.trim() || null,
+          lesson_learned: learned.trim() || null, status: unfolding ? decision.status : 'reviewed', reviewed_at: new Date().toISOString(),
+        };
+        if (unfolding) patch.review_date = nfAddDays(nfLocalDate(), 14); // it comes back in two weeks instead of staying "due"
+        const res = await nfSaveReview(decision.id, patch, { outcome: label, outcome_rating: label });
         setSaving(false);
-        if (row) { nfEvent('review_recorded', { outcome: outcome }); if (decision.next_action) nfEvent('follow_up_completed', { source: 'review' }); onSaved(row); }
+        if (res.row) {
+          nfEvent('review_recorded', { outcome: result }); nfEvent('decision_reviewed', { result }); if (decision.shared_with_org) nfEvent('team_decision_reviewed', { result });
+          if (decision.next_action) nfEvent('follow_up_completed', { source: 'review' });
+          onSaved(res.row);
+        } else setErr(res.needsMigration ? 'Reviews need the latest database update (migration_decision_review.sql). Nothing was saved.' : "Couldn't save your review. Check your connection and try again.");
       };
       return (
-        React.createElement("div", { style: { padding: '20px', background: C.deep, borderRadius: 2, border: `1px solid ${C.border}`, marginTop: 16 } },
-          React.createElement("div", { style: { ...mono, fontSize: 11, letterSpacing: 1, color: C.cyan, marginBottom: 14 } }, 'Review: what happened?'),
-          React.createElement("div", { style: { display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 16 } },
-            options.map(o => React.createElement("button", {
-              key: o, onClick: () => setOutcome(o), style: {
-                padding: '10px 14px', fontSize: 12, borderRadius: 20, cursor: 'pointer',
-                border: `1px solid ${outcome === o ? C.cyan : C.border}`, background: outcome === o ? C.cyanDim : 'transparent', color: outcome === o ? C.cyan : C.muted,
+        React.createElement("div", { style: { padding: '20px', background: C.deep, borderRadius: 4, border: `1px solid ${C.border}`, marginTop: 16 } },
+          React.createElement("div", { style: { ...mono, fontSize: 12, letterSpacing: 1, color: C.cyan, marginBottom: 6 } }, 'REVIEW: WHAT HAPPENED?'),
+          React.createElement("div", { style: { fontSize: 14, color: C.muted, lineHeight: 1.6, marginBottom: 14 } }, 'A review is a record of what you saw. It does not prove the decision caused the result.'),
+          React.createElement("div", { role: 'group', 'aria-label': 'Outcome', style: { display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 18 } },
+            NF_REVIEW_RESULTS.map(o => React.createElement("button", {
+              key: o.v, type: 'button', 'aria-pressed': result === o.v, onClick: () => setResult(o.v), style: {
+                padding: '12px 16px', minHeight: 48, fontSize: 15, borderRadius: 24, cursor: 'pointer',
+                border: `1px solid ${result === o.v ? C.cyan : C.border}`, background: result === o.v ? C.cyanDim : 'transparent', color: result === o.v ? C.cyan : C.muted,
               }
-            }, o))
+            }, o.label))
           ),
-          React.createElement("div", { style: { fontSize: 12, color: C.muted, marginBottom: 8 } }, 'What did you notice? What did you learn? What would you do differently? Write as much or as little as you like.'),
-          React.createElement("textarea", { value: lesson, onChange: e => setLesson(e.target.value), rows: 3, style: { width: '100%', padding: '12px', fontSize: 14, background: C.panel, border: `1px solid ${C.border}`, borderRadius: 2, color: C.text, marginBottom: 14, fontFamily: 'inherit' } }),
-          React.createElement("button", { className: "btn-primary", disabled: !outcome || saving, onClick: submit, style: { opacity: (!outcome || saving) ? 0.5 : 1 } }, saving ? 'Saving…' : 'Save Outcome')
+          React.createElement("label", { htmlFor: 'rv-changed-' + decision.id, style: lab }, 'What changed? (optional)'),
+          React.createElement("textarea", { id: 'rv-changed-' + decision.id, value: changed, onChange: e => setChanged(e.target.value), rows: 2, maxLength: 1500, style: ta }),
+          React.createElement("label", { htmlFor: 'rv-learned-' + decision.id, style: lab }, 'What did you learn?'),
+          React.createElement("textarea", { id: 'rv-learned-' + decision.id, value: learned, onChange: e => setLearned(e.target.value), rows: 3, maxLength: 1500, style: ta }),
+          React.createElement("label", { htmlFor: 'rv-diff-' + decision.id, style: lab }, 'What would you do differently?'),
+          React.createElement("textarea", { id: 'rv-diff-' + decision.id, value: different, onChange: e => setDifferent(e.target.value), rows: 3, maxLength: 1500, style: ta }),
+          result === 'unfolding' && React.createElement("div", { style: { fontSize: 14, color: C.muted, marginBottom: 14 } }, "We'll ask again in two weeks."),
+          err && React.createElement("div", { role: 'alert', style: { fontSize: 14, color: '#E5484D', marginBottom: 12 } }, err),
+          React.createElement("button", { className: "btn-primary", disabled: !result || saving, onClick: submit, style: { opacity: (!result || saving) ? 0.5 : 1, minHeight: 48 } }, saving ? 'Saving…' : 'Save review')
         )
       );
     }
@@ -3376,7 +3650,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
         if (ok) onDeleted(d.id); else nfNotify("Couldn't delete that right now. Please try again.", { type: 'error' });
       };
       return (
-        React.createElement("div", { className: "card", style: { padding: '22px 24px', marginBottom: 16 } },
+        React.createElement("div", { id: 'nf-dec-' + d.id, className: "card", style: { padding: '22px 24px', marginBottom: 16 } },
           React.createElement("div", { style: { display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 12, cursor: 'pointer' }, onClick: onToggle },
             React.createElement("div", { style: { flex: 1, minWidth: 0 } },
               React.createElement("div", { style: { ...syne, fontSize: 15, fontWeight: 700, color: C.text, marginBottom: 6, overflowWrap: 'break-word' } }, d.title || d.decision || 'Untitled decision'),
@@ -3398,22 +3672,120 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
               React.createElement("div", { style: { ...mono, fontSize: 10, letterSpacing: 1, color: C.cyan, marginBottom: 4 } }, 'FUSE'),
               React.createElement("div", { style: { fontSize: 13, color: C.text, lineHeight: 1.7 } }, d.fuse_response)
             ),
-            d.outcome && React.createElement("div", { style: { padding: '14px', background: C.deep, borderRadius: 2, border: `1px solid ${C.border}`, marginBottom: 8 } },
-              React.createElement("div", { style: { ...mono, fontSize: 10, letterSpacing: 1, color: C.cyan, marginBottom: 6 } }, 'OUTCOME'),
-              React.createElement("div", { style: { fontSize: 13, color: C.text, marginBottom: d.lesson_learned ? 6 : 0 } }, d.outcome),
-              d.lesson_learned && React.createElement("div", { style: { fontSize: 13, color: C.muted, lineHeight: 1.6 } }, d.lesson_learned)
+            (d.review_result || d.outcome) && React.createElement("div", { style: { padding: '14px', background: C.deep, borderRadius: 4, border: `1px solid ${C.border}`, marginBottom: 8 } },
+              React.createElement("div", { style: { ...mono, fontSize: 11, letterSpacing: 1, color: C.cyan, marginBottom: 6 } }, 'REVIEW' + (d.reviewed_at ? ' \u00b7 ' + new Date(d.reviewed_at).toLocaleDateString() : '')),
+              React.createElement("div", { style: { fontSize: 15, color: C.text, marginBottom: 8 } }, nfReviewLabel(d)),
+              [['What changed', d.review_changed], ['What you learned', d.lesson_learned], ['What you would do differently', d.review_different]].map(([k, v]) => v && React.createElement("div", { key: k, style: { marginBottom: 8 } },
+                React.createElement("div", { style: { fontSize: 12, color: C.dim, marginBottom: 2 } }, k),
+                React.createElement("div", { style: { fontSize: 14, color: C.muted, lineHeight: 1.6, whiteSpace: 'pre-wrap' } }, v)))
             ),
             (d.status !== 'reviewed') && React.createElement(DecisionOutcomeForm, { decision: d, onSaved: onOutcomeSaved }),
-            d.next_action && !d.action_completed_at && React.createElement("button", { className: "btn-outline", disabled: busy, onClick: markDone, style: { marginTop: 14, marginRight: 10 } }, 'Mark next action done'),
+            d.next_action && !d.action_completed_at && React.createElement("button", { className: "btn-outline", disabled: busy, onClick: markDone, style: { marginTop: 14, marginRight: 10, minHeight: 44 } }, 'Mark next action done'),
             d.action_completed_at && React.createElement("div", { style: { fontSize: 13, color: C.muted, marginTop: 14 } }, 'Next action done on ', new Date(d.action_completed_at).toLocaleDateString()),
             !confirmDel
-              ? React.createElement("button", { className: "btn-ghost", disabled: busy, onClick: () => setConfirmDel(true), style: { marginTop: 14 } }, 'Delete this decision')
+              ? React.createElement("button", { className: "btn-ghost", disabled: busy, onClick: () => setConfirmDel(true), style: { marginTop: 14, minHeight: 44 } }, 'Delete this decision')
               : React.createElement("div", { role: 'alert', style: { marginTop: 14, fontSize: 13, color: C.muted } }, 'Delete this decision and everything you wrote in it? This cannot be undone. ',
                   React.createElement("button", { className: "btn-outline", disabled: busy, onClick: del, style: { marginRight: 8 } }, 'Yes, delete'),
                   React.createElement("button", { className: "btn-ghost", onClick: () => setConfirmDel(false) }, 'Cancel'))
           )
         )
       );
+    }
+
+    // ═══════════════════════════════════════════════════════════════════
+    //  MY THINKING RECORD (Step 5). A plain, chronological record of what the person has actually done.
+    //  Built only from data that already exists: cfi_results (CFI-1.0 only), thinking_challenge_responses,
+    //  decision_sessions, lesson_progress. No new table, no new score, nothing inferred.
+    // ═══════════════════════════════════════════════════════════════════
+    function NFRecordSection({ title, count, entries, empty, actionLabel, onAction, note }) {
+      const E = React.createElement;
+      const head = entries.slice(0, 5), more = entries.slice(5);
+      const row = (e) => E("li", { key: e.key, style: { padding: '12px 0', borderTop: `1px solid ${C.border}`, listStyle: 'none' } },
+        E("div", { style: { fontSize: 16, color: C.text, lineHeight: 1.5, overflowWrap: 'break-word' } }, e.text),
+        (e.sub || e.when) && E("div", { style: { fontSize: 14, color: C.muted, lineHeight: 1.5, marginTop: 2 } }, [e.when, e.sub].filter(Boolean).join(' \u00b7 ')));
+      return E("section", { style: { marginBottom: 32 }, 'aria-label': title },
+        E("div", { style: { display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 12, marginBottom: 6 } },
+          E("h2", { style: { ...syne, fontSize: 17, fontWeight: 700, color: C.text, margin: 0 } }, title),
+          count != null && E("span", { style: { ...mono, fontSize: 13, color: C.cyan } }, count)),
+        note && E("p", { style: { fontSize: 14, color: C.muted, lineHeight: 1.6, margin: '0 0 6px' } }, note),
+        entries.length === 0
+          ? E("div", { style: { padding: '12px 0', borderTop: `1px solid ${C.border}` } },
+              E("p", { style: { fontSize: 15, color: C.muted, lineHeight: 1.6, margin: '0 0 12px' } }, empty),
+              actionLabel && E("button", { className: "btn-outline", onClick: onAction, style: { minHeight: 48 } }, actionLabel))
+          : E("ul", { style: { margin: 0, padding: 0 } }, head.map(row),
+              more.length > 0 && E("li", { style: { listStyle: 'none', borderTop: `1px solid ${C.border}` } },
+                E("details", null,
+                  E("summary", { style: { cursor: 'pointer', minHeight: 48, display: 'flex', alignItems: 'center', fontSize: 15, color: C.cyan } }, 'Show ' + more.length + ' more'),
+                  E("ul", { style: { margin: 0, padding: 0 } }, more.map(row))))));
+    }
+
+    function ThinkingRecordView({ user, setShowAuth, setView, cfiHistory, lessonProgress }) {
+      const E = React.createElement;
+      const [data, setData] = useState({ status: 'loading' });
+      useEffect(() => {
+        if (!user) return undefined;
+        let on = true;
+        (async () => {
+          const [lib, rows, decs, pp] = await Promise.all([
+            nfLoadLibrary().catch(() => NF_CHALLENGES),
+            nfLoadChallengeRows(user.id).catch(() => null),
+            listDecisionSessions(user.id),
+            nfPassportSync(user.id),
+          ]);
+          if (on) { setData({ status: 'ready', lib, rows, decs, pp }); nfEvent('thinking_record_viewed', {}); }
+        })();
+        return () => { on = false; };
+      }, [user && user.id]);
+
+      if (!user) {
+        return E("div", { style: { paddingTop: 100, paddingBottom: 100, textAlign: 'center' } },
+          E("div", { className: "card", style: { maxWidth: 440, margin: '0 auto', padding: '48px 32px' } },
+            E("div", { style: { ...syne, fontSize: 18, fontWeight: 700, color: C.text, marginBottom: 12 } }, 'My Thinking Record'),
+            E("div", { style: { fontSize: 15, color: C.muted, marginBottom: 28, lineHeight: 1.7 } }, 'Sign in to see a record of what you have practised.'),
+            E("button", { className: "btn-primary", onClick: () => setShowAuth(true) }, 'Sign in \u2192')));
+      }
+
+      const date = (v) => { if (!v) return ''; const d = /^\d{4}-\d{2}-\d{2}$/.test(v) ? new Date(v + 'T00:00:00') : new Date(v); return isNaN(d) ? '' : d.toLocaleDateString(); };
+      const ready = data.status === 'ready';
+      const lib = (ready && data.lib) || NF_CHALLENGES;
+      const challengeTitle = (id) => { const c = lib.find(x => x.id === id); return c ? c.title.charAt(0) + c.title.slice(1).toLowerCase() : 'Thinking challenge'; };
+      const rows = (ready && data.rows) || [];
+      const decs = (ready && data.decs) || [];
+
+      // CFI-1.0 only. Earlier-version results are kept in the database but never compared here.
+      const v1 = (cfiHistory || []).filter(r => r && r.assessment_version === CFI_VERSION && r.created_at);
+      const earlier = (cfiHistory || []).length - v1.length;
+      const base = v1[0] || null;
+      const baseline = base ? [{ key: 'b' + base.id, text: 'Thinking Clarity Test (' + CFI_VERSION + '): score ' + base.total_score, sub: plainBand(base.band), when: date(base.created_at) }] : [];
+      const change = v1.slice(1).map((r, i) => {
+        const diff = r.total_score - base.total_score;
+        return { key: 'c' + r.id, text: 'Retest ' + (i + 1) + ': score ' + r.total_score + ' (' + (diff < 0 ? (-diff) + (diff === -1 ? ' point lower' : ' points lower') : diff > 0 ? diff + (diff === 1 ? ' point higher' : ' points higher') : 'no change') + ' than your baseline)', sub: plainBand(r.band), when: date(r.created_at) };
+      }).reverse();
+
+      const practice = rows.map(r => ({ key: 'p' + r.challenge_date, text: challengeTitle(r.challenge_id), sub: r.choice_key === 'written' ? 'Written answer' : (r.reasoning ? 'Choice and reasoning' : 'Choice'), when: date(r.challenge_date) }));
+      const made = decs.map(d => ({ key: 'd' + d.id, text: d.title || d.decision || 'Untitled decision', sub: d.status === 'reviewed' ? 'Reviewed' : 'Open', when: date(d.created_at) }));
+      const reviewed = decs.filter(d => d.reviewed_at).sort((a, b) => new Date(b.reviewed_at) - new Date(a.reviewed_at))
+        .map(d => ({ key: 'r' + d.id, text: d.title || d.decision || 'Untitled decision', sub: nfReviewLabel(d), when: date(d.reviewed_at) }));
+      const doneLessons = LESSONS.filter(l => (lessonProgress || {})[l.id] === 100).map(l => ({ key: 'l' + l.id, text: l.title, sub: l.level }));
+      const fullyReviewed = decs.filter(d => d.status === 'reviewed').length;
+
+      return E("div", { style: { paddingTop: 80, paddingBottom: 100 } },
+        E("div", { style: { maxWidth: 820, margin: '0 auto', padding: '40px 24px' } },
+          E("div", { style: { ...mono, fontSize: 12, letterSpacing: 1.5, color: C.cyan, marginBottom: 16 } }, 'MY THINKING RECORD'),
+          E("h1", { style: { ...syne, fontSize: 22, fontWeight: 800, color: C.text, margin: '0 0 8px', overflowWrap: 'break-word' } }, 'What you have actually practised.'),
+          E("p", { style: { fontSize: 15, color: C.muted, lineHeight: 1.7, margin: '0 0 28px' } }, 'A plain record of your test, challenges, decisions, reviews and lessons. It is not a score of intelligence or ability.'),
+          !ready ? E("p", { role: 'status', style: { fontSize: 15, color: C.muted } }, 'Loading your record...') : E("div", null,
+            data.pp && E("div", { style: { marginBottom: 32 } }, E(NFPassportPanel, { pp: data.pp, mode: 'full', setView, lessonsDone: doneLessons.length, lessonsTotal: LESSONS.length, t: { ink: C.text, muted: C.muted, border: C.border, accent: C.cyan, bg: C.deep } })),
+            E(NFRecordSection, { title: 'Baseline', entries: baseline, empty: 'Your first test is your starting point. It takes about 4 minutes.', actionLabel: 'Take the test', onAction: () => setView('cfi'),
+              note: earlier > 0 ? earlier + (earlier === 1 ? ' result from an earlier version of the test is kept' : ' results from an earlier version of the test are kept') + ' but not compared with ' + CFI_VERSION + '.' : null }),
+            E(NFRecordSection, { title: 'Practice', count: data.rows ? rows.length : null, entries: practice, empty: data.rows ? 'No Thinking Challenges completed yet. Today\u2019s takes about 3 minutes.' : 'Your challenges couldn\u2019t be loaded right now.', actionLabel: data.rows ? 'Open today\u2019s challenge' : null, onAction: () => setView('home'),
+              note: rows.length >= 90 ? 'Showing your most recent 90.' : null }),
+            E(NFRecordSection, { title: 'Decisions', count: decs.length, entries: made, empty: 'No decisions worked through yet. Bring a real one.', actionLabel: 'Work through a decision', onAction: () => setView('protocol') }),
+            E(NFRecordSection, { title: 'Reviews', count: fullyReviewed, entries: reviewed, empty: 'No decisions reviewed yet. A review records what happened and what you learned.', actionLabel: decs.length ? 'Open my decisions' : null, onAction: () => setView('decisions') }),
+            E(NFRecordSection, { title: 'Training', count: doneLessons.length + ' of ' + LESSONS.length, entries: doneLessons, empty: 'No lessons completed yet. The first one is free.', actionLabel: 'Open lessons', onAction: () => setView('lessons'),
+              note: doneLessons.length ? 'Lessons are not dated in your record.' : null }),
+            E(NFRecordSection, { title: 'Change', count: change.length ? change.length + (change.length === 1 ? ' retest' : ' retests') : null, entries: change, empty: base ? 'Retake the test to see what changed. Lower scores mean clearer thinking.' : 'Change appears here once you have taken the test twice.', actionLabel: base ? 'Retake the test' : null, onAction: () => setView('cfi'),
+              note: change.length ? 'Changes are measured against your baseline. This is a NeuralFusion measure, not a clinical one.' : null }))));
     }
 
     function DecisionVaultView({ user, setShowAuth, setView, cfiResult, cfiHistory, lessonProgress }) {
@@ -3427,6 +3799,11 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
         setLoading(true);
         const rows = await listDecisionSessions(user.id);
         setDecisions(rows);
+        const focus = nfConsumeReviewFocus();
+        if (focus && rows.some(x => String(x.id) === focus)) {
+          setFilter('all'); setExpandedId(rows.find(x => String(x.id) === focus).id);
+          setTimeout(() => { const el = document.getElementById('nf-dec-' + focus); if (el && el.scrollIntoView) el.scrollIntoView({ block: 'start' }); }, 60);
+        }
         setLoading(false);
       }, [user]);
 
@@ -3462,12 +3839,12 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
             React.createElement("div", { style: { ...mono, fontSize: 11, letterSpacing: 1.5, color: C.cyan, marginBottom: 16 } }, 'My decisions'),
             React.createElement("h1", { style: { ...syne, fontSize: 20, fontWeight: 800, color: C.text, marginBottom: 16, overflowWrap: 'break-word' } }, 'Your real decisions, thought through and remembered.'),
             React.createElement("div", { style: { marginBottom: 28 } },
-              React.createElement("button", { className: "btn-primary", onClick: () => setView('protocol') }, 'Think Through a Decision')
+              React.createElement("button", { className: "btn-primary", onClick: () => setView('protocol'), style: { minHeight: 48 } }, 'Think Through a Decision')
             ),
             React.createElement("div", { style: { display: 'flex', gap: 8, marginBottom: 28, flexWrap: 'wrap' } },
               filters.map(f => React.createElement("button", {
                 key: f.v, onClick: () => setFilter(f.v), style: {
-                  padding: '8px 16px', fontSize: 12, borderRadius: 20, cursor: 'pointer',
+                  padding: '8px 16px', minHeight: 44, fontSize: 14, borderRadius: 24, cursor: 'pointer',
                   border: `1px solid ${filter === f.v ? C.cyan : C.border}`, background: filter === f.v ? C.cyanDim : 'transparent', color: filter === f.v ? C.cyan : C.muted,
                 }
               }, f.label))
@@ -3960,6 +4337,16 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
       // what actually happened in the database, not just whether someone is
       // logged in. 'idle' -> 'saving' -> 'saved' | 'failed'.
       const [saveState, setSaveState] = useState(cfiResult ? 'saved' : 'idle');
+      // Instrumentation: start / retest / completion. A retest = the person already has a completed CFI-1.0 result.
+      const retestRef = useRef(false); const startFired = useRef(false);
+      useEffect(() => {
+        if (!started) { startFired.current = false; return; }
+        if (startFired.current) return;
+        startFired.current = true;
+        retestRef.current = (cfiHistory || []).some(r => r && r.assessment_version === CFI_VERSION);
+        nfEvent('cfi_started', { retest: retestRef.current });
+        if (retestRef.current) nfEvent('retest_started', {});
+      }, [started]);
       const openAuthTab = (tab) => { setAwaitingAuth(true); if (openAuth) openAuth(tab); else setShowAuth(true); };
 
       // Once the user becomes authenticated after being sent through the gate,
@@ -4124,6 +4511,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
         const result = { total, band, desc, recommendation, dimScores, dominantBrain, integrationScore, dimensionReports, profile, plan };
         setCfiResult(result);
         setShowResult(true);
+        if (user && !retestRef.current) nfEvent('first_result_viewed', {});
         // Finalizing updates the same in-progress row (draftId) if one exists,
         // rather than inserting a second row for this attempt.
         if (user) {
@@ -4138,6 +4526,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
               setSaveErrorMsg(error.message || JSON.stringify(error));
             } else {
               setSaveState('saved');
+              nfEvent('cfi_completed', { retest: retestRef.current }); if (retestRef.current) nfEvent('retest_completed', {});
               if (refreshCfiHistory) refreshCfiHistory();
               setSaveErrorMsg('row id: ' + (data && data[0] && data[0].id ? data[0].id : '(insert, id not returned)')); setSavedResultId(data && data[0] && data[0].id ? data[0].id : null);
               setDraftId(null);
@@ -4556,6 +4945,11 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
       const [page, setPage] = useState(0);
       const [paystackLoading, setPaystackLoading] = useState(false);
       const paystackHandlerRef = React.useRef(null);
+      useEffect(() => {
+        if (activeLesson == null) return;
+        nfEvent('lesson_started', { lesson: activeLesson });
+        if (!Object.keys(lessonProgress || {}).some(k => lessonProgress[k] > 0)) nfEvent('first_lesson_started', {});
+      }, [activeLesson]);
 
       // Load Paystack script dynamically then open popup
       const loadPaystackScript = () => new Promise((resolve, reject) => {
@@ -4638,7 +5032,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
         const handleComplete = () => {
           const updated = {...lessonProgress, [activeLesson]:100};
           setLessonProgress(updated);
-          if (user) upsertLessonProgress(user.id, activeLesson, 100);
+          if (user) { upsertLessonProgress(user.id, activeLesson, 100); nfEvent('lesson_completed', { lesson: activeLesson }); }
           setActiveLesson(null);
           setPage(0);
         };
@@ -5629,7 +6023,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
     //  MAIN APP
     // ═══════════════════════════════════════════════════════════════════
     function App() {
-      const [view, setView] = useState(() => (window.NF_ORG && window.NF_ORG.initialView()) || 'home');
+      const [view, setView] = useState(() => (nfVerifyIdFromPath() ? 'verify' : ((window.NF_ORG && window.NF_ORG.initialView()) || 'home')));
       const [hasOrg, setHasOrg] = useState(false);
       const [showAuth, setShowAuth] = useState(false);
       const [authInitialTab, setAuthInitialTab] = useState('login');
@@ -5780,7 +6174,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
       const viewProps = { refreshCfiHistory, authLoading, setView, user, session, paystackKey, setShowAuth, openAuth, isPro, setIsPro, cfiResult, setCfiResult, cfiHistory, lessonProgress, setLessonProgress, proPrice };
 
       return (
-        React.createElement("div", {style: { background:C.void, minHeight:'100vh', color:C.text }}, showAuth && React.createElement(AuthModal, {initialTab: authInitialTab, onClose: ()=>{ setShowAuth(false); setAuthInitialTab('login'); }, onSuccess: ()=>{ setShowAuth(false); setAuthInitialTab('login'); }}), React.createElement(Navbar, {view: view, setView: setView, user: user, profile: profile, setShowAuth: setShowAuth, onSignOut: handleSignOut, authLoading: authLoading, hasOrg: hasOrg}), React.createElement("main", null, view==='home'        && React.createElement(HomeView, viewProps), view==='cfi'         && React.createElement(CFIView, viewProps), view==='protocol'    && React.createElement(ProtocolView, viewProps), view==='decisions'   && React.createElement(DecisionVaultView, viewProps), view==='pressure'    && React.createElement(PressureModeView, viewProps), view==='analytics'   && React.createElement(AnalyticsView, viewProps), view==='lessons'     && React.createElement(LessonsView, viewProps), view==='legal'       && React.createElement(LegalView, {setView: setView}), view==='teams'       && React.createElement(window.NF_ORG.TeamsLanding, {user: user, setShowAuth: setShowAuth, setView: setView, openAuth: openAuth, onOrgsChanged: l => setHasOrg(l.length > 0)}), view==='org'         && React.createElement(window.NF_ORG.OrgPortal, {user: user, session: session, setView: setView, setShowAuth: setShowAuth, openAuth: openAuth, onOrgsChanged: l => setHasOrg(l.length > 0)}), view==='join'        && React.createElement(window.NF_ORG.JoinPage, {user: user, session: session, setView: setView, setShowAuth: setShowAuth, openAuth: openAuth, onOrgsChanged: l => setHasOrg(l.length > 0)}), view==='admin'       && profile?.is_admin === true && React.createElement(AdminView, {user: user, setView: setView, onPriceChange: setProPrice})), React.createElement(Footer, {setView: setView}), React.createElement(BottomNav, {view: view, setView: setView, user: user, hasOrg: hasOrg}))
+        React.createElement("div", {style: { background:C.void, minHeight:'100vh', color:C.text }}, showAuth && React.createElement(AuthModal, {initialTab: authInitialTab, onClose: ()=>{ setShowAuth(false); setAuthInitialTab('login'); }, onSuccess: ()=>{ setShowAuth(false); setAuthInitialTab('login'); }}), React.createElement(Navbar, {view: view, setView: setView, user: user, profile: profile, setShowAuth: setShowAuth, onSignOut: handleSignOut, authLoading: authLoading, hasOrg: hasOrg}), React.createElement("main", null, view==='home'        && React.createElement(HomeView, viewProps), view==='cfi'         && React.createElement(CFIView, viewProps), view==='protocol'    && React.createElement(ProtocolView, viewProps), view==='decisions'   && React.createElement(DecisionVaultView, viewProps), view==='record'      && React.createElement(ThinkingRecordView, viewProps), view==='verify'      && React.createElement(VerifyCredentialView, null), view==='pressure'    && React.createElement(PressureModeView, viewProps), view==='analytics'   && React.createElement(AnalyticsView, viewProps), view==='lessons'     && React.createElement(LessonsView, viewProps), view==='legal'       && React.createElement(LegalView, {setView: setView}), view==='teams'       && React.createElement(window.NF_ORG.TeamsLanding, {user: user, setShowAuth: setShowAuth, setView: setView, openAuth: openAuth, onOrgsChanged: l => setHasOrg(l.length > 0)}), view==='org'         && React.createElement(window.NF_ORG.OrgPortal, {user: user, session: session, setView: setView, setShowAuth: setShowAuth, openAuth: openAuth, onOrgsChanged: l => setHasOrg(l.length > 0)}), view==='join'        && React.createElement(window.NF_ORG.JoinPage, {user: user, session: session, setView: setView, setShowAuth: setShowAuth, openAuth: openAuth, onOrgsChanged: l => setHasOrg(l.length > 0)}), view==='admin'       && profile?.is_admin === true && React.createElement(AdminView, {user: user, setView: setView, onPriceChange: setProPrice})), React.createElement(Footer, {setView: setView}), React.createElement(BottomNav, {view: view, setView: setView, user: user, hasOrg: hasOrg}))
       );
     }
 
@@ -5821,7 +6215,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
   };
 
   // ---------- analytics (existing GTM dataLayer, no new framework) ----------
-  const track = (name, props) => { try { (window.dataLayer = window.dataLayer || []).push(Object.assign({ event: 'nf_' + name }, props || {})); } catch (_) {} };
+  const track = (name, props) => { if (typeof nfEvent === 'function') { nfEvent(name, props); return; } try { (window.dataLayer = window.dataLayer || []).push(Object.assign({ event: 'nf_' + name }, props || {})); } catch (_) {} };
   const rpc = async (name, args) => {
     try {
       const { data, error } = await sb.rpc(name, args || {});
@@ -6333,7 +6727,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
       setBusy(true); setMsg(null);
       const r = await rpc('submit_challenge_response', { p_org: org.id, p_challenge: c.id, p_analytical: f.ans_analytical, p_intuitive: f.ans_intuitive, p_associative: f.ans_associative, p_reflective: f.ans_reflective, p_option: f.option, p_reasoning: f.reasoning });
       setBusy(false);
-      if (r && r.ok) { track('challenge_submitted', { organisation_id: org.id }); setMsg({ type: 'ok', text: 'Saved. Thank you.' }); load(); }
+      if (r && r.ok) { track('challenge_submitted', { organisation_id: org.id }); track('team_challenge_completed', { organisation_id: org.id }); setMsg({ type: 'ok', text: 'Saved. Thank you.' }); load(); }
       else if (r && r.error === 'already_submitted') { setMsg({ type: 'ok', text: 'You have already submitted this challenge.' }); load(); }
       else setMsg({ type: 'error', text: ERR[r && r.error] || 'Something went wrong. Please try again.' });
     };
@@ -6373,15 +6767,21 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
       h('div', { style: { fontSize: 14, color: C.muted, marginTop: 12, lineHeight: 1.7 } }, 'Individual answers and written reasoning are never shown to you. Written answers are not analysed automatically: ask people to share their reasoning when you discuss the challenge as a team.')));
   }
 
-  function DecisionEntry({ org, setView, compact }) {
+  function DecisionEntry({ org, setView, compact, role }) {
     const [d, setD] = useState(null); const [open, setOpen] = useState(null);
-    useEffect(() => { let live = true; setD(null); rpc('org_recent_decisions', { p_org: org.id, p_limit: compact ? 1 : 5 }).then((x) => { if (live) setD(x); }); return () => { live = false; }; }, [org.id, compact]);
-    const list = d && d.ok ? (d.decisions || []) : [];
+    useEffect(() => { let live = true; setD(null); rpc('org_recent_decisions', { p_org: org.id, p_limit: 10 }).then((x) => { if (live) setD(x); }); return () => { live = false; }; }, [org.id, compact]);
+    const all = d && d.ok ? (d.decisions || []) : [];
+    const list = all.slice(0, compact ? 1 : 5);
+    const today = nfLocalDate();
+    const isDue = (x) => !!x.review_date && x.review_date <= today && x.status !== 'reviewed';
+    const dueN = all.filter(isDue).length, doneN = all.filter((x) => x.status === 'reviewed').length;
+    const lead = role === 'owner' || role === 'admin';
     return h('div', { style: card({ marginBottom: 20 }) },
       h('div', { style: label }, 'Decision room'),
       h('div', { style: { ...syne, fontSize: 20, fontWeight: 800, marginBottom: 6 } }, 'Have a real decision to make?'),
       h('div', { style: { fontSize: 16, color: C.muted, lineHeight: 1.7, marginBottom: 14 } }, 'Work through the decision with your team using NeuralFusion\u2019s structured thinking process: facts, signals, alternatives, reflection, then a decision.'),
       h(Btn, { onClick: () => startTeamDecision(org, setView) }, 'START A TEAM DECISION'),
+      lead && dueN > 0 ? h('div', { role: 'status', style: { marginTop: 16, padding: '12px 14px', borderLeft: '3px solid ' + AC.goldDark, background: AC.goldTint, fontSize: 16, lineHeight: 1.6 } }, dueN === 1 ? 'Decision review due: 1 team decision has reached its review date.' : 'Decision review due: ' + dueN + ' team decisions have reached their review date.', h('div', { style: { fontSize: 14, color: C.muted, marginTop: 4 } }, 'The person who saved each decision records what happened. Their written review stays with them.')) : null,
       h('div', { style: { marginTop: 18 } },
         h('div', { style: label }, compact ? 'Most recent team decision' : 'Recent team decisions'),
         !d ? h('div', { style: { color: C.muted, fontSize: 16 }, role: 'status' }, 'Loading...') :
@@ -6389,11 +6789,11 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
         list.length === 0 ? h('div', { style: { color: C.muted, fontSize: 16, lineHeight: 1.7 } }, 'No team decisions saved yet. When you save one to the team it appears here.') :
         list.map((x) => h('div', { key: x.id, style: { padding: '10px 0', borderTop: '1px solid ' + C.border } },
           h('button', { onClick: () => setOpen(open === x.id ? null : x.id), 'aria-expanded': open === x.id, style: { all: 'unset', cursor: 'pointer', display: 'block', width: '100%', fontSize: 16, fontWeight: 700, lineHeight: 1.5, color: C.text } }, x.title || x.decision || 'Decision'),
-          h('div', { style: { fontFamily: AC.font, fontSize: 15, color: C.muted, marginTop: 4 } }, cap(x.status || 'open') + ' \u00b7 ' + fmtDate(x.created_at) + (x.review_date ? ' \u00b7 review ' + fmtDate(x.review_date) : '')),
+          h('div', { style: { fontFamily: AC.font, fontSize: 15, color: C.muted, marginTop: 4 } }, cap(x.status || 'open') + ' \u00b7 ' + fmtDate(x.created_at) + (x.review_date ? ' \u00b7 review ' + fmtDate(x.review_date) : '') + (isDue(x) ? ' \u00b7 review due' : '')),
           open === x.id ? h('div', { style: { fontSize: 16, lineHeight: 1.7, marginTop: 8 } },
             x.next_action ? h('div', null, h('strong', null, 'Agreed action: '), x.next_action) : null,
             x.responsible ? h('div', null, h('strong', null, 'Responsible: '), x.responsible) : null,
-            x.mine ? h('div', { style: { marginTop: 8 } }, h(Btn, { variant: 'ghost', onClick: () => setView('decisions'), style: { padding: '8px 14px', fontSize: 14 } }, 'OPEN IN MY DECISIONS')) : null) : null))));
+            x.mine ? h('div', { style: { marginTop: 8 } }, h(Btn, { variant: isDue(x) ? 'primary' : 'ghost', onClick: () => { if (isDue(x)) nfSetReviewFocus(x.id); setView('decisions'); }, style: { padding: '8px 14px', fontSize: 14 } }, isDue(x) ? 'REVIEW THIS DECISION' : 'OPEN IN MY DECISIONS')) : null) : null))));
   }
 
   function PracticeTab({ org, role, setView, go }) {
@@ -6402,13 +6802,13 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
       h(ChallengeCard, { org, role, go }),
       lead ? h(ChallengeSummary, { org }) : null,
       h(PracticeCard, { org, go, setView }),
-      h(DecisionEntry, { org, setView }));
+      h(DecisionEntry, { org, setView, role }));
   }
   function HomeCards({ org, role, go, setView }) {
     return h('div', null,
       h(ChallengeCard, { org, role, go, compact: true }),
       h(PracticeCard, { org, go, setView, compact: true }),
-      h(DecisionEntry, { org, setView, compact: true }));
+      h(DecisionEntry, { org, setView, compact: true, role }));
   }
   function TabBar({ tabs, tab, setTab }) {
     return h('div', { role: 'tablist', 'aria-label': 'Team sections', style: { display: 'flex', gap: 8, marginBottom: 28, flexWrap: 'wrap' } }, tabs.map(([k, l]) => h('button', { key: k, type: 'button', role: 'tab', 'aria-selected': tab === k, className: 'nf-tab', onClick: () => setTab(k),
@@ -6436,10 +6836,45 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
       h(TabBar, { tabs, tab, setTab }),
       tab === 'home' ? h(TeamHome, { org, ov, setView, go: setTab, role: ov.role }) : null,
       tab === 'practice' ? h(PracticeTab, { org, role: ov.role, setView, go: setTab }) : null,
-      tab === 'results' ? h(ResultsTab, { org }) : null,
+      tab === 'results' ? h('div', null, h(TeamLoopCard, { org, setView, go: setTab }), h(ResultsTab, { org })) : null,
       tab === 'programme' ? h(ProgrammePanel, { key: org.id, org, role: ov.role, setView, onStart: () => startAssessment(org, setView) }) : null,
       tab === 'team' ? h(TeamTab, { org, role: ov.role, refresh }) : null,
       tab === 'billing' ? h(BillingTab, { org, ov }) : null);
+  }
+
+  // Team insight as a living loop, not a static report: practising -> deciding -> learning -> practise next.
+  // Uses only existing RPCs (org_challenge_summary, org_recent_decisions, org_team_results via PracticeCard). Shows counts
+  // and the titles of decisions people chose to share with the team. Never individual answers, reasoning or reviews.
+  function TeamLoopCard({ org, setView, go }) {
+    const [s, setS] = useState(null); const [d, setD] = useState(null);
+    useEffect(() => { let live = true; setS(null); setD(null);
+      rpc('org_challenge_summary', { p_org: org.id }).then((x) => { if (live) setS(x); });
+      rpc('org_recent_decisions', { p_org: org.id, p_limit: 10 }).then((x) => { if (live) setD(x); });
+      return () => { live = false; }; }, [org.id]);
+    const sec = (title, kids) => h('div', { style: { padding: '14px 0', borderTop: '1px solid ' + C.border } }, h('div', { style: label }, title), kids);
+    const body = { fontSize: 16, lineHeight: 1.7 };
+    const muted = { fontSize: 16, lineHeight: 1.7, color: C.muted };
+    const today = nfLocalDate();
+    const list = d && d.ok ? (d.decisions || []) : null;
+    const reviewed = list ? list.filter((x) => x.status === 'reviewed').length : 0;
+    const due = list ? list.filter((x) => x.review_date && x.review_date <= today && x.status !== 'reviewed').length : 0;
+    return h('div', null,
+      h('div', { style: card({ marginBottom: 20 }) },
+        h('div', { style: label }, 'The team loop'),
+        h('div', { style: { ...syne, fontSize: 20, fontWeight: 800, marginBottom: 4 } }, 'Practise, decide, review, learn'),
+        sec('What the team is practising', !s ? h('div', { style: muted, role: 'status' }, 'Loading...')
+          : (!s.ok || !s.challenge) ? h('div', { style: muted }, 'No weekly challenge to report yet.')
+          : h('div', { style: body }, s.submitted + ' of ' + s.eligible + ' people have submitted this week\u2019s challenge (' + s.participation_pct + '%).')),
+        sec('What the team is deciding', !d ? h('div', { style: muted, role: 'status' }, 'Loading...')
+          : !list ? h('div', { style: muted }, 'Team decisions are not available right now.')
+          : list.length === 0 ? h('div', { style: muted }, 'No team decisions saved yet. Start one from the Practice tab.')
+          : h('div', null, list.slice(0, 3).map((x) => h('div', { key: x.id, style: { ...body, padding: '4px 0' } }, (x.title || x.decision || 'Decision') , h('span', { style: { color: C.muted } }, ' \u00b7 ' + fmtDate(x.created_at)))))),
+        sec('What the team is learning', !list ? h('div', { style: muted }, list === null && d ? 'Not available right now.' : 'Loading...')
+          : list.length === 0 ? h('div', { style: muted }, 'Reviews appear here once the team has saved decisions.')
+          : h('div', { style: body }, reviewed + ' of ' + list.length + ' recent decisions have been reviewed.' + (due > 0 ? ' ' + due + (due === 1 ? ' is' : ' are') + ' due for review.' : ''),
+              h('div', { style: { fontSize: 14, color: C.muted, marginTop: 4 } }, 'Each person records their own review. Written reflections are not shown here.'))),
+        sec('Where the team should practise next', h('div', { style: { fontSize: 14, color: C.muted } }, 'From your team\u2019s results, using the same published rules as before:'))),
+      h(PracticeCard, { org, go, setView, compact: true }));
   }
 
   const DIM_LABELS = { analytical: 'Analytical', intuitive: 'Intuitive', associative: 'Associative', reflective: 'Reflective', integration: 'Pressure and overload (single item)' };
