@@ -155,347 +155,175 @@ const { useState, useEffect, useCallback, useRef, useMemo } = React;
 
     // ── Four Brains Data ──────────────────────────────────────────────
 
-    // ── CFI Assessment Items: CFI-1.0, canonical 13-item instrument 
-    // One instrument for everyone (individuals and teams). It replaces the drifted 15/16-item
-    // versions. Dimension letters use the app's A/I/S/R/E scheme so
-    // CFI_SECTIONS, CFI_DIMENSION_META, and the brainMap below stay unchanged:
-    //   Dim A "Decision Latency"      → A "analytical"
-    //   Dim B "Mode Rigidity"         → I "intuitive"
-    //   Dim C "Emotional Reactivity"  → R "reflective"
-    //   Dim D "Thought Interruption"  → S "associative"
-    //   Dim E "Cognitive Overload"    → E "integration" (not a fifth brain, see dominantBrain calc)
-    const CFI_ITEMS = [
-      { id:1,  dim:'A', brain:'analytical',  text:'I delay making decisions even when I have sufficient information.' },
-      { id:2,  dim:'A', brain:'analytical',  text:'I reconsider decisions I have already made even when no new information is available.' },
-      { id:3,  dim:'A', brain:'analytical',  text:'When facing a decision under time pressure, my thinking becomes unclear.' },
-      { id:4,  dim:'I', brain:'intuitive',   text:'I rely on facts and logic alone, even when something tells me to think differently.' },
-      { id:5,  dim:'I', brain:'intuitive',   text:'I act on gut feelings without pausing to examine the evidence behind them.' },
-      { id:6,  dim:'I', brain:'intuitive',   text:'I find it difficult to shift my thinking approach once I have started working on a problem.' },
-      { id:7,  dim:'R', brain:'reflective',  text:'Strong emotions make my thinking less clear.' },
-      { id:8,  dim:'R', brain:'reflective',  text:'I make decisions I later regret when I am under emotional pressure.' },
-      { id:9,  dim:'R', brain:'reflective',  text:'I am able to remain mentally focused even when the situation feels stressful.', reversed:true },
-      { id:10, dim:'S', brain:'associative', text:'My thinking gets interrupted by unrelated thoughts when I am trying to focus.' },
-      { id:11, dim:'S', brain:'associative', text:'I experience competing thoughts when trying to reach a clear conclusion.' },
-      { id:12, dim:'S', brain:'associative', text:'After completing a task, my thoughts feel organised and settled.', reversed:true },
-      { id:13, dim:'E', brain:'integration', text:'When I am presented with too much information at once, my thinking becomes disorganised.' },
+    // ── CFI Assessment: CFI-2.0 (40 items) ────────────────────────────────────────────
+    // One instrument for everyone (individuals and teams). It replaces the 13-item CFI-1.0 completely:
+    // no bands, no total score, no "fragmentation" scoring. Source of truth: NeuralFusion CFI-2.0 Item Pool.
+    // Scale keys: A analytical, I intuitive, S associative, R reflective, C coordination.
+    // Four mode scores and one Coordination score, each reported 0-100. They are never added into one total.
+    const CFI_VERSION = 'CFI-2.0';
+    const CFI_STEM = 'When I work on a problem or decision, how often do I...';
+    const CFI_SCALE = [
+      { value: 1, label: 'Almost never',  subtitle: 'Hardly ever when I work on a problem' },
+      { value: 2, label: 'Rarely',        subtitle: 'Now and then, but not usually' },
+      { value: 3, label: 'Sometimes',     subtitle: 'About half the time' },
+      { value: 4, label: 'Often',         subtitle: 'More often than not' },
+      { value: 5, label: 'Almost always', subtitle: 'Nearly every time' },
     ];
-    // 13 items, each scored 1–5. Raw total range: 13 (best) – 65 (worst).
-    // Items 9 and 12 are reverse-scored (`reversed:true`): scoring well there is a
-    // *strength*, not fragmentation, so the raw 1–5 answer is inverted (6 - value)
-    // everywhere fragmentation totals are computed.
+    const CFI_SCALE_ORDER = ['A', 'I', 'S', 'R', 'C'];
+    const CFI_MODE_ORDER = ['A', 'I', 'S', 'R']; // the four thinking modes (Coordination is reported separately)
 
-    // ── CFI Section Intros ──────────────────────────────────────────────
-    // FIX (audit findings B/#5/#6/#7): titles and blurbs rewritten to describe what the
-    // items in each section actually ask about, rather than the broader trait the section
-    // used to imply. See CFI_Audit_Report Section B for the item-by-item mapping.
-    const CFI_SECTIONS = {
-      A: { title:'Clear, Logical Thinking', icon:'◰', color:'#C4A050',
-           blurb:"These questions look at how decisive and clear your thinking stays, especially when you're under time pressure to decide." },
-      I: { title:'Instinct vs. Logic Flexibility', icon:'◱', color:'#E2BE78',
-           blurb:"These questions look at whether you can move between logic and gut instinct, or tend to get stuck relying on only one of them even when it isn't working." },
-      S: { title:'Focus & Mental Interruptions', icon:'◲', color:'#7AAFCF',
-           blurb:"These questions look at how often unrelated or competing thoughts interrupt your focus, and whether your mind feels settled once a task is done." },
-      R: { title:'Emotional Clarity Under Pressure', icon:'◳', color:'#D4AF6A',
-           blurb:"These questions look at how much strong emotions affect your clarity and decisions, and whether you can stay focused when things feel stressful." },
-      E: { title:'Staying Steady Under Pressure', icon:'◈', color:'#F5EDD8',
-           blurb:"Last section, just one question. It looks at how your thinking holds up when you're given a lot of information at once. Because it's a single question, treat this section as a narrow snapshot, not a full picture." },
-    };
-    const CFI_SECTION_ORDER = ['A','I','S','R','E'];
-
-    // ── CFI Dimension Content Library ───────────────────────────────────
-    // Every dimension score is paired with plain-language meaning, strengths,
-    // blind spots, decision style, behaviour under pressure, and 3 practical actions.
-    // FIX (audit findings B/#5/#6/#7/#10): every block below was rewritten to describe
-    // only what its 3 items (or, for E, its single item) actually ask about: decision
-    // delay/reconsideration/clarity-under-pressure for A, logic-vs-gut rigidity for I,
-    // attentional interruption for S, and emotional reactivity for R. Claims about
-    // reasoning ability, creativity, intuition quality, and metacognition that the old
-    // copy implied but that no item measures have been removed. See CFI_Audit_Report
-    // Section B for the full item-to-construct mapping this rewrite is based on.
-    const CFI_DIMENSION_META = {
-      A: {
-        name: 'Clear, Logical Thinking', brainKey:'analytical',
-        strengths: ['Can decide without much delay once you have enough information', "Doesn't tend to reopen decisions without a new reason to", 'Thinking mostly stays clear even when a decision is time-pressured'],
-        blindSpots: ['Can delay deciding even with enough information in hand', 'May reconsider a settled decision without any new information', 'Thinking can turn unclear specifically when a decision is time-pressured'],
-        meaning: {
-          high: "You tend to decide without much delay once you have enough information, and time pressure has a limited effect on your clarity.",
-          moderate: "You sometimes delay or reconsider decisions, and time pressure occasionally makes your thinking less clear.",
-          low: "Right now you often delay deciding, reconsider decisions you've already made, and time pressure regularly makes your thinking unclear. This is common, and trainable.",
-        },
-        decisionStyle: {
-          high: "You commit to a decision once you have enough information, and you don't tend to relitigate it later.",
-          moderate: 'You can commit to decisions, but you sometimes revisit them without anything new prompting it.',
-          low: 'You tend to stall or reopen decisions, often without a clear reason to.',
-        },
-        underPressure: {
-          high: 'Time pressure has a limited effect on how clearly you think.',
-          moderate: 'Time pressure sometimes clouds your thinking, though you usually still reach a decision.',
-          low: 'Time pressure tends to make your thinking noticeably less clear.',
-        },
-        improvements: [
-          'Give yourself a hard deadline to decide once you have the key facts.',
-          "If you catch yourself reconsidering a decision, ask first whether anything actually changed.",
-          'Practice making one low-stakes decision daily under a short time limit.',
-        ],
-      },
-      I: {
-        name: 'Instinct vs. Logic Flexibility', brainKey:'intuitive',
-        strengths: ['Can lean on logic and evidence when a situation calls for it', 'Can act on a gut read when speed matters', "Doesn't get permanently stuck in one approach once it stops working"],
-        blindSpots: ['May rely on facts and logic alone even when something else is telling you differently', 'May act on gut feelings without pausing to check them against evidence', "Can find it difficult to shift approach once you've started working a problem"],
-        meaning: {
-          high: "You can move between logic and instinct depending on the situation, without getting stuck committed to one approach.",
-          moderate: "You lean more on one of logic or instinct, and sometimes find it hard to switch once you've started.",
-          low: "Right now you tend to get stuck in one way of thinking, either overriding useful signals with pure logic, or acting on gut feelings without checking them, and switching approach mid-problem is difficult.",
-        },
-        decisionStyle: {
-          high: "You bring in whichever of logic or instinct fits the decision, and adjust if your first approach isn't working.",
-          moderate: 'You tend to default to one approach, and switching takes deliberate effort.',
-          low: 'You commit early to either pure logic or pure instinct and rarely revisit that choice mid-decision.',
-        },
-        underPressure: {
-          high: "Pressure doesn't lock you into one approach.",
-          moderate: "Pressure makes it harder to switch approaches if your first one isn't working.",
-          low: "Under pressure you're most likely to get stuck in whichever way of thinking you started in.",
-        },
-        improvements: [
-          "When a decision feels stuck, deliberately try the other approach: if you've been logical, ask what your gut says, and vice versa.",
-          'Before acting on a gut feeling, name one piece of evidence that supports or challenges it.',
-          'Notice the moment you feel resistant to changing approach mid-problem, and pause there.',
-        ],
-      },
-      S: {
-        name: 'Focus & Mental Interruptions', brainKey:'associative',
-        strengths: ['Can hold a single train of thought without much interference', 'Mind tends to feel settled once a task is finished', 'Fewer competing thoughts getting in the way of reaching a conclusion'],
-        blindSpots: ["Unrelated thoughts can interrupt your focus when you're trying to concentrate", 'Competing thoughts can make it harder to reach a clear conclusion', "Thoughts may still feel unsettled after a task is done"],
-        meaning: {
-          high: "Your focus holds steady: unrelated or competing thoughts rarely derail you, and your mind tends to feel settled once a task is done.",
-          moderate: "Your focus holds up reasonably well, but competing or unrelated thoughts sometimes interrupt you, and you don't always feel settled afterward.",
-          low: "Right now, unrelated or competing thoughts frequently interrupt your focus, and your mind often doesn't feel settled after finishing a task.",
-        },
-        decisionStyle: {
-          high: 'You can reach a conclusion without much interference from competing thoughts.',
-          moderate: 'Competing thoughts sometimes slow you down before you reach a conclusion.',
-          low: 'Competing or unrelated thoughts often get in the way before you can reach a clear conclusion.',
-        },
-        underPressure: {
-          high: "Pressure doesn't noticeably increase mental interruptions for you.",
-          moderate: 'Pressure makes unrelated thoughts a bit more likely to intrude.',
-          low: 'Pressure makes it much harder to hold a single train of thought.',
-        },
-        improvements: [
-          'When an unrelated thought intrudes, jot it down and return to your task instead of following it.',
-          'After finishing a task, take one minute to note anything that still feels unfinished, then set it aside.',
-          'If competing thoughts are pulling you in different directions, list them out to separate them from each other.',
-        ],
-      },
-      R: {
-        name: 'Emotional Clarity Under Pressure', brainKey:'reflective',
-        strengths: ['Thinking stays relatively clear even when emotions run high', "Fewer decisions made under emotional pressure that you later regret", 'Can stay mentally focused when a situation feels stressful'],
-        blindSpots: ['Strong emotions can make your thinking less clear', "May make decisions under emotional pressure that you later regret", "Stress can pull your focus away from the task at hand"],
-        meaning: {
-          high: "Strong emotions have a limited effect on your clarity, and you can generally stay focused even when a situation feels stressful.",
-          moderate: "Emotions sometimes cloud your thinking, and stress occasionally pulls your focus, though you can usually recover.",
-          low: "Right now, strong emotions frequently reduce your clarity, and stressful situations often pull your focus and lead to decisions you later regret.",
-        },
-        decisionStyle: {
-          high: "Emotional pressure doesn't strongly steer your decisions.",
-          moderate: "Emotional pressure sometimes shapes a decision more than you'd like.",
-          low: 'Decisions made under emotional pressure are more likely to be ones you regret later.',
-        },
-        underPressure: {
-          high: 'You stay mentally focused even when a situation feels stressful.',
-          moderate: 'Stress pulls at your focus, though you can usually pull it back.',
-          low: 'Stress tends to overwhelm your focus and clarity.',
-        },
-        improvements: [
-          "Before deciding under emotional pressure, pause and name the emotion you're feeling.",
-          'If a decision feels emotionally charged, give it a short cooling-off period before acting.',
-          'Notice the specific situations where stress most often affects your focus, and plan for them in advance.',
-        ],
-      },
-      E: {
-        // FIX (audit finding C / Section C): this dimension is built from ONE item, not
-        // 3 like the others. It previously carried six distinct claims (integration,
-        // staying steady under pressure, mode-switching, perspective, recovery, mode
-        // selection) that a single 5-point question cannot support. Content below is
-        // narrowed to only what the item actually asks: reaction to high information
-        // volume, with an explicit single-item caveat kept in every string so the
-        // limitation travels with the text wherever it's displayed.
-        name: 'Handling Information Overload (single-item snapshot)', brainKey:null,
-        strengths: ["Reported feeling relatively organized when given a lot of information at once; based on one question, treat as a rough signal only"],
-        blindSpots: ["Reported feeling disorganized when given a lot of information at once; based on one question, treat as a rough signal only"],
-        meaning: {
-          high: "Based on a single question, you reported feeling relatively organized even when given a lot of information at once. This is a narrow, single-item signal, not a full profile of how you handle pressure.",
-          moderate: "Based on a single question, you reported some disorganization when given a lot of information at once. Treat this as a rough signal rather than a firm conclusion.",
-          low: "Based on a single question, you reported that too much information at once tends to leave your thinking disorganized. Treat this as a rough signal rather than a firm conclusion.",
-        },
-        decisionStyle: {
-          high: "This dimension is based on one question and isn't detailed enough to describe a decision style.",
-          moderate: "This dimension is based on one question and isn't detailed enough to describe a decision style.",
-          low: "This dimension is based on one question and isn't detailed enough to describe a decision style.",
-        },
-        underPressure: {
-          high: "You reported handling a high volume of information reasonably well (single-item measure).",
-          moderate: "You reported some difficulty handling a high volume of information (single-item measure).",
-          low: "You reported that a high volume of information tends to disorganize your thinking (single-item measure).",
-        },
-        improvements: [
-          'If a large volume of information often leaves you disorganized, try breaking it into smaller chunks before deciding.',
-          'Ask for a short summary or the top few points before diving into a large amount of information.',
-          'Build in a short pause to reorganize your thoughts before responding to information overload.',
-        ],
-      },
+    // Plain-language definition of each scale (what a person does while working on a problem).
+    // brain: the matching key used by the lessons. lessonId: the lesson that practises it.
+    // practice: a coaching suggestion, not a measured finding.
+    const CFI_MODES = {
+      A: { name: 'Analytical', brain: 'analytical', lessonId: 2,
+           means: 'Breaking problems into parts, checking evidence, comparing options against criteria.',
+           practice: 'Before your next decision, write down your options and the one or two criteria that matter most, then compare the options against them.' },
+      I: { name: 'Intuitive', brain: 'intuitive', lessonId: 5,
+           means: 'Recognising patterns quickly and making fast judgements from experience.',
+           practice: 'Next time you get a quick read on a familiar situation, write it down first, then check it against the evidence before you act.' },
+      S: { name: 'Associative', brain: 'associative', lessonId: 3,
+           means: 'Connecting ideas across fields, using analogy, generating many possibilities.',
+           practice: 'Take one current problem and ask what someone in a very different field would do with it. Write three ideas before you choose.' },
+      R: { name: 'Reflective', brain: 'reflective', lessonId: 4,
+           means: 'Reviewing your own reasoning and questioning your own assumptions.',
+           practice: 'After your next decision, spend two minutes writing how you reached it and one assumption you would test next time.' },
+      C: { name: 'Coordination', brain: 'coordination', lessonId: 2,
+           means: 'Switching between modes when one stalls, and checking one mode against another.',
+           practice: 'When your approach stalls, name it, then deliberately try a different one, for example by testing a hunch against the evidence.' },
     };
 
-    const CFI_DIM_LABELS = { A:'Clear, Logical Thinking', I:'Gut Instinct', S:'Creative Connections', R:'Self-Awareness', E:'Staying Steady Under Pressure' };
-
-    // Communication / leadership / learning style, keyed by brain
-    const CFI_STYLE_TABLE = {
-      analytical:  { communication:'Direct, structured, and fact-based.', leadership:'Leads with clear plans and measurable standards.', learning:'Learns best through step-by-step instruction and structured practice.' },
-      intuitive:   { communication:'Concise and confident, sometimes short on detailed explanation.', leadership:'Leads by reading people and situations quickly, adjusting on the fly.', learning:'Learns best through hands-on experience and repeated exposure.' },
-      associative: { communication:'Story-driven, uses analogies and big-picture framing.', leadership:'Leads by connecting people and ideas toward a shared vision.', learning:'Learns best by exploring, experimenting, and making unexpected connections.' },
-      reflective:  { communication:'Thoughtful and measured, prefers to consider before responding.', leadership:'Leads through consistency, values, and long-term thinking.', learning:'Learns best through reflection, journaling, and reviewing past experience.' },
+    // Item pool: [id, text, reversed]. Items marked true are reverse-scored.
+    const CFI_POOL = {
+      A: [
+        ['A1', 'Break the problem into smaller parts before deciding anything'],
+        ['A2', 'Check whether my conclusion actually follows from the evidence I have'],
+        ['A3', 'Compare my options against clear criteria'],
+        ['A4', 'Look for missing information before committing to a view'],
+        ['A5', 'Write down or map out my reasoning when the problem is complicated'],
+        ['A6', 'Test an idea against a counterexample before accepting it'],
+        ['A7', 'Reach a conclusion without checking the evidence for it', true],
+        ['A8', 'Choose between options without comparing them in any systematic way', true],
+      ],
+      I: [
+        ['I1', 'Sense the right answer before I can explain why'],
+        ['I2', 'Recognise a pattern quickly because it resembles something I have seen before'],
+        ['I3', 'Size up a situation almost immediately'],
+        ['I4', 'Go with a first impression when time is short and the situation is familiar'],
+        ['I5', 'Notice that something does not fit before I can say what is wrong'],
+        ['I6', 'Make a quick judgement call without a full analysis'],
+        ['I7', 'Distrust any conclusion I cannot justify step by step', true],
+        ['I8', 'Give quick impressions almost no role in my decisions', true],
+      ],
+      S: [
+        ['S1', 'Borrow ideas from unrelated fields to solve the problem'],
+        ['S2', 'Compare the problem to something very different to find new angles'],
+        ['S3', 'Link ideas that other people treat as separate'],
+        ['S4', 'Use an analogy to work out how something functions'],
+        ['S5', 'Generate many possibilities before narrowing down'],
+        ['S6', 'Notice unexpected connections between things I learned at different times'],
+        ['S7', 'Stay inside the standard way of framing the problem', true],
+        ['S8', "Rely only on knowledge from the problem's own field", true],
+      ],
+      R: [
+        ['R1', 'Review how I reached a decision after I have made it'],
+        ['R2', 'Question my own assumptions before acting on them'],
+        ['R3', 'Ask what I might be overlooking in my own view'],
+        ['R4', 'Look back at past decisions to see what my thinking missed'],
+        ['R5', 'Notice which beliefs are shaping how I see the problem'],
+        ['R6', 'Consider how my own background shapes my conclusions'],
+        ['R7', 'Move on after deciding without looking at how I got there', true],
+        ['R8', 'Treat my first interpretation as the correct one', true],
+      ],
+      C: [
+        ['C1', 'Deliberately switch to a different way of thinking when one stalls'],
+        ['C2', 'Test my gut feeling against the evidence'],
+        ['C3', 'Test my analysis against my sense of whether it holds up'],
+        ['C4', 'Use more than one way of thinking on purpose for hard problems'],
+        ['C5', 'Choose my approach based on what the problem needs'],
+        ['C6', 'Check a new idea carefully before I act on it'],
+        ['C7', 'Use the same approach for nearly every problem', true],
+        ['C8', 'Keep going with my approach even when it is not working', true],
+      ],
     };
 
-    // Score → plain-language bucket (0 = perfectly integrated dimension, 100 = fully fragmented)
-    function cfiLevel(fragScore) {
-      const integ = 100 - fragScore;
-      if (integ >= 70) return 'high';
-      if (integ >= 40) return 'moderate';
-      return 'low';
+    // Presentation order: round-robin across the five scales, so no two neighbouring questions come
+    // from the same scale and no question reveals which mode it belongs to.
+    const CFI_ITEMS = [];
+    for (let i = 0; i < 8; i++) {
+      CFI_SCALE_ORDER.forEach((s) => {
+        const [id, text, reversed] = CFI_POOL[s][i];
+        CFI_ITEMS.push({ id, scale: s, text, reversed: !!reversed });
+      });
+    }
+    // 40 items, each answered 1-5. Raw item answers are kept as given; reverse-scored items are inverted (6 - value)
+    // only when a scale mean is computed.
+
+    // Defensive validation, mirrored client-side because this app has no server layer of its own.
+    // This is the gate a completed attempt must pass before saveCFIResult will submit it.
+    function validateCFISubmission(answers) {
+      const errors = [];
+      if (CFI_ITEMS.length !== 40) errors.push('Item list has ' + CFI_ITEMS.length + ' items, expected 40.');
+      CFI_ITEMS.forEach((it) => {
+        const v = answers[it.id];
+        if (v === undefined || v === null) errors.push('Missing answer for ' + it.id + '.');
+        else if (!(Number.isInteger(v) && v >= 1 && v <= 5)) errors.push('Answer for ' + it.id + ' (' + v + ') is not an integer 1-5.');
+      });
+      return { valid: errors.length === 0, errors };
     }
 
-    function cfiIntegrationScore(total) {
-      // total ranges 13 (best) to 65 (worst) across the 13 five-point CFI-1.0 items
-      const pct = ((total - 13) / 52) * 100;
-      return Math.max(0, Math.min(100, Math.round(100 - pct)));
-    }
+    const cfiEffective = (it, v) => (it.reversed ? 6 - v : v);
+    const cfiMean = (xs) => xs.reduce((a, b) => a + b, 0) / xs.length;
+    const cfiTo100 = (m) => Math.round(((m - 1) / 4) * 100); // 1-5 mean -> 0-100 integer
 
-    function buildDimensionReport(dim, fragScore) {
-      const meta = CFI_DIMENSION_META[dim];
-      const level = cfiLevel(fragScore);
-      const integrationScore = Math.max(0, Math.min(100, 100 - fragScore));
-      return {
-        dim, name: meta.name, brainKey: meta.brainKey, level, integrationScore, fragScore,
-        meaning: meta.meaning[level],
-        strengths: meta.strengths,
-        blindSpots: meta.blindSpots,
-        decisionStyle: meta.decisionStyle[level],
-        underPressure: meta.underPressure[level],
-        improvements: meta.improvements,
+    // Returns { ok, version, means (1-5), scores (0-100 integers, stored), flags (response quality), lowest, lessonId }.
+    function scoreCFI(answers) {
+      const check = validateCFISubmission(answers);
+      if (!check.valid) return { ok: false, errors: check.errors };
+      const means = {}, scores = {};
+      CFI_SCALE_ORDER.forEach((s) => {
+        means[s] = cfiMean(CFI_ITEMS.filter((i) => i.scale === s).map((i) => cfiEffective(i, answers[i.id])));
+        scores[s] = cfiTo100(means[s]);
+      });
+      const raw = CFI_ITEMS.map((i) => answers[i.id]);
+      const positive = CFI_ITEMS.filter((i) => !i.reversed).map((i) => answers[i.id]);
+      const reversed = CFI_ITEMS.filter((i) => i.reversed).map((i) => answers[i.id]);
+      const flags = {
+        straight_lining: new Set(raw).size === 1,
+        // Agreeing with positive AND reverse-worded items is a sign of yes-saying (acquiescence).
+        acquiescence_gap: Math.round((cfiMean(reversed) - 1) * 100) / 100,
+        mean_positive_raw: Math.round(cfiMean(positive) * 100) / 100,
+        mean_reversed_raw: Math.round(cfiMean(reversed) * 100) / 100,
       };
+      flags.possible_yes_saying = flags.mean_reversed_raw >= 3.5 && flags.mean_positive_raw >= 3.5;
+      return Object.assign({ ok: true, version: CFI_VERSION, means, scores, flags }, cfiPractice(scores));
     }
 
-    // Generic explainer for any score, independent of dimension; never show a bare number.
-    // FIX (audit finding H): previously framed around how OFTEN / how RELIABLY a mode
-    // "contributes to decisions"; no CFI item asks about frequency of use or reliability
-    // of contribution; every item asks about self-reported DIFFICULTY in a domain. Reworded
-    // to describe only what was actually measured. Never implies a "broken" brain, and
-    // never implies 100% is the goal for every mode.
-
-    // Band (internal value, unchanged) → coordination-framed label + one-line description.
-    // The underlying `band` string itself (e.g. 'Critical fragmentation') is left exactly
-    // as-is everywhere it drives logic (DB writes, admin filters, lesson gating); this
-    // mapping only controls what the person actually reads on the results page.
-    const CFI_COORDINATION_LABEL = {
-      'Integrated':             'Clear and balanced',
-      'Moderate fragmentation': 'Mostly clear',
-      'High fragmentation':     'Often scattered',
-      'Critical fragmentation': 'Very scattered',
-    };
-    function cfiCoordinationLabel(band) {
-      return CFI_COORDINATION_LABEL[band] || band;
+    // The scale this person reported using least often, and the lesson that practises it.
+    // This is a place to start practising, never a verdict. Ties go to the first scale in A, I, S, R, C order.
+    function cfiPractice(scores) {
+      let lowest = CFI_SCALE_ORDER[0];
+      CFI_SCALE_ORDER.forEach((s) => { if (scores[s] < scores[lowest]) lowest = s; });
+      return { lowest, lessonId: CFI_MODES[lowest].lessonId };
     }
 
-    function buildCognitiveProfile(dimReports, integrationScore, band) {
-      const core = ['A','I','S','R']; // exclude E (integration), it isn't a standalone way of thinking
-      // Best-to-least-frequently-activated, NOT "best brain to worst brain." With four
-      // modes: the top mode is Dominant, the middle two are Supporting, and the last is
-      // currently Underutilized. Everyone has this shape, by definition.
-      const sorted = [...core].sort((a,b)=> dimReports[a].fragScore - dimReports[b].fragScore);
-      const primaryDim = sorted[0], secondaryDim = sorted[1], tertiaryDim = sorted[2], weakestDim = sorted[sorted.length-1];
-      const primaryBrain = CFI_DIMENSION_META[primaryDim].brainKey;
-      const secondaryBrain = CFI_DIMENSION_META[secondaryDim].brainKey;
-      const weakestBrain = CFI_DIMENSION_META[weakestDim].brainKey;
-      const pStyle = CFI_STYLE_TABLE[primaryBrain] || CFI_STYLE_TABLE.analytical;
-      const coordinationLevel = cfiCoordinationLabel(band);
-
-      const dominantModes = [primaryDim];
-      const supportingModes = [secondaryDim, tertiaryDim];
-      const underutilizedModes = [weakestDim];
-      const modeNames = arr => arr.map(d => CFI_DIM_LABELS[d]).join(' and ');
-
-      return {
-        integrationScore,
-        fragmentationLevel: band, // kept for backward compatibility; raw band value, unchanged
-        coordinationLevel,        // new: display-facing label for the same band
-
-        primaryDim, secondaryDim, tertiaryDim, weakestDim,
-        primaryBrain, secondaryBrain, weakestBrain,
-        primaryStyle: CFI_DIM_LABELS[primaryDim],
-        secondaryStyle: CFI_DIM_LABELS[secondaryDim],
-
-        // ── Cognitive Coordination Profile fields ──
-        dominantModes: dominantModes.map(d => CFI_DIM_LABELS[d]),
-        supportingModes: supportingModes.map(d => CFI_DIM_LABELS[d]),
-        underutilizedModes: underutilizedModes.map(d => CFI_DIM_LABELS[d]),
-        decisionCoordinationStyle: `You typically lead with ${CFI_DIM_LABELS[primaryDim]}, coordinated with ${modeNames(supportingModes)}. ${dimReports[primaryDim].decisionStyle}`,
-        coordinationUnderPressure: dimReports[primaryDim].underPressure,
-        decisionBlindSpots: `${CFI_DIM_LABELS[weakestDim]} currently contributes less often than your other modes, so watch for: ${CFI_DIMENSION_META[weakestDim].blindSpots[0].toLowerCase()}`,
-        naturalStrengths: `${CFI_DIM_LABELS[primaryDim]}: ${CFI_DIMENSION_META[primaryDim].strengths[0]}`,
-        suggestedCoordinationExercise: `${CFI_DIMENSION_META[weakestDim].improvements[0]} This helps ${CFI_DIM_LABELS[weakestDim].toLowerCase()} activate more often, alongside (not instead of) your dominant modes.`,
-
-        // ── Legacy fields (kept for backward compatibility with any existing consumers) ──
-        // FIX (audit finding #9 / C): no CFI item measures communication, leadership, or
-        // learning behavior at all: these are coaching inferences drawn from whichever
-        // dimension has the lowest fragmentation score, not measured findings. Labeled
-        // as such inline so the caveat travels with the text wherever it's displayed.
-        communicationStyle: `${pStyle.communication} (Coaching interpretation based on your primary mode, not directly measured by the CFI.)`,
-        leadershipStyle: `${pStyle.leadership} (Coaching interpretation based on your primary mode, not directly measured by the CFI.)`,
-        learningStyle: `${pStyle.learning} (Coaching interpretation based on your primary mode, not directly measured by the CFI.)`,
-        decisionProfile: `You lead with ${CFI_DIM_LABELS[primaryDim]}, backed up by ${CFI_DIM_LABELS[secondaryDim]}. ${dimReports[primaryDim].decisionStyle}`,
-        biggestStrength: `${CFI_DIM_LABELS[primaryDim]}: ${CFI_DIMENSION_META[primaryDim].strengths[0]}`,
-        biggestBlindSpot: `${CFI_DIM_LABELS[weakestDim]}: ${CFI_DIMENSION_META[weakestDim].blindSpots[0]}`,
-        biggestOpportunity: `${CFI_DIMENSION_META[weakestDim].improvements[0]}`,
-
-        summary: `Your ways of thinking are currently ${coordinationLevel.toLowerCase()}, with an overall coordination score of ${integrationScore}/100 `
-          + `(a scaled self-report score, not a percentile or clinical measure). `
-          + `This is not a measure of intelligence. It reflects how well your natural ways of thinking work together right now. `
-          + `You naturally lead with ${CFI_DIM_LABELS[primaryDim].toLowerCase()}, supported by ${modeNames(supportingModes).toLowerCase()}. `
-          + `${CFI_DIM_LABELS[weakestDim]} is currently underutilized in your decision process. The goal isn't to make it equal to your dominant mode, `
-          + `it's to bring it in deliberately when a decision calls for it.`,
-      };
+    // Rebuild a result object from a saved cfi2_results row (so every reload shows exactly what was saved).
+    function cfiResultFromRow(r) {
+      if (!r) return null;
+      const scores = { A: r.analytical, I: r.intuitive, S: r.associative, R: r.reflective, C: r.coordination };
+      if (CFI_SCALE_ORDER.some((s) => !Number.isInteger(scores[s]))) return null;
+      return Object.assign({ ok: true, version: r.instrument_version || CFI_VERSION, scores, flags: r.flags || null, id: r.id, created_at: r.created_at }, cfiPractice(scores));
     }
 
-    function buildImprovementPlan(dimReports, band) {
-      const dims = CFI_SECTION_ORDER;
-      const byStrength = [...dims].sort((a,b)=> dimReports[a].fragScore - dimReports[b].fragScore);
-      const strong = byStrength.slice(0,3);
-      const weak = [...byStrength].reverse().slice(0,3);
-
-      const brainToLesson = { analytical:2, intuitive:5, associative:3, reflective:4 };
-      const weakestBrain = CFI_DIMENSION_META[weak[0]].brainKey;
-      const recommendedLessonIds = Array.from(new Set([1, brainToLesson[weakestBrain] || 2]));
-
-      const timeByBand = {
-        'Integrated': '2–3 weeks to sharpen further',
-        'Moderate fragmentation': '3–4 weeks of consistent practice',
-        'High fragmentation': '5–6 weeks with daily practice',
-        'Critical fragmentation': '6–8 weeks, starting from Lesson 1',
-      };
-      const weeksByBand = { 'Integrated':14, 'Moderate fragmentation':21, 'High fragmentation':21, 'Critical fragmentation':14 };
-      const nextDate = new Date(Date.now() + (weeksByBand[band] || 21) * 24 * 60 * 60 * 1000);
-
-      return {
-        topStrengths: strong.map(d => ({ dim:d, name: CFI_DIM_LABELS[d], text: CFI_DIMENSION_META[d].strengths[0] })),
-        topGrowthAreas: weak.map(d => ({ dim:d, name: CFI_DIM_LABELS[d], text: CFI_DIMENSION_META[d].improvements[0] })),
-        recommendedLessonIds,
-        dailyExercise: CFI_DIMENSION_META[weak[0]].improvements[0],
-        weeklyRoutine: `Three times this week, run the Core Loop training module (8 min), paying extra attention to your ${CFI_DIM_LABELS[weak[0]].toLowerCase()}.`,
-        estimatedTime: timeByBand[band] || '3–4 weeks of consistent practice',
-        nextAssessmentDate: nextDate.toLocaleDateString('en-US', { month:'long', day:'numeric', year:'numeric' }),
-      };
+    // Change between two saved attempts: signed points per scale (later minus earlier). Neutral wording:
+    // a higher score means the person reported that behaviour more often, not that the result is "better".
+    function cfiChange(first, last) {
+      if (!first || !last) return null;
+      const out = {};
+      CFI_SCALE_ORDER.forEach((s) => { out[s] = last.scores[s] - first.scores[s]; });
+      return out;
     }
+    const cfiPointsText = (d) => d === 0 ? 'no change' : (d > 0 ? 'up ' : 'down ') + Math.abs(d) + (Math.abs(d) === 1 ? ' point' : ' points');
 
 
     // ── Lesson Data ───────────────────────────────────────────────────
@@ -1291,83 +1119,40 @@ Most learners take four to six weeks working through the lessons at the suggeste
       } catch (e) { console.error('[DECISION UPDATE ERROR]', e); return null; }
     };
 
-    const CFI_VERSION = 'CFI-1.0'; // the canonical 13-item instrument. Never mix with older 15/16-item data.
+    // ── CFI-2.0 persistence: table cfi2_results (see cfi2_results.sql). The old cfi_results table is never read or written. ──
+    // Every call checks .error explicitly: supabase-js does NOT throw on a failed query, it resolves with { data, error }.
 
-    // Defensive server-side-equivalent validation, mirrored client-side since this app has
-    // no server layer of its own. Frontend can't be trusted alone (item 18 of the CFI
-    // correction spec): this is the actual gate a completed attempt must pass before saveCFIResult
-    // will submit it.
-    function validateCFISubmission(answers) {
-      const errors = [];
-      const ids = CFI_ITEMS.map(i => i.id);
-      if (ids.length !== 13) errors.push(`CFI_ITEMS has ${ids.length} items, expected exactly 13.`);
-      const answeredIds = ids.filter(id => answers[id] !== undefined && answers[id] !== null);
-      if (answeredIds.length !== 13) errors.push(`Expected 13 answers, got ${answeredIds.length}.`);
-      answeredIds.forEach(id => {
-        const v = answers[id];
-        if (!(Number.isInteger(v) && v >= 1 && v <= 5)) errors.push(`Answer for item ${id} (${v}) is not an integer 1–5.`);
-      });
-      return { valid: errors.length === 0, errors };
-    }
-    function validateCFIScore(total) {
-      return Number.isInteger(total) && total >= 13 && total <= 65;
-    }
-
-    // Looks up this user's prior completed CFI-1.0 attempts (most recent first) so a new
-    // submission can be numbered and linked correctly. Per-user numbering only, never global,
-    // never reset by logout/refresh/new session, and only rows on the current CFI_VERSION count,
-    // so historical 15/16-item attempts never get silently mixed into CFI-1.0's numbering or deltas.
+    // This user's prior completed attempts (most recent first), so a new submission can be numbered correctly.
+    // Per-user numbering only, never global, never reset by logout/refresh/new session.
     const getPriorCFIResults = async (id) => {
-      const { data, error } = await sb.from('cfi_results').select('*')
-        .eq('user_id', id).eq('status', 'completed').eq('assessment_version', CFI_VERSION)
+      const { data, error } = await sb.from('cfi2_results').select('*')
+        .eq('user_id', id).eq('status', 'completed')
         .order('created_at', { ascending: false });
       if (error) { console.error('[CFI SAVE ERROR] loading prior results failed:', error); return []; }
       return data || [];
     };
 
-    // saveCFIResult finalizes a completed assessment. If a draftId (an existing
-    // in_progress row created via saveCFIProgress) is passed, it updates that
-    // row in place instead of inserting a new one, so a single attempt never
-    // produces two rows.
-    // NOTE: supabase-js does NOT throw on a failed query: it resolves with
-    // { data, error }. Every call here checks .error explicitly and logs it,
-    // so a failed save is visible in the console instead of silently vanishing.
-    const saveCFIResultCore = async (id, r, a, draftId) => {
+    // saveCFIResult finalizes a completed assessment. If a draftId (an existing in_progress row created via
+    // saveCFIProgress) is passed, it updates that row in place instead of inserting a new one, so a single attempt
+    // never produces two rows. `consent` is the person's opt-in for anonymised research use (default false).
+    const saveCFIResultCore = async (id, r, a, draftId, consent) => {
       const check = validateCFISubmission(a);
-      if (!check.valid || !validateCFIScore(r.total)) {
-        const msg = 'CFI submission failed validation: ' + check.errors.concat(
-          validateCFIScore(r.total) ? [] : [`total score ${r.total} outside 13–65`]
-        ).join('; ');
+      if (!check.valid || !r || !r.scores) {
+        const msg = 'CFI submission failed validation: ' + check.errors.join('; ');
         console.error('[CFI SAVE ERROR]', msg);
         return { data: null, error: { message: msg } };
       }
       const prior = await getPriorCFIResults(id);
-      const previous = prior[0] || null;
-      const assessmentNumber = prior.length + 1;
-      const scoreChange = previous ? (r.total - previous.total_score) : null;
-      const bandChanged = previous ? (previous.band !== r.band) : false;
       const payload = {
-        user_id:id, total_score:r.total, band:r.band, dim_scores:r.dimScores, answers:a, status:'completed',
-        assessment_version: CFI_VERSION,
-        assessment_number: assessmentNumber,
-        previous_assessment_id: previous ? previous.id : null,
-        previous_band: previous ? previous.band : null,
-        score_change: scoreChange,
-        band_changed: bandChanged,
-        analytical_score: r.dimScores?.A ?? null,
-        intuitive_score: r.dimScores?.I ?? null,
-        associative_score: r.dimScores?.S ?? null,
-        reflective_score: r.dimScores?.R ?? null,
-        integration_score: r.dimScores?.E ?? null,
-        // Persists the (now-corrected) dominant-mode calculation so AdminView's per-row
-        // table, which reads r.dominant_brain straight from the DB rather than
-        // recomputing it, actually has a value to show instead of always falling
-        // back to 'N/A'. REQUIRES a `dominant_brain` text column on `cfi_results`
-        // (see migration note below) or this insert/update will fail.
-        dominant_brain: r.dominantBrain ?? null,
+        user_id: id, instrument_version: CFI_VERSION, status: 'completed', answers: a,
+        analytical: r.scores.A, intuitive: r.scores.I, associative: r.scores.S, reflective: r.scores.R, coordination: r.scores.C,
+        flags: r.flags || null,
+        assessment_number: prior.length + 1,
+        consent_research: !!consent,
+        completed_at: new Date().toISOString(),
       };
       if (draftId) {
-        const { data, error } = await sb.from('cfi_results').update(payload).eq('id', draftId).eq('user_id', id).select('id');
+        const { data, error } = await sb.from('cfi2_results').update(payload).eq('id', draftId).eq('user_id', id).select('id');
         if (error) {
           console.error('[CFI SAVE ERROR] update by draftId failed, falling back to insert:', error);
         } else if (data && data.length > 0) {
@@ -1375,34 +1160,31 @@ Most learners take four to six weeks working through the lessons at the suggeste
         } else {
           console.warn('[CFI SAVE WARNING] update matched 0 rows for draftId', draftId, '- falling back to insert. This usually means an RLS policy blocked it or the row does not exist.');
         }
-        // Fall back to a fresh insert so the result is never silently lost,
-        // even if the draft row couldn't be updated for some reason.
+        // Fall back to a fresh insert so the result is never silently lost.
       }
-      const res = await sb.from('cfi_results').insert(payload).select('id');
+      const res = await sb.from('cfi2_results').insert(payload).select('id');
       if (res.error) console.error('[CFI SAVE ERROR] insert failed:', res.error);
       return res;
     };
-    // Wrapper: persistence is unchanged; afterwards, if the participant started from a team
-    // team link, the saved result is LINKED (not copied) to their team server-side.
-    const saveCFIResult = async (id, r, a, draftId) => {
-      const out = await saveCFIResultCore(id, r, a, draftId);
+    // Wrapper: persistence is unchanged; afterwards, if the participant started from a team link,
+    // the saved result is LINKED (not copied) to their team server-side.
+    const saveCFIResult = async (id, r, a, draftId, consent) => {
+      const out = await saveCFIResultCore(id, r, a, draftId, consent);
       try { if (!out.error && window.NF_ORG) await window.NF_ORG.afterCfiSaved(out.data && out.data[0] && out.data[0].id); } catch (e) { console.error('[ORG LINK ERROR]', e); }
       return out;
     };
-    // Looks up a signed-in user's in-progress CFI attempt, if one exists, so an
-    // interrupted assessment (refresh, lost connection, returning later) can resume
-    // instead of starting over.
+    // Looks up a signed-in user's in-progress attempt, if one exists, so an interrupted assessment
+    // (refresh, lost connection, returning later) can resume instead of starting over.
     const getInProgressCFI = async (id) => {
-      const { data, error } = await sb.from('cfi_results').select('*').eq('user_id', id).eq('status', 'in_progress').order('created_at', { ascending:false }).limit(1);
+      const { data, error } = await sb.from('cfi2_results').select('*').eq('user_id', id).eq('status', 'in_progress').order('created_at', { ascending: false }).limit(1);
       if (error) { console.error('[CFI SAVE ERROR] loading in-progress attempt failed:', error); return null; }
       return data && data[0] ? data[0] : null;
     };
-    // Persists in-progress answers as the user goes. First call creates the draft
-    // row (status: in_progress); subsequent calls update that same row by id, so
-    // changing an answer never creates a duplicate response.
-    const saveCFIProgress = async (id, answers, draftId) => {
+    // Persists in-progress answers as the user goes. First call creates the draft row (status: in_progress);
+    // subsequent calls update that same row by id, so changing an answer never creates a duplicate.
+    const saveCFIProgress = async (id, answers, draftId, consent) => {
       if (draftId) {
-        const { data, error } = await sb.from('cfi_results').update({ answers, status:'in_progress' }).eq('id', draftId).eq('user_id', id).select('id');
+        const { data, error } = await sb.from('cfi2_results').update({ answers, status: 'in_progress', consent_research: !!consent }).eq('id', draftId).eq('user_id', id).select('id');
         if (error) { console.error('[CFI SAVE ERROR] progress update failed:', error); return draftId; }
         if (!data || data.length === 0) {
           console.warn('[CFI SAVE WARNING] progress update matched 0 rows for draftId', draftId, '- treating draft as lost and starting a new one.');
@@ -1410,7 +1192,7 @@ Most learners take four to six weeks working through the lessons at the suggeste
           return draftId;
         }
       }
-      const { data, error } = await sb.from('cfi_results').insert({ user_id:id, answers, status:'in_progress' }).select('id').maybeSingle();
+      const { data, error } = await sb.from('cfi2_results').insert({ user_id: id, answers, status: 'in_progress', consent_research: !!consent }).select('id').maybeSingle();
       if (error) { console.error('[CFI SAVE ERROR] progress insert failed:', error); return draftId || null; }
       return data?.id || null;
     };
@@ -1610,7 +1392,7 @@ Most learners take four to six weeks working through the lessons at the suggeste
       // Signed-in users get the full functional app nav (all routes below
       // remain unchanged and reachable, only the anonymous label set differs).
       const navItems = user ? [
-        { v:'cfi', label:'Take the test' },
+        { v:'cfi', label:'Take the CFI' },
         { v:'lessons', label:'Lessons' },
         { v:'analytics', label:'My progress' },
         { v:'decisions', label: awaitingReview > 0 ? 'Decisions ●' : 'Decisions' },
@@ -1618,7 +1400,7 @@ Most learners take four to six weeks working through the lessons at the suggeste
         ...(profile?.is_admin === true ? [{ v:'admin', label:'⚙ Admin' }] : []),
       ] : [
         { v:'home', label:'Home' },
-        { v:'cfi', label:'Take the test' },
+        { v:'cfi', label:'Take the CFI' },
         { v:'lessons', label:'Lessons' },
       ];
       const blogHref = '/blog';
@@ -1629,7 +1411,7 @@ Most learners take four to six weeks working through the lessons at the suggeste
             position:'fixed', top:0, left:0, right:0, zIndex:100,
             background:'rgba(5,12,26,0.85)', backdropFilter:'blur(20px)',
             borderBottom:`1px solid ${C.border}`,
-          }}, React.createElement("div", {style: { maxWidth:1280, margin:'0 auto', padding:'0 24px', height:60, display:'flex', alignItems:'center', justifyContent:'space-between' }}, React.createElement("button", {className: "nf-logo-btn", onClick: ()=>setView('home'), style: { background:'none', border:'none', display:'flex', alignItems:'center', cursor:'pointer' }}, React.createElement(NFLogoLockup, {iconSize: 30, gap: 12, wordmarkColor: C.text, tagline: 'Think more clearly', taglineColor: C.muted})), React.createElement("div", {className: "desktop-nav"}, navItems.map(item => (
+          }}, React.createElement("div", {style: { maxWidth:1280, margin:'0 auto', padding:'0 24px', height:60, display:'flex', alignItems:'center', justifyContent:'space-between' }}, React.createElement("button", {className: "nf-logo-btn", onClick: ()=>setView('home'), style: { background:'none', border:'none', display:'flex', alignItems:'center', cursor:'pointer' }}, React.createElement(NFLogoLockup, {iconSize: 30, gap: 12, wordmarkColor: C.text, tagline: 'Cognitive OS', taglineColor: C.muted})), React.createElement("div", {className: "desktop-nav"}, navItems.map(item => (
                   React.createElement("button", {key: item.v, onClick: ()=>setView(item.v), style: {
                     background:'none', border:'none', padding:'8px 12px',
                     color: view===item.v ? C.cyan : C.muted,
@@ -1660,7 +1442,7 @@ Most learners take four to six weeks working through the lessons at the suggeste
                 ) : (
                   React.createElement(React.Fragment, null,
                     React.createElement("button", {className: "desktop-only", onClick: ()=>setShowAuth(true), style: { background:'none', border:'none', color:C.muted, ...inter, fontSize:11, cursor:'pointer' }}, 'Sign in'),
-                    React.createElement("button", {className: "btn-primary desktop-only", style: { fontSize:10, padding:'10px 20px' }, onClick: ()=>setView('cfi')}, 'Take the test →')
+                    React.createElement("button", {className: "btn-primary desktop-only", style: { fontSize:10, padding:'10px 20px' }, onClick: ()=>setView('cfi')}, 'Take the CFI →')
                   )
                 ), React.createElement("button", {className: "hamburger-btn", onClick: ()=>setMenuOpen(!menuOpen), style: {
                   background:'none', border:`1px solid ${C.border}`, borderRadius:2,
@@ -1700,7 +1482,7 @@ Most learners take four to six weeks working through the lessons at the suggeste
                 ) : (
                   React.createElement("div", {style: { display:'flex', flexDirection:'column', gap:10 }},
                     React.createElement("div", {style: { ...mono, fontSize:11, letterSpacing:1, color:C.muted, marginBottom:4 }}, 'Think more clearly'),
-                    React.createElement("button", {className: "btn-primary", style: { width:'100%', fontSize:12, textAlign:'center' }, onClick: ()=>{ setView('cfi'); setMenuOpen(false); }}, 'Take the test →'),
+                    React.createElement("button", {className: "btn-primary", style: { width:'100%', fontSize:12, textAlign:'center' }, onClick: ()=>{ setView('cfi'); setMenuOpen(false); }}, 'Take the CFI →'),
                     React.createElement("button", {className: "btn-outline", style: { width:'100%', fontSize:11, textAlign:'center' }, onClick: ()=>{ setShowAuth(true); setMenuOpen(false); }}, 'Sign in')
                   )
                 )))
@@ -1885,7 +1667,7 @@ function NFRetestShare({ user, resultId }) {
   useEffect(() => {
     if (!user || !resultId) return;
     let live = true;
-    nfjRetestRpc('retest_share_options', { p_result_id: resultId }).then(r => {
+    nfjRetestRpc('retest_share_options_cfi2', { p_result_id: resultId }).then(r => {
       if (!live) return;
       if (r && r.ok) setState({ status: 'ready', orgs: r.orgs || [], threshold: r.threshold });
       else setState({ status: 'error', orgs: [], threshold: null });
@@ -1900,11 +1682,10 @@ function NFRetestShare({ user, resultId }) {
     else setError("We couldn't update that. Please try again.");
   };
   return React.createElement(NFRetestShareView, { T: nfjTheme(true), state, busy, error,
-    onShare: (id) => act('link_cfi_retest_to_org', id, true), onUnshare: (id) => act('unlink_cfi_retest_from_org', id, false) });
+    onShare: (id) => act('link_cfi2_retest_to_org', id, true), onUnshare: (id) => act('unlink_cfi2_retest_from_org', id, false) });
 }
 
-// Plain-language names for the four result bands (the saved values stay the same in the database).
-function plainBand(b) { return cfiCoordinationLabel(b) || ''; }
+
 
 // Home: one simple page. Signed out = what it is + one button. Signed in = your next step.
 // ═══════════════════════════════════════════════════════════════════
@@ -2155,12 +1936,12 @@ function nfPracticeStats(decisions, rows, today) {
 // One primary recommendation, in this order. Parts whose data failed to load are skipped, never guessed.
 function nfNextAction({ hasCfi, cfiHistory, completedLessons, decisions, rows, today, errors, dueReview }) {
   const e = errors || {};
-  if (!hasCfi) return { key: 'cfi', title: 'Take your 4-minute Thinking Clarity Test', text: '13 questions about how you approach decisions. It gives you a starting point to practise from.', cta: 'Start the test', go: 'cfi' };
+  if (!hasCfi) return { key: 'cfi', title: 'Take your ' + Math.ceil(CFI_ITEMS.length * 12 / 60) + '-minute Cognitive Fragmentation Index', text: CFI_ITEMS.length + ' questions about how you work through problems and decisions. It gives you a starting point to practise from.', cta: 'Start the CFI', go: 'cfi' };
   if (dueReview && !e.decisions) return { key: 'review', title: 'Review your decision', text: dueReview.text, cta: 'Review it', go: 'decisions' };
   if (!e.rows && !rows.some(r => r.challenge_date === today)) return { key: 'challenge', title: "Complete today's Thinking Challenge", text: 'A short scenario. Choose an answer or write your own reasoning. About 3 minutes.', cta: 'Start the challenge', act: 'challenge' };
-  const verified = (cfiHistory || []).filter(r => r && r.assessment_version !== 'legacy-unverified' && r.created_at);
+  const verified = (cfiHistory || []).filter(r => r && r.created_at);
   const last = verified.length ? nfLocalDate(new Date(verified[verified.length - 1].created_at)) : null;
-  if (last && nfDaysBetween(last, today) >= NF_RETEST_DAYS) return { key: 'retest', title: 'Check what changed', text: 'It has been ' + nfDaysBetween(last, today) + ' days since your last test. Retake it to compare with your earlier result.', cta: 'Retake the test', go: 'cfi' };
+  if (last && nfDaysBetween(last, today) >= NF_RETEST_DAYS) return { key: 'retest', title: 'Check what changed', text: 'It has been ' + nfDaysBetween(last, today) + ' days since your last CFI. Retake the CFI to compare with your earlier result.', cta: 'Retake the CFI', go: 'cfi' };
   if (completedLessons < 1) return { key: 'lesson', title: 'Start your first lesson', text: 'Short lessons that build deliberate thinking habits. The first one is free.', cta: 'Open lessons', go: 'lessons' };
   if (!e.decisions && decisions.length < 1) return { key: 'decision', title: 'Apply the method to a real decision', text: 'Bring something you are actually deciding and work through it step by step.', cta: 'Start a decision', act: 'decision' };
   return { key: 'rest', title: "Today's practice is done", text: 'Your work is saved. Come back tomorrow for a new challenge, or work through a decision now.', cta: 'Work through a decision', act: 'decision' };
@@ -2739,8 +2520,8 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
     .nf-home a.nf-home-link { color:${H.goldDeep}; text-decoration:underline; }
   `);
   const steps = [
-    ['01', 'Take the test', '13 quick questions about how you approach situations and decisions.'],
-    ['02', 'See your result', 'Understand your thinking patterns and where your thinking may become fragmented.'],
+    ['01', 'Take the CFI', '40 questions about how you work through problems and decisions.'],
+    ['02', 'See your result', 'See how often you use each of your four ways of thinking, and how well you switch between them.'],
     ['03', 'Learn and practise', 'Use short lessons and exercises to build stronger thinking habits.'],
   ];
   const ways = [
@@ -2751,8 +2532,8 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
   ];
   const faq = [
     ['Is this a medical test or a personality test?', 'No. It is not a diagnosis, a personality label or an intelligence test. It shows your thinking habits today, so you can improve them.'],
-    ['Is it free?', 'Yes. The test and the first lesson are free. The full set of lessons is a one-time payment. Teams can create a team, share one link, and take the test and lessons together.'],
-    ['Do I need an account?', 'Yes, a free one. It keeps your result safe so you can come back, take the test again and see how you have improved.'],
+    ['Is it free?', 'Yes. The test and the first lesson are free. The full set of lessons is a one-time payment. Teams can create a team, share one link, and take the CFI and lessons together.'],
+    ['Do I need an account?', 'Yes, a free one. It keeps your result safe so you can come back, take the CFI again and see how you have improved.'],
   ];
 
   // ---------- Signed in: your next step ----------
@@ -2762,7 +2543,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
       E("div", { style: { ...wrap, padding: '32px 24px 80px' } },
         E(ThinkingFeed, { user, setView, cfiHistory, completedLessons, hasCfi: hasResult }),
         E("div", { className: "nf-feed-sec", style: { marginTop: 36 } },
-          hasResult ? E("p", { style: { ...para, marginBottom: 0 } }, 'Your last result: ', E("strong", { style: { color: H.ink } }, plainBand(cfiResult.band)), '. ',
+          hasResult ? E("p", { style: { ...para, marginBottom: 0 } }, cfiResult.created_at ? 'Your last CFI was on ' + new Date(cfiResult.created_at).toLocaleDateString() + '. ' : 'Your result is saved. ',
             E("button", { onClick: () => setView('analytics'), style: { background: 'none', border: 'none', padding: 0, font: 'inherit', color: H.goldDeep, textDecoration: 'underline', cursor: 'pointer', minHeight: 44 } }, 'See my progress'),
             ' \u00b7 ',
             E("button", { onClick: () => setView('lessons'), style: { background: 'none', border: 'none', padding: 0, font: 'inherit', color: H.goldDeep, textDecoration: 'underline', cursor: 'pointer', minHeight: 44 } }, 'Lessons')) : null)));
@@ -2786,10 +2567,10 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
     ['Tiredness from thinking hard', 'without thinking well.'],
   ];
   const flow = [
-    ['1', 'Take the test', 'The CFI maps how you think across four modes.'],
+    ['1', 'Take the CFI', 'The CFI maps how you think across four modes.'],
     ['2', 'See your pattern', 'You get your profile and where your thinking breaks down.'],
     ['3', 'Train it', 'Work a real decision through the Core Loop: break it down, check your gut, widen the options, step back, then land on one position.'],
-    ['4', 'Check your progress', 'Retake the test later. Clarity Delta shows what changed.'],
+    ['4', 'Check your progress', 'Retake the CFI later. Your change shows how your scores moved.'],
   ];
   const modes = [
     ['Analytical', 'Facts, logic and evidence.'],
@@ -2798,9 +2579,9 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
     ['Reflective', 'Looking back at your assumptions, your emotions and what it all means.'],
   ];
   const gets = [
-    'Your cognitive profile',
-    'Which thinking modes you rely on and which you avoid',
-    'Where your thinking fragments under pressure',
+    'Four scores, one for each way of thinking',
+    'A Coordination score for how you switch between them',
+    'A lesson and a practice idea to start with',
     'A starting point to measure against later',
   ];
   const audience = [
@@ -2811,15 +2592,15 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
   ];
   const trust = [
     'The scoring method is public. You can read exactly how the CFI works, and where it falls short, on the methodology page.',
-    'The instrument went through an expert content-validity review.',
-    'We say plainly what it is not. It is not a diagnosis, and Clarity Delta is a NeuralFusion measure, not a clinical one.',
+    'CFI-2.0 is a new instrument in development. It has not been validated yet, and the methodology page says so.',
+    'We say plainly what it is not. It is not a diagnosis, and your change is a NeuralFusion measure, not a clinical one.',
   ];
   const faqFull = [
     ['Is this a medical test or a personality test?', 'No. It is not a diagnosis, a personality label or an intelligence test. It shows your thinking habits today, so you can improve them.'],
-    ['How long does it take?', '13 questions, about 4 minutes.'],
-    ['Is it free?', 'The test and the first lesson are free. The full set of lessons is a one-time payment. Teams can create a team, share one link, and take the test and lessons together.'],
+    ['How long does it take?', '40 questions, about 8 minutes.'],
+    ['Is it free?', 'The test and the first lesson are free. The full set of lessons is a one-time payment. Teams can create a team, share one link, and take the CFI and lessons together.'],
     ['Is this an AI chatbot?', 'No. NeuralFusion trains your own thinking. It does not think for you.'],
-    ['Do I need an account?', 'Yes, a free one. It keeps your result safe so you can come back, take the test again and see how you have improved.'],
+    ['Do I need an account?', 'Yes, a free one. It keeps your result safe so you can come back, take the CFI again and see how you have improved.'],
     ['What happens to my data?', null],
   ];
   const card = (title, text, key) => E("div", { key: key || title, style: tile }, E("div", { style: tileTitle }, title), E("p", { style: { ...para, fontSize: 14 } }, text));
@@ -2830,8 +2611,8 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
     E("div", { style: { ...wrap, padding: '80px 24px 72px', ...centered } },
       E("h1", { style: { ...hDisplay, fontWeight: 600, fontSize: 'clamp(34px,6vw,56px)', lineHeight: 1.08, letterSpacing: '-0.02em', color: H.ink, margin: '0 0 20px' } }, 'Why is it so hard to think clearly lately?'),
       E("p", { style: { ...para, fontSize: 18, maxWidth: 580, margin: '0 auto 32px' } }, 'Too much input, too many decisions, and AI answering before you\u2019ve finished the question. NeuralFusion shows you how you actually think, and trains the parts that are weak.'),
-      E("button", { className: "nf-home-cta-primary", onClick: go }, 'Take the free test'),
-      E("p", { style: { ...para, fontSize: 14, color: H.faint, marginTop: 16 } }, '13 questions, about 4 minutes. Free account to save your result.')),
+      E("button", { className: "nf-home-cta-primary", onClick: go }, 'Take the free CFI'),
+      E("p", { style: { ...para, fontSize: 14, color: H.faint, marginTop: 16 } }, '40 questions, about 8 minutes. Free account to save your result.')),
 
     // Sound familiar
     section([
@@ -2871,9 +2652,9 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
 
     // What the free test gives you
     section([
-      E("h2", { key: 'h', style: h2 }, 'What you get from the free test'),
+      E("h2", { key: 'h', style: h2 }, 'What you get from the free CFI'),
       E("div", { key: 'l', style: { marginTop: 20 } }, list(gets)),
-      E("div", { key: 'b', style: { marginTop: 28 } }, E("button", { className: "nf-home-cta-primary", onClick: go }, 'Take the free test'))
+      E("div", { key: 'b', style: { marginTop: 28 } }, E("button", { className: "nf-home-cta-primary", onClick: go }, 'Take the free CFI'))
     ]),
 
     // AI era
@@ -2909,7 +2690,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
       E("h2", { key: 'h', style: h2 }, 'Why I built this'),
       E("div", { key: 'q', className: "nf-home-quote" },
         E("p", { style: { ...para, color: H.text, marginBottom: 14 } }, 'I built NeuralFusion because smart people around me, and I too, kept making poor decisions and feeling mentally tired for no clear reason. I could not find a tool that trained thinking itself, so I built one.'),
-        E("p", { style: { ...para, color: H.text, marginBottom: 14 } }, 'Take the test. If it helps, stay. If it doesn\u2019t, tell me why.'),
+        E("p", { style: { ...para, color: H.text, marginBottom: 14 } }, 'Take the CFI. If it helps, stay. If it doesn\u2019t, tell me why.'),
         E("p", { style: { ...para, fontSize: 14 } }, 'Life Edet, Founder'))
     ], true),
 
@@ -2925,8 +2706,8 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
     section([
       E("div", { key: 'c', style: centered },
         E("h2", { style: { ...h2, fontSize: 'clamp(28px,4vw,40px)' } }, 'Find out how you really think.'),
-        E("p", { style: { ...para, maxWidth: 480, margin: '0 auto 24px' } }, '13 questions, about 4 minutes, free.'),
-        E("button", { className: "nf-home-cta-primary", onClick: go }, 'Take the free test'))
+        E("p", { style: { ...para, maxWidth: 480, margin: '0 auto 24px' } }, '40 questions, about 8 minutes, free.'),
+        E("button", { className: "nf-home-cta-primary", onClick: go }, 'Take the free CFI'))
     ], true));
 }
 
@@ -3694,7 +3475,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
 
     // ═══════════════════════════════════════════════════════════════════
     //  MY THINKING RECORD (Step 5). A plain, chronological record of what the person has actually done.
-    //  Built only from data that already exists: cfi_results (CFI-1.0 only), thinking_challenge_responses,
+    //  Built only from data that already exists: cfi2_results (CFI-2.0), thinking_challenge_responses,
     //  decision_sessions, lesson_progress. No new table, no new score, nothing inferred.
     // ═══════════════════════════════════════════════════════════════════
     function NFRecordSection({ title, count, entries, empty, actionLabel, onAction, note }) {
@@ -3752,15 +3533,12 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
       const rows = (ready && data.rows) || [];
       const decs = (ready && data.decs) || [];
 
-      // CFI-1.0 only. Earlier-version results are kept in the database but never compared here.
-      const v1 = (cfiHistory || []).filter(r => r && r.assessment_version === CFI_VERSION && r.created_at);
-      const earlier = (cfiHistory || []).length - v1.length;
-      const base = v1[0] || null;
-      const baseline = base ? [{ key: 'b' + base.id, text: 'Thinking Clarity Test (' + CFI_VERSION + '): score ' + base.total_score, sub: plainBand(base.band), when: date(base.created_at) }] : [];
-      const change = v1.slice(1).map((r, i) => {
-        const diff = r.total_score - base.total_score;
-        return { key: 'c' + r.id, text: 'Retest ' + (i + 1) + ': score ' + r.total_score + ' (' + (diff < 0 ? (-diff) + (diff === -1 ? ' point lower' : ' points lower') : diff > 0 ? diff + (diff === 1 ? ' point higher' : ' points higher') : 'no change') + ' than your baseline)', sub: plainBand(r.band), when: date(r.created_at) };
-      }).reverse();
+      // CFI-2.0 only: every row in cfi2_results is the current instrument. Change is shown per scale against the baseline.
+      const hist2 = (cfiHistory || []).map(cfiResultFromRow).filter(r => r && r.created_at);
+      const base = hist2[0] || null;
+      const scoresLine = (r) => CFI_SCALE_ORDER.map(s => CFI_MODES[s].name + ' ' + r.scores[s]).join(' \u00b7 ');
+      const baseline = base ? [{ key: 'b' + base.id, text: 'Cognitive Fragmentation Index (' + CFI_VERSION + ')', sub: scoresLine(base), when: date(base.created_at) }] : [];
+      const change = hist2.slice(1).map((r, i) => ({ key: 'c' + r.id, text: 'Retest ' + (i + 1) + ': Coordination ' + cfiPointsText(r.scores.C - base.scores.C) + ' from your baseline', sub: scoresLine(r), when: date(r.created_at) })).reverse();
 
       const practice = rows.map(r => ({ key: 'p' + r.challenge_date, text: challengeTitle(r.challenge_id), sub: r.choice_key === 'written' ? 'Written answer' : (r.reasoning ? 'Choice and reasoning' : 'Choice'), when: date(r.challenge_date) }));
       const made = decs.map(d => ({ key: 'd' + d.id, text: d.title || d.decision || 'Untitled decision', sub: d.status === 'reviewed' ? 'Reviewed' : 'Open', when: date(d.created_at) }));
@@ -3773,18 +3551,17 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
         E("div", { style: { maxWidth: 820, margin: '0 auto', padding: '40px 24px' } },
           E("div", { style: { ...mono, fontSize: 12, letterSpacing: 1.5, color: C.cyan, marginBottom: 16 } }, 'MY THINKING RECORD'),
           E("h1", { style: { ...syne, fontSize: 22, fontWeight: 800, color: C.text, margin: '0 0 8px', overflowWrap: 'break-word' } }, 'What you have actually practised.'),
-          E("p", { style: { fontSize: 15, color: C.muted, lineHeight: 1.7, margin: '0 0 28px' } }, 'A plain record of your test, challenges, decisions, reviews and lessons. It is not a score of intelligence or ability.'),
+          E("p", { style: { fontSize: 15, color: C.muted, lineHeight: 1.7, margin: '0 0 28px' } }, 'A plain record of your CFI, challenges, decisions, reviews and lessons. It is not a score of intelligence or ability.'),
           !ready ? E("p", { role: 'status', style: { fontSize: 15, color: C.muted } }, 'Loading your record...') : E("div", null,
             data.pp && E("div", { style: { marginBottom: 32 } }, E(NFPassportPanel, { pp: data.pp, mode: 'full', setView, lessonsDone: doneLessons.length, lessonsTotal: LESSONS.length, t: { ink: C.text, muted: C.muted, border: C.border, accent: C.cyan, bg: C.deep } })),
-            E(NFRecordSection, { title: 'Baseline', entries: baseline, empty: 'Your first test is your starting point. It takes about 4 minutes.', actionLabel: 'Take the test', onAction: () => setView('cfi'),
-              note: earlier > 0 ? earlier + (earlier === 1 ? ' result from an earlier version of the test is kept' : ' results from an earlier version of the test are kept') + ' but not compared with ' + CFI_VERSION + '.' : null }),
+            E(NFRecordSection, { title: 'Baseline', entries: baseline, empty: 'Your first CFI is your starting point. It takes about ' + Math.ceil(CFI_ITEMS.length * 12 / 60) + ' minutes.', actionLabel: 'Take the CFI', onAction: () => setView('cfi') }),
             E(NFRecordSection, { title: 'Practice', count: data.rows ? rows.length : null, entries: practice, empty: data.rows ? 'No Thinking Challenges completed yet. Today\u2019s takes about 3 minutes.' : 'Your challenges couldn\u2019t be loaded right now.', actionLabel: data.rows ? 'Open today\u2019s challenge' : null, onAction: () => setView('home'),
               note: rows.length >= 90 ? 'Showing your most recent 90.' : null }),
             E(NFRecordSection, { title: 'Decisions', count: decs.length, entries: made, empty: 'No decisions worked through yet. Bring a real one.', actionLabel: 'Work through a decision', onAction: () => setView('protocol') }),
             E(NFRecordSection, { title: 'Reviews', count: fullyReviewed, entries: reviewed, empty: 'No decisions reviewed yet. A review records what happened and what you learned.', actionLabel: decs.length ? 'Open my decisions' : null, onAction: () => setView('decisions') }),
             E(NFRecordSection, { title: 'Training', count: doneLessons.length + ' of ' + LESSONS.length, entries: doneLessons, empty: 'No lessons completed yet. The first one is free.', actionLabel: 'Open lessons', onAction: () => setView('lessons'),
               note: doneLessons.length ? 'Lessons are not dated in your record.' : null }),
-            E(NFRecordSection, { title: 'Change', count: change.length ? change.length + (change.length === 1 ? ' retest' : ' retests') : null, entries: change, empty: base ? 'Retake the test to see what changed. Lower scores mean clearer thinking.' : 'Change appears here once you have taken the test twice.', actionLabel: base ? 'Retake the test' : null, onAction: () => setView('cfi'),
+            E(NFRecordSection, { title: 'Change', count: change.length ? change.length + (change.length === 1 ? ' retest' : ' retests') : null, entries: change, empty: base ? 'Retake the CFI to see what changed.' : 'Change appears here once you have taken the CFI twice.', actionLabel: base ? 'Retake the CFI' : null, onAction: () => setView('cfi'),
               note: change.length ? 'Changes are measured against your baseline. This is a NeuralFusion measure, not a clinical one.' : null }))));
     }
 
@@ -3889,7 +3666,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
     //  Scoped light theme, distinct from the app's global dark navy/gold
     //  theme (same pattern as the accessible assessment screens above).
     //  Every number and sentence below is pulled from the real CFI
-    //  scoring pipeline (dimensionReports / profile / plan): nothing on
+    //  CFI-2.0 scoring pipeline (scoreCFI): nothing on
     //  this page is hard-coded per user.
     // ═══════════════════════════════════════════════════════════════════
     const CP = {
@@ -3898,25 +3675,12 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
       border: '#ECE7DA', borderStrong: '#DED2AE',
       gold: NF_GOLD, goldDeep: '#8F701F', goldTint: '#FBF4E3', goldTintStrong: '#F5E7C4',
     };
-    const CP_BAND_COLORS = {
-      'Integrated': '#3E7CA6',
-      'Moderate fragmentation': '#B8923F',
-      'High fragmentation': '#C97A2B',
-      'Critical fragmentation': '#C24545',
-    };
-    const CP_MODE_META = {
-      A: { name: 'Analytical',  tagline: 'Evidence. Logic. Structure.' },
-      I: { name: 'Intuitive',   tagline: 'Patterns. Signals. Instinct.' },
-      S: { name: 'Associative', tagline: 'Connections. Possibilities. Synthesis.' },
-      R: { name: 'Reflective',  tagline: 'Awareness. Meaning. Learning.' },
-    };
-    const CP_MODE_ORDER = ['A', 'I', 'S', 'R'];
     const CP_JOURNEY = [
-      { step: '01', title: 'Measure',    desc: 'Take the test.',                    view: 'cfi' },
-      { step: '02', title: 'Understand', desc: 'See your result.',         view: 'cfi' },
+      { step: '01', title: 'Measure',    desc: 'Take the CFI.',            view: 'cfi' },
+      { step: '02', title: 'Understand', desc: 'See your result.',          view: 'cfi' },
       { step: '03', title: 'Train',      desc: 'Learn with short lessons.', view: 'lessons' },
-      { step: '04', title: 'Integrate',  desc: 'Think decisions through.',      view: 'protocol' },
-      { step: '05', title: 'Improve',    desc: 'Track your progress.',              view: 'analytics' },
+      { step: '04', title: 'Integrate',  desc: 'Think decisions through.',  view: 'protocol' },
+      { step: '05', title: 'Improve',    desc: 'Track your progress.',      view: 'analytics' },
     ];
 
     function CPCard({ children, style }) {
@@ -3927,102 +3691,19 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
       return React.createElement("div", { style: { ...mono, fontSize: 11, letterSpacing: 1.5, color, marginBottom: 12, textTransform: 'uppercase' } }, children);
     }
 
-    function CPScoreRing({ value, size = 180, stroke = 12, color = CP.gold, label }) {
-      const r = (size - stroke) / 2;
-      const circumference = 2 * Math.PI * r;
-      const offset = circumference * (1 - Math.max(0, Math.min(100, value)) / 100);
+    // One continuous bar for one scale (0-100). Never a type label, never a band.
+    function CPScaleBar({ scale, score }) {
+      const meta = CFI_MODES[scale];
       return (
-        React.createElement("div", { style: { position: 'relative', width: size, height: size, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 } },
-          React.createElement("svg", { width: size, height: size, style: { transform: 'rotate(-90deg)' } },
-            React.createElement("circle", { cx: size / 2, cy: size / 2, r, fill: 'none', stroke: CP.goldTintStrong, strokeWidth: stroke }),
-            React.createElement("circle", { cx: size / 2, cy: size / 2, r, fill: 'none', stroke: color, strokeWidth: stroke, strokeLinecap: 'round', strokeDasharray: circumference, strokeDashoffset: offset, style: { transition: 'stroke-dashoffset 0.9s ease' } })
+        React.createElement("div", { style: { padding: '18px 0', borderBottom: `1px solid ${CP.border}` } },
+          React.createElement("div", { style: { display: 'flex', alignItems: 'baseline', gap: 10, marginBottom: 10 } },
+            React.createElement("div", { style: { ...syne, fontSize: 15, fontWeight: 800, color: CP.ink, flex: 1 } }, meta.name),
+            React.createElement("div", { style: { ...syne, fontSize: 22, fontWeight: 800, color: CP.goldDeep } }, score, React.createElement("span", { style: { fontSize: 11, color: CP.faint, fontWeight: 500 } }, ' / 100'))
           ),
-          React.createElement("div", { style: { position: 'absolute', textAlign: 'center', padding: '0 10px' } },
-            React.createElement("div", { style: { ...syne, fontSize: 'clamp(30px,8vw,40px)', fontWeight: 800, color: CP.ink, lineHeight: 1 } }, value),
-            label && React.createElement("div", { style: { ...mono, fontSize: 9.5, letterSpacing: 1, color: CP.muted, marginTop: 8, maxWidth: size - 30, lineHeight: 1.4 } }, label)
-          )
-        )
-      );
-    }
-
-    // Four ways of thinking as one coordinated system, not four competing bars.
-    function CPWheel({ dimensionReports, size = 236 }) {
-      const dims = CP_MODE_ORDER;
-      const angles = { A: -90, I: 0, S: 90, R: 180 };
-      const cx = size / 2, cy = size / 2, orbitR = size / 2 - 52;
-      const pos = angle => { const rad = angle * Math.PI / 180; return [cx + orbitR * Math.cos(rad), cy + orbitR * Math.sin(rad)]; };
-      return (
-        React.createElement("svg", { width: size, height: size, viewBox: `0 0 ${size} ${size}`, style: { maxWidth: '100%', height: 'auto' } },
-          React.createElement("circle", { cx, cy, r: orbitR, fill: 'none', stroke: CP.border, strokeWidth: 1 }),
-          dims.map(d => {
-            const report = dimensionReports[d];
-            const [x, y] = pos(angles[d]);
-            const strength = Math.max(0.18, report.integrationScore / 100);
-            return React.createElement("line", { key: 'conn' + d, x1: cx, y1: cy, x2: x, y2: y, stroke: CP.gold, strokeWidth: 1.5 + strength * 2.5, strokeOpacity: 0.25 + strength * 0.45, strokeLinecap: 'round' });
-          }),
-          React.createElement("circle", { cx, cy, r: 25, fill: CP.goldTint, stroke: CP.gold, strokeWidth: 1.5 }),
-          React.createElement("text", { x: cx, y: cy + 3, fill: CP.goldDeep, fontSize: 8, fontFamily: mono.fontFamily, letterSpacing: 0.5, textAnchor: 'middle' }, 'SYSTEM'),
-          dims.map(d => {
-            const report = dimensionReports[d];
-            const [x, y] = pos(angles[d]);
-            const r = 17 + (report.integrationScore / 100) * 9;
-            return (
-              React.createElement("g", { key: 'node' + d },
-                React.createElement("circle", { cx: x, cy: y, r, fill: '#FFFFFF', stroke: CP.gold, strokeWidth: 2 }),
-                React.createElement("text", { x, y: y + 4.5, fill: CP.goldDeep, fontSize: 13, fontFamily: syne.fontFamily, fontWeight: 800, textAnchor: 'middle' }, d)
-              )
-            );
-          }),
-          dims.map(d => { const [x, y] = pos(angles[d]); const ly = y > cy ? y + 34 : y - 28; return React.createElement("text", { key: 'lbl' + d, x, y: ly, fill: CP.muted, fontSize: 10, fontFamily: mono.fontFamily, textAnchor: 'middle' }, CP_MODE_META[d].name); })
-        )
-      );
-    }
-
-    function CPModeCard({ dim, report }) {
-      const meta = CP_MODE_META[dim];
-      return (
-        React.createElement(CPCard, { style: { padding: '20px 18px' } },
-          React.createElement("div", { style: { display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 } },
-            React.createElement("div", { style: { ...syne, fontSize: 13, fontWeight: 800, color: CP.ink, flex: 1 } }, meta.name),
-            React.createElement("div", { style: { ...syne, fontSize: 18, fontWeight: 800, color: CP.goldDeep } }, report.integrationScore, React.createElement("span", { style: { fontSize: 10, color: CP.faint, fontWeight: 500 } }, '%'))
+          React.createElement("div", { role: 'img', 'aria-label': `${meta.name}: ${score} out of 100`, style: { height: 8, background: CP.goldTint, borderRadius: 4, overflow: 'hidden', marginBottom: 10 } },
+            React.createElement("div", { style: { width: `${score}%`, height: '100%', background: CP.gold, borderRadius: 4, transition: 'width 0.6s ease' } })
           ),
-          React.createElement("div", { style: { height: 5, background: CP.goldTint, borderRadius: 3, overflow: 'hidden', marginBottom: 10 } },
-            React.createElement("div", { style: { width: `${report.integrationScore}%`, height: '100%', background: CP.gold, borderRadius: 3, transition: 'width 0.6s ease' } })
-          ),
-          React.createElement("div", { style: { ...mono, fontSize: 9.5, letterSpacing: 0.4, color: CP.faint } }, meta.tagline)
-        )
-      );
-    }
-
-    // Tap to expand a mode's full dimensional detail: keeps the page scannable
-    // on mobile while still surfacing the real strengths/blind-spot data.
-    function CPModeDetail({ dim, report }) {
-      const [open, setOpen] = useState(false);
-      const meta = CP_MODE_META[dim];
-      return (
-        React.createElement(CPCard, { style: { padding: 0, marginBottom: 10, overflow: 'hidden' } },
-          React.createElement("button", { className: "nf-cp-row", onClick: () => setOpen(o => !o), style: { width: '100%', background: 'none', border: 'none', cursor: 'pointer', padding: '16px 18px', display: 'flex', alignItems: 'center', gap: 12, textAlign: 'left' } },
-            React.createElement("div", { style: { ...syne, fontSize: 13, fontWeight: 800, color: CP.ink, flex: 1 } }, meta.name),
-            React.createElement("div", { style: { ...syne, fontSize: 13, fontWeight: 800, color: CP.goldDeep } }, report.integrationScore, '%'),
-            React.createElement("div", { style: { color: CP.faint, fontSize: 13, transition: 'transform 0.2s', transform: open ? 'rotate(180deg)' : 'none' } }, '▾')
-          ),
-          open && React.createElement("div", { style: { padding: '0 18px 20px' } },
-            React.createElement("div", { style: { fontSize: 13.5, color: CP.text, lineHeight: 1.7, marginBottom: 16 } }, report.meaning),
-            React.createElement("div", { style: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(200px,100%),1fr))', gap: 16, marginBottom: 16 } },
-              React.createElement("div", null,
-                React.createElement("div", { style: { ...mono, fontSize: 9.5, letterSpacing: 1, color: CP.goldDeep, marginBottom: 6 } }, 'STRENGTHS'),
-                report.strengths.map((s, i) => React.createElement("div", { key: i, style: { fontSize: 12.5, color: CP.muted, lineHeight: 1.6, marginBottom: 3 } }, '· ', s))
-              ),
-              React.createElement("div", null,
-                React.createElement("div", { style: { ...mono, fontSize: 9.5, letterSpacing: 1, color: CP.faint, marginBottom: 6 } }, 'WATCH FOR'),
-                report.blindSpots.map((s, i) => React.createElement("div", { key: i, style: { fontSize: 12.5, color: CP.muted, lineHeight: 1.6, marginBottom: 3 } }, '· ', s))
-              )
-            ),
-            React.createElement("div", null,
-              React.createElement("div", { style: { ...mono, fontSize: 9.5, letterSpacing: 1, color: CP.goldDeep, marginBottom: 6 } }, 'PRACTICE'),
-              report.improvements.slice(0, 2).map((s, i) => React.createElement("div", { key: i, style: { fontSize: 12.5, color: CP.text, lineHeight: 1.6, marginBottom: 3 } }, `${i + 1}. `, s))
-            )
-          )
+          React.createElement("div", { style: { fontSize: 13, color: CP.muted, lineHeight: 1.6 } }, meta.means)
         )
       );
     }
@@ -4037,16 +3718,17 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
       return React.createElement("button", { className: "nf-cp-btn", onClick, style: { ...base, ...variants[variant], ...style } }, children);
     }
 
+    // ═══════════════════════════════════════════════════════════════════
+    //  RESULTS (CFI-2.0): four mode bars plus Coordination.
+    //  No bands, no total score, no type or dominant-mode label, no "high/low" wording.
+    //  Until there are enough responses for real norms, only raw 0-100 scores are shown.
+    // ═══════════════════════════════════════════════════════════════════
     function CFIResults({ cfiResult, setView, user, setShowAuth, onRetake, saveState, shareResultId }) {
-      const bandColor = CP_BAND_COLORS[cfiResult.band] || CP.gold;
-      // Display-only label. cfiResult.band itself (raw DB value / lesson-gating
-      // value) is never changed, exactly as in the rest of the app.
-      const bandFriendly = cfiCoordinationLabel(cfiResult.band);
-      const dimensionReports = cfiResult.dimensionReports || {};
-      const profile = cfiResult.profile;
-      const plan = cfiResult.plan;
-      const hasEnrichedData = !!(profile && plan && dimensionReports.A);
-      const integrationScore = cfiResult.integrationScore ?? Math.max(0, 100 - cfiResult.total * 2);
+      const scores = cfiResult.scores;
+      const lowestMode = CFI_MODES[cfiResult.lowest];
+      const topLesson = LESSONS.find(l => l.id === cfiResult.lessonId) || LESSONS[0];
+      const flags = cfiResult.flags || {};
+      const answeredAlike = !!(flags.straight_lining || flags.possible_yes_saying);
 
       const [shareState, setShareState] = useState('idle');
 
@@ -4067,9 +3749,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
       }, []);
 
       const shareUrl = 'https://tryneuralfusion.com/cfi';
-      const shareText = hasEnrichedData
-        ? `My thinking result: Analytical ${dimensionReports.A.integrationScore}%, Intuitive ${dimensionReports.I.integrationScore}%, Associative ${dimensionReports.S.integrationScore}%, Reflective ${dimensionReports.R.integrationScore}%. Discover how you think.`
-        : '';
+      const shareText = `My thinking result: ${CFI_SCALE_ORDER.map(s => `${CFI_MODES[s].name} ${scores[s]}`).join(', ')}. Discover how you think.`;
       const handleShare = async () => {
         if (navigator.share) {
           try { await navigator.share({ title: 'My thinking result', text: shareText, url: shareUrl }); } catch (e) { /* user cancelled */ }
@@ -4078,124 +3758,56 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
         }
       };
 
-      // ── Minimal fallback for older/unenriched results (never fabricate
-      // per-mode data that doesn't exist on this record) ──
-      if (!hasEnrichedData) {
-        return (
-          React.createElement("div", { style: { background: CP.bg, paddingTop: 80, paddingBottom: 80 }, id: 'cfi-report' },
-            React.createElement("div", { style: { maxWidth: 640, margin: '0 auto', padding: '24px 20px', textAlign: 'center' } },
-              React.createElement(CPEyebrow, null, "Your thinking result"),
-              React.createElement("h1", { style: { ...syne, fontSize: 'clamp(22px,5vw,30px)', fontWeight: 800, color: CP.ink, marginBottom: 28 } }, "Now you can see how your thinking works."),
-              React.createElement(CPCard, { style: { padding: '36px 24px', marginBottom: 28 } },
-                React.createElement(CPScoreRing, { value: integrationScore, color: bandColor, label: 'How clearly you think overall' }),
-                React.createElement("div", { style: { marginTop: 16, display: 'inline-block', padding: '8px 18px', background: CP.goldTint, border: `1px solid ${CP.borderStrong}`, borderRadius: 999 } },
-                  React.createElement("div", { style: { ...syne, fontSize: 13, fontWeight: 800, color: bandColor } }, bandFriendly)
-                ),
-                React.createElement("div", { style: { fontSize: 14, color: CP.muted, lineHeight: 1.7, marginTop: 16 } }, cfiResult.desc)
-              ),
-              React.createElement("div", { style: { display: 'flex', gap: 12, flexWrap: 'wrap', justifyContent: 'center' } },
-                React.createElement(CPButton, { onClick: () => setView('protocol') }, 'Think through a decision →'),
-                React.createElement(CPButton, { variant: 'outline', onClick: onRetake }, 'Retake Assessment')
-              )
-            )
-          )
-        );
-      }
-
-      const primaryMode = CP_MODE_META[profile.primaryDim];
-      const secondaryMode = CP_MODE_META[profile.secondaryDim];
-      const weakestMode = CP_MODE_META[profile.weakestDim];
-      const topLessonId = plan.recommendedLessonIds[plan.recommendedLessonIds.length - 1];
-      const topLesson = LESSONS.find(l => l.id === topLessonId) || LESSONS[0];
-
       return (
         React.createElement("div", { style: { background: CP.bg, paddingTop: 72, paddingBottom: 90 }, id: 'cfi-report' },
           React.createElement("div", { style: { maxWidth: 760, margin: '0 auto', padding: '24px 20px' } },
 
             // ── Header ──
-            React.createElement("div", { style: { textAlign: 'center', marginBottom: 40 } },
+            React.createElement("div", { style: { textAlign: 'center', marginBottom: 36 } },
               React.createElement(CPEyebrow, null, "Your result"),
-              React.createElement("h1", { style: { ...syne, fontSize: 'clamp(24px,5.5vw,34px)', fontWeight: 800, color: CP.ink, marginBottom: 14, lineHeight: 1.15 } }, "Now you can see how your thinking works."),
-              React.createElement("div", { style: { fontSize: 13.5, color: CP.muted, lineHeight: 1.7, maxWidth: 480, margin: '0 auto' } }, "The CFI measures thinking clarity and how well your four ways of thinking work together. It is not a personality test, mental health screening, or medical evaluation.")
+              React.createElement("h1", { style: { ...syne, fontSize: 'clamp(24px,5.5vw,34px)', fontWeight: 800, color: CP.ink, marginBottom: 14, lineHeight: 1.15 } }, "How you reported working through problems"),
+              React.createElement("div", { style: { fontSize: 13.5, color: CP.muted, lineHeight: 1.7, maxWidth: 520, margin: '0 auto' } }, `Each score shows how often you said you do that kind of thinking, from 0 to 100. A higher score is not automatically better. This is ${CFI_VERSION}, a new instrument in development. It is not a personality test, a mental health screening, a medical evaluation or a measure of intelligence.`)
             ),
 
             user && shareResultId && React.createElement(NFRetestShare, { user, resultId: shareResultId }),
 
-            // ── SECTION 1: Profile overview ──
-            React.createElement(CPCard, { style: { padding: '36px 28px', marginBottom: 20 } },
-              React.createElement("div", { style: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(240px,100%),1fr))', gap: 32, alignItems: 'center' } },
-                React.createElement("div", { style: { display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', gap: 14 } },
-                  React.createElement(CPScoreRing, { value: integrationScore, color: bandColor, label: 'Overall clarity' }),
-                  React.createElement("div", { style: { display: 'inline-block', padding: '8px 18px', background: CP.goldTint, border: `1px solid ${CP.borderStrong}`, borderRadius: 999 } },
-                    React.createElement("div", { style: { ...syne, fontSize: 13, fontWeight: 800, color: bandColor } }, bandFriendly)
-                  ),
-                  React.createElement("div", { style: { fontSize: 13, color: CP.muted, lineHeight: 1.7, maxWidth: 300 } }, cfiResult.desc)
-                ),
-                React.createElement("div", { style: { display: 'flex', flexDirection: 'column', alignItems: 'center' } },
-                  React.createElement("div", { style: { ...mono, fontSize: 9.5, letterSpacing: 1, color: CP.faint, marginBottom: 12 } }, 'FOUR WAYS OF THINKING'),
-                  React.createElement(CPWheel, { dimensionReports })
+            // ── Four ways of thinking ──
+            React.createElement(CPCard, { style: { padding: '28px 26px', marginBottom: 20 } },
+              React.createElement(CPEyebrow, null, 'Your four ways of thinking'),
+              CFI_MODE_ORDER.map(s => React.createElement(CPScaleBar, { key: s, scale: s, score: scores[s] }))
+            ),
+
+            // ── Coordination ──
+            React.createElement(CPCard, { style: { padding: '28px 26px', marginBottom: 20 } },
+              React.createElement(CPEyebrow, null, 'How you coordinate them'),
+              React.createElement(CPScaleBar, { scale: 'C', score: scores.C }),
+              React.createElement("div", { style: { fontSize: 12.5, color: CP.faint, lineHeight: 1.6, marginTop: 14 } }, 'Coordination is reported on its own. It is not added to the four modes, and there is no overall total.')
+            ),
+
+            answeredAlike && React.createElement("div", { role: 'note', style: { padding: '16px 18px', marginBottom: 20, background: CP.goldTint, border: `1px solid ${CP.borderStrong}`, borderRadius: 12, fontSize: 13.5, color: CP.text, lineHeight: 1.7 } },
+              'Your answers were very similar across all 40 questions, including questions worded in opposite directions. That can make a result less informative. If you answered quickly, you may want to retake it.'),
+
+            // ── Where to start practising ──
+            React.createElement(CPCard, { style: { padding: '30px 26px', marginBottom: 20, borderColor: CP.borderStrong } },
+              React.createElement(CPEyebrow, null, 'A place to start practising'),
+              React.createElement("h2", { style: { ...syne, fontSize: 18, fontWeight: 800, color: CP.ink, marginBottom: 10 } }, `${lowestMode.name} is the score you reported lowest`),
+              React.createElement("div", { style: { fontSize: 14, color: CP.text, lineHeight: 1.8, marginBottom: 14 } }, 'That means you said you do this less often than the others. It is a starting point for practice, not a verdict. You may use it less on purpose.'),
+              React.createElement("div", { style: { padding: '14px 16px', background: CP.surface, borderRadius: 12, border: `1px solid ${CP.border}`, marginBottom: 18 } },
+                React.createElement("div", { style: { ...mono, fontSize: 9, letterSpacing: 1, color: CP.faint, marginBottom: 6 } }, 'TRY THIS (A SUGGESTION, NOT A MEASURED FINDING)'),
+                React.createElement("div", { style: { fontSize: 13.5, color: CP.text, lineHeight: 1.7 } }, lowestMode.practice)
+              ),
+              React.createElement("div", { style: { padding: '18px', background: CP.surface, borderRadius: 14, border: `1px solid ${CP.border}` } },
+                React.createElement("div", { style: { ...mono, fontSize: 9.5, letterSpacing: 1, color: CP.goldDeep, marginBottom: 10 } }, 'RECOMMENDED LESSON'),
+                React.createElement("div", { style: { ...syne, fontSize: 16, fontWeight: 800, color: CP.ink, marginBottom: 8 } }, topLesson.title),
+                React.createElement("div", { style: { fontSize: 13, color: CP.muted, lineHeight: 1.6, marginBottom: 16 } }, topLesson.sub),
+                React.createElement("div", { style: { display: 'flex', gap: 10, flexWrap: 'wrap' } },
+                  React.createElement(CPButton, { onClick: () => setView('lessons') }, 'Start this lesson →'),
+                  React.createElement(CPButton, { variant: 'outline', onClick: () => setView('lessons') }, 'See all lessons →')
                 )
               )
             ),
 
-            // ── SECTION 2: Four ways of thinking ──
-            React.createElement("div", { style: { marginBottom: 28 } },
-              React.createElement(CPEyebrow, null, 'Your four ways of thinking'),
-              React.createElement("div", { style: { fontSize: 12.5, color: CP.muted, lineHeight: 1.6, marginBottom: 16, maxWidth: 560 } }, "These scores reflect how often each mode currently contributes to your decisions, not how intelligent or capable you are in that area."),
-              React.createElement("div", { style: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(160px,100%),1fr))', gap: 12 } },
-                CP_MODE_ORDER.map(d => React.createElement(CPModeCard, { key: d, dim: d, report: dimensionReports[d] }))
-              )
-            ),
-
-            // ── SECTION 3: How you tend to think ──
-            React.createElement(CPCard, { style: { padding: '32px 26px', marginBottom: 20 } },
-              React.createElement(CPEyebrow, null, 'Your Thinking Profile'),
-              React.createElement("h2", { style: { ...syne, fontSize: 18, fontWeight: 800, color: CP.ink, marginBottom: 18 } }, 'How You Tend to Think'),
-              React.createElement("div", { style: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(150px,100%),1fr))', gap: 16, marginBottom: 22 } },
-                [
-                  ['Your strongest', primaryMode.name],
-                  ['Supporting', secondaryMode.name],
-                  ['Needs the most practice', weakestMode.name],
-                ].map(([label, value], i) => (
-                  React.createElement("div", { key: i, style: { padding: '14px 16px', background: CP.surface, borderRadius: 12, border: `1px solid ${CP.border}` } },
-                    React.createElement("div", { style: { ...mono, fontSize: 9, letterSpacing: 1, color: CP.faint, marginBottom: 6 } }, label.toUpperCase()),
-                    React.createElement("div", { style: { ...syne, fontSize: 14, fontWeight: 800, color: CP.ink } }, value)
-                  )
-                ))
-              ),
-              React.createElement("div", { style: { fontSize: 14.5, color: CP.text, lineHeight: 1.8 } }, profile.summary)
-            ),
-
-            // ── SECTION 4: Your dominant thinking pattern ──
-            React.createElement(CPCard, { style: { padding: '32px 26px', marginBottom: 20 } },
-              React.createElement(CPEyebrow, null, 'Your Thinking Pattern'),
-              React.createElement("h2", { style: { ...syne, fontSize: 18, fontWeight: 800, color: CP.ink, marginBottom: 14 } }, 'The way you lean on most'),
-              React.createElement("div", { style: { fontSize: 14.5, color: CP.text, lineHeight: 1.8, marginBottom: 14 } }, profile.decisionCoordinationStyle),
-              React.createElement("div", { style: { padding: '16px 18px', background: CP.surface, borderRadius: 12, border: `1px solid ${CP.border}` } },
-                React.createElement("div", { style: { ...mono, fontSize: 9, letterSpacing: 1, color: CP.faint, marginBottom: 6 } }, 'UNDER PRESSURE'),
-                React.createElement("div", { style: { fontSize: 13.5, color: CP.muted, lineHeight: 1.6 } }, profile.coordinationUnderPressure)
-              )
-            ),
-
-            // ── SECTION 5: Where your thinking may get stuck ──
-            React.createElement(CPCard, { style: { padding: '32px 26px', marginBottom: 20 } },
-              React.createElement(CPEyebrow, null, 'Potential Blind Spot'),
-              React.createElement("h2", { style: { ...syne, fontSize: 18, fontWeight: 800, color: CP.ink, marginBottom: 14 } }, 'Where Your Thinking May Get Stuck'),
-              React.createElement("div", { style: { fontSize: 14.5, color: CP.text, lineHeight: 1.8, marginBottom: 14 } }, profile.decisionBlindSpots),
-              dimensionReports[profile.weakestDim] && React.createElement("div", null,
-                dimensionReports[profile.weakestDim].blindSpots.slice(0, 2).map((s, i) => React.createElement("div", { key: i, style: { fontSize: 13, color: CP.muted, lineHeight: 1.7, marginBottom: 4 } }, '· ', s))
-              )
-            ),
-
-            // ── SECTION 6: Where you can grow ──
-            React.createElement(CPCard, { style: { padding: '32px 26px', marginBottom: 20, borderColor: CP.borderStrong } },
-              React.createElement(CPEyebrow, null, 'Your biggest chance to improve'),
-              React.createElement("h2", { style: { ...syne, fontSize: 18, fontWeight: 800, color: CP.ink, marginBottom: 6 } }, 'Where You Can Grow'),
-              React.createElement("div", { style: { ...mono, fontSize: 11, letterSpacing: 0.5, color: CP.goldDeep, marginBottom: 14 } }, `Your next opportunity: ${weakestMode.name} integration`),
-              React.createElement("div", { style: { fontSize: 14.5, color: CP.text, lineHeight: 1.8 } }, profile.suggestedCoordinationExercise)
-            ),
-
-            // ── SECTION 7: Integration session ──
+            // ── Integration session ──
             React.createElement(CPCard, { style: { padding: '36px 26px', marginBottom: 20, background: CP.ink } },
               React.createElement("div", { style: { ...mono, fontSize: 11, letterSpacing: 1.5, color: CP.gold, marginBottom: 12, textTransform: 'uppercase' } }, "Your First Integration Session"),
               React.createElement("h2", { style: { ...syne, fontSize: 19, fontWeight: 800, color: '#FFFFFF', marginBottom: 10 } }, "Let's Put Your Thinking to Work."),
@@ -4214,26 +3826,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
               React.createElement(CPButton, { onClick: () => setView('protocol'), style: { width: '100%', justifyContent: 'center' } }, 'Think through a decision →')
             ),
 
-            // ── SECTION 8: Academy recommendation ──
-            React.createElement(CPCard, { style: { padding: '32px 26px', marginBottom: 20 } },
-              React.createElement(CPEyebrow, null, "Your recommended lesson"),
-              React.createElement("div", { style: { fontSize: 13, color: CP.muted, lineHeight: 1.7, marginBottom: 22, maxWidth: 480 } }, "Your thinking result gives you a starting point. The Academy helps you train from there."),
-              React.createElement("div", { style: { padding: '20px', background: CP.surface, borderRadius: 14, border: `1px solid ${CP.border}` } },
-                React.createElement("div", { style: { ...mono, fontSize: 9.5, letterSpacing: 1, color: CP.goldDeep, marginBottom: 10 } }, 'RECOMMENDED FOR YOU'),
-                React.createElement("div", { style: { ...syne, fontSize: 16, fontWeight: 800, color: CP.ink, marginBottom: 8 } }, topLesson.title),
-                React.createElement("div", { style: { fontSize: 13, color: CP.muted, lineHeight: 1.6, marginBottom: 16 } }, topLesson.sub),
-                React.createElement("div", { style: { marginBottom: 18 } },
-                  React.createElement("div", { style: { ...mono, fontSize: 9, letterSpacing: 1, color: CP.faint, marginBottom: 6 } }, 'WHY THIS LESSON?'),
-                  React.createElement("div", { style: { fontSize: 13, color: CP.text, lineHeight: 1.7 } }, `${weakestMode.name} is the way of thinking you could practise most. ${plan.dailyExercise}`)
-                ),
-                React.createElement("div", { style: { display: 'flex', gap: 10, flexWrap: 'wrap' } },
-                  React.createElement(CPButton, { onClick: () => setView('lessons') }, 'Start This Lesson →'),
-                  React.createElement(CPButton, { variant: 'outline', onClick: () => setView('lessons') }, 'See all lessons →')
-                )
-              )
-            ),
-
-            // ── SECTION 9: Training path ──
+            // ── Training path ──
             React.createElement("div", { style: { marginBottom: 20 } },
               React.createElement(CPEyebrow, null, 'Your next steps'),
               React.createElement("div", { style: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(130px,100%),1fr))', gap: 12 } },
@@ -4247,29 +3840,23 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
               )
             ),
 
-            // ── Dimensional deep dive (optional, tap to expand) ──
-            React.createElement("div", { style: { marginBottom: 20 } },
-              React.createElement(CPEyebrow, null, 'How your four ways compare'),
-              CP_MODE_ORDER.map(d => React.createElement(CPModeDetail, { key: d, dim: d, report: dimensionReports[d] }))
-            ),
-
-            // ── SECTION 10: change ──
+            // ── Change over time ──
             React.createElement(CPCard, { style: { padding: '28px 26px', marginBottom: 20 } },
               React.createElement(CPEyebrow, null, 'Track Your Progress'),
               React.createElement("div", { style: { ...syne, fontSize: 15, fontWeight: 800, color: CP.ink, marginBottom: 8 } }, 'Your starting point'),
-              React.createElement("div", { style: { fontSize: 13.5, color: CP.muted, lineHeight: 1.7, marginBottom: 16, maxWidth: 480 } }, "This CFI establishes your baseline. Complete NeuralFusion training and retake the assessment, and your change will show how your profile changes over time."),
-              React.createElement(CPButton, { variant: 'outline', onClick: () => setView('analytics') }, 'Continue Training →')
+              React.createElement("div", { style: { fontSize: 13.5, color: CP.muted, lineHeight: 1.7, marginBottom: 16, maxWidth: 480 } }, "Your first result is your baseline. Complete some training and retake the CFI, and My progress will show how each score moved, up or down."),
+              React.createElement(CPButton, { variant: 'outline', onClick: () => setView('analytics') }, 'Open my progress →')
             ),
 
-            // ── SECTION 11: Shareable profile ──
+            // ── Shareable result ──
             React.createElement(CPCard, { style: { padding: '28px 26px', marginBottom: 20, textAlign: 'center' } },
               React.createElement(CPEyebrow, null, 'Share your result'),
               React.createElement("div", { style: { fontSize: 13.5, color: CP.muted, lineHeight: 1.7, marginBottom: 18, maxWidth: 440, margin: '0 auto 18px' } }, "You discovered how you think. Now invite someone else to discover theirs."),
               React.createElement("div", { style: { display: 'inline-block', textAlign: 'left', padding: '20px 24px', background: CP.ink, borderRadius: 14, marginBottom: 20 } },
                 React.createElement("div", { style: { ...syne, fontSize: 12, fontWeight: 800, color: CP.gold, letterSpacing: 1, marginBottom: 10 } }, 'NEURALFUSION · My thinking result'),
-                CP_MODE_ORDER.map(d => (
-                  React.createElement("div", { key: d, style: { display: 'flex', justifyContent: 'space-between', gap: 24, fontSize: 12.5, color: 'rgba(255,255,255,0.85)', padding: '3px 0' } },
-                    React.createElement("span", null, CP_MODE_META[d].name), React.createElement("span", { style: { color: CP.gold, fontWeight: 700 } }, dimensionReports[d].integrationScore, '%')
+                CFI_SCALE_ORDER.map(s => (
+                  React.createElement("div", { key: s, style: { display: 'flex', justifyContent: 'space-between', gap: 24, fontSize: 12.5, color: 'rgba(255,255,255,0.85)', padding: '3px 0' } },
+                    React.createElement("span", null, CFI_MODES[s].name), React.createElement("span", { style: { color: CP.gold, fontWeight: 700 } }, scores[s])
                   )
                 )),
                 React.createElement("div", { style: { fontSize: 10.5, color: 'rgba(255,255,255,0.4)', marginTop: 10 } }, 'Discover how you think. tryneuralfusion.com')
@@ -4290,7 +3877,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
               React.createElement("div", { style: { fontSize: 13, color: CP.muted, marginBottom: 20, maxWidth: 440, margin: '0 auto 20px', lineHeight: 1.7 } },
                 !user ? 'Create a free account to save this report, track your progress over time, and unlock your personalized learning path.'
                   : saveState === 'failed' ? 'See the notice above: retry the save, or it will be lost when you leave this page.'
-                  : 'Retake the test over time to watch your thinking improve.'
+                  : 'Retake the CFI after some practice to see how your scores change.'
               ),
               !user && React.createElement(CPButton, { onClick: () => setShowAuth(true) }, 'Create free account')
             ),
@@ -4309,7 +3896,6 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
         )
       );
     }
-
     function CFIView({ setView, user, setShowAuth, openAuth, cfiResult, setCfiResult, refreshCfiHistory, cfiHistory }) {
       const [started, setStarted] = useState(false);
       const [step, setStep] = useState(0);
@@ -4324,7 +3910,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
       //   moment auth succeeds, rather than dumping them back on the intro.
       // justAuthed: the brief "your account is ready" screen shown once, right
       //   after that succeeds.
-      // draftId: id of this attempt's in-progress cfi_results row, once one
+      // draftId: id of this attempt's in-progress cfi2_results row, once one
       //   exists, so subsequent saves update it instead of creating new rows.
       const [showGate, setShowGate] = useState(false);
       const [awaitingAuth, setAwaitingAuth] = useState(false);
@@ -4333,17 +3919,20 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
       const [savedResultId, setSavedResultId] = useState(null);
       const [saveFailed, setSaveFailed] = useState(false);
       const [saveErrorMsg, setSaveErrorMsg] = useState('');
+      const [scoreError, setScoreError] = useState('');
+      // Optional, unticked by default: the person's opt-in for anonymised research use of their answers.
+      const [consentResearch, setConsentResearch] = useState(false);
       // saveState drives the "Your progress is saved" message so it reflects
       // what actually happened in the database, not just whether someone is
       // logged in. 'idle' -> 'saving' -> 'saved' | 'failed'.
       const [saveState, setSaveState] = useState(cfiResult ? 'saved' : 'idle');
-      // Instrumentation: start / retest / completion. A retest = the person already has a completed CFI-1.0 result.
+      // Instrumentation: start / retest / completion. A retest = the person already has a completed result.
       const retestRef = useRef(false); const startFired = useRef(false);
       useEffect(() => {
         if (!started) { startFired.current = false; return; }
         if (startFired.current) return;
         startFired.current = true;
-        retestRef.current = (cfiHistory || []).some(r => r && r.assessment_version === CFI_VERSION);
+        retestRef.current = (cfiHistory || []).length > 0;
         nfEvent('cfi_started', { retest: retestRef.current });
         if (retestRef.current) nfEvent('retest_started', {});
       }, [started]);
@@ -4385,7 +3974,8 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
           if (Object.keys(savedAnswers).length === 0) return;
           setAnswers(savedAnswers);
           setDraftId(draft.id);
-          const firstUnansweredIdx = flow.findIndex(f => f.type==='question' && !(f.item.id in savedAnswers));
+          setConsentResearch(!!draft.consent_research);
+          const firstUnansweredIdx = CFI_ITEMS.findIndex(it => !(it.id in savedAnswers));
           setStep(firstUnansweredIdx === -1 ? 0 : firstUnansweredIdx);
           setStarted(true);
         });
@@ -4393,17 +3983,10 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
         // eslint-disable-next-line
       }, [user]);
 
-      // ── Accessible response scale: each option carries a short, concrete
-      // subtitle so the label isn't the only cue (helps with ambiguity that
-      // trips up literal/ADHD/autistic readers), and equal visual weight
-      // across all five so no option "looks" like the right answer.
-      const SCALE_OPTIONS = [
-        { value:1, label:'Never',     subtitle:"This doesn't happen for me" },
-        { value:2, label:'Rarely',    subtitle:'Happens once in a while' },
-        { value:3, label:'Sometimes', subtitle:'Happens about half the time' },
-        { value:4, label:'Often',     subtitle:'Happens most of the time' },
-        { value:5, label:'Always',    subtitle:'This is true almost every time' },
-      ];
+      // ── Accessible response scale: each option carries a short, concrete subtitle so the label isn't the
+      // only cue (helps with ambiguity that trips up literal/ADHD/autistic readers), and equal visual weight
+      // across all five so no option "looks" like the right answer. Frequency labels come from CFI_SCALE.
+      const SCALE_OPTIONS = CFI_SCALE;
 
       // ── Accessible design tokens (WCAG AA, dyslexia-friendly) ──────────
       // Scoped to the assessment screens only, distinct from the app's
@@ -4443,72 +4026,28 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
         }
       }, []);
 
-      const flow = useMemo(() => {
-        const f = [];
-        let lastDim = null;
-        CFI_ITEMS.forEach(item => {
-          if (item.dim !== lastDim) { f.push({ type:'section', dim: item.dim }); lastDim = item.dim; }
-          f.push({ type:'question', item });
-        });
-        return f;
-      }, []);
-
       const answeredCount = Object.keys(answers).length;
       const percent = Math.round((answeredCount / CFI_ITEMS.length) * 100);
       const remainingQ = CFI_ITEMS.length - answeredCount;
       const estMinutes = Math.max(1, Math.ceil((remainingQ * 12) / 60));
       const motivation = () => {
-        if (answeredCount === 0) return "There are no wrong answers here. Go with your first instinct.";
+        if (answeredCount === 0) return "There are no wrong answers. Answer for how you usually work, not how you think you should.";
         if (percent < 50) return "Good start. You're building an accurate picture.";
         if (percent < 100) return "Over halfway there. Keep going.";
         return "Nice work.";
       };
 
       const finalize = (finalAnswers) => {
-        // Reverse-scored items (e.g. "focused under deadline pressure") are inverted
-        // before summing, since a high raw answer there means LESS fragmentation.
-        const effective = (item) => {
-          const v = finalAnswers[item.id];
-          return item.reversed ? (6 - v) : v;
-        };
-        const total = CFI_ITEMS.reduce((sum, item) => sum + effective(item), 0);
-        // NOTE: band thresholds and internal band values are unchanged (scoring logic).
-        // Only the `desc` / `recommendation` copy shown to the person is reframed around
-        // coordination (how well their ways of thinking currently work together) rather
-        // than framing lower scores as damage or deficiency.
-        // Band thresholds are CFI-1.0's original 16-item bands, proportionally rescaled
-        // onto the canonical 13–65 range (same relative cut points, not new thresholds).
-        let band, desc, recommendation;
-        if (total<=17) { band='Integrated'; desc='Your different ways of thinking already work well together.'; recommendation='Keep up your practice and move on to the later lessons.'; }
-        else if (total<=28) { band='Moderate fragmentation'; desc='Your ways of thinking work well together some of the time. A couple of them are underused when you decide.'; recommendation='Start with Lesson 2. Practise a little each day for two weeks to use all four ways of thinking more often.'; }
-        else if (total<=40) { band='High fragmentation'; desc='Your ways of thinking do not always work together, especially under pressure.'; recommendation='Begin with Lesson 1 and practise a little each day.'; }
-        else { band='Critical fragmentation'; desc='Right now your ways of thinking rarely work together. One tends to take over every decision, even when it is not the best fit.'; recommendation='Start with Lesson 1 and retake the test every week or two to see your progress.'; }
-
-        const dims = { A:[], I:[], S:[], R:[], E:[] };
-        CFI_ITEMS.forEach(item => { if (finalAnswers[item.id]) dims[item.dim].push(effective(item)); });
-        const dimScores = {};
-        Object.keys(dims).forEach(d => { dimScores[d] = dims[d].length ? Math.round(dims[d].reduce((a,b)=>a+b,0)/dims[d].length*20) : 0; });
-
-        // Dominant brain is chosen only among the four true ways of thinking (A/I/S/R).
-        // E ("integration"/pressure-overload) is never a fifth brain and is excluded here:
-        // it's reported separately via integrationScore.
-        // FIX (audit finding #1): dimScores are FRAGMENTATION scores: higher = more
-        // fragmented, i.e. that mode is currently coordinating WORSE, not better. The
-        // dominant/strongest mode is therefore the one with the LOWEST score (ascending
-        // sort), matching buildCognitiveProfile()'s primaryDim logic below. A previous
-        // version of this file sorted descending here, which named the MOST fragmented
-        // mode as "Dominant", contradicting the profile section on the same results page.
-        const brainMap = { A:'analytical', I:'intuitive', S:'associative', R:'reflective' };
-        const sortedDims = Object.entries(dimScores).filter(([d]) => d !== 'E').sort((a,b)=>a[1]-b[1]);
-        const dominantBrain = brainMap[sortedDims[0][0]] || 'analytical';
-
-        const integrationScore = cfiIntegrationScore(total);
-        const dimensionReports = {};
-        Object.keys(dimScores).forEach(d => { dimensionReports[d] = buildDimensionReport(d, dimScores[d]); });
-        const profile = buildCognitiveProfile(dimensionReports, integrationScore, band);
-        const plan = buildImprovementPlan(dimensionReports, band);
-
-        const result = { total, band, desc, recommendation, dimScores, dominantBrain, integrationScore, dimensionReports, profile, plan };
+        // Scoring lives in scoreCFI (CFI-2.0): four mode scores plus Coordination, each 0-100.
+        // No total, no bands, no type label.
+        const scored = scoreCFI(finalAnswers);
+        if (!scored.ok) {
+          console.error('[CFI SCORE ERROR]', scored.errors);
+          setScoreError('We could not score your answers: ' + (scored.errors || []).join(' ') + ' Please go back and check that every question has an answer.');
+          return;
+        }
+        setScoreError('');
+        const result = Object.assign({}, scored, { created_at: new Date().toISOString() });
         setCfiResult(result);
         setShowResult(true);
         if (user && !retestRef.current) nfEvent('first_result_viewed', {});
@@ -4516,7 +4055,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
         // rather than inserting a second row for this attempt.
         if (user) {
           setSaveState('saving');
-          saveCFIResult(user.id, result, finalAnswers, draftId).then(({ data, error }) => {
+          saveCFIResult(user.id, result, finalAnswers, draftId, consentResearch).then(({ data, error }) => {
             if (error) {
               // Keep draftId as-is on failure so a "Retry" click still targets
               // the same row instead of inserting a duplicate.
@@ -4551,16 +4090,16 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
         // racing to update the same row - if the in-progress save (which only
         // touches answers/status) landed on the server AFTER the completed
         // save, it silently reset status back to 'in_progress' while leaving
-        // total_score/band populated, making a fully scored result vanish
+        // scores populated, making a fully scored result vanish
         // from admin and from the user's own Analytics view.
         if (user && !isLastQuestion) {
-          saveCFIProgress(user.id, newAnswers, draftId).then(id => { if (id && id !== draftId) setDraftId(id); });
+          saveCFIProgress(user.id, newAnswers, draftId, consentResearch).then(id => { if (id && id !== draftId) setDraftId(id); });
         }
         if (isLastQuestion) { finalize(newAnswers); }
         else { setStep(s => s+1); }
       };
 
-      const handleRetake = () => { setStarted(false); setStep(0); setAnswers({}); setShowResult(false); setDraftId(null); setSaveState('idle'); setSaveErrorMsg(''); };
+      const handleRetake = () => { setStarted(false); setStep(0); setAnswers({}); setShowResult(false); setDraftId(null); setSaveState('idle'); setSaveErrorMsg(''); setScoreError(''); };
 
       // ── Results screen ──
       if (showResult && cfiResult) {
@@ -4571,7 +4110,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
               React.createElement("button", {className:"nf-a11y-btn", onClick: ()=>{
                 setSaveFailed(false);
                 setSaveState('saving');
-                saveCFIResult(user.id, cfiResult, answers, draftId).then(({ data, error }) => {
+                saveCFIResult(user.id, cfiResult, answers, draftId, consentResearch).then(({ data, error }) => {
                   if (error) { setSaveFailed(true); setSaveState('failed'); setSaveErrorMsg(error.message || JSON.stringify(error)); }
                   else { setSaveState('saved'); setSaveErrorMsg('row id: ' + (data && data[0] && data[0].id ? data[0].id : '(insert, id not returned)')); setSavedResultId(data && data[0] && data[0].id ? data[0].id : null); setDraftId(null); }
                 });
@@ -4591,7 +4130,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
         return (
           React.createElement("div", {style: { paddingTop:80, paddingBottom:60, background:AC.bg, minHeight:'100vh', fontFamily:AC.font, display:'flex', alignItems:'center' }},
             React.createElement("div", {style: { maxWidth:520, margin:'0 auto', padding:'32px 20px', textAlign:'center' }},
-              React.createElement("div", {style: { fontFamily:AC.font, fontSize:14, fontWeight:700, letterSpacing:'0.06em', color:AC.goldDark, marginBottom:20, textTransform:'uppercase' }}, 'Thinking Clarity Test'),
+              React.createElement("div", {style: { fontFamily:AC.font, fontSize:14, fontWeight:700, letterSpacing:'0.06em', color:AC.goldDark, marginBottom:20, textTransform:'uppercase' }}, 'Cognitive Fragmentation Index'),
               React.createElement("h1", {style: { fontFamily:AC.font, fontSize:'clamp(24px,5vw,30px)', fontWeight:800, color:AC.text, marginBottom:16, lineHeight:1.3 }}, 'Your result starts here.'),
               React.createElement("p", {style: { fontSize:17, color:AC.text, lineHeight:1.7, marginBottom:28, maxWidth:440, margin:'0 auto 28px' }},
                 'Create a free account first, so your result is saved.'
@@ -4647,27 +4186,31 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
         return (
           React.createElement("div", {style: { paddingTop:80, paddingBottom:60, background:AC.bg, minHeight:'100vh', fontFamily:AC.font }},
             React.createElement("div", {style: { maxWidth:720, margin:'0 auto', padding:'32px 20px', textAlign:'center' }},
-              React.createElement("div", {style: { fontFamily:AC.font, fontSize:14, fontWeight:700, letterSpacing:'0.06em', color:AC.goldDark, marginBottom:20, textTransform:'uppercase' }}, 'Thinking Clarity Test'),
+              React.createElement("div", {style: { fontFamily:AC.font, fontSize:14, fontWeight:700, letterSpacing:'0.06em', color:AC.goldDark, marginBottom:20, textTransform:'uppercase' }}, 'Cognitive Fragmentation Index'),
               React.createElement("h1", {style: { fontFamily:AC.font, fontSize:'clamp(26px,5vw,34px)', fontWeight:800, color:AC.text, marginBottom:20, lineHeight:1.3 }},
-                'Discover how you think', React.createElement("br", null), React.createElement("span", {style: {color:AC.goldDark}}, 'and where it gets stuck')
+                'Discover how you think', React.createElement("br", null), React.createElement("span", {style: {color:AC.goldDark}}, 'when you work on a problem')
               ),
               React.createElement("p", {style: { fontSize:19, color:AC.text, lineHeight:1.7, marginBottom:20, maxWidth:560, margin:'0 auto 20px' }},
-                `You'll answer ${CFI_ITEMS.length} short, everyday questions. No jargon, nothing tricky. It takes about 3–4 minutes.`
+                `You'll answer ${CFI_ITEMS.length} short questions about how you work through problems and decisions. No jargon, nothing tricky. It takes about ${Math.ceil(CFI_ITEMS.length * 12 / 60)} minutes. Your answers are saved as you go, so you can stop and come back.`
               ),
               // Neurodivergent-support note
               React.createElement("div", {role:'note', style: { fontSize:18, color:AC.text, lineHeight:1.7, marginBottom:20, maxWidth:560, margin:'0 auto 20px', padding:'20px 22px', background:AC.goldTint, border:`1px solid ${AC.gold}`, borderRadius:16, textAlign:'left' }},
                 'This assessment is designed to support a wide range of thinking styles, including ADHD, dyslexia, autism, and other neurodivergent profiles. There are no right or wrong answers. Respond based on your typical experience, not how you think you should perform.'
               ),
               React.createElement("div", {style: { fontSize:16, color:AC.muted, lineHeight:1.7, marginBottom:36, maxWidth:560, margin:'0 auto 36px', padding:'16px 20px', background:AC.surfaceAlt, border:`1px solid ${AC.border}`, borderRadius:16, textAlign:'left' }},
-                'The test shows how you take in information, make decisions and combine different ways of thinking. It is not a personality test, a mental health check or a diagnosis.'
+                `The test shows how often you use four ways of thinking (analytical, intuitive, associative and reflective) and how well you switch between them. It is ${CFI_VERSION}, a new instrument in development. It is not a personality test, a mental health check or a diagnosis.`
               ),
               React.createElement("div", {style: { display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(min(240px, 100%), 1fr))', gap:16, marginBottom:36, textAlign:'left' }},
-                ['A score for how clear your thinking is right now', 'Your natural strengths and blind spots, explained plainly', 'A personalized, day-by-day improvement plan', 'A simple chart of your four ways of thinking'].map((item,i)=>(
+                ['Four scores, one for each way of thinking', 'A Coordination score for how you switch between them', 'A lesson and a practice idea to start with', 'A baseline to measure your change against later'].map((item,i)=>(
                   React.createElement("div", {key: i, style: { padding:'18px 20px', display:'flex', alignItems:'center', gap:14, background:AC.surface, border:`1px solid ${AC.border}`, borderRadius:16, boxShadow:'0 1px 3px rgba(17,24,39,0.06)' }},
                     React.createElement("div", {style: { fontSize:20, color:AC.goldDark, flexShrink:0 }}, '◈'),
                     React.createElement("div", {style: { fontSize:16, color:AC.text, lineHeight:1.6 }}, item)
                   )
                 ))
+              ),
+              React.createElement("label", {style: { display:'flex', alignItems:'flex-start', gap:12, textAlign:'left', maxWidth:560, margin:'0 auto 28px', fontSize:16, color:AC.text, lineHeight:1.6, cursor:'pointer' }},
+                React.createElement("input", {type:'checkbox', checked: consentResearch, onChange: e => setConsentResearch(e.target.checked), style: { width:24, height:24, marginTop:2, flexShrink:0, accentColor:AC.goldDark }}),
+                React.createElement("span", null, 'Optional: you may use my answers for research on how the CFI works, with my name and email removed. I can leave this unticked and still take the CFI.')
               ),
               React.createElement("button", {className: "nf-a11y-btn", onClick: ()=> {
                 if (user) {
@@ -4679,46 +4222,16 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
                 fontFamily:AC.font, fontSize:18, fontWeight:700, padding:'18px 40px', minHeight:56,
                 background:AC.goldDark, color:'#FFFFFF', border:'none', borderRadius:16, cursor:'pointer',
                 boxShadow:'0 2px 8px rgba(138,109,47,0.35)',
-              }}, 'Take the test →'),
+              }}, 'Take the CFI →'),
               React.createElement("div", {style: { ...mono, fontSize:12, color:AC.muted, marginTop:14 }}, 'Free account required. Your results are saved automatically.')
             )
           )
         );
       }
 
-      const current = flow[step];
-
-      // ── Section intro screen (accessible) ──
-      if (current.type === 'section') {
-        const meta = CFI_SECTIONS[current.dim];
-        const isFirst = current.dim === 'A';
-        return (
-          React.createElement("div", {style: { paddingTop:80, paddingBottom:40, minHeight:'70vh', display:'flex', alignItems:'center', background:AC.bg, fontFamily:AC.font }},
-            React.createElement("div", {className: "nf-a11y-fade", style: { maxWidth:620, margin:'0 auto', padding:'32px 24px', width:'100%', textAlign:'center' }},
-              !isFirst && React.createElement("div", {style: { fontFamily:AC.font, fontSize:15, fontWeight:700, letterSpacing:'0.02em', color:AC.goldDark, marginBottom:24 }}, motivation(), ' · ', percent, '% done'),
-              React.createElement("div", {style: { fontSize:30, color:meta.color, marginBottom:16 }}, meta.icon),
-              React.createElement("h2", {style: { fontFamily:AC.font, fontSize:'clamp(22px,4vw,26px)', fontWeight:800, color:AC.text, marginBottom:16, lineHeight:1.3 }}, meta.title),
-              React.createElement("p", {style: { fontSize:18, color:AC.text, lineHeight:1.7, marginBottom:36, maxWidth:460, margin:'0 auto 36px' }}, meta.blurb),
-              React.createElement("button", {className: "nf-a11y-btn", onClick: ()=>setStep(s=>s+1), style: {
-                fontFamily:AC.font, fontSize:17, fontWeight:700, padding:'16px 36px', minHeight:56,
-                background:AC.goldDark, color:'#FFFFFF', border:'none', borderRadius:16, cursor:'pointer',
-                boxShadow:'0 2px 8px rgba(138,109,47,0.35)',
-              }}, isFirst ? 'Start →' : 'Continue →'),
-              step > 0 && React.createElement("div", null,
-                React.createElement("button", {className: "nf-a11y-btn", onClick: ()=>setStep(s=>Math.max(0,s-1)), style: {
-                  fontFamily:AC.font, fontSize:16, fontWeight:600, marginTop:20, padding:'12px 20px', minHeight:48,
-                  background:'transparent', color:AC.muted, border:'none', cursor:'pointer', borderRadius:12,
-                }}, '← Back')
-              )
-            )
-          )
-        );
-      }
-
       // ── Question screen (accessible) ──
-      const item = current.item;
-      const brainInfo = C.brains[item.brain] || C.brains.analytical;
-      const qIndex = CFI_ITEMS.findIndex(q=>q.id===item.id);
+      const item = CFI_ITEMS[step];
+      const qIndex = step;
 
       return (
         React.createElement("div", {style: { paddingTop:80, paddingBottom:60, background:AC.bg, minHeight:'100vh', fontFamily:AC.font }},
@@ -4732,11 +4245,9 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
               React.createElement("div", {style: { width:`${percent}%`, height:'100%', background:AC.gold, borderRadius:6, transition:'width 0.4s ease' }})
             ),
             React.createElement("div", {style: { fontFamily:AC.font, fontSize:15, color:AC.muted, marginBottom:36 }}, motivation()),
+            scoreError && React.createElement("div", {role:'alert', style: { background:'#FEE2E2', border:'1px solid #FCA5A5', color:'#991B1B', padding:'12px 16px', borderRadius:12, fontSize:15, marginBottom:24 }}, scoreError),
             React.createElement("div", {key: item.id, className: "nf-a11y-fade"},
-              React.createElement("div", {style: { display:'flex', alignItems:'center', gap:10, marginBottom:16 }},
-                React.createElement("div", {style: { fontSize:18, color:brainInfo.color }}, brainInfo.symbol),
-                React.createElement("div", {style: { fontFamily:AC.font, fontSize:14, fontWeight:700, letterSpacing:'0.04em', color:AC.goldDark, textTransform:'uppercase' }}, CFI_SECTIONS[item.dim]?.title)
-              ),
+              React.createElement("div", {style: { fontFamily:AC.font, fontSize:17, fontWeight:600, color:AC.muted, lineHeight:1.5, marginBottom:10 }}, CFI_STEM),
               React.createElement("div", {style: { fontFamily:AC.font, fontSize:'clamp(20px,4.5vw,26px)', fontWeight:700, color:AC.text, lineHeight:1.5, marginBottom:36 }}, item.text),
               // Card-style response scale
               React.createElement("div", {role:'radiogroup', 'aria-label':'Response', style: { display:'flex', flexDirection:'column', gap:12 }}, SCALE_OPTIONS.map((opt)=>{
@@ -4785,59 +4296,56 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
     // ═══════════════════════════════════════════════════════════════════
     //  ANALYTICS VIEW
     // ═══════════════════════════════════════════════════════════════════
-    // "YOUR PROGRESS": every completed CFI-1.0 attempt for this user, oldest→newest,
-    // with per-assessment numbering, change vs. the previous attempt, and band movement.
-    // A lower CFI score is less fragmentation, i.e. improvement; matches the change
-    // sign convention used elsewhere on this page (baseline - latest).
-
+    // "MY PROGRESS": every completed CFI-2.0 attempt for this user, oldest to newest.
+    // Change is shown as signed points per scale (later minus earlier). A higher score means the person reported that
+    // kind of thinking more often, not that the result is "better", so no scale is ever labelled improved or worse.
+    // Clarity Delta ("your change") is defined as the change in the Coordination score between attempts.
     function AnalyticsView({ cfiResult, lessonProgress, cfiHistory=[], setView, user }) {
       const E = React.createElement;
       const completedLessons = Object.values(lessonProgress || {}).filter(v => v === 100).length;
       const [decisions, setDecisions] = useState([]);
       useEffect(() => { if (user) nfjLoadDecisions(user.id).then(setDecisions).catch(() => {}); }, [user]);
       const reviewed = decisions.filter(d => d.status === 'reviewed').length;
-      const hist = cfiHistory || [];
+      const hist = (cfiHistory || []).map(cfiResultFromRow).filter(Boolean); // oldest → newest
       const first = hist[0], last = hist[hist.length - 1];
-      const change = hist.length >= 2 ? first.total_score - last.total_score : null; // positive = clearer thinking
-      const ways = [['A', 'Logic and facts'], ['I', 'Gut feeling'], ['S', 'Connecting ideas'], ['R', 'Stepping back']];
+      const change = hist.length >= 2 ? cfiChange(first, last) : null;
       const box = { padding: '28px', marginBottom: 20 };
       const eyebrow = { ...mono, fontSize: 11, letterSpacing: 1.5, color: C.cyan, marginBottom: 14, textTransform: 'uppercase' };
       const big = { ...syne, fontSize: 26, fontWeight: 800, color: C.text, marginBottom: 6 };
       const small = { fontSize: 14, color: C.muted, lineHeight: 1.7 };
       const btn = (label, go, outline) => E("button", { className: outline ? 'btn-outline' : 'btn-primary', onClick: () => setView(go), style: { marginTop: 16 } }, label);
-      const wayRow = ([d, name]) => {
-        const b0 = first.dim_scores && first.dim_scores[d], b1 = last.dim_scores && last.dim_scores[d];
-        if (b0 === undefined || b1 === undefined) return null;
-        const diff = b1 - b0;
-        const word = diff < 0 ? 'Better' : diff > 0 ? 'Needs work' : 'Same';
-        return E("div", { key: d, style: { display: 'flex', justifyContent: 'space-between', gap: 12, padding: '10px 0', borderBottom: `1px solid ${C.border}`, fontSize: 14, flexWrap: 'wrap' } },
-          E("span", { style: { color: C.text } }, name),
-          E("span", { style: { color: diff < 0 ? '#7AAFCF' : diff > 0 ? '#F87171' : C.muted } }, word));
-      };
+      const rowStyle = { display: 'flex', justifyContent: 'space-between', gap: 12, padding: '10px 0', borderBottom: `1px solid ${C.border}`, fontSize: 14, flexWrap: 'wrap' };
+      const scoreRow = (s) => E("div", { key: s, style: rowStyle },
+        E("span", { style: { color: C.text } }, CFI_MODES[s].name),
+        E("span", { style: { color: C.text } }, cfiResult.scores[s] + ' / 100'));
+      const changeRow = (s) => E("div", { key: s, style: rowStyle },
+        E("span", { style: { color: C.text } }, CFI_MODES[s].name),
+        E("span", { style: { color: C.muted } }, cfiPointsText(change[s])));
+      const latest = cfiResult && cfiResult.scores ? cfiResult : null;
       return E("div", { style: { paddingTop: 80, paddingBottom: 100 } },
         E("div", { style: { maxWidth: 760, margin: '0 auto', padding: '40px 24px' } },
           E("h1", { style: { ...syne, fontSize: 'clamp(24px,5vw,34px)', fontWeight: 800, color: C.text, marginBottom: 24 } }, 'My progress'),
-          !cfiResult
-            ? E("div", { className: "card", style: box }, E("div", { style: big }, 'You have not taken the test yet'), E("div", { style: small }, 'Take the 4-minute test and this page will show how your thinking changes over time.'), btn('Take the test', 'cfi'))
+          !latest
+            ? E("div", { className: "card", style: box }, E("div", { style: big }, 'You have not taken the CFI yet'), E("div", { style: small }, 'Take the ' + Math.ceil(CFI_ITEMS.length * 12 / 60) + '-minute test and this page will show how your scores change over time.'), btn('Take the CFI', 'cfi'))
             : E("div", { className: "card", style: box },
                 E("div", { style: eyebrow }, 'Your latest result'),
-                E("div", { style: big }, plainBand(cfiResult.band)),
-                E("div", { style: small }, 'Score: ' + cfiResult.total + ' (the scale runs from 13 to 65, and a lower score means clearer thinking).'),
+                CFI_SCALE_ORDER.map(scoreRow),
+                E("div", { style: { ...small, marginTop: 12 } }, 'Each score runs from 0 to 100 and shows how often you said you do that kind of thinking. A higher score is not automatically better.'),
                 btn('See my full result', 'cfi', true)),
-          cfiResult ? E("div", { className: "card", style: box },
+          latest ? E("div", { className: "card", style: box },
             E("div", { style: eyebrow }, 'Your change'),
             change === null
-              ? E("div", { style: small }, 'Take the test again after a few lessons to see how your thinking has changed.')
+              ? E("div", { style: small }, 'Take the CFI again after a few lessons to see how your scores have moved.')
               : E("div", null,
-                  E("div", { style: big }, change > 0 ? 'Clearer by ' + change + (change === 1 ? ' point' : ' points') : change < 0 ? 'More scattered by ' + Math.abs(change) + (change === -1 ? ' point' : ' points') : 'No change yet'),
-                  E("div", { style: { ...small, marginBottom: 14 } }, 'Compared with your first test.'),
-                  ways.map(wayRow)),
-            change === null ? btn('Take the test again', 'cfi', true) : null) : null,
+                  E("div", { style: big }, 'Coordination: ' + cfiPointsText(change.C)),
+                  E("div", { style: { ...small, marginBottom: 14 } }, 'Compared with your first CFI. Your change is how your Coordination score moved. The other scores are shown below for reference.'),
+                  CFI_MODE_ORDER.map(changeRow)),
+            change === null ? btn('Take the CFI again', 'cfi', true) : null) : null,
           hist.length > 0 ? E("div", { className: "card", style: box },
             E("div", { style: eyebrow }, 'Your tests'),
-            hist.slice().reverse().map((r, i) => E("div", { key: r.id || i, style: { display: 'flex', justifyContent: 'space-between', gap: 12, padding: '10px 0', borderBottom: `1px solid ${C.border}`, fontSize: 14, flexWrap: 'wrap' } },
+            hist.slice().reverse().map((r, i) => E("div", { key: r.id || i, style: rowStyle },
               E("span", { style: { color: C.text } }, new Date(r.created_at).toLocaleDateString()),
-              E("span", { style: { color: C.muted } }, plainBand(r.band) + ' · score ' + r.total_score)))) : null,
+              E("span", { style: { color: C.muted } }, CFI_SCALE_ORDER.map(s => CFI_MODES[s].name + ' ' + r.scores[s]).join(' · '))))) : null,
           E("div", { className: "card", style: box },
             E("div", { style: eyebrow }, 'Lessons'),
             E("div", { style: big }, completedLessons + (completedLessons === 1 ? ' lesson done' : ' lessons done')),
@@ -4866,28 +4374,27 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
       const isComplete = id => (lessonProgress[id] || 0) === 100;
       const inProgress = LESSONS.find(l => { const p = lessonProgress[l.id] || 0; return p > 0 && p < 100; });
       if (inProgress) {
-        return { lesson: inProgress, opportunityDim: cfiResult?.profile?.weakestDim || null,
+        return { lesson: inProgress, opportunityScale: cfiResult && cfiResult.lowest ? cfiResult.lowest : null,
           reason: `You're partway through this lesson. Finish it before starting something new: consistency matters more than coverage.` };
       }
-      if (!cfiResult || !cfiResult.plan) {
+      if (!cfiResult || !cfiResult.scores) {
         const first = LESSONS.find(l => !isComplete(l.id)) || LESSONS[0];
-        return { lesson: first, opportunityDim: null,
-          reason: `This is the best place to begin. Take the test and this suggestion will update to match how you think.` };
+        return { lesson: first, opportunityScale: null,
+          reason: `This is the best place to begin. Take the CFI and this suggestion will update to match your result.` };
       }
-      const { plan, profile } = cfiResult;
-      // plan.recommendedLessonIds = [1, <weakest-brain lesson id>]; weakest-first.
-      const ordered = [...plan.recommendedLessonIds].reverse();
-      const fromPlan = ordered.map(id => LESSONS.find(l => l.id === id)).filter(Boolean).find(l => !isComplete(l.id));
+      // Foundation first, then the lesson that practises the scale the person reported lowest (see cfiPractice).
+      const picks = Array.from(new Set([1, cfiResult.lessonId]));
+      const ordered = [...picks].reverse();
+      const fromPicks = ordered.map(id => LESSONS.find(l => l.id === id)).filter(Boolean).find(l => !isComplete(l.id));
       const nextInCurriculum = LESSONS.find(l => !isComplete(l.id));
-      const lesson = fromPlan || nextInCurriculum || LESSONS[LESSONS.length - 1];
-      const weakestName = CFI_DIM_LABELS[profile.weakestDim];
-      const matchesOpportunity = lesson.brain === profile.weakestBrain;
+      const lesson = fromPicks || nextInCurriculum || LESSONS[LESSONS.length - 1];
+      const lowest = CFI_MODES[cfiResult.lowest];
       let reason;
-      if (matchesOpportunity) reason = `${weakestName} is the way of thinking you could practise most. ${plan.dailyExercise}`;
-      else if (lesson.id === 1) reason = `This lesson builds the foundation every later lesson depends on, including the practice that targets ${weakestName.toLowerCase()}.`;
-      else if (!fromPlan && nextInCurriculum) reason = `You have finished the lessons picked for you. This is the next lesson, helping all four ways of thinking work together.`;
+      if (lesson.id === cfiResult.lessonId) reason = `${lowest.name} is the score you reported lowest, so this lesson is a good place to practise it. ${lowest.practice}`;
+      else if (lesson.id === 1) reason = `This lesson builds the foundation every later lesson depends on, including the practice for ${lowest.name.toLowerCase()}.`;
+      else if (!fromPicks && nextInCurriculum) reason = `You have finished the lessons picked for you. This is the next lesson in the course.`;
       else reason = `This is the most useful next step for you right now.`;
-      return { lesson, opportunityDim: profile.weakestDim, reason };
+      return { lesson, opportunityScale: cfiResult.lowest, reason };
     }
 
     // Five-step training path. Only marks a step complete/current when real
@@ -4903,7 +4410,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
     // ── Full Academy homepage (Sections 1–10), rendered above the lesson
     // library when the person is on the Lessons list view. ──────────────
     function AcademyHome({ setView, user, setShowAuth, cfiResult, cfiHistory = [], lessonProgress, isPro, onStartLesson, onUpgrade }) {
-      const hasCFI = !!(cfiResult && cfiResult.dimensionReports);
+      const hasCFI = !!(cfiResult && cfiResult.scores);
       const rec = getAcademyRecommendation(cfiResult, lessonProgress);
       const completedCount = Object.values(lessonProgress).filter(v => v === 100).length;
       const inProgressLesson = LESSONS.find(l => { const p = lessonProgress[l.id] || 0; return p > 0 && p < 100; });
@@ -4919,8 +4426,8 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
           React.createElement("div", { style: { marginBottom: 28 } },
             React.createElement(CPEyebrow, null, 'Lessons'),
             React.createElement("h1", { style: { ...syne, fontSize: 'clamp(22px,4.5vw,30px)', fontWeight: 800, color: CP.ink, marginBottom: 12, lineHeight: 1.15 } }, 'Lessons to help you think better'),
-            React.createElement("div", { style: { fontSize: 14, color: CP.muted, lineHeight: 1.7, maxWidth: 520, marginBottom: 16 } }, hasCFI ? 'Short lessons you can do at your own pace. We picked the best place to start for you.' : 'Short lessons you can do at your own pace. Take the test first and we will suggest where to start.'),
-            !hasCFI ? React.createElement(CPButton, { onClick: () => setView('cfi') }, 'Take the test') : null,
+            React.createElement("div", { style: { fontSize: 14, color: CP.muted, lineHeight: 1.7, maxWidth: 520, marginBottom: 16 } }, hasCFI ? 'Short lessons you can do at your own pace. We picked the best place to start for you.' : 'Short lessons you can do at your own pace. Take the CFI first and we will suggest where to start.'),
+            !hasCFI ? React.createElement(CPButton, { onClick: () => setView('cfi') }, 'Take the CFI') : null,
             completedCount > 0 ? React.createElement("div", { style: { ...mono, fontSize: 11, letterSpacing: 1, color: CP.goldDeep, marginTop: 12 } }, completedCount + ' OF ' + LESSONS.length + ' LESSONS DONE') : null
           ),
           React.createElement(CPCard, { style: { padding: '28px 26px', marginBottom: 20, borderColor: CP.borderStrong } },
@@ -5214,7 +4721,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
             ]})), React.createElement(Section, {num: "03", title: "How we use your information"}, React.createElement(UL, {items: [
               'To create and manage your account and provide access to the platform.',
               'To deliver the lessons and track your progress.',
-              'To create your result and give you personalised insights from the test.',
+              'To create your result and give you personalised insights from the CFI.',
               'To provide team features, enabling team owners to see completion status and aggregate team results.',
               'To process payments and manage subscription access.',
               'To send transactional and, where consented, promotional communications.',
@@ -5241,8 +4748,8 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
       const TermsContent = () => (
         React.createElement("div", null, React.createElement(Section, {num: "01", title: "Acceptance of terms"}, React.createElement(P, null, 'By accessing or using the NeuralFusion platform at tryneuralfusion.com, you agree to be bound by these Terms and Conditions. If you do not agree, you must not access or use the platform.'), React.createElement(P, null, 'These Terms constitute a legally binding agreement between you and', React.createElement("strong", {style: {color:C.text}}, 'Life Edet'), ', the developer and operator of NeuralFusion. If using the platform on behalf of an organisation, you represent that you have authority to bind that organisation.')), React.createElement(Section, {num: "02", title: "Description of service"}, React.createElement(P, null, 'NeuralFusion is a thinking-skills platform delivering:'), React.createElement(UL, {items: [
               'A structured 5-lesson, 7-week programme.',
-              'The Thinking Clarity Test (CFI) Edition 2.0 assessment.',
-              'A personal result across five areas of thinking.',
+              'The Cognitive Fragmentation Index (CFI-2.0): 40 questions, about 8 minutes.',
+              'A personal result: four thinking-mode scores and a Coordination score.',
               'Team features: create a team, share one team link, run the assessment and training programme together, and see aggregate team results.',
             ]})), React.createElement(Section, {num: "03", title: "Account Registration"}, React.createElement(P, null, 'You agree to provide accurate information, maintain the security of your credentials, notify us promptly of any unauthorised access, and accept responsibility for all activity under your account.')), React.createElement(Section, {num: "04", title: "Subscription & Payments"}, React.createElement(P, null, React.createElement("strong", {style: {color:C.text}}, 'Pro Access:'), 'Full access requires payment of the current Pro fee, as displayed on the platform. Payments are processed via Paystack. Pricing may be updated by the platform administrator with reasonable notice.'), React.createElement(P, null, React.createElement("strong", {style: {color:C.text}}, 'Refunds:'), 'Due to the digital nature of platform content, all sales are generally final. Refund requests are considered on a case-by-case basis within 7 days of purchase where the platform has not been substantially accessed.')), React.createElement(Section, {num: "05", title: "Teams"}, React.createElement(P, null, 'Team owners agree to use the platform for legitimate organisational training purposes, share the team link responsibly, and comply with all applicable employment, data protection, and privacy laws when asking people to take assessments.'), React.createElement(HB, {title: "Participant Consent"}, 'Team owners are responsible for obtaining appropriate consent from participants before asking them to take the test and for complying with any applicable workplace data collection obligations in their jurisdiction.')), React.createElement(Section, {num: "06", title: "Permitted Use & Restrictions"}, React.createElement(P, null, 'You must not:'), React.createElement(UL, {items: [
               'Reproduce, distribute, or create derivative works of the platform content without written permission.',
@@ -5311,7 +4818,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
     function Footer({ setView }) {
       const links = [
         { label:'Home', v:'home' },
-        { label:'Take the test', v:'cfi' },
+        { label:'Take the CFI', v:'cfi' },
         { label:'Lessons', v:'lessons' },
         { label:'My progress', v:'analytics' },
         { label:'Decisions', v:'decisions' },
@@ -5411,13 +4918,13 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
         try {
           const [usersRes, cfiRes] = await Promise.all([
             sb.from('profiles').select('*').order('created_at', { ascending: false }),
-            sb.from('cfi_results').select('*').order('created_at', { ascending: false }),
+            sb.from('cfi2_results').select('*').order('created_at', { ascending: false }),
           ]);
           // Surface load errors instead of silently showing empty/stale data:
           // a blocked select (e.g. an RLS policy issue) previously failed silently
           // here, making the dashboard look correct while quietly showing nothing.
           if (usersRes.error) { console.error('[ADMIN LOAD ERROR] profiles select failed:', usersRes.error); showMsg('Could not load users: ' + usersRes.error.message, 'error'); }
-          if (cfiRes.error)   { console.error('[ADMIN LOAD ERROR] cfi_results select failed:', cfiRes.error);   showMsg('Could not load CFI results: ' + cfiRes.error.message, 'error'); }
+          if (cfiRes.error)   { console.error('[ADMIN LOAD ERROR] cfi2_results select failed:', cfiRes.error);   showMsg('Could not load CFI results: ' + cfiRes.error.message, 'error'); }
           setUsers(usersRes.data || []);
           setCfiData(cfiRes.data || []);
           setLastLoaded(new Date());
@@ -5472,7 +4979,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
       };
 
       const deleteCFIResult = async (id) => {
-        const { error } = await sb.from('cfi_results').delete().eq('id', id);
+        const { error } = await sb.from('cfi2_results').delete().eq('id', id);
         if (!error) { setCfiData(d => d.filter(x => x.id !== id)); showMsg('CFI result deleted.', 'success'); }
         else { console.error('[deleteCFIResult]', error); showMsg('Could not delete CFI result: ' + error.message, 'error'); }
       };
@@ -5502,54 +5009,36 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
       // and band distribution only reflect finished, scored assessments.
       // Historical rows saved before the `status` column existed default to
       // 'completed' (see migration notes), so they're included here too.
-      // Treat a row as a real result if it actually has a score, not only if
-      // status says 'completed'. A row can be fully scored client-side but
-      // still carry a stale/incorrect status (e.g. a partial write during
-      // save), which previously made it vanish from this view entirely
-      // even though the data was sitting right there.
-      const completedCFI     = cfiData.filter(r => r.status === 'completed' || (r.status !== 'in_progress' && r.total_score != null));
+      // Only 'completed' rows carry scores. Every row in cfi2_results is CFI-2.0, so scored aggregates
+      // can never mix instruments. Old CFI-1.0 data stays in the old table and is never read here.
+      const completedCFI     = cfiData.filter(r => r.status === 'completed');
       const uniqueCFIUserIds = new Set(completedCFI.map(r => r.user_id).filter(Boolean));
       // NeuralFusion 100 = count of unique authenticated users with at least one
       // completed CFI assessment, capped for display at the campaign target.
-      // Computed dynamically from cfi_results every load, never hard-coded.
+      // Computed dynamically from cfi2_results every load, never hard-coded.
       const nf100Count = uniqueCFIUserIds.size;
-      const filteredCFI = completedCFI.filter(r => cfiFilter === 'all' || r.band === cfiFilter);
-      // IMPORTANT: rows saved before this correction (assessment_version is null/legacy) used a
-      // different item set and a ~16–80 raw range: they are NOT on the CFI-1.0 13–65 scale.
-      // "Completed CFI assessments" / "Unique CFI participants" above are legitimate headcounts
-      // across all versions, but any *scored* aggregate (band distribution, average/median CFI,
-      // retest deltas, band movement) must never mix scales, so those are scoped to CFI-1.0 only.
-      const cfiV1 = completedCFI.filter(r => r.assessment_version === CFI_VERSION);
-      const legacyCFICount = completedCFI.length - cfiV1.length;
-      const bandCounts  = cfiV1.reduce((a,r) => { a[r.band] = (a[r.band]||0)+1; return a; }, {});
-      const bandColors  = { 'Integrated':AC.success,'Moderate fragmentation':AC.goldDark,'High fragmentation':'#B45309','Critical fragmentation':AC.error };
+      const cfiRowScores = (r) => ({ A: r.analytical, I: r.intuitive, S: r.associative, R: r.reflective, C: r.coordination });
+      const cfiRowFlagged = (r) => !!(r.flags && (r.flags.possible_yes_saying || r.flags.straight_lining));
+      const cfiScored = completedCFI.filter(r => CFI_SCALE_ORDER.every(s => Number.isInteger(cfiRowScores(r)[s])));
+      const flaggedCFI = cfiScored.filter(cfiRowFlagged);
+      const consentedCFI = cfiScored.filter(r => r.consent_research);
+      const filteredCFI = completedCFI.filter(r => cfiFilter === 'all' || (cfiFilter === 'flagged' && cfiRowFlagged(r)) || (cfiFilter === 'research' && r.consent_research));
       const msgColor = actionType === 'success' ? AC.success : actionType === 'error' ? AC.error : AC.goldDark;
 
-      // ── Longitudinal admin stats (avg/median CFI, retest outcomes, band movement) ──
-      // Uses only completed CFI-1.0 rows with a real total_score. Participants with
-      // multiple assessments are counted once each in "retested"; every row after their
-      // first counts toward improved/no-change/worsened by comparing score_change (falls
-      // back to a direct diff against the row's own previous_assessment_id if unset).
-      const scores = cfiV1.map(r => r.total_score).filter(v => v != null).sort((a,b)=>a-b);
-      const avgCFI = scores.length ? Math.round((scores.reduce((a,b)=>a+b,0)/scores.length)*10)/10 : null;
-      const medianCFI = scores.length ? (scores.length % 2 ? scores[(scores.length-1)/2] : Math.round(((scores[scores.length/2-1]+scores[scores.length/2])/2)*10)/10) : null;
+      // ── Scale averages and retest change (CFI-2.0, raw 0-100 scores, no bands or norms) ──
+      // Participants with several assessments count once each: change = latest minus first, per scale.
+      const avgByScale = {};
+      CFI_SCALE_ORDER.forEach(s => { avgByScale[s] = cfiScored.length ? Math.round(cfiScored.reduce((a, r) => a + cfiRowScores(r)[s], 0) / cfiScored.length * 10) / 10 : null; });
       const byUser = {};
-      cfiV1.forEach(r => { (byUser[r.user_id] = byUser[r.user_id] || []).push(r); });
+      cfiScored.forEach(r => { (byUser[r.user_id] = byUser[r.user_id] || []).push(r); });
       const retestedUserIds = Object.keys(byUser).filter(uid => byUser[uid].length > 1);
-      let improved = 0, noChange = 0, worsened = 0, changeSum = 0, changeCount = 0;
-      let bandImproved = 0, bandWorsened = 0, bandSame = 0;
-      const bandRank = { 'Integrated':0, 'Moderate fragmentation':1, 'High fragmentation':2, 'Critical fragmentation':3 };
-      Object.values(byUser).forEach(rows => {
-        const sorted = [...rows].sort((a,b)=> new Date(a.created_at) - new Date(b.created_at));
-        for (let i=1; i<sorted.length; i++) {
-          const change = sorted[i].score_change != null ? sorted[i].score_change : (sorted[i].total_score - sorted[i-1].total_score);
-          if (change < 0) improved++; else if (change > 0) worsened++; else noChange++;
-          changeSum += change; changeCount++;
-          const r0 = bandRank[sorted[i-1].band], r1 = bandRank[sorted[i].band];
-          if (r0 != null && r1 != null) { if (r1 < r0) bandImproved++; else if (r1 > r0) bandWorsened++; else bandSame++; }
-        }
+      const avgChangeByScale = {};
+      CFI_SCALE_ORDER.forEach(s => {
+        let sum = 0;
+        retestedUserIds.forEach(uid => { const rows = [...byUser[uid]].sort((a, b) => new Date(a.created_at) - new Date(b.created_at)); sum += cfiRowScores(rows[rows.length - 1])[s] - cfiRowScores(rows[0])[s]; });
+        avgChangeByScale[s] = retestedUserIds.length ? Math.round(sum / retestedUserIds.length * 10) / 10 : null;
       });
-      const avgChangeRetested = changeCount ? Math.round((changeSum/changeCount)*10)/10 : null;
+      const fmtChange = (v) => v == null ? '-' : (v > 0 ? '+' : '') + v;
 
       return (
         React.createElement("div", {className: "nf-admin", style: { paddingTop:80, paddingBottom:60, minHeight:'100vh', background:AC.bg, color:AC.text, fontFamily:AC.font }}, React.createElement("div", {style: { maxWidth:1280, margin:'0 auto', padding:'32px 24px' }}, React.createElement("div", {style: { display:'flex', alignItems:'flex-start', justifyContent:'space-between', flexWrap:'wrap', gap:16, marginBottom:32 }}, React.createElement("div", null, React.createElement("div", {style: { ...mono, fontSize:13, letterSpacing:'0.04em', color:C.cyan, marginBottom:8 }}, 'ADMIN PORTAL · NEURALFUSION'), React.createElement("div", {style: { ...syne, fontSize:30, fontWeight:800, color:C.text, marginBottom:6, overflowWrap:'break-word', minWidth:0}}, 'Control Dashboard'), React.createElement("div", {style: { fontSize:15, color:C.muted }}, 'Signed in as', React.createElement("span", {style: { color:C.cyan }}, user?.email))), React.createElement("div", {style: { display:'flex', gap:10, alignItems:'center' }}, actionMsg && (
@@ -5582,25 +5071,17 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
                         { label:'FREE users',        value:users.filter(u=>!u.is_pro).length, color:AC.muted, icon:'◰' },
                       ].map((s,i) => (
                         React.createElement("div", {key: i, className: "card bento-shimmer", style: { padding:'24px 20px' }}, React.createElement("div", {style: { display:'flex', justifyContent:'space-between', alignItems:'flex-start', marginBottom:12 }}, React.createElement("div", {style: { ...mono, fontSize:13, letterSpacing:'0.04em', color:AC.muted }}, s.label), React.createElement("div", {style: { ...mono, fontSize:16, color:s.color }}, s.icon)), React.createElement("div", {style: { ...syne, fontSize:16, fontWeight:800, color:s.color, lineHeight:1.2, letterSpacing:'-0.02em', overflowWrap:'break-word', minWidth:0}}, s.value))
-                      ))), React.createElement("div", {style: { display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(min(320px,100%),1fr))', gap:24, marginBottom:24 }}, React.createElement("div", {className: "card", style: { padding:'28px' }}, React.createElement("div", {style: { ...mono, fontSize:13, letterSpacing:'0.04em', color:C.cyan, marginBottom:20 }}, 'CFI band distribution'), Object.keys(bandColors).map(band => {
-                          const count = bandCounts[band] || 0;
-                          const pct   = cfiV1.length ? Math.round(count/cfiV1.length*100) : 0;
-                          return (
-                            React.createElement("div", {key: band, style: { marginBottom:16 }}, React.createElement("div", {style: { display:'flex', justifyContent:'space-between', marginBottom:6 }}, React.createElement("div", {style: { fontSize:14, color:C.muted }}, band), React.createElement("div", {style: { ...mono, fontSize:13, color:bandColors[band] }}, count, '(', pct, '%)')), React.createElement("div", {style: { height:10, background:AC.surfaceAlt, border:`1px solid ${AC.border}`, borderRadius:6, overflow:'hidden' }}, React.createElement("div", {style: { width:`${pct}%`, height:'100%', background:bandColors[band], borderRadius:6, transition:'width 0.8s ease' }})))
-                          );
-                        }), cfiV1.length === 0 && React.createElement("div", {style: { color:C.dim, fontSize:15 }}, 'No CFI-1.0 data yet.'), legacyCFICount > 0 && React.createElement("div", {style: { marginTop:12, ...mono, fontSize:13, color:C.dim }}, legacyCFICount, ' legacy (pre-correction) assessment(s) excluded: different scale, not shown here.')), React.createElement("div", {className: "card", style: { padding:'28px' }}, React.createElement("div", {style: { ...mono, fontSize:13, letterSpacing:'0.04em', color:C.cyan, marginBottom:20 }}, 'Retest outcomes · CFI-1.0'), [
-                          { label:'Average CFI', value: avgCFI ?? '-' },
-                          { label:'Median CFI', value: medianCFI ?? '-' },
+                      ))), React.createElement("div", {style: { display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(min(320px,100%),1fr))', gap:24, marginBottom:24 }}, React.createElement("div", {className: "card", style: { padding:'28px' }}, React.createElement("div", {style: { ...mono, fontSize:13, letterSpacing:'0.04em', color:C.cyan, marginBottom:20 }}, 'Average score by scale · CFI-2.0'), CFI_SCALE_ORDER.map(s => React.createElement("div", {key: s, style: { marginBottom:16 }}, React.createElement("div", {style: { display:'flex', justifyContent:'space-between', marginBottom:6 }}, React.createElement("div", {style: { fontSize:14, color:C.muted }}, CFI_MODES[s].name), React.createElement("div", {style: { ...mono, fontSize:13, color:AC.goldDark }}, avgByScale[s] ?? '-')), React.createElement("div", {style: { height:10, background:AC.surfaceAlt, border:`1px solid ${AC.border}`, borderRadius:6, overflow:'hidden' }}, React.createElement("div", {style: { width:`${avgByScale[s] || 0}%`, height:'100%', background:AC.goldDark, borderRadius:6, transition:'width 0.8s ease' }})))), cfiScored.length === 0 && React.createElement("div", {style: { color:C.dim, fontSize:15 }}, 'No CFI-2.0 data yet.'), React.createElement("div", {style: { marginTop:12, ...mono, fontSize:13, color:C.dim }}, 'Average of 0-100 scale scores across ', cfiScored.length, ' completed assessment(s). Raw scores only: no bands and no norms yet.')), React.createElement("div", {className: "card", style: { padding:'28px' }}, React.createElement("div", {style: { ...mono, fontSize:13, letterSpacing:'0.04em', color:C.cyan, marginBottom:20 }}, 'Retests and response quality · CFI-2.0'), [
                           { label:'Participants with multiple assessments', value: retestedUserIds.length },
-                          { label:'Average change among retested', value: avgChangeRetested != null ? (avgChangeRetested>0?'+':'')+avgChangeRetested : '-' },
-                          { label:'Improved (lower CFI)', value: improved, color:AC.success },
-                          { label:'No change', value: noChange, color:C.muted },
-                          { label:'Worsened (higher CFI)', value: worsened, color:AC.error },
-                          { label:'Band improved', value: bandImproved, color:AC.success },
-                          { label:'Band unchanged', value: bandSame, color:C.muted },
-                          { label:'Band worsened', value: bandWorsened, color:AC.error },
+                          { label:'Average Coordination change, first to latest', value: fmtChange(avgChangeByScale.C) },
+                          { label:'Average Analytical change', value: fmtChange(avgChangeByScale.A) },
+                          { label:'Average Intuitive change', value: fmtChange(avgChangeByScale.I) },
+                          { label:'Average Associative change', value: fmtChange(avgChangeByScale.S) },
+                          { label:'Average Reflective change', value: fmtChange(avgChangeByScale.R) },
+                          { label:'Possible yes-saying or identical answers', value: flaggedCFI.length, color:AC.goldDark },
+                          { label:'Agreed to research use', value: consentedCFI.length },
                         ].map((s,i) => (
-                          React.createElement("div", {key: i, style: { display:'flex', justifyContent:'space-between', padding:'6px 0', borderBottom: i<9?`1px solid ${C.border}`:'none' }}, React.createElement("div", {style: { fontSize:14, color:C.muted }}, s.label), React.createElement("div", {style: { ...mono, fontSize:14, color: s.color || C.text }}, s.value))
+                          React.createElement("div", {key: i, style: { display:'flex', justifyContent:'space-between', padding:'6px 0', borderBottom: i<7?`1px solid ${C.border}`:'none' }}, React.createElement("div", {style: { fontSize:14, color:C.muted }}, s.label), React.createElement("div", {style: { ...mono, fontSize:14, color: s.color || C.text }}, s.value))
                         ))), React.createElement("div", {className: "card", style: { padding:'28px' }}, React.createElement("div", {style: { ...mono, fontSize:13, letterSpacing:'0.04em', color:C.cyan, marginBottom:20 }}, 'Recent signups'), users.slice(0,8).map((u,i) => (
                           React.createElement("div", {key: u.id, style: { display:'flex', alignItems:'center', gap:12, padding:'10px 0', borderBottom:`1px solid ${C.border}` }}, React.createElement("div", {style: {
                               width:32, height:32, borderRadius:'50%',
@@ -5659,25 +5140,25 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
                               }}, '✕')))
                         )))))
                 ), tab === 'cfi' && (
-                  React.createElement("div", null, React.createElement("div", {style: { display:'flex', gap:12, marginBottom:20, flexWrap:'wrap', alignItems:'center' }}, React.createElement("div", {style: { display:'flex', gap:4, background:C.deep, padding:4, borderRadius:8, flexWrap:'wrap' }}, ['all','Integrated','Moderate fragmentation','High fragmentation','Critical fragmentation'].map(f => (
+                  React.createElement("div", null, React.createElement("div", {style: { display:'flex', gap:12, marginBottom:20, flexWrap:'wrap', alignItems:'center' }}, React.createElement("div", {style: { display:'flex', gap:4, background:C.deep, padding:4, borderRadius:8, flexWrap:'wrap' }}, ['all','flagged','research'].map(f => (
                           React.createElement("button", {key: f, onClick: () => setCfiFilter(f), style: {
                             padding:'7px 12px', background:cfiFilter===f?C.surface:'transparent',
                             border:cfiFilter===f?`1px solid ${C.borderBright}`:'1px solid transparent',
                             color:cfiFilter===f?C.cyan:C.muted,
                             ...mono, fontSize:12, letterSpacing:'0.04em', cursor:'pointer', borderRadius:8,
-                          }}, f === 'all' ? 'ALL' : f.toUpperCase().split(' ')[0])
-                        ))), React.createElement("div", {style: { ...mono, fontSize:12, color:C.muted, letterSpacing:'0.04em' }}, filteredCFI.length, 'RESULTS')), React.createElement("div", {className: "card", style: { overflow:'hidden' }}, React.createElement("div", {style: { display:'grid', gridTemplateColumns:'1.4fr 90px 200px 140px 120px 110px', gap:12, padding:'14px 20px', borderBottom:`1px solid ${C.border}`, background:C.deep }}, ['USER ID','SCORE','BAND','DOMINANT','DATE','ACTION'].map(h => (
+                          }}, f === 'all' ? 'ALL' : f === 'flagged' ? 'FLAGGED' : 'RESEARCH OK')
+                        ))), React.createElement("div", {style: { ...mono, fontSize:12, color:C.muted, letterSpacing:'0.04em' }}, filteredCFI.length, 'RESULTS')), React.createElement("div", {className: "card", style: { overflow:'hidden' }}, React.createElement("div", {style: { display:'grid', gridTemplateColumns:'1.4fr 300px 90px 110px 120px 110px', gap:12, padding:'14px 20px', borderBottom:`1px solid ${C.border}`, background:C.deep }}, ['USER ID','SCORES (A I S R C)','FLAGS','RESEARCH','DATE','ACTION'].map(h => (
                           React.createElement("div", {key: h, style: { ...mono, fontSize:13, letterSpacing:'0.04em', color:C.muted }}, h)
                         ))), React.createElement("div", {style: { maxHeight:520, overflowY:'auto' }}, filteredCFI.length === 0 && (
-                          React.createElement("div", {style: { padding:'40px', textAlign:'center', color:C.dim, fontSize:15 }}, 'No CFI results', cfiFilter !== 'all' ? ' for this band' : '', '.')
+                          React.createElement("div", {style: { padding:'40px', textAlign:'center', color:C.dim, fontSize:15 }}, 'No CFI results', cfiFilter !== 'all' ? ' for this filter' : '', '.')
                         ), filteredCFI.map((r,i) => {
-                          const bColor = bandColors[r.band] || C.cyan;
+                          const rs = cfiRowScores(r); const flagged = cfiRowFlagged(r);
                           return (
                             React.createElement("div", {key: r.id, style: {
-                              display:'grid', gridTemplateColumns:'1.4fr 90px 200px 140px 120px 110px', gap:12,
+                              display:'grid', gridTemplateColumns:'1.4fr 300px 90px 110px 120px 110px', gap:12,
                               padding:'14px 20px', borderBottom:`1px solid ${C.border}`,
                               transition:'background 0.15s',
-                            }, onMouseEnter: e => e.currentTarget.style.background=C.deep, onMouseLeave: e => e.currentTarget.style.background='transparent'}, React.createElement("div", {style: { ...mono, fontSize:12, color:C.muted, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}, r.user_id?.slice(0,18), '...'), React.createElement("div", {style: { ...syne, fontSize:16, fontWeight:800, color:bColor, overflowWrap:'break-word', minWidth:0}}, r.total_score), React.createElement("div", null, React.createElement("span", {style: { ...mono, fontSize:12, color:bColor, background:`${bColor}12`, border:`1px solid ${bColor}30`, padding:'4px 10px', borderRadius:100 }}, r.band?.split(' ')[0])), React.createElement("div", {style: { fontSize:14, color:C.muted, textTransform:'capitalize' }}, r.dominant_brain || r.dominantBrain || 'N/A'), React.createElement("div", {style: { ...mono, fontSize:12, color:C.dim }}, r.created_at ? new Date(r.created_at).toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'2-digit'}) : '--'), React.createElement("div", null, React.createElement("button", {onClick: () => deleteCFIResult(r.id), style: {
+                            }, onMouseEnter: e => e.currentTarget.style.background=C.deep, onMouseLeave: e => e.currentTarget.style.background='transparent'}, React.createElement("div", {style: { ...mono, fontSize:12, color:C.muted, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}, r.user_id?.slice(0,18), '...'), React.createElement("div", {style: { ...mono, fontSize:12, color:C.text, minWidth:0, overflowWrap:'break-word' }}, CFI_SCALE_ORDER.map(s => s + ' ' + (rs[s] ?? '-')).join('   ')), React.createElement("div", null, React.createElement("span", {style: { ...mono, fontSize:12, color: flagged ? AC.error : C.dim }}, flagged ? 'check' : 'ok')), React.createElement("div", {style: { fontSize:14, color:C.muted }}, r.consent_research ? 'Yes' : 'No'), React.createElement("div", {style: { ...mono, fontSize:12, color:C.dim }}, r.created_at ? new Date(r.created_at).toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'2-digit'}) : '--'), React.createElement("div", null, React.createElement("button", {onClick: () => deleteCFIResult(r.id), style: {
                                   ...mono, fontSize:12, padding:'8px 12px', cursor:'pointer',
                                   background:'#FEF2F2', border:'1px solid #FCA5A5',
                                   color:AC.error, borderRadius:8,
@@ -5757,7 +5238,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
         ],
         practice:["'Sit upright. We are going to move through all four ways of thinking in sequence. I will time each one. Your topic is your day so far: what has happened since you woke up.'","ANALYTICAL: 60 sec: 'Facts only. What happened today? No feelings, no interpretations.' [60 sec silence] 'Stop.'","INTUITIVE: 60 sec: 'Gut only. What does today feel like overall? One word or one sentence.' [60 sec] 'Stop.'","ASSOCIATIVE: 60 sec: 'Connections. What does today remind you of? What ideas or images come to mind?' [60 sec] 'Stop.'","REFLECTIVE: 60 sec: 'Meaning. What is today teaching you?' [60 sec] 'Stop.'","'Notice what that felt like. Each mode has a different mental texture. Now repeat the drill silently and independently. Same topic. 7 minutes total.'","After the independent drill, ask: 'Was the second time faster? Did any mode feel different the second time?'"],
         debrief:['Which mode is hardest for you to enter deliberately? Which is hardest to exit?','What happened in your body when you shifted from Analytical to Intuitive?','Can you identify one situation this week where the Emergency Reset would have helped?','What is the difference between "thinking" and "reacting" now that you have experienced it?','Where in your professional role do you need the most mode control?'],
-        watchpoints:['Participants from highly analytical environments (engineering, finance, law) may resist the Intuitive step. Let the discomfort stand as data; it is Mode Rigidity (Dim B on the CFI).','If group energy drops during the independent drill, that is not failure; it is concentration. Silence is productive.','The Emergency Reset pair exercise may surface real distress. Monitor the room. If visibly distressed, acknowledge privately after the session.','Some will try to combine all four modes simultaneously; sequential activation is the point. Fusion comes later. Control comes first.'],
+        watchpoints:['Participants from highly analytical environments (engineering, finance, law) may resist the Intuitive step. Let the discomfort stand as data; it is a sign you may rely on one way of thinking (Coordination on the CFI).','If group energy drops during the independent drill, that is not failure; it is concentration. Silence is productive.','The Emergency Reset pair exercise may surface real distress. Monitor the room. If visibly distressed, acknowledge privately after the session.','Some will try to combine all four modes simultaneously; sequential activation is the point. Fusion comes later. Control comes first.'],
         assignment:'48-hour assignment: Practice the Switching Drill once daily. Identify one moment where you used the Emergency Reset protocol. Arrive to Lesson Three with a real decision you are currently facing.',
         keyInsight:'Mental freedom is not doing whatever you feel; it is choosing which faculty of your mind to lead with in any given moment.',
       },
@@ -6112,43 +5593,16 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
             setIsPro(isAdmin || !!prof.is_pro);
           }
           setLessonProgress(lp);
-          // Load full CFI history from Supabase (needed for change, not just the latest result)
-          // IMPORTANT: only 'completed' rows have total_score/band/dim_scores populated.
-          // 'in_progress' draft rows (auto-saved while taking the assessment) do not,
-          // and including them here was causing Analytics to render blank whenever the
-          // most recent row for a user happened to be an unfinished attempt.
-          const { data: cfiRows, error: cfiErr } = await sb.from('cfi_results').select('*').eq('user_id', u.id).eq('status', 'completed').order('created_at', { ascending: false });
-          if (cfiErr) console.error('[ANALYTICS LOAD ERROR] cfi_results fetch failed:', cfiErr);
+          // Load full CFI-2.0 history from Supabase (needed for change, not just the latest result).
+          // Only 'completed' rows carry scores: 'in_progress' draft rows (auto-saved while taking the
+          // assessment) do not, and including them would blank My progress whenever the most recent
+          // row happened to be an unfinished attempt.
+          const { data: cfiRows, error: cfiErr } = await sb.from('cfi2_results').select('*').eq('user_id', u.id).eq('status', 'completed').order('created_at', { ascending: false });
+          if (cfiErr) console.error('[ANALYTICS LOAD ERROR] cfi2_results fetch failed:', cfiErr);
           if (cfiRows && cfiRows.length > 0) {
             setCfiHistory([...cfiRows].reverse()); // oldest → newest
-            const r = cfiRows[0];
-            const dimScores = r.dim_scores || {};
-            // Keys here are the A/I/S/R/E dimension letters (matches dimScores as stored
-            // by finalize()), not brain names, and E is excluded, same as the fresh-quiz path.
-            const brainMap = { A:'analytical', I:'intuitive', S:'associative', R:'reflective' };
-            // FIX (audit finding #1): ascending sort: see matching comment in finalize()
-            // above. Lowest fragmentation score = dominant mode, consistently everywhere.
-            const sortedDims = Object.entries(dimScores).filter(([d]) => d !== 'E').sort((a,b)=>a[1]-b[1]);
-            const dominantBrain = brainMap[sortedDims[0]?.[0]] || 'analytical';
-            const total = r.total_score;
-            // Same CFI-1.0 bands (13–65 scale) as the fresh-quiz path.
-            let desc, recommendation;
-            if (total<=17) { desc='Low fragmentation. Your ways of thinking are well-coordinated.'; recommendation='Maintain your daily integration protocol. Advance to Lessons 4–5 for fluency installation.'; }
-            else if (total<=28) { desc='Some fragmentation detected. Specific modes need targeted training.'; recommendation='Focus on mode activation (Lesson 2). Daily mode-switching drills for 14 days.'; }
-            else if (total<=40) { desc='Significant fragmentation. Integration is inconsistent under pressure.'; recommendation='Begin from Lesson 1. Run the Core Loop daily.'; }
-            else { desc='Severe fragmentation. Decision-making and clarity are compromised.'; recommendation='Start Lesson 1 immediately and track your CFI weekly.'; }
-            // Rebuild the same enriched fields the fresh-quiz path builds (integrationScore,
-            // dimensionReports, profile, plan) so personalization works on every reload, not
-            // only immediately after finishing the assessment.
-            let integrationScore, dimensionReports, profile, plan;
-            try {
-              integrationScore = cfiIntegrationScore(total);
-              dimensionReports = {};
-              Object.keys(dimScores).forEach(d => { dimensionReports[d] = buildDimensionReport(d, dimScores[d]); });
-              profile = buildCognitiveProfile(dimensionReports, integrationScore, r.band);
-              plan = buildImprovementPlan(dimensionReports, r.band);
-            } catch(e) { console.error('[CFI ENRICH ON LOAD ERROR]', e); }
-            setCfiResult({ total, band: r.band, desc, recommendation, dimScores, dominantBrain, integrationScore, dimensionReports, profile, plan });
+            // Rebuild the latest result from exactly what was saved, so every reload shows the same result.
+            setCfiResult(cfiResultFromRow(cfiRows[0]));
           }
         } catch(e){ console.error('[LOAD USER ERROR]', e); }
         setAuthLoading(false);
@@ -6166,7 +5620,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
 
       const refreshCfiHistory = async () => {
         if (!user) return;
-        const { data, error } = await sb.from('cfi_results').select('*').eq('user_id', user.id).eq('status', 'completed').order('created_at', { ascending: false });
+        const { data, error } = await sb.from('cfi2_results').select('*').eq('user_id', user.id).eq('status', 'completed').order('created_at', { ascending: false });
         if (error) { console.error('[CFI HISTORY REFRESH ERROR]', error); return; }
         if (data) setCfiHistory([...data].reverse()); // oldest → newest, same shape as loadUser
       };
@@ -6252,13 +5706,13 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
   }
   const loadMyOrgs = async () => { const r = await rpc('my_organisations'); return Array.isArray(r) ? r : []; };
 
-  // CFI hook: app.js calls this after a completed CFI-1.0 save. Links (does not copy) the result
+  // CFI hook: app.js calls this after a completed CFI-2.0 save. Links (does not copy) the result
   // to the organisation the participant explicitly started from. Membership is re-checked in SQL.
   async function afterCfiSaved(resultId) {
     let ctx = null;
     try { ctx = JSON.parse(sessionStorage.getItem('nf_org_assess') || 'null'); } catch (_) {}
     if (!ctx || !resultId || Date.now() - ctx.t > 2 * 3600 * 1000) return;
-    const r = await rpc('link_cfi_result_to_org', { p_result_id: resultId, p_org: ctx.org });
+    const r = await rpc('link_cfi2_result_to_org', { p_result_id: resultId, p_org: ctx.org });
     if (r && r.ok) { ses.del('nf_org_assess'); track('cfi_completed', { organisation_id: ctx.org }); }
   }
 
@@ -6379,7 +5833,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
     const items = [
       ['How does my team join?', 'You create your team, then share one link. Each person opens it, creates an account, and goes straight into the assessment.'],
       ['What will each person do?', 'Each person completes the 13-item CFI (about four minutes), then does the five-lesson training programme, then retakes the CFI to see their own change.'],
-      ['What does the CFI measure, and what does it not?', 'It measures how consistently your four ways of thinking (analytical, intuitive, associative, reflective) work together, and your self-reported steadiness under pressure, on a 13 to 65 scale where lower means better coordinated. It does not measure intelligence, personality, health or job performance.'],
+      ['What does the CFI measure, and what does it not?', 'It measures how often you use four ways of thinking (analytical, intuitive, associative, reflective) when you work on a problem or decision, and how well you coordinate them, each on a 0 to 100 scale. It is a new instrument in development. It does not measure intelligence, personality, health or job performance.'],
       ['What will I see as the team owner?', 'Who has completed what, and aggregate team patterns once enough people have completed the CFI. Individual profiles stay private to each person.'],
       ['Can we measure development over time?', 'Yes. After the training, each person retakes the CFI. If they choose to share the retest, the team before-and-after appears under Insights once enough people have shared.'],
       ['What is the weekly challenge?', 'A short business scenario released each week. Each person works through the four ways of thinking and records a decision with their reasoning. You see who took part and how the team split, but not individual answers.'],
@@ -6393,21 +5847,20 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
         h('p', { style: { fontSize: 16, color: C.muted, lineHeight: 1.8, margin: '4px 0 16px' } }, a))));
   }
 
-  // ── Sample team report: FICTIONAL, display only. Mirrors the Team Results tab (org_team_results). ──
-  // TEAM_REPORT_THRESHOLD must match the unlock threshold configured in the database (5). Figures are internally
-  // consistent with CFI-1.0: total = (3*(A+I+S+R) + E) / 20 = (3*174 + 40) / 20 = 28.1, shown as 28 (Moderate band).
+  // ── Sample team report: FICTIONAL, display only. Mirrors the Team Results tab (org_team_results_cfi2). ──
+  // TEAM_REPORT_THRESHOLD must match the unlock threshold configured in the database (5).
+  // Figures are team averages of the five CFI-2.0 scale scores, each 0 to 100.
   const TEAM_REPORT_THRESHOLD = 5;
   const TEAM_SAMPLE = {
-    members: 10, completed: 8, avgTotal: 28,
-    dims: { analytical: 32, intuitive: 40, associative: 48, reflective: 54, integration: 40 },
-    bands: { 'Moderate fragmentation': 4, 'High fragmentation': 3 },
+    members: 10, completed: 8,
+    scores: { analytical: 64, intuitive: 58, associative: 49, reflective: 52, coordination: 55 },
   };
 
   function TeamsSampleReport() {
     nfjEnsureStyles();
     const d = TEAM_SAMPLE;
-    const modes = ['analytical', 'intuitive', 'associative', 'reflective'].sort((a, b) => d.dims[a] - d.dims[b]);
-    const lo = modes[0], hi = modes[modes.length - 1];
+    const keys = Object.keys(d.scores).slice().sort((a, b) => d.scores[a] - d.scores[b]);
+    const lo = keys[0], hi = keys[keys.length - 1];
     const row = (k, v) => h('div', { key: k, style: { display: 'flex', justifyContent: 'space-between', gap: 12, padding: '10px 0', borderBottom: '1px solid ' + C.border, fontSize: 16 } }, h('span', null, k), h('span', { style: mono }, String(v)));
     const note = (t) => h('div', { style: { fontSize: 15, color: C.muted, marginTop: 12, lineHeight: 1.6 } }, t);
     return h('details', { key: 'sample-report', id: 'nf-sample-report', style: { borderTop: '1px solid ' + C.border, borderBottom: '1px solid ' + C.border, marginBottom: 56, padding: '4px 0' } },
@@ -6415,19 +5868,16 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
       h('div', { style: { padding: '8px 0 20px' } },
         h('div', { role: 'note', style: { fontSize: 15, color: C.muted, lineHeight: 1.6, marginBottom: 16 } }, 'SAMPLE: a fictional team, not real data. This is the layout a team owner sees under Team Results.'),
         h('div', { style: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(min(200px,100%),1fr))', gap: 14, marginBottom: 20 } },
-          Stat('Team average CFI', d.avgTotal, 'Scale 13 to 65. Higher means more scattered thinking.'), Stat('Completed', d.completed + ' of ' + d.members), Stat('Instrument', CFI_VERSION)),
-        h('div', { style: card({ marginBottom: 20 }) }, h('div', { style: label }, 'Average fragmentation by way of thinking'),
-          Object.keys(DIM_LABELS).map((k) => row(DIM_LABELS[k], d.dims[k])),
-          note('Average dimension scores out of 100. Higher means more scattered thinking in that area. These describe thinking patterns across the team, not individuals and not performance.')),
-        h('div', { style: card({ marginBottom: 20 }) }, h('div', { style: label }, 'Band distribution'),
-          Object.keys(d.bands).map((b) => row(plainBand(b), d.bands[b])),
-          note('Counts below 2 are hidden to protect individuals, so the bands shown may not add up to everyone who completed.')),
+          Stat('Completed', d.completed + ' of ' + d.members), Stat('Instrument', CFI_VERSION)),
+        h('div', { style: card({ marginBottom: 20 }) }, h('div', { style: label }, 'Average score by scale'),
+          Object.keys(DIM_LABELS).map((k) => row(DIM_LABELS[k], d.scores[k])),
+          note('Team averages of 0 to 100 scale scores. A higher average means team members reported that kind of thinking more often, not that it is better. These describe thinking patterns across the team, not individuals and not performance.')),
         h('div', { style: card({ marginBottom: 20 }) }, h('div', { style: label }, 'How to read this'),
-          h('div', { style: { fontSize: 16, color: C.text, lineHeight: 1.8 } }, 'In this fictional team, ' + DIM_LABELS[hi].toLowerCase() + ' thinking has the highest average fragmentation (' + d.dims[hi] + ') and ' + DIM_LABELS[lo].toLowerCase() + ' thinking the lowest (' + d.dims[lo] + '). That is an observation about team thinking patterns, not a judgment of any person and not a prediction of results.'),
-          note('A prompt for team discussion, not a measured result: run a real team decision through the Decision Room and give the step for the highest-scoring mode extra time.')),
+          h('div', { style: { fontSize: 16, color: C.text, lineHeight: 1.8 } }, 'In this fictional team, ' + DIM_LABELS[hi].toLowerCase() + ' has the highest average (' + d.scores[hi] + ') and ' + DIM_LABELS[lo].toLowerCase() + ' the lowest (' + d.scores[lo] + '). That is an observation about team thinking patterns, not a judgment of any person and not a prediction of results.'),
+          note('A prompt for team discussion, not a measured result: run a real team decision through the Decision Room and give the step for the scale with the lowest average extra time.')),
         h('div', { style: card({ marginBottom: 12 }) }, h('div', { style: label }, 'Before enough people have completed'),
           h('div', { style: { fontSize: 16, color: C.muted, lineHeight: 1.7 } }, 'Team results are not available yet. To protect individual privacy, aggregate insight appears once ' + TEAM_REPORT_THRESHOLD + ' people have completed the CFI.')),
-        note('A team report never shows individual results, and it does not claim business outcomes such as ROI. It shows measured CFI data only.')));
+        note('A team report never shows individual results, and it does not claim business outcomes such as ROI. It shows team averages of self-reported CFI-2.0 answers only.')));
   }
 
   // ====================================================================
@@ -6583,7 +6033,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
     const scrollTo = (id) => { const el = document.getElementById(id); if (el) el.scrollIntoView({ behavior: 'smooth' }); };
     const steps = [];
     if (lead) steps.push({ k: 'team', title: 'Add your team', text: ov.seats.used > 1 ? (ov.seats.used - 1) + ' teammate(s) joined so far.' : 'Share your team link below. People sign up and land straight in the assessment.', done: ov.seats.used > 1, open: true, cta: 'COPY TEAM LINK', act: () => scrollTo('nf-team-link') });
-    steps.push({ k: 'assess', title: 'Take the assessment', text: assessed ? 'Completed.' : '13 questions, about 4 minutes.', done: assessed, open: true, cta: 'START ASSESSMENT', act: () => startAssessment(org, setView) });
+    steps.push({ k: 'assess', title: 'Take the assessment', text: assessed ? 'Completed.' : CFI_ITEMS.length + ' questions, about ' + Math.ceil(CFI_ITEMS.length * 12 / 60) + ' minutes.', done: assessed, open: true, cta: 'START ASSESSMENT', act: () => startAssessment(org, setView) });
     steps.push({ k: 'train', title: 'Do the training', text: assessed ? (done.length + ' of 5 lessons finished.') : 'Opens when you finish the assessment.', done: trained, open: assessed, cta: done.length ? 'CONTINUE TRAINING' : 'START TRAINING', act: () => { if (go) go('programme'); else scrollTo('nf-train'); } });
     steps.push({ k: 'retake', title: 'Retake the assessment', text: trained ? 'Measure again to see your change.' : 'Opens when you finish the five lessons.', done: false, open: trained, cta: 'RETAKE THE CFI', act: () => setView('cfi') });
     steps.push({ k: 'results', title: lead ? 'See team results' : 'See your results', text: lead ? (ov.completed >= ov.report_threshold ? 'Team results are ready.' : 'Team results appear once ' + ov.report_threshold + ' people have completed the assessment. ' + ov.completed + ' so far.') : 'Your own profile and change over time.', done: false, open: assessed, cta: lead ? 'OPEN TEAM RESULTS' : 'VIEW MY RESULT', act: () => { if (lead && go) go('results'); else setView('analytics'); } });
@@ -6604,7 +6054,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
   // PRACTICE LOOP: Weekly Thinking Challenge, Decision Room entry, Recommended Practice
   // Server contract: migration_team_practice_loop.sql (org_current_challenge,
   // submit_challenge_response, org_challenge_summary, org_recent_decisions).
-  // Recommended Practice reads the existing org_team_results(p_org) and invents no scores.
+  // Recommended Practice reads org_team_results_cfi2(p_org) and invents no scores.
   // ====================================================================
   const textareaStyle = Object.assign({}, inputStyle, { minHeight: 76, resize: 'vertical', fontFamily: 'inherit', lineHeight: 1.6 });
   const fmtDate = (d) => { try { return new Date(d).toLocaleDateString(); } catch (_) { return ''; } };
@@ -6633,8 +6083,8 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
   function clearDecisionContext() { try { sessionStorage.removeItem('nf_decision_org'); } catch (_) {} }
 
   // ---- Recommended Practice: transparent rules over the existing team results ----
-  // Same band cut points the app already uses for CFI-1.0 (13 to 65): <=17, <=28, <=40, above.
-  // The four modes are compared with each other only (the single "pressure" item is not comparable).
+  // Transparent rule over the team averages (no bands, no new scores): the scale with the lowest team average of the
+  // five CFI-2.0 scales decides the practice. Coordination maps to the integrated practice.
   const PRACTICES = {
     analytical: { mode: 'Analytical', title: 'Separate facts from assumptions', minutes: 7,
       steps: ['Pick one problem your team is facing right now.', 'Write two lists: what we know for certain, and what we are assuming.', 'Circle the one missing fact that would change the decision most, and decide who finds it out.'], lesson: 'Lesson 2: Mode Activation & Mental Control' },
@@ -6647,28 +6097,26 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
     integrated: { mode: 'Integrated', title: 'Run one decision through all four modes', minutes: 10,
       steps: ['Pick one real decision. Write what you know and what is missing (Analytical).', 'Write the signals and concerns you may be overlooking (Intuitive).', 'List at least three options (Associative), then the main risks and assumptions behind each (Reflective).', 'Finish with one sentence: what will we do, and who owns it?'], lesson: 'Lesson 3: Synthesis & Decision Mastery', decision: true },
   };
-  function teamBand(total) { return total <= 17 ? 'Integrated' : total <= 28 ? 'Moderate fragmentation' : total <= 40 ? 'High fragmentation' : 'Critical fragmentation'; }
   function recommendPractice(r) {
     if (!r || !r.ok) return { state: 'unavailable' };
     if (!r.unlocked) return { state: 'insufficient', completed: r.completed || 0, threshold: r.threshold };
-    const total = Number(r.avg_total), d = r.avg_dimensions || {};
-    const modes = ['analytical', 'intuitive', 'associative', 'reflective'];
-    const vals = modes.map((k) => Number(d[k]));
-    if (!isFinite(total) || vals.some((v) => !isFinite(v))) return { state: 'general', kind: 'integrated', practice: PRACTICES.integrated, reason: 'Team results do not yet include enough detail to point to one thinking mode, so this is a general practice.' };
-    const band = teamBand(total);
-    if (band === 'High fragmentation' || band === 'Critical fragmentation')
-      return { state: 'ready', kind: 'integrated', practice: PRACTICES.integrated, reason: 'Your team average falls in the "' + plainBand(band) + '" range on the CFI, so the priority is getting the four ways of thinking to work together.' };
+    const d = r.avg_scores || {};
+    const keys = ['analytical', 'intuitive', 'associative', 'reflective', 'coordination'];
+    const vals = keys.map((k) => Number(d[k]));
+    if (vals.some((v) => !isFinite(v))) return { state: 'general', kind: 'integrated', practice: PRACTICES.integrated, reason: 'Team results do not yet include enough detail to point to one scale, so this is a general practice.' };
     const round1 = (v) => Math.round(v * 10) / 10;
-    const top = Math.max.apply(null, vals.map(round1));
-    const leaders = modes.filter((k, i) => round1(vals[i]) === top);
-    if (leaders.length !== 1) return { state: 'general', kind: 'integrated', practice: PRACTICES.integrated, reason: 'No single way of thinking stands out in your team results, so this is a general practice.' };
-    return { state: 'ready', kind: leaders[0], practice: PRACTICES[leaders[0]], reason: 'Of the four ways of thinking, ' + MODE_NAME[leaders[0]] + ' has the highest team average fragmentation score (higher means more scattered).' };
+    const low = Math.min.apply(null, vals.map(round1));
+    const lowest = keys.filter((k, i) => round1(vals[i]) === low);
+    if (lowest.length !== 1) return { state: 'general', kind: 'integrated', practice: PRACTICES.integrated, reason: 'No single scale has the lowest average in your team results, so this is a general practice.' };
+    const k = lowest[0];
+    const kind = k === 'coordination' ? 'integrated' : k;
+    return { state: 'ready', kind, practice: PRACTICES[kind], reason: DIM_LABELS[k] + ' has the lowest team average of the five CFI scores (' + round1(Number(d[k])) + ' out of 100). It is a place to start practising, not a verdict.' };
   }
 
   function PracticeCard({ org, go, setView, compact }) {
     const [r, setR] = useState(null);
     const [open, setOpen] = useState(false);
-    useEffect(() => { let live = true; setR(null); rpc('org_team_results', { p_org: org.id }).then((x) => { if (live) setR(x); }); return () => { live = false; }; }, [org.id]);
+    useEffect(() => { let live = true; setR(null); rpc('org_team_results_cfi2', { p_org: org.id }).then((x) => { if (live) setR(x); }); return () => { live = false; }; }, [org.id]);
     const wrap = (kids) => h('div', { style: card({ marginBottom: 20 }) }, h('div', { style: label }, 'Your team\u2019s recommended practice'), kids);
     if (!r) return wrap(h('div', { style: { color: C.muted, fontSize: 16 }, role: 'status' }, 'Loading...'));
     const rec = recommendPractice(r);
@@ -6843,7 +6291,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
   }
 
   // Team insight as a living loop, not a static report: practising -> deciding -> learning -> practise next.
-  // Uses only existing RPCs (org_challenge_summary, org_recent_decisions, org_team_results via PracticeCard). Shows counts
+  // Uses only existing RPCs (org_challenge_summary, org_recent_decisions, org_team_results_cfi2 via PracticeCard). Shows counts
   // and the titles of decisions people chose to share with the team. Never individual answers, reasoning or reviews.
   function TeamLoopCard({ org, setView, go }) {
     const [s, setS] = useState(null); const [d, setD] = useState(null);
@@ -6877,31 +6325,28 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
       h(PracticeCard, { org, go, setView, compact: true }));
   }
 
-  const DIM_LABELS = { analytical: 'Analytical', intuitive: 'Intuitive', associative: 'Associative', reflective: 'Reflective', integration: 'Pressure and overload (single item)' };
+  const DIM_LABELS = { analytical: 'Analytical', intuitive: 'Intuitive', associative: 'Associative', reflective: 'Reflective', coordination: 'Coordination' };
   function ResultsTab({ org }) {
     const [r, setR] = useState(null);
-    useEffect(() => { rpc('org_team_results', { p_org: org.id }).then((x) => { setR(x); if (x && x.unlocked) track('team_report_unlocked', { organisation_id: org.id }); }); }, [org.id]);
+    useEffect(() => { rpc('org_team_results_cfi2', { p_org: org.id }).then((x) => { setR(x); if (x && x.unlocked) track('team_report_unlocked', { organisation_id: org.id }); }); }, [org.id]);
     if (!r) return h('div', { style: { color: C.muted } }, 'Loading...');
     if (!r.ok) return h(Msg, { m: { type: 'error', text: errText(r) } });
     if (!r.unlocked) return h('div', { style: card() }, h('div', { style: { ...syne, fontSize: 20, fontWeight: 800, marginBottom: 10 } }, 'Team results are not available yet'),
       h('div', { style: { color: C.muted, lineHeight: 1.7, fontSize: 16 } }, 'To protect individual privacy, aggregate insight appears once ' + r.threshold + ' people have completed the CFI. ' + r.completed + ' of ' + r.members + ' members have completed it so far.'));
-    const dims = r.avg_dimensions || {};
+    const sc = r.avg_scores || {};
     return h('div', null,
       h('div', { style: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(200px,1fr))', gap: 14, marginBottom: 20 } },
-        Stat('Team average CFI', r.avg_total, 'Scale 13 to 65. Higher means more scattered thinking.'), Stat('Completed', r.completed + ' of ' + r.members), Stat('Instrument', r.assessment_version)),
-      h('div', { style: card({ marginBottom: 20 }) }, h('div', { style: label }, 'Average fragmentation by way of thinking'),
-        Object.keys(DIM_LABELS).map((k) => h('div', { key: k, style: { display: 'flex', justifyContent: 'space-between', padding: '10px 0', borderBottom: '1px solid ' + C.border, fontSize: 16 } }, h('span', null, DIM_LABELS[k]), h('span', { style: { ...mono, color: C.cyanBright } }, dims[k] == null ? 'n/a' : dims[k]))),
-        h('div', { style: { fontSize: 14, color: C.muted, marginTop: 12, lineHeight: 1.6 } }, 'Values are average stored dimension scores from CFI-1.0. Higher means more scattered thinking in that area. These describe thinking patterns reported on the CFI, not personality, health or clinical status.')),
-      h('div', { style: card() }, h('div', { style: label }, 'Band distribution'),
-        Object.keys(r.bands || {}).length === 0 ? 'No data' : Object.keys(r.bands).map((b) => h('div', { key: b, style: { display: 'flex', justifyContent: 'space-between', padding: '8px 0', fontSize: 16 } }, h('span', null, plainBand(b)), h('span', { style: mono }, String(r.bands[b])))),
-        h('div', { style: { fontSize: 14, color: C.muted, marginTop: 8 } }, 'Counts below 2 are hidden to protect individuals.')),
+        Stat('Completed', r.completed + ' of ' + r.members), Stat('Instrument', r.assessment_version || CFI_VERSION)),
+      h('div', { style: card({ marginBottom: 20 }) }, h('div', { style: label }, 'Average score by scale'),
+        Object.keys(DIM_LABELS).map((k) => h('div', { key: k, style: { display: 'flex', justifyContent: 'space-between', padding: '10px 0', borderBottom: '1px solid ' + C.border, fontSize: 16 } }, h('span', null, DIM_LABELS[k]), h('span', { style: { ...mono, color: C.cyanBright } }, sc[k] == null ? 'n/a' : sc[k]))),
+        h('div', { style: { fontSize: 14, color: C.muted, marginTop: 12, lineHeight: 1.6 } }, 'Values are team averages of 0 to 100 scale scores from CFI-2.0. A higher average means team members reported that kind of thinking more often, not that it is better. These describe thinking patterns reported on the CFI, not personality, health or clinical status. Individual results are never shown.')),
       h(TeamDevelopment, { org }));
   }
 
-  // ── Team development over time (pre/post). Server contract: org_team_progress(p_org) ──
-  // See ORG_TEAM_PROGRESS_SPEC.md. Until that function exists, rpc() returns { ok:false } and this card says
+  // ── Team development over time (pre/post). Server contract: org_team_progress_cfi2(p_org) ──
+  // See migration_cfi2_teams.sql. Until that function exists, rpc() returns { ok:false } and this card says
   // "not available right now" (it never invents numbers). All figures are aggregates over people who retook the CFI.
-  // change = baseline - latest, the same sign convention as change: positive = LOWER fragmentation.
+  // change = latest - baseline, per scale: positive = the team reported that kind of thinking MORE often. It is not a quality judgement.
   const teamNum = (v) => (v === null || v === undefined || isNaN(Number(v))) ? '\u2013' : String(Math.round(Number(v) * 10) / 10);
   function TeamDevelopmentView({ r, onRetry }) {
     const shell = (kids) => h('div', { style: card({ marginTop: 20 }) }, h('div', { style: label }, 'Team development over time'), kids);
@@ -6911,24 +6356,25 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
       h(Btn, { variant: 'ghost', onClick: onRetry }, 'TRY AGAIN')));
     if (!r.unlocked) return shell(h('div', { style: { fontSize: 16, color: C.muted, lineHeight: 1.7 } },
       'To protect individual privacy, the comparison appears once ' + r.threshold + ' people have shared a retest. ' + (r.members_with_retest || 0) + ' so far. Members choose whether to share when they retake the CFI.'));
-    const ch = Number(r.change);
-    const meaning = ch > 0 ? 'Team change +' + teamNum(ch) + ': the team average is ' + teamNum(ch) + ' points lower than at the starting assessment, which indicates less fragmentation.'
-      : ch < 0 ? 'Team change ' + teamNum(ch) + ': the team average is ' + teamNum(-ch) + ' points higher than at the starting assessment, which indicates more fragmentation on this measure.'
-      : 'Team change 0: no change in the team average from the starting assessment.';
-    const b = r.avg_dimensions_baseline || {}, l = r.avg_dimensions_latest || {};
+    const b = r.avg_scores_baseline || {}, l = r.avg_scores_latest || {};
+    const ch = Number(l.coordination) - Number(b.coordination);
+    const meaning = !isFinite(ch) ? 'The team Coordination average could not be compared.'
+      : ch > 0 ? 'Team Coordination is up ' + teamNum(ch) + ' points from the starting assessment.'
+      : ch < 0 ? 'Team Coordination is down ' + teamNum(-ch) + ' points from the starting assessment.'
+      : 'Team Coordination is unchanged from the starting assessment.';
     return shell([
       h('div', { key: 's', style: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(min(180px,100%),1fr))', gap: 14, marginBottom: 16 } },
-        Stat('Starting average CFI', teamNum(r.avg_baseline_total), 'Scale 13 to 65'), Stat('Retest average CFI', teamNum(r.avg_latest_total), 'Scale 13 to 65'), Stat('People included', r.members_with_retest, 'Retook the CFI')),
+        Stat('Starting Coordination', teamNum(b.coordination), 'Team average, 0 to 100'), Stat('Retest Coordination', teamNum(l.coordination), 'Team average, 0 to 100'), Stat('People included', r.members_with_retest, 'Retook the CFI')),
       h('div', { key: 'm', style: { fontSize: 16, color: C.text, lineHeight: 1.8, marginBottom: 16 } }, meaning),
       h('div', { key: 'd', style: { marginBottom: 12 } }, Object.keys(DIM_LABELS).map((k) => h('div', { key: k, style: { display: 'flex', justifyContent: 'space-between', gap: 12, padding: '10px 0', borderBottom: '1px solid ' + C.border, fontSize: 16 } },
         h('span', null, DIM_LABELS[k]), h('span', { style: mono }, teamNum(b[k]) + ' \u2192 ' + teamNum(l[k]))))),
-      h('div', { key: 'c', style: { fontSize: 15, color: C.muted, lineHeight: 1.7 } }, 'Only people who chose to share a retest are included, so this can differ from the whole team. It uses each person\u2019s first shared retest and updates only when a whole group of ' + (r.batch_size || r.threshold || 5) + ' more people has shared, which protects individuals. These are self-reported answers at two points in time: they show what changed, not what caused it. Mode scores are out of 100, and lower means better coordinated.'),
+      h('div', { key: 'c', style: { fontSize: 15, color: C.muted, lineHeight: 1.7 } }, 'Only people who chose to share a retest are included, so this can differ from the whole team. It uses each person\u2019s first shared retest and updates only when a whole group of ' + (r.batch_size || r.threshold || 5) + ' more people has shared, which protects individuals. These are self-reported answers at two points in time: they show what changed, not what caused it. Scores are out of 100, and a higher score means that kind of thinking was reported more often.'),
     ]);
   }
   function TeamDevelopment({ org }) {
     const [r, setR] = useState(null);
     const [tick, setTick] = useState(0);
-    useEffect(() => { let live = true; setR(null); rpc('org_team_progress', { p_org: org.id }).then((x) => { if (live) setR(x); }); return () => { live = false; }; }, [org.id, tick]);
+    useEffect(() => { let live = true; setR(null); rpc('org_team_progress_cfi2', { p_org: org.id }).then((x) => { if (live) setR(x); }); return () => { live = false; }; }, [org.id, tick]);
     return h(TeamDevelopmentView, { r, onRetry: () => setTick((t) => t + 1) });
   }
 
@@ -6988,7 +6434,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
         ? h('div', { style: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(110px,1fr))', gap: 12 } }, (sum.lessons || []).map((l) => h('div', { key: l.num, style: { fontSize: 14, color: C.muted } }, h('div', { style: { ...syne, fontSize: 24, fontWeight: 800, color: C.cyanBright } }, l.completed == null ? 'under ' + sum.threshold : l.completed), 'Lesson ' + l.num + ' completed')))
         : h('div', { style: { fontSize: 15, color: C.muted, lineHeight: 1.7 } }, sum.ok ? (sum.started || 0) + ' people have started. Progress counts appear once ' + sum.threshold + ' have started, which protects individuals.' : 'Team progress is not available yet.')) : null;
     const retake = setView && done.length >= openCount ? h('div', { style: card({ marginTop: 20 }) }, h('div', { style: label }, 'Measure again'),
-      h('div', { style: { fontSize: 16, lineHeight: 1.8, marginBottom: 14 } }, 'You have finished the programme. Take the test again to see your own change. After your result you can choose to share it, and your organisation only ever sees team averages.'),
+      h('div', { style: { fontSize: 16, lineHeight: 1.8, marginBottom: 14 } }, 'You have finished the programme. Take the CFI again to see your own change. After your result you can choose to share it, and your organisation only ever sees team averages.'),
       h(Btn, { onClick: () => setView('cfi') }, 'RETAKE THE CFI')) : null;
     return wrap(h('div', null,
       h('div', { style: { fontSize: 15, color: C.muted, marginBottom: 14 } }, done.length + ' of ' + openCount + ' open lessons completed' + (lead ? '. You can run these sessions with your team.' : '.')),
