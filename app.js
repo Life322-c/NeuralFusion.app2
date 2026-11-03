@@ -156,7 +156,7 @@ const { useState, useEffect, useCallback, useRef, useMemo } = React;
     // ── Four Brains Data ──────────────────────────────────────────────
 
     // ── CFI Assessment: CFI-2.0 (40 items) ────────────────────────────────────────────
-    // One instrument for everyone (individuals and teams). It replaces the 13-item CFI-1.0 completely:
+    // One instrument for everyone (individuals and teams). It replaces the old CFI-1.0 completely:
     // no bands, no total score, no "fragmentation" scoring. Source of truth: NeuralFusion CFI-2.0 Item Pool.
     // Scale keys: A analytical, I intuitive, S associative, R reflective, C coordination.
     // Four mode scores and one Coordination score, each reported 0-100. They are never added into one total.
@@ -2592,7 +2592,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
   ];
   const trust = [
     'The scoring method is public. You can read exactly how the CFI works, and where it falls short, on the methodology page.',
-    'CFI-2.0 is a new instrument in development. It has not been validated yet, and the methodology page says so.',
+    'CFI-2.0 is a new, early-stage instrument. It has not been validated yet, and the methodology page says so.',
     'We say plainly what it is not. It is not a diagnosis, and your change is a NeuralFusion measure, not a clinical one.',
   ];
   const faqFull = [
@@ -3766,7 +3766,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
             React.createElement("div", { style: { textAlign: 'center', marginBottom: 36 } },
               React.createElement(CPEyebrow, null, "Your result"),
               React.createElement("h1", { style: { ...syne, fontSize: 'clamp(24px,5.5vw,34px)', fontWeight: 800, color: CP.ink, marginBottom: 14, lineHeight: 1.15 } }, "How you reported working through problems"),
-              React.createElement("div", { style: { fontSize: 13.5, color: CP.muted, lineHeight: 1.7, maxWidth: 520, margin: '0 auto' } }, `Each score shows how often you said you do that kind of thinking, from 0 to 100. A higher score is not automatically better. This is ${CFI_VERSION}, a new instrument in development. It is not a personality test, a mental health screening, a medical evaluation or a measure of intelligence.`)
+              React.createElement("div", { style: { fontSize: 13.5, color: CP.muted, lineHeight: 1.7, maxWidth: 520, margin: '0 auto' } }, `Each score shows how often you said you do that kind of thinking, from 0 to 100. A higher score is not automatically better. This is ${CFI_VERSION}, a new, early-stage instrument. It is not a personality test, a mental health screening, a medical evaluation or a measure of intelligence.`)
             ),
 
             user && shareResultId && React.createElement(NFRetestShare, { user, resultId: shareResultId }),
@@ -4198,7 +4198,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
                 'This assessment is designed to support a wide range of thinking styles, including ADHD, dyslexia, autism, and other neurodivergent profiles. There are no right or wrong answers. Respond based on your typical experience, not how you think you should perform.'
               ),
               React.createElement("div", {style: { fontSize:16, color:AC.muted, lineHeight:1.7, marginBottom:36, maxWidth:560, margin:'0 auto 36px', padding:'16px 20px', background:AC.surfaceAlt, border:`1px solid ${AC.border}`, borderRadius:16, textAlign:'left' }},
-                `The test shows how often you use four ways of thinking (analytical, intuitive, associative and reflective) and how well you switch between them. It is ${CFI_VERSION}, a new instrument in development. It is not a personality test, a mental health check or a diagnosis.`
+                `The test shows how often you use four ways of thinking (analytical, intuitive, associative and reflective) and how well you switch between them. It is ${CFI_VERSION}, a new, early-stage instrument. It is not a personality test, a mental health check or a diagnosis.`
               ),
               React.createElement("div", {style: { display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(min(240px, 100%), 1fr))', gap:16, marginBottom:36, textAlign:'left' }},
                 ['Four scores, one for each way of thinking', 'A Coordination score for how you switch between them', 'A lesson and a practice idea to start with', 'A baseline to measure your change against later'].map((item,i)=>(
@@ -5819,7 +5819,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
   }
 
   const TEAM_VALUES = [
-    ['Measure how your team thinks', 'Each person takes the 13-item CFI in about four minutes. You see aggregate team patterns across the four ways of thinking once enough people have completed it.'],
+    ['Measure how your team thinks', 'Each person takes the 40-item CFI in about eight minutes. You see aggregate team patterns across the four ways of thinking once enough people have completed it.'],
     ['Train with five lessons', 'A guided five-lesson programme, with progress tracked for each person and a team progress summary for owners.'],
     ['Weekly thinking challenge', 'One realistic business scenario each week. Everyone works through it using the four ways of thinking and records a decision. Owners see participation and how the team split, never individual answers.'],
     ['Decision room', 'Work a real decision through facts, signals, alternatives, reflection and a decision. Save it to the team with an agreed action, a responsible person and a review date.'],
@@ -5832,8 +5832,8 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
     nfjEnsureStyles();
     const items = [
       ['How does my team join?', 'You create your team, then share one link. Each person opens it, creates an account, and goes straight into the assessment.'],
-      ['What will each person do?', 'Each person completes the 13-item CFI (about four minutes), then does the five-lesson training programme, then retakes the CFI to see their own change.'],
-      ['What does the CFI measure, and what does it not?', 'It measures how often you use four ways of thinking (analytical, intuitive, associative, reflective) when you work on a problem or decision, and how well you coordinate them, each on a 0 to 100 scale. It is a new instrument in development. It does not measure intelligence, personality, health or job performance.'],
+      ['What will each person do?', 'Each person completes the 40-item CFI (about eight minutes), then does the five-lesson training programme, then retakes the CFI to see their own change.'],
+      ['What does the CFI measure, and what does it not?', 'It measures how often you use four ways of thinking (analytical, intuitive, associative, reflective) when you work on a problem or decision, and how well you coordinate them, each on a 0 to 100 scale. It is a new, early-stage instrument. It does not measure intelligence, personality, health or job performance.'],
       ['What will I see as the team owner?', 'Who has completed what, and aggregate team patterns once enough people have completed the CFI. Individual profiles stay private to each person.'],
       ['Can we measure development over time?', 'Yes. After the training, each person retakes the CFI. If they choose to share the retest, the team before-and-after appears under Insights once enough people have shared.'],
       ['What is the weekly challenge?', 'A short business scenario released each week. Each person works through the four ways of thinking and records a decision with their reasoning. You see who took part and how the team split, but not individual answers.'],
