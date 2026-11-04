@@ -1392,10 +1392,12 @@ Most learners take four to six weeks working through the lessons at the suggeste
       // Signed-in users get the full functional app nav (all routes below
       // remain unchanged and reachable, only the anonymous label set differs).
       const navItems = user ? [
-        { v:'cfi', label:'Take the CFI' },
-        { v:'lessons', label:'Lessons' },
-        { v:'analytics', label:'My progress' },
-        { v:'decisions', label: awaitingReview > 0 ? 'Decisions ●' : 'Decisions' },
+        { v:'home', label:'Home' },
+        { v:'protocol', label: awaitingReview > 0 ? 'Decision Room ●' : 'Decision Room' },
+        { v:'feed', label:'Thinking Feed' },
+        { v:'record', label:'Thinking Mirror' },
+        { v:'lessons', label:'Development' },
+        { v:'analytics', label:'My Profile' },
         hasOrg ? { v:'org', label:'My Team' } : { v:'teams', label:'For Teams' },
         ...(profile?.is_admin === true ? [{ v:'admin', label:'⚙ Admin' }] : []),
       ] : [
@@ -1405,6 +1407,7 @@ Most learners take four to six weeks working through the lessons at the suggeste
       ];
       const blogHref = '/blog';
       const aboutHref = '/about';
+      const navView = user ? (NF_NAV_ALIAS[view] || view) : view;
 
       return (
         React.createElement(React.Fragment, null, React.createElement("nav", {style: {
@@ -1414,10 +1417,10 @@ Most learners take four to six weeks working through the lessons at the suggeste
           }}, React.createElement("div", {style: { maxWidth:1280, margin:'0 auto', padding:'0 24px', height:60, display:'flex', alignItems:'center', justifyContent:'space-between' }}, React.createElement("button", {className: "nf-logo-btn", onClick: ()=>setView('home'), style: { background:'none', border:'none', display:'flex', alignItems:'center', cursor:'pointer' }}, React.createElement(NFLogoLockup, {iconSize: 30, gap: 12, wordmarkColor: C.text, tagline: 'Cognitive OS', taglineColor: C.muted})), React.createElement("div", {className: "desktop-nav"}, navItems.map(item => (
                   React.createElement("button", {key: item.v, onClick: ()=>setView(item.v), style: {
                     background:'none', border:'none', padding:'8px 12px',
-                    color: view===item.v ? C.cyan : C.muted,
-                    ...inter, fontSize:12, fontWeight:view===item.v?600:400,
+                    color: navView===item.v ? C.cyan : C.muted,
+                    ...inter, fontSize:12, fontWeight:navView===item.v?600:400,
                     cursor:'pointer', transition:'color 0.2s',
-                    borderBottom: view===item.v ? `1px solid ${C.cyan}` : '1px solid transparent',
+                    borderBottom: navView===item.v ? `1px solid ${C.cyan}` : '1px solid transparent',
                   }}, item.label)
                 )), React.createElement("a", {href: aboutHref, style: {
                   background:'none', border:'none', padding:'8px 12px',
@@ -1461,7 +1464,7 @@ Most learners take four to six weeks working through the lessons at the suggeste
                     background:'none', border:'none', borderBottom:`1px solid ${C.border}`,
                     padding:'18px 0', cursor:'pointer',
                     animation:`fadeUp 0.3s ease ${i*0.05}s both`,
-                  }}, React.createElement("div", {style: { flex:1, ...syne, fontSize:14, fontWeight:700, color: view===item.v ? C.cyan : C.text, overflowWrap:'break-word', minWidth:0}}, item.label), view===item.v && (
+                  }}, React.createElement("div", {style: { flex:1, ...syne, fontSize:14, fontWeight:700, color: navView===item.v ? C.cyan : C.text, overflowWrap:'break-word', minWidth:0}}, item.label), navView===item.v && (
                       React.createElement("div", {style: { ...mono, fontSize:10, color:C.cyan }}, '◈')
                     ))
                 )), React.createElement("a", {href: aboutHref, style: {
@@ -1494,12 +1497,18 @@ Most learners take four to six weeks working through the lessons at the suggeste
     // Inactive nav colour: same slate family as C.dim, lifted to pass 4.5:1 on the navy bar.
     const NAV_INACTIVE = '#6F7F9E';
     function BottomNav({ view, setView, user, hasOrg }) {
-      const items = [
-        { v:'home', symbol:'⌂', label:'Home' },
-        { v:'cfi', symbol:'◎', label:'Test' },
-        { v:'lessons', symbol:'▲', label:'Lessons' },
-        { v:'decisions', symbol:'◈', label:'Decisions' },
-        hasOrg ? { v:'org', symbol:'⬡', label:'My Team' } : { v:'teams', symbol:'⬡', label:'Teams' },
+      const items = user ? [
+        { v:'home', symbol:'\u2302', label:'Home' },
+        { v:'protocol', symbol:'\u25C8', label:'Decide' },
+        { v:'feed', symbol:'\u25CE', label:'Feed' },
+        { v:'record', symbol:'\u25D0', label:'Mirror' },
+        { v:'lessons', symbol:'\u25B2', label:'Develop' },
+        { v:'analytics', symbol:'\u25CB', label:'Profile' },
+      ] : [
+        { v:'home', symbol:'\u2302', label:'Home' },
+        { v:'cfi', symbol:'\u25CE', label:'Test' },
+        { v:'lessons', symbol:'\u25B2', label:'Lessons' },
+        { v:'teams', symbol:'\u2B21', label:'Teams' },
       ];
       const [awaitingReview, setAwaitingReview] = useState(0);
       // Lets the footer reserve room for the fixed bar so it never covers content.
@@ -1519,7 +1528,7 @@ Most learners take four to six weeks working through the lessons at the suggeste
           background:'rgba(5,12,26,0.95)', backdropFilter:'blur(20px)',
           borderTop:`1px solid ${C.border}`,
         }}, items.map(item => {
-            const active = view === item.v;
+            const active = (user ? (NF_NAV_ALIAS[view] || view) : view) === item.v;
             return React.createElement("button", {
               key: item.v,
               type: "button",
@@ -1528,7 +1537,7 @@ Most learners take four to six weeks working through the lessons at the suggeste
               onClick: ()=>setView(item.v),
             },
               React.createElement("span", {className: "bottom-nav-icon", style: { ...mono, color: active ? C.cyan : NAV_INACTIVE }}, item.symbol,
-                item.v==='decisions' && awaitingReview>0 && React.createElement("span", {className: "bottom-nav-dot"})),
+                item.v==='protocol' && awaitingReview>0 && React.createElement("span", {className: "bottom-nav-dot"})),
               React.createElement("span", {className: "bottom-nav-label", style: { ...inter, color: active ? C.cyan : NAV_INACTIVE, fontWeight: active ? 600 : 400 }}, item.label)
             );
           }))
@@ -1705,6 +1714,21 @@ const NF_EXAMPLES = [
   'I want to challenge an assumption.',
   "I'm stuck on a problem and need another perspective.",
 ];
+
+// Starting points for a thinking session. Used only to suggest wording and to label analytics events.
+// The context is not stored with the decision (no schema change); the person's own words are what is saved.
+const NF_CONTEXTS = [
+  { id: 'business', label: 'Business decision', examples: ['I have a business opportunity and need to decide whether to pursue it.', 'I need to decide where to put limited money, time or people.', 'I have a business idea I want to evaluate.'] },
+  { id: 'leadership', label: 'Leadership challenge', examples: ['I need to make a call my team will not all agree with.', 'I am not sure which of several priorities should come first.', 'I need to decide how to respond to a stakeholder who disagrees with me.'] },
+  { id: 'people', label: 'People management', examples: ['I need to prepare for a difficult conversation with someone on my team.', 'I am deciding how to handle a performance problem.', 'I am not sure what to delegate and what to keep.'] },
+  { id: 'strategy', label: 'Strategic planning', examples: ['I need to choose a direction for the next year.', 'I have too many options and do not know which to choose.', 'I need to plan under uncertainty and cannot get all the facts.'] },
+  { id: 'conflict', label: 'Workplace conflict', examples: ['Two people I work with disagree and I need to decide how to step in.', 'I have a conflict with a colleague that is not going away.', 'A team disagreement is slowing a decision down.'] },
+  { id: 'problem', label: 'Complex problem', examples: ["I'm stuck on a problem and need another perspective.", "I'm trying to understand something difficult.", 'I have a lot of information and cannot see the pattern.'] },
+  { id: 'personal', label: 'Personal decision', examples: ["I'm struggling with an important personal decision.", 'I am weighing a career move.', 'I want to challenge an assumption I have been making.'] },
+  { id: 'other', label: 'Other', examples: NF_EXAMPLES },
+];
+// Signed-in navigation: routes that live inside a section highlight that section.
+const NF_NAV_ALIAS = { decisions: 'protocol', pressure: 'protocol', cfi: 'analytics' };
 
 // Curated challenge library. To add one: append an object (unique id, 3 options).
 // The daily pick rotates through this list by calendar date, so it never changes on refresh.
@@ -2254,7 +2278,7 @@ function NFChallenge({ user, date, ch, why: whyPick, latestOpen, row, setView, o
 }
 
 // ── The Thinking Feed ───────────────────────────────────────────────
-function ThinkingFeed({ user, setView, cfiHistory, completedLessons, hasCfi }) {
+function ThinkingFeed({ user, setView, cfiHistory, completedLessons, hasCfi, mode, firstName }) {
   const E = React.createElement;
   const today = nfLocalDate();
   const reduced = typeof window !== 'undefined' && window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -2267,6 +2291,8 @@ function ThinkingFeed({ user, setView, cfiHistory, completedLessons, hasCfi }) {
   const [busyId, setBusyId] = useState(null);
   const [lib, setLib] = useState(NF_CHALLENGES);
   const taRef = useRef(null);
+  const isFeed = mode === 'feed';
+  const [ctxId, setCtxId] = useState('');
   const [pp, setPp] = useState(null);
   const [openSignal, setOpenSignal] = useState(0); // bumped by the next-step button to open today's challenge
   useEffect(() => { let on = true; nfLoadLibrary().then(l => { if (on) setLib(l); }); return () => { on = false; }; }, []);
@@ -2293,13 +2319,14 @@ function ThinkingFeed({ user, setView, cfiHistory, completedLessons, hasCfi }) {
   }, [reduced, q]);
 
   const offset = reduced ? (nfDayNumber(today) % NF_EXAMPLES.length) : (rot + (nfDayNumber(today) % NF_EXAMPLES.length));
-  const chips = [0, 1, 2].map(i => NF_EXAMPLES[(offset + i) % NF_EXAMPLES.length]);
+  const ctxObj = NF_CONTEXTS.find(c => c.id === ctxId) || null;
+  const chips = ctxObj ? ctxObj.examples : [0, 1, 2].map(i => NF_EXAMPLES[(offset + i) % NF_EXAMPLES.length]);
 
   const start = () => {
     const t = q.trim().replace(/\s+/g, ' ');
     if (t.length < 4) { setHint(true); if (taRef.current) taRef.current.focus(); return; }
-    nfEvent('primary_cta_clicked', { where: 'feed' });
-    nfSetSeed({ problem: t.slice(0, 1500), source: 'feed' });
+    nfEvent('primary_cta_clicked', { where: 'feed', context: ctxId || 'none' });
+    nfSetSeed({ problem: t.slice(0, 1500), source: 'feed', context: ctxId || '' });
     setView('protocol');
   };
   const dismiss = (key, kind) => {
@@ -2331,7 +2358,7 @@ function ThinkingFeed({ user, setView, cfiHistory, completedLessons, hasCfi }) {
   const earlier = nfEarlierDates(today, 6);
   const pick = ready ? nfPickChallenge(today, lib, data.decisions, data.rows) : null;
   const stats = nfPracticeStats(data.decisions, data.rows, today);
-  useEffect(() => { if (data.status !== 'ready') return undefined; let on = true; nfPassportSync(user.id).then(p => { if (on) setPp(p); }); return () => { on = false; }; }, [user.id, data.status, data.rows.length, data.decisions.length, stats.reviewed]);
+  useEffect(() => { if (data.status !== 'ready' || !isFeed) return undefined; let on = true; nfPassportSync(user.id).then(p => { if (on) setPp(p); }); return () => { on = false; }; }, [user.id, data.status, data.rows.length, data.decisions.length, stats.reviewed]);
   const reviewItem = followUps.find(f => f.kind !== 'stale') || null;
   const dueReview = reviewItem ? { d: reviewItem.d, key: reviewItem.key, text: 'You saved \u201c' + String(reviewItem.d.title || 'a decision').slice(0, 80) + '\u201d '
     + (() => { const n = reviewItem.d.created_at ? nfDaysBetween(nfLocalDate(new Date(reviewItem.d.created_at)), today) : 0; return n < 1 ? 'today' : n + (n === 1 ? ' day ago' : ' days ago'); })() + '. What happened?' } : null;
@@ -2344,7 +2371,7 @@ function ThinkingFeed({ user, setView, cfiHistory, completedLessons, hasCfi }) {
     if (next.key === 'review' && dueReview) nfSetReviewFocus(dueReview.d.id);
     if (next.go) { setView(next.go); return; }
     if (next.act === 'challenge') { setOpenSignal(n => n + 1); goTo(document.getElementById('nf-today-challenge')); return; }
-    if (next.act === 'decision') { goTo(document.getElementById('nf-ask')); if (taRef.current) taRef.current.focus({ preventScroll: true }); }
+    if (next.act === 'decision') { if (isFeed) { setView('home'); return; } goTo(document.getElementById('nf-ask')); if (taRef.current) taRef.current.focus({ preventScroll: true }); }
   };
   const stageLabel = data.draft ? 'Stage ' + (Math.min(Math.max(Number(data.draft.step_index) || 0, 0), 3) + 1) + ' of 4' : '';
 
@@ -2385,8 +2412,8 @@ function ThinkingFeed({ user, setView, cfiHistory, completedLessons, hasCfi }) {
 
   return E("div", null, E("style", null, css),
     !online && E("div", { role: 'status', className: "nf-feed-note", style: { marginBottom: 16 } }, 'You are offline. You can start thinking now, but saving needs a connection.'),
-    // Your next step: ONE recommendation
-    E("div", { className: "nf-feed-card" },
+    // Your next step: ONE recommendation (Thinking Feed page)
+    isFeed && E("div", { className: "nf-feed-card" },
       E("p", { className: "nf-feed-eyebrow" }, 'TODAY \u00b7 YOUR NEXT STEP'),
       next ? E("div", null,
         E("h1", { style: { ...hDisplay, fontWeight: 600, fontSize: 'clamp(24px,5.5vw,34px)', lineHeight: 1.2, color: H.ink, margin: '0 0 10px' } }, next.title),
@@ -2398,7 +2425,7 @@ function ThinkingFeed({ user, setView, cfiHistory, completedLessons, hasCfi }) {
       : E("p", { className: "nf-feed-body", role: 'status' }, 'Loading your next step...')),
 
     // Today's challenge
-    E("div", { id: 'nf-today-challenge', className: "nf-feed-sec", style: { marginTop: 24 } },
+    isFeed && E("div", { id: 'nf-today-challenge', className: "nf-feed-sec", style: { marginTop: 24 } },
       E("p", { className: "nf-feed-eyebrow" }, "TODAY'S THINKING CHALLENGE"),
       ready ? E(NFChallenge, { key: today + (rowFor(today) ? ':done' : ':open') + pick.ch.id, user, date: today, ch: pick.ch, why: pick.why, latestOpen: data.decisions.find(d => d.status === 'open') || null, row: rowFor(today), setView, onSaved: onChallengeSaved, openSignal }) : E("p", { className: "nf-feed-note" }, 'Loading today\'s challenge...'),
       data.errors.rows && E("p", { className: "nf-feed-note" }, "Your saved challenge answers couldn't be loaded right now. You can still read today's challenge."),
@@ -2412,7 +2439,7 @@ function ThinkingFeed({ user, setView, cfiHistory, completedLessons, hasCfi }) {
         }))),
 
     // One decision to review
-    ready && dueReview && !(next && next.key === 'review') && E("div", { className: "nf-feed-sec" },
+    !isFeed && ready && dueReview && E("div", { className: "nf-feed-sec" },
       E("p", { className: "nf-feed-eyebrow" }, 'ONE DECISION TO REVIEW'),
       E("p", { className: "nf-feed-scenario", style: { marginBottom: 12 } }, dueReview.text),
       E("div", { className: "nf-feed-row" },
@@ -2421,7 +2448,7 @@ function ThinkingFeed({ user, setView, cfiHistory, completedLessons, hasCfi }) {
         E("button", { className: "nf-feed-link", onClick: () => dismiss(dueReview.key, 'followup_dismissed') }, 'Dismiss'))),
 
     // Your current practice (real counts only)
-    ready && E("div", { className: "nf-feed-sec" },
+    isFeed && ready && E("div", { className: "nf-feed-sec" },
       E("p", { className: "nf-feed-eyebrow" }, 'YOUR CURRENT PRACTICE'),
       E("div", { className: "nf-feed-stats" },
         E("div", { className: "nf-feed-stat" }, E("b", null, stats.total), E("span", null, stats.total === 1 ? 'day practiced' : 'days practiced')),
@@ -2431,22 +2458,24 @@ function ThinkingFeed({ user, setView, cfiHistory, completedLessons, hasCfi }) {
       data.decisions.length > 0 && E("button", { className: "nf-feed-link", onClick: () => setView('decisions') }, 'Open my decisions')),
 
     // Your Thinking Record / Passport (server-computed; hidden until the migration is applied)
-    ready && pp && E("div", { className: "nf-feed-sec" }, E(NFPassportPanel, { pp, mode: 'compact', setView, t: { ink: H.ink, muted: H.muted, border: H.border, accent: H.goldDeep, bg: C.surface } })),
-    ready && !pp && E("div", { className: "nf-feed-sec" }, E("button", { className: "nf-feed-link", onClick: () => { nfEvent('thinking_record_opened', { source: 'home' }); setView('record'); } }, 'View my Thinking Record')),
+    isFeed && ready && pp && E("div", { className: "nf-feed-sec" }, E(NFPassportPanel, { pp, mode: 'compact', setView, t: { ink: H.ink, muted: H.muted, border: H.border, accent: H.goldDeep, bg: C.surface } })),
+    isFeed && ready && !pp && E("div", { className: "nf-feed-sec" }, E("button", { className: "nf-feed-link", onClick: () => { nfEvent('thinking_record_opened', { source: 'home' }); setView('record'); } }, 'View my Thinking Record')),
 
-    E("div", { id: 'nf-ask', className: "nf-feed-sec" },
-    E("p", { className: "nf-feed-eyebrow" }, 'WORK THROUGH A DECISION'),
-    E("h2", { style: { ...hDisplay, fontWeight: 600, fontSize: 'clamp(22px,4.5vw,28px)', lineHeight: 1.2, color: H.ink, margin: '0 0 10px' } }, "What decision are you facing?"),
-    E("p", { className: "nf-feed-body", style: { marginBottom: 18 } }, "Bring a real decision or problem. You will break it down, check your signals, look wider, step back and commit."),
+    !isFeed && E("div", { id: 'nf-ask', className: "nf-feed-sec", style: { borderTop: 'none', marginTop: 0, paddingTop: 0 } },
+    E("p", { className: "nf-feed-eyebrow" }, firstName ? 'Hello, ' + firstName : 'Hello'),
+    E("h1", { style: { ...hDisplay, fontWeight: 600, fontSize: 'clamp(26px,5.5vw,36px)', lineHeight: 1.2, color: H.ink, margin: '0 0 10px' } }, "What are you working through today?"),
+    E("p", { className: "nf-feed-body", style: { marginBottom: 18 } }, "Bring a decision, challenge or problem. Work through it using four different thinking perspectives."),
+    E("div", { role: 'group', 'aria-label': 'Type of problem', style: { display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 14 } },
+      NF_CONTEXTS.map(c => E("button", { key: c.id, type: 'button', 'aria-pressed': ctxId === c.id, className: "nf-feed-chip", style: ctxId === c.id ? { borderColor: H.gold, color: H.ink, boxShadow: `0 0 0 1px ${H.gold}` } : null, onClick: () => setCtxId(ctxId === c.id ? '' : c.id) }, c.label))),
     E("label", { htmlFor: 'nf-feed-q', style: { position: 'absolute', left: -9999 } }, 'What are you trying to figure out?'),
     E("textarea", { id: 'nf-feed-q', ref: taRef, className: "nf-feed-ta", rows: 3, maxLength: 1500, value: q, onChange: e => { setQ(e.target.value); if (hint) setHint(false); }, placeholder: 'What are you trying to figure out?' }),
     hint && E("div", { role: 'alert', className: "nf-feed-err" }, 'Write a few words about what you are working through, then start.'),
-    E("div", { style: { margin: '14px 0 0' } }, E("button", { className: "nf-home-cta-primary", onClick: start }, 'START THINKING')),
+    E("div", { style: { margin: '14px 0 0' } }, E("button", { className: "nf-home-cta-primary", onClick: start }, 'Start a thinking session')),
     E("div", { style: { display: 'flex', flexDirection: 'column', gap: 8, marginTop: 16, alignItems: 'flex-start' } },
       chips.map(c => E("button", { key: c, className: "nf-feed-chip", onClick: () => { setQ(c); if (taRef.current) taRef.current.focus(); } }, c)))),
 
     // Continue a saved, unfinished session
-    ready && data.draft && E("div", { className: "nf-feed-sec" },
+    !isFeed && ready && data.draft && E("div", { className: "nf-feed-sec" },
       E("p", { className: "nf-feed-eyebrow" }, 'CONTINUE YOUR LAST THINKING SESSION'),
       E("p", { className: "nf-feed-scenario", style: { marginBottom: 6 } }, String(data.draft.problem || 'Untitled question').slice(0, 160)),
       E("p", { className: "nf-feed-note" }, stageLabel, ' \u00b7 not saved to My decisions yet'),
@@ -2455,7 +2484,7 @@ function ThinkingFeed({ user, setView, cfiHistory, completedLessons, hasCfi }) {
         E("button", { className: "nf-feed-link", onClick: discard }, 'Discard this draft'))),
 
     // Return-to-context prompts
-    followUps.filter(f => !dueReview || f.key !== dueReview.key).length > 0 && E("div", { className: "nf-feed-sec" },
+    !isFeed && followUps.filter(f => !dueReview || f.key !== dueReview.key).length > 0 && E("div", { className: "nf-feed-sec" },
       E("p", { className: "nf-feed-eyebrow" }, 'PICK UP WHERE YOU LEFT OFF'),
       followUps.filter(f => !dueReview || f.key !== dueReview.key).map(f => { const d = f.d; const title = d.title || 'a decision'; const busy = busyId === d.id;
         return E("div", { key: f.key, style: { marginBottom: 22 } },
@@ -2471,8 +2500,17 @@ function ThinkingFeed({ user, setView, cfiHistory, completedLessons, hasCfi }) {
             E("button", { className: "nf-feed-link", onClick: () => dismiss(f.key, 'followup_dismissed') }, 'Dismiss')));
       })),
 
+    // Where to go next (Home only): plain links, no extra cards
+    !isFeed && E("div", { className: "nf-feed-sec" },
+      E("p", { className: "nf-feed-eyebrow" }, 'ALSO TODAY'),
+      E("div", { style: { display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 2 } },
+        !hasCfi && E("button", { className: "nf-feed-link", onClick: () => setView('cfi') }, 'Take the CFI to see your thinking profile'),
+        E("button", { className: "nf-feed-link", onClick: () => setView('feed') }, "Today's thinking challenge"),
+        E("button", { className: "nf-feed-link", onClick: () => setView('lessons') }, 'Thinking development'),
+        ready && data.decisions.length > 0 && E("button", { className: "nf-feed-link", onClick: () => setView('decisions') }, 'My decisions'))),
+
     // Thinking Mirror
-    ready && (mirror.length > 0 || (data.decisions.length < 2 && !data.errors.decisions)) && E("div", { className: "nf-feed-sec" },
+    isFeed && ready && (mirror.length > 0 || (data.decisions.length < 2 && !data.errors.decisions)) && E("div", { className: "nf-feed-sec" },
       E("p", { className: "nf-feed-eyebrow" }, 'THE THINKING MIRROR'),
       mirror.length === 0
         ? E("p", { className: "nf-feed-body" }, 'Save a couple of thinking sessions and the Mirror can point out patterns in your own work. It has nothing to show yet.')
@@ -2486,9 +2524,9 @@ function ThinkingFeed({ user, setView, cfiHistory, completedLessons, hasCfi }) {
   );
 }
 
-function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonProgress, authLoading }) {
+function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonProgress, authLoading, mode }) {
   const E = React.createElement;
-  useEffect(() => { if (authLoading) return; nfEvent(user ? 'feed_viewed' : 'homepage_viewed', {}); }, [!!user, !!authLoading]);
+  useEffect(() => { if (authLoading) return; nfEvent(user ? (mode === 'feed' ? 'thinking_feed_opened' : 'feed_viewed') : 'homepage_viewed', {}); }, [!!user, !!authLoading, mode]);
   const completedLessons = Object.values(lessonProgress || {}).filter(v => v === 100).length;
   const wrap = { maxWidth: 760, margin: '0 auto', padding: '0 24px' };
   const h2 = { ...hDisplay, fontWeight: 600, fontSize: 'clamp(24px,3vw,32px)', lineHeight: 1.25, color: H.ink, margin: '0 0 12px' };
@@ -2539,10 +2577,11 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
   // ---------- Signed in: your next step ----------
   if (user) {
     const hasResult = !!cfiResult;
+    const firstName = (() => { const m = (user && user.user_metadata) || {}; const n = String(m.full_name || m.name || m.first_name || '').trim().split(/\s+/)[0]; return n && n.length <= 30 ? n : ''; })();
     return E("div", { className: "nf-home", style: { background: H.bg, color: H.text, paddingTop: 60, minHeight: '100vh' } }, styles,
       E("div", { style: { ...wrap, padding: '32px 24px 80px' } },
-        E(ThinkingFeed, { user, setView, cfiHistory, completedLessons, hasCfi: hasResult }),
-        E("div", { className: "nf-feed-sec", style: { marginTop: 36 } },
+        E(ThinkingFeed, { user, setView, cfiHistory, completedLessons, hasCfi: hasResult, mode: mode === 'feed' ? 'feed' : 'home', firstName }),
+        mode === 'feed' ? null : E("div", { className: "nf-feed-sec", style: { marginTop: 36 } },
           hasResult ? E("p", { style: { ...para, marginBottom: 0 } }, cfiResult.created_at ? 'Your last CFI was on ' + new Date(cfiResult.created_at).toLocaleDateString() + '. ' : 'Your result is saved. ',
             E("button", { onClick: () => setView('analytics'), style: { background: 'none', border: 'none', padding: 0, font: 'inherit', color: H.goldDeep, textDecoration: 'underline', cursor: 'pointer', minHeight: 44 } }, 'See my progress'),
             ' \u00b7 ',
@@ -3111,13 +3150,15 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
       useProtocolA11yStyles();
       const AC = PROTOCOL_AC;
       const [seed] = useState(nfConsumeSeed); // set by the Thinking Feed (new question) or by Continue (resume)
+      const [ctx, setCtx] = useState(seed && seed.context ? String(seed.context) : '');
+      const ctxObj = NF_CONTEXTS.find(c => c.id === ctx) || null;
       const [phase, setPhase] = useState(seed && seed.resume && user ? 'loading' : (seed && seed.problem ? 'steps' : 'intro')); // loading | intro | steps | result
       const [stepIndex, setStepIndex] = useState(0);
       const [problem, setProblem] = useState(seed && seed.problem ? String(seed.problem) : '');
       const [answers, setAnswers] = useState({ decompose:'', sense:'', expand:'', reflect:'' });
       const [draftNote, setDraftNote] = useState('');
       const startedRef = useRef(false);
-      const markStarted = (source) => { if (startedRef.current) return; startedRef.current = true; nfEvent('thinking_session_started', { source: source || 'protocol' }); };
+      const markStarted = (source) => { if (startedRef.current) return; startedRef.current = true; nfEvent('thinking_session_started', { source: source || 'protocol', context: ctx || 'none' }); };
 
       useEffect(() => { window.scrollTo(0, 0); }, [phase, stepIndex]);
       useEffect(() => {
@@ -3185,10 +3226,10 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
                 boxShadow:'0 2px 8px rgba(138,109,47,0.35)', marginBottom:16,
               }}, 'Start →'),
               React.createElement("div", null,
-                React.createElement("button", {className: "nf-a11y-btn", onClick: ()=>setView('four-brains'), style: {
+                React.createElement("button", {className: "nf-a11y-btn", onClick: ()=>setView('decisions'), style: {
                   fontFamily:AC.font, fontSize:16, fontWeight:600, padding:'12px 20px', minHeight:48,
                   background:'transparent', color:AC.muted, border:'none', cursor:'pointer', borderRadius:12,
-                }}, 'See how it works')
+                }}, 'My decisions')
               )
             )
           )
@@ -3236,10 +3277,15 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
               React.createElement("p", {style: { fontSize:16, color:AC.muted, lineHeight:1.7, marginBottom:24 }}, step.intro),
 
               isDecompose && React.createElement("div", {style: { marginBottom:22 }},
-                React.createElement("label", {style: { display:'block', fontFamily:AC.font, fontSize:14, fontWeight:700, color:AC.text, marginBottom:8 }}, 'What are you trying to understand?'),
+                React.createElement("label", {style: { display:'block', fontFamily:AC.font, fontSize:14, fontWeight:700, color:AC.text, marginBottom:8 }}, 'What are you trying to figure out?'),
+                React.createElement("div", {role:'group', 'aria-label':'Type of problem', style: { display:'flex', flexWrap:'wrap', gap:8, marginBottom:12 }},
+                  NF_CONTEXTS.map(c => React.createElement("button", { key:c.id, type:'button', 'aria-pressed': ctx === c.id, className:'nf-a11y-btn', onClick: ()=>setCtx(ctx === c.id ? '' : c.id), style: {
+                    fontFamily:AC.font, fontSize:14, fontWeight:600, minHeight:44, padding:'8px 14px', borderRadius:999, cursor:'pointer', color:AC.text,
+                    border: `1px solid ${ctx === c.id ? AC.goldDark : AC.border}`, background: ctx === c.id ? AC.goldTint : AC.surface,
+                  }}, c.label))),
                 React.createElement(ProtocolTextarea, {
                   value: problem, onChange: e => setProblem(e.target.value),
-                  placeholder: 'Describe the situation in your own words...', minHeight: 100,
+                  placeholder: ctxObj ? ctxObj.examples[0] : 'Describe the situation in your own words...', minHeight: 100,
                 })
               ),
 
@@ -5628,7 +5674,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
       const viewProps = { refreshCfiHistory, authLoading, setView, user, session, paystackKey, setShowAuth, openAuth, isPro, setIsPro, cfiResult, setCfiResult, cfiHistory, lessonProgress, setLessonProgress, proPrice };
 
       return (
-        React.createElement("div", {style: { background:C.void, minHeight:'100vh', color:C.text }}, showAuth && React.createElement(AuthModal, {initialTab: authInitialTab, onClose: ()=>{ setShowAuth(false); setAuthInitialTab('login'); }, onSuccess: ()=>{ setShowAuth(false); setAuthInitialTab('login'); }}), React.createElement(Navbar, {view: view, setView: setView, user: user, profile: profile, setShowAuth: setShowAuth, onSignOut: handleSignOut, authLoading: authLoading, hasOrg: hasOrg}), React.createElement("main", null, view==='home'        && React.createElement(HomeView, viewProps), view==='cfi'         && React.createElement(CFIView, viewProps), view==='protocol'    && React.createElement(ProtocolView, viewProps), view==='decisions'   && React.createElement(DecisionVaultView, viewProps), view==='record'      && React.createElement(ThinkingRecordView, viewProps), view==='verify'      && React.createElement(VerifyCredentialView, null), view==='pressure'    && React.createElement(PressureModeView, viewProps), view==='analytics'   && React.createElement(AnalyticsView, viewProps), view==='lessons'     && React.createElement(LessonsView, viewProps), view==='legal'       && React.createElement(LegalView, {setView: setView}), view==='teams'       && React.createElement(window.NF_ORG.TeamsLanding, {user: user, setShowAuth: setShowAuth, setView: setView, openAuth: openAuth, onOrgsChanged: l => setHasOrg(l.length > 0)}), view==='org'         && React.createElement(window.NF_ORG.OrgPortal, {user: user, session: session, setView: setView, setShowAuth: setShowAuth, openAuth: openAuth, onOrgsChanged: l => setHasOrg(l.length > 0)}), view==='join'        && React.createElement(window.NF_ORG.JoinPage, {user: user, session: session, setView: setView, setShowAuth: setShowAuth, openAuth: openAuth, onOrgsChanged: l => setHasOrg(l.length > 0)}), view==='admin'       && profile?.is_admin === true && React.createElement(AdminView, {user: user, setView: setView, onPriceChange: setProPrice})), React.createElement(Footer, {setView: setView}), React.createElement(BottomNav, {view: view, setView: setView, user: user, hasOrg: hasOrg}))
+        React.createElement("div", {style: { background:C.void, minHeight:'100vh', color:C.text }}, showAuth && React.createElement(AuthModal, {initialTab: authInitialTab, onClose: ()=>{ setShowAuth(false); setAuthInitialTab('login'); }, onSuccess: ()=>{ setShowAuth(false); setAuthInitialTab('login'); }}), React.createElement(Navbar, {view: view, setView: setView, user: user, profile: profile, setShowAuth: setShowAuth, onSignOut: handleSignOut, authLoading: authLoading, hasOrg: hasOrg}), React.createElement("main", null, view==='home'        && React.createElement(HomeView, viewProps), view==='feed'        && React.createElement(HomeView, Object.assign({}, viewProps, { mode: 'feed' })), view==='cfi'         && React.createElement(CFIView, viewProps), view==='protocol'    && React.createElement(ProtocolView, viewProps), view==='decisions'   && React.createElement(DecisionVaultView, viewProps), view==='record'      && React.createElement(ThinkingRecordView, viewProps), view==='verify'      && React.createElement(VerifyCredentialView, null), view==='pressure'    && React.createElement(PressureModeView, viewProps), view==='analytics'   && React.createElement(AnalyticsView, viewProps), view==='lessons'     && React.createElement(LessonsView, viewProps), view==='legal'       && React.createElement(LegalView, {setView: setView}), view==='teams'       && React.createElement(window.NF_ORG.TeamsLanding, {user: user, setShowAuth: setShowAuth, setView: setView, openAuth: openAuth, onOrgsChanged: l => setHasOrg(l.length > 0)}), view==='org'         && React.createElement(window.NF_ORG.OrgPortal, {user: user, session: session, setView: setView, setShowAuth: setShowAuth, openAuth: openAuth, onOrgsChanged: l => setHasOrg(l.length > 0)}), view==='join'        && React.createElement(window.NF_ORG.JoinPage, {user: user, session: session, setView: setView, setShowAuth: setShowAuth, openAuth: openAuth, onOrgsChanged: l => setHasOrg(l.length > 0)}), view==='admin'       && profile?.is_admin === true && React.createElement(AdminView, {user: user, setView: setView, onPriceChange: setProPrice})), React.createElement(Footer, {setView: setView}), React.createElement(BottomNav, {view: view, setView: setView, user: user, hasOrg: hasOrg}))
       );
     }
 
