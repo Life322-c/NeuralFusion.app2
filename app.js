@@ -1427,6 +1427,13 @@ Most learners take four to six weeks working through the lessons at the suggeste
         { v:'cfi', label:'Take the CFI' },
         { v:'lessons', label:'Lessons' },
       ];
+      // Public commercial pages (signed-out visitors only; signed-in users keep the app nav unchanged).
+      const commercialLinks = user ? [] : [
+        { href:'/organisations', label:'For Organisations' },
+        { href:'/academic-partnerships', label:'Academic Partnerships' },
+        { href:'/executive', label:'Executive Programme' },
+        { href:'/research', label:'Research' },
+      ];
       const blogHref = '/blog';
       const aboutHref = '/about';
       const navView = user ? (NF_NAV_ALIAS[view] || view) : view;
@@ -1436,7 +1443,7 @@ Most learners take four to six weeks working through the lessons at the suggeste
             position:'fixed', top:0, left:0, right:0, zIndex:100,
             background:'rgba(5,12,26,0.85)', backdropFilter:'blur(20px)',
             borderBottom:`1px solid ${C.border}`,
-          }}, React.createElement("div", {style: { maxWidth:1280, margin:'0 auto', padding:'0 24px', height:60, display:'flex', alignItems:'center', justifyContent:'space-between' }}, React.createElement("button", {className: "nf-logo-btn", onClick: ()=>setView('home'), style: { background:'none', border:'none', display:'flex', alignItems:'center', cursor:'pointer' }}, React.createElement(NFLogoLockup, {iconSize: 30, gap: 12, wordmarkColor: C.text, tagline: 'Cognitive OS', taglineColor: C.muted})), React.createElement("div", {className: "desktop-nav"}, navItems.map(item => (
+          }}, React.createElement("div", {style: { maxWidth:1280, margin:'0 auto', padding:'0 24px', height:60, display:'flex', alignItems:'center', justifyContent:'space-between' }}, React.createElement("button", {className: "nf-logo-btn", onClick: ()=>setView('home'), style: { background:'none', border:'none', display:'flex', alignItems:'center', cursor:'pointer' }}, React.createElement(NFLogoLockup, {iconSize: 30, gap: 12, wordmarkColor: C.text, tagline: 'Cognitive OS', taglineColor: C.muted})), React.createElement("div", {className: "desktop-nav" + (user ? "" : " nf-anon")}, navItems.filter(item => user || item.v === 'home').map(item => (
                   React.createElement("button", {key: item.v, onClick: ()=>setView(item.v), style: {
                     background:'none', border:'none', padding:'8px 12px',
                     color: navView===item.v ? C.cyan : C.muted,
@@ -1444,7 +1451,13 @@ Most learners take four to six weeks working through the lessons at the suggeste
                     cursor:'pointer', transition:'color 0.2s',
                     borderBottom: navView===item.v ? `1px solid ${C.cyan}` : '1px solid transparent',
                   }}, item.label)
-                )), React.createElement("a", {href: aboutHref, style: {
+                )), commercialLinks.map(l => React.createElement("a", {key: l.href, href: l.href, style: {
+                  background:'none', border:'none', padding:'8px 12px',
+                  color: C.muted, ...inter, fontSize:12, fontWeight:400,
+                  cursor:'pointer', transition:'color 0.2s',
+                  borderBottom: '1px solid transparent',
+                  textDecoration:'none', display:'inline-block',
+                }}, l.label)), React.createElement("a", {href: aboutHref, style: {
                   background:'none', border:'none', padding:'8px 12px',
                   color: C.muted,
                   ...inter, fontSize:12, fontWeight:400,
@@ -1469,7 +1482,7 @@ Most learners take four to six weeks working through the lessons at the suggeste
                     React.createElement("button", {className: "desktop-only", onClick: ()=>setShowAuth(true), style: { background:'none', border:'none', color:C.muted, ...inter, fontSize:11, cursor:'pointer' }}, 'Sign in'),
                     React.createElement("button", {className: "btn-primary desktop-only", style: { fontSize:10, padding:'10px 20px' }, onClick: ()=>setView('cfi')}, 'Take the CFI →')
                   )
-                ), React.createElement("button", {className: "hamburger-btn", onClick: ()=>setMenuOpen(!menuOpen), style: {
+                ), React.createElement("button", {className: "hamburger-btn" + (user ? "" : " nf-anon"), onClick: ()=>setMenuOpen(!menuOpen), style: {
                   background:'none', border:`1px solid ${C.border}`, borderRadius:2,
                   color:C.muted, width:40, height:36, flexDirection:'column',
                   alignItems:'center', justifyContent:'center', gap:5, cursor:'pointer',
@@ -1489,7 +1502,12 @@ Most learners take four to six weeks working through the lessons at the suggeste
                   }}, React.createElement("div", {style: { flex:1, ...syne, fontSize:14, fontWeight:700, color: navView===item.v ? C.cyan : C.text, overflowWrap:'break-word', minWidth:0}}, item.label), navView===item.v && (
                       React.createElement("div", {style: { ...mono, fontSize:10, color:C.cyan }}, '◈')
                     ))
-                )), React.createElement("a", {href: aboutHref, style: {
+                )), commercialLinks.map((l, ci) => React.createElement("a", {key: l.href, href: l.href, style: {
+                  display:'flex', alignItems:'center', width:'100%', textAlign:'left',
+                  borderBottom:`1px solid ${C.border}`,
+                  padding:'18px 0', cursor:'pointer', textDecoration:'none',
+                  animation:`fadeUp 0.3s ease ${(navItems.length+ci)*0.05}s both`,
+                }}, React.createElement("div", {style: { flex:1, ...syne, fontSize:14, fontWeight:700, color:C.text, overflowWrap:'break-word', minWidth:0}}, l.label))), React.createElement("a", {href: aboutHref, style: {
                   display:'flex', alignItems:'center', width:'100%', textAlign:'left',
                   borderBottom:`1px solid ${C.border}`,
                   padding:'18px 0', cursor:'pointer', textDecoration:'none',
@@ -2059,6 +2077,9 @@ function NFPassportPanel({ pp, t, mode, setView, lessonsDone, lessonsTotal }) {
 
 // ── Public credential verification (Step 7). /verify/<id> is readable without signing in. The server returns only status,
 // level, issue date, verification ID and requirement names, nothing about the person (see migration_passport_verify.sql).
+// Deep links from the static commercial pages: /?view=cfi, /?view=teams, /?view=lessons, /?view=protocol.
+// Allowlisted so a crafted URL can never open an arbitrary or admin view.
+const nfDeepLinkView = () => { try { const v = new URLSearchParams(window.location.search).get('view'); return ['cfi', 'teams', 'lessons', 'protocol'].indexOf(v) !== -1 ? v : null; } catch (_) { return null; } };
 const nfVerifyIdFromPath = () => { try { const m = window.location.pathname.match(/^\/verify\/(NF-[0-9A-Fa-f]{16})\/?$/); return m ? m[1].toUpperCase() : null; } catch (_) { return null; } };
 function NFPassportShare({ cred, t }) {
   const E = React.createElement;
@@ -4909,6 +4930,11 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
         { label:'Decisions', v:'decisions' },
         { label:'For Teams', v:'teams' },
       ];
+      const pathwayLinks = [
+        { label:'For Organisations', href:'/organisations' },
+        { label:'Academic Partnerships', href:'/academic-partnerships' },
+        { label:'Executive Programme', href:'/executive' },
+      ];
       const legalLinks = [
         { label:'About', href:'/about' },
         { label:'Research', href:'/research' },
@@ -4928,7 +4954,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
       return (
         React.createElement("footer", {className: "nf-footer", style: { borderTop:`1px solid ${C.border}`, padding:'48px 24px 32px', textAlign:'center' }}, React.createElement("div", {style: { maxWidth:1200, margin:'0 auto' }}, React.createElement("div", {style: { display:'flex', alignItems:'center', justifyContent:'center', marginBottom:32 }}, React.createElement(NFLogoLockup, {iconSize: 26, gap: 10, wordmarkColor: C.text})), React.createElement("div", {style: { display:'flex', justifyContent:'center', flexWrap:'wrap', gap:24, marginBottom:20 }}, links.map(l=>(
                 React.createElement("button", {key: l.v, onClick: ()=>setView(l.v), style: { background:'none', border:'none', color:C.muted, fontSize:12, cursor:'pointer' }}, l.label)
-              ))), React.createElement("div", {style: { marginBottom:12, paddingTop:16, borderTop:`1px solid ${C.border}`, ...mono, fontSize:10, letterSpacing:1, color:C.dim }}, 'LATEST ARTICLES'), React.createElement("div", {style: { display:'flex', justifyContent:'center', flexWrap:'wrap', gap:20, marginBottom:24 }}, articleLinks.map(l=>(
+              )), pathwayLinks.map(l => React.createElement("a", {key: l.href, href: l.href, style: { color:C.muted, fontSize:12, textDecoration:'none' }}, l.label))), React.createElement("div", {style: { marginBottom:12, paddingTop:16, borderTop:`1px solid ${C.border}`, ...mono, fontSize:10, letterSpacing:1, color:C.dim }}, 'LATEST ARTICLES'), React.createElement("div", {style: { display:'flex', justifyContent:'center', flexWrap:'wrap', gap:20, marginBottom:24 }}, articleLinks.map(l=>(
                 React.createElement("a", {key: l.href, href: l.href, style: { color:C.muted, fontSize:12, textDecoration:'none' }}, l.label)
               ))), React.createElement("div", {style: { display:'flex', justifyContent:'center', flexWrap:'wrap', gap:20, marginBottom:32, paddingTop:16, borderTop:`1px solid ${C.border}` }}, legalLinks.map(l=>(
                 React.createElement("a", {key: l.label, href: l.href, style: { background:'none', border:'none', color:C.dim, fontSize:10, cursor:'pointer', fontFamily:"'Space Mono', monospace", letterSpacing:1, textDecoration:'none' }}, l.label)
@@ -5081,6 +5107,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
         { id:'cfi',        label:'CFI Results',  icon:'◎' },
         { id:'pro',        label:'Pro Subs',     icon:'★' },
         { id:'organisations', label:'Teams', icon:'⬡' },
+        { id:'leads', label:'Leads', icon:'\u2709' },
         { id:'pricing',    label:'Pricing',      icon:'₦' },
       ];
 
@@ -5272,6 +5299,8 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
                         )))))
                 ), tab === 'organisations' && (
                   React.createElement(window.NF_ORG.AdminTeamsPanel, {onChanged: loadAdminData})
+                ), tab === 'leads' && (
+                  React.createElement(window.NF_LEADS.AdminLeadsPanel, null)
                 ), tab === 'pricing' && (
                   React.createElement("div", {style: { display:'grid', gridTemplateColumns:'repeat(auto-fit,minmax(min(400px,100%),1fr))', gap:20 }}, React.createElement("div", {className: "card", style: { padding:'40px', position:'relative', overflow:'hidden', borderColor:'#C8A95A' }}, React.createElement("div", {style: { ...mono, fontSize:13, letterSpacing:'0.04em', color:C.cyan, marginBottom:16 }}, 'PRO plan pricing'), React.createElement("div", {style: { ...syne, fontSize:18, fontWeight:800, color:C.text, marginBottom:8, overflowWrap:'break-word', minWidth:0}}, 'Edit Pro Price'), React.createElement("div", {style: { fontSize:15, color:C.muted, marginBottom:28, lineHeight:1.7 }}, 'Updates the price shown on the platform and passed to Paystack for payment processing.'), React.createElement("div", {style: { marginBottom:20 }}, React.createElement("div", {style: { ...mono, fontSize:12, letterSpacing:'0.04em', color:C.muted, marginBottom:8 }}, 'CURRENT PRICE (NAIRA)'), React.createElement("div", {style: { ...syne, fontSize:16, fontWeight:800, color:C.cyan, lineHeight:1.2, marginBottom:4, overflowWrap:'break-word', minWidth:0}}, `₦${(proPrice/100).toLocaleString()}`), React.createElement("div", {style: { ...mono, fontSize:12, color:C.muted }}, '=', proPrice.toLocaleString(), 'kobo')), React.createElement("div", {style: { marginBottom:20 }}, React.createElement("div", {style: { ...mono, fontSize:12, letterSpacing:'0.04em', color:C.muted, marginBottom:8 }}, 'NEW PRICE (₦)'), React.createElement("div", {style: { display:'flex', gap:12, alignItems:'center' }}, React.createElement("div", {style: { position:'relative', flex:1 }}, React.createElement("div", {style: { position:'absolute', left:16, top:'50%', transform:'translateY(-50%)', ...syne, fontSize:16, fontWeight:700, color:C.muted, overflowWrap:'break-word', minWidth:0}}, '₦'), React.createElement("input", {type: "number", value: priceInput, onChange: e => setPriceInput(e.target.value), style: { paddingLeft:36, fontSize:16, ...syne, fontWeight:700, overflowWrap:'break-word', minWidth:0}, min: "100", step: "100"})), React.createElement("button", {className: "btn-primary", onClick: savePrice, style: { whiteSpace:'nowrap' }}, priceSaved ? '✓ Saved!' : 'Save Price'))), React.createElement("div", {style: { padding:'20px', background:C.deep, borderRadius:8, border:`1px solid ${C.border}` }}, React.createElement("div", {style: { ...mono, fontSize:13, letterSpacing:'0.04em', color:C.muted, marginBottom:8 }}, 'Paystack integration'), React.createElement("div", {style: { fontSize:15, color:C.muted, lineHeight:1.7 }}, 'Live key:', React.createElement("span", {style: { color:C.cyan, fontFamily:'monospace' }}, 'loaded from platform_settings at runtime'), React.createElement("br", null), 'Currency: NGN · Gateway: Paystack inline · Verified server-side'))), React.createElement("div", {className: "card", style: { padding:'40px', position:'relative', overflow:'hidden', borderColor:'#C8A95A', gridColumn:'1 / -1' }}, React.createElement("div", {style: { ...mono, fontSize:13, letterSpacing:'0.04em', color:AC.goldDark, marginBottom:16 }}, 'Payment gateway'), React.createElement("div", {style: { ...syne, fontSize:18, fontWeight:800, color:C.text, marginBottom:8, overflowWrap:'break-word', minWidth:0}}, 'Paystack Public Key'), React.createElement("div", {style: { fontSize:15, color:C.muted, marginBottom:28, lineHeight:1.7 }}, 'Your Paystack public key (pk_live_... or pk_test_...). Stored in platform_settings and loaded at runtime, so no redeploy is needed.'), React.createElement("div", {style: { display:'flex', gap:12, alignItems:'center' }}, React.createElement("input", {type: "text", value: paystackKeyInput, onChange: e => setPaystackKeyInput(e.target.value), placeholder: 'pk_live_...', style: { flex:1, fontSize:15, fontFamily:'monospace', letterSpacing:'0.02em', overflowWrap:'break-word', minWidth:0 }}), React.createElement("button", {className: "btn-primary", onClick: savePaystackKey, style: { whiteSpace:'nowrap' }}, keySaved ? '✓ Saved!' : 'Save Key')), paystackKeyInput && React.createElement("div", {style: { marginTop:16, padding:'12px 16px', background:C.deep, borderRadius:8, border:`1px solid ${C.border}`, ...mono, fontSize:13, color:C.muted }}, 'Active: ', React.createElement("span", {style: { color:AC.goldDark }}, paystackKeyInput.slice(0,12), '...', paystackKeyInput.slice(-6)))))
                                 ))
@@ -5593,7 +5622,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
     //  MAIN APP
     // ═══════════════════════════════════════════════════════════════════
     function App() {
-      const [view, setView] = useState(() => (nfVerifyIdFromPath() ? 'verify' : ((window.NF_ORG && window.NF_ORG.initialView()) || 'home')));
+      const [view, setView] = useState(() => (nfVerifyIdFromPath() ? 'verify' : ((window.NF_ORG && window.NF_ORG.initialView()) || nfDeepLinkView() || 'home')));
       const [hasOrg, setHasOrg] = useState(false);
       const [showAuth, setShowAuth] = useState(false);
       const [authInitialTab, setAuthInitialTab] = useState('login');
@@ -5706,6 +5735,23 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
       // the CFI account gate so "Create Free Account" and "Sign In" land on the
       // right tab instead of always defaulting to login.
       const openAuth = (tab='login') => { setAuthInitialTab(tab); setShowAuth(true); };
+
+      // Entry from the static commercial pages: /?auth=login or /?auth=signup opens the sign-in modal
+      // (only when nobody is signed in). The view/auth params are then removed from the address bar.
+      useEffect(() => {
+        try {
+          const p = new URLSearchParams(window.location.search);
+          const a = p.get('auth');
+          if (a === 'login' || a === 'signup') {
+            sb.auth.getSession().then(r => { if (!(r && r.data && r.data.session)) openAuth(a); }).catch(() => {});
+          }
+          if (p.has('view') || p.has('auth')) {
+            p.delete('view'); p.delete('auth');
+            const q = p.toString();
+            window.history.replaceState({}, '', window.location.pathname + (q ? '?' + q : ''));
+          }
+        } catch (_) {}
+      }, []);
 
       const refreshCfiHistory = async () => {
         if (!user) return;
@@ -6089,7 +6135,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
       const done = () => { setMsg({ type: 'ok', text: 'Team link copied. Paste it anywhere.' }); track('team_link_copied', { organisation_id: org.id }); };
       try { navigator.clipboard.writeText(url).then(done, () => window.prompt('Copy this link', url)); } catch (_) { window.prompt('Copy this link', url); }
     };
-    const wa = 'https://wa.me/?text=' + encodeURIComponent('Join our team on NeuralFusion. Open this link, create a free account and take the 4 minute thinking assessment: ' + url);
+    const wa = 'https://wa.me/?text=' + encodeURIComponent('Join our team on NeuralFusion. Open this link, create a free account and take the 40-question thinking assessment (about eight minutes): ' + url);
     const reset = async () => {
       if (!window.confirm('Reset the team link? The old link stops working for new people. Current members stay.')) return;
       const r = await rpc('reset_team_link', { p_org: org.id });
@@ -6591,7 +6637,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
     return Shell(h('div', { style: card({ maxWidth: 600, margin: '0 auto' }) },
       h('div', { style: Object.assign({}, eyebrow, { marginBottom: 12 }) }, 'JOIN YOUR TEAM'),
       h('div', { style: { ...syne, fontSize: 26, fontWeight: 800, marginBottom: 12 } }, orgName),
-      h('div', { style: { fontSize: 17, lineHeight: 1.8, marginBottom: 16 } }, 'Take a 4 minute thinking assessment, then follow a short training programme with your team.'),
+      h('div', { style: { fontSize: 17, lineHeight: 1.8, marginBottom: 16 } }, 'Take the 40-question thinking assessment (about eight minutes), then follow a short training programme with your team.'),
       h('div', { style: { fontSize: 15, color: C.muted, marginBottom: 20, lineHeight: 1.7 } }, orgName + ' sees aggregate team results and whether you completed each step. It does not see your individual answers or score.'),
       h(Msg, { m: msg }),
       user ? h(Btn, { onClick: joinTeam, disabled: busy }, busy ? 'JOINING...' : (msg ? 'TRY AGAIN' : 'JOIN NOW'))
@@ -6680,6 +6726,169 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
 })();
 
     // ═══ NEURALFUSION_ORG_MODULE_END ═══
+
+    // === NEURALFUSION_LEADS_MODULE_START ===
+    // Admin > Leads: inbound business leads (corporate, academic, executive, research, partnership, general).
+    // All reads and writes go through the admin_* Supabase functions, which re-check profiles.is_admin on the
+    // server (see migration_business_leads.sql). Ordinary signed-in users receive a not_authorised error.
+(function () {
+  const h = React.createElement;
+  const { useState, useEffect } = React;
+  const AC = {
+    bg: '#FFFFFF', surfaceAlt: '#F9FAFB', text: '#111827', muted: '#4B5563', border: '#D1D5DB',
+    gold: '#C8A95A', goldDark: '#8A6D2F', goldTint: '#FBF3E3',
+    error: '#B91C1C', errorTint: '#FEF2F2', success: '#166534', successTint: '#F0FDF4',
+    font: "'Atkinson Hyperlegible', 'Inter', -apple-system, sans-serif",
+  };
+  const STATUSES = [
+    ['new', 'New'], ['contacted', 'Contacted'], ['qualified', 'Qualified'], ['meeting_scheduled', 'Meeting Scheduled'],
+    ['proposal_sent', 'Proposal Sent'], ['converted', 'Converted'], ['not_interested', 'Not Interested'],
+  ];
+  const CATEGORIES = [
+    ['corporate', 'Corporate'], ['academic', 'Academic'], ['executive', 'Executive'],
+    ['research', 'Research'], ['partnership', 'Partnership'], ['general', 'General enquiry'],
+  ];
+  const label = (list, v) => { const f = list.find(x => x[0] === v); return f ? f[1] : (v || ''); };
+  const fmtDate = (iso) => { try { return new Date(iso).toLocaleString(undefined, { year: 'numeric', month: 'short', day: '2-digit', hour: '2-digit', minute: '2-digit' }); } catch (_) { return iso || ''; } };
+  const today = () => new Date().toISOString().slice(0, 10);
+
+  const inputStyle = { fontFamily: AC.font, fontSize: 16, padding: '10px 12px', minHeight: 44, border: '1px solid ' + AC.border, borderRadius: 8, background: '#fff', color: AC.text, width: '100%', boxSizing: 'border-box' };
+  const btn = (primary) => ({ fontFamily: AC.font, fontSize: 15, fontWeight: 700, minHeight: 44, padding: '10px 18px', borderRadius: 8, cursor: 'pointer',
+    border: '1px solid ' + (primary ? AC.goldDark : AC.border), background: primary ? AC.goldDark : '#fff', color: primary ? '#fff' : AC.text });
+  const card = { background: '#fff', border: '1px solid ' + AC.border, borderRadius: 12, padding: 16 };
+
+  // CSV with protection against spreadsheet formula injection (cells starting with = + - @ tab CR).
+  function csvCell(v) {
+    let s = v === null || v === undefined ? '' : String(v);
+    if (/^[=+\-@\t\r]/.test(s)) s = "'" + s;
+    return '"' + s.replace(/"/g, '""') + '"';
+  }
+  const CSV_COLS = ['id', 'created_at', 'full_name', 'email', 'organisation', 'position', 'country', 'lead_category', 'enquiry_type', 'team_size',
+    'message', 'source_page', 'referrer', 'utm_source', 'utm_medium', 'utm_campaign', 'consent', 'status', 'assigned_to', 'internal_notes', 'follow_up_at', 'last_contacted_at'];
+  function downloadCsv(rows) {
+    const lines = [CSV_COLS.join(',')].concat(rows.map(r => CSV_COLS.map(c => csvCell(r[c])).join(',')));
+    const blob = new Blob(['\uFEFF' + lines.join('\r\n')], { type: 'text/csv;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = 'neuralfusion-leads-' + today() + '.csv';
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  }
+
+  function Detail({ lead, onSaved }) {
+    const [d, setD] = useState({ status: lead.status, assigned_to: lead.assigned_to || '', internal_notes: lead.internal_notes || '', follow_up_at: lead.follow_up_at || '' });
+    const [busy, setBusy] = useState(false);
+    const [msg, setMsg] = useState(null);
+    const set = (k, v) => setD(Object.assign({}, d, { [k]: v }));
+    const save = async () => {
+      setBusy(true); setMsg(null);
+      const { data, error } = await sb.rpc('admin_update_business_lead', {
+        p_id: lead.id,
+        p_patch: { status: d.status, assigned_to: d.assigned_to, internal_notes: d.internal_notes, follow_up_at: d.follow_up_at || null },
+      });
+      setBusy(false);
+      if (error) { console.error('[admin_update_business_lead]', error); setMsg({ ok: false, text: 'Could not save. ' + (/not_authorised/.test(error.message || '') ? 'You do not have permission.' : 'Please try again.') }); return; }
+      setMsg({ ok: true, text: 'Saved.' });
+      if (onSaved && data) onSaved(data);
+    };
+    const row = (k, v) => v ? h('div', { style: { marginBottom: 6, fontSize: 15 } }, h('strong', null, k + ': '), v) : null;
+    const lab = { display: 'block', fontSize: 14, fontWeight: 700, color: AC.text, marginBottom: 4 };
+    return h('div', { style: { background: AC.surfaceAlt, borderTop: '1px solid ' + AC.border, padding: 16 } },
+      h('div', { style: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(min(300px,100%),1fr))', gap: 20 } },
+        h('div', null,
+          row('Email', h('a', { href: 'mailto:' + lead.email, style: { color: AC.goldDark } }, lead.email)),
+          row('Organisation', lead.organisation), row('Position', lead.position), row('Country', lead.country),
+          row('Enquiry type', lead.enquiry_type), row('Group size', lead.team_size),
+          row('Source page', lead.source_page), row('Referrer', lead.referrer),
+          row('Campaign', [lead.utm_source, lead.utm_medium, lead.utm_campaign].filter(Boolean).join(' / ')),
+          row('Consent given', lead.consent ? 'Yes' : 'No'), row('Last contacted', lead.last_contacted_at ? fmtDate(lead.last_contacted_at) : ''),
+          h('div', { style: { marginTop: 12, fontSize: 15, lineHeight: 1.6, whiteSpace: 'pre-wrap', overflowWrap: 'anywhere', background: '#fff', border: '1px solid ' + AC.border, borderRadius: 8, padding: 12 } }, lead.message || '')),
+        h('div', null,
+          h('label', { style: lab, htmlFor: 'ld-status-' + lead.id }, 'Status'),
+          h('select', { id: 'ld-status-' + lead.id, value: d.status, onChange: (e) => set('status', e.target.value), style: Object.assign({}, inputStyle, { marginBottom: 12 }) }, STATUSES.map(s => h('option', { key: s[0], value: s[0] }, s[1]))),
+          h('label', { style: lab, htmlFor: 'ld-assign-' + lead.id }, 'Assigned to'),
+          h('input', { id: 'ld-assign-' + lead.id, type: 'text', maxLength: 120, value: d.assigned_to, onChange: (e) => set('assigned_to', e.target.value), style: Object.assign({}, inputStyle, { marginBottom: 12 }) }),
+          h('label', { style: lab, htmlFor: 'ld-fu-' + lead.id }, 'Follow-up date'),
+          h('input', { id: 'ld-fu-' + lead.id, type: 'date', value: d.follow_up_at, onChange: (e) => set('follow_up_at', e.target.value), style: Object.assign({}, inputStyle, { marginBottom: 12 }) }),
+          h('label', { style: lab, htmlFor: 'ld-notes-' + lead.id }, 'Internal notes (never shown to the lead)'),
+          h('textarea', { id: 'ld-notes-' + lead.id, rows: 5, maxLength: 8000, value: d.internal_notes, onChange: (e) => set('internal_notes', e.target.value), style: Object.assign({}, inputStyle, { marginBottom: 12, resize: 'vertical' }) }),
+          h('button', { type: 'button', onClick: save, disabled: busy, style: btn(true) }, busy ? 'Saving...' : 'Save changes'),
+          msg ? h('div', { role: 'status', style: { marginTop: 10, fontSize: 15, color: msg.ok ? AC.success : AC.error } }, msg.text) : null)));
+  }
+
+  function AdminLeadsPanel() {
+    const [rows, setRows] = useState(null);
+    const [err, setErr] = useState(null);
+    const [q, setQ] = useState('');
+    const [cat, setCat] = useState('');
+    const [status, setStatus] = useState('');
+    const [from, setFrom] = useState('');
+    const [to, setTo] = useState('');
+    const [dueOnly, setDueOnly] = useState(false);
+    const [openId, setOpenId] = useState(null);
+    const [loading, setLoading] = useState(false);
+
+    const load = async () => {
+      setLoading(true); setErr(null);
+      const { data, error } = await sb.rpc('admin_list_business_leads', {
+        p_category: cat || null, p_status: status || null, p_search: q || null, p_from: from || null, p_to: to || null, p_limit: 1000,
+      });
+      setLoading(false);
+      if (error) {
+        console.error('[admin_list_business_leads]', error);
+        const m = error.message || '';
+        setErr(/not_authorised/.test(m) ? 'You do not have permission to view leads.'
+          : (/does not exist|schema cache|Could not find/i.test(m) ? 'The leads database has not been set up yet. Run migration_business_leads.sql in the Supabase SQL editor.' : 'Could not load leads. Please try again.'));
+        setRows([]); return;
+      }
+      setRows(Array.isArray(data) ? data : []);
+    };
+    useEffect(() => { load(); }, []);
+
+    const list = (rows || []).filter(r => !dueOnly || (r.follow_up_at && r.follow_up_at <= today() && r.status !== 'converted' && r.status !== 'not_interested'));
+    const count = (fn) => (rows || []).filter(fn).length;
+    const dueCount = count(r => r.follow_up_at && r.follow_up_at <= today() && r.status !== 'converted' && r.status !== 'not_interested');
+    const sources = {};
+    (rows || []).forEach(r => { const k = (r.utm_source ? r.utm_source + ' (campaign)' : (r.referrer ? r.referrer.split('/')[0] : 'direct')) + ' > ' + r.source_page; sources[k] = (sources[k] || 0) + 1; });
+    const topSources = Object.keys(sources).sort((a, b) => sources[b] - sources[a]).slice(0, 8);
+
+    const onSaved = (u) => setRows((rows || []).map(r => r.id === u.id ? u : r));
+    const stat = (t, v) => h('div', { key: t, style: Object.assign({}, card, { textAlign: 'center' }) }, h('div', { style: { fontSize: 28, fontWeight: 800, color: AC.text } }, v), h('div', { style: { fontSize: 14, color: AC.muted } }, t));
+    const lab = { display: 'block', fontSize: 14, fontWeight: 700, color: AC.text, marginBottom: 4 };
+
+    return h('div', { style: { fontFamily: AC.font, color: AC.text } },
+      h('div', { style: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(130px,1fr))', gap: 12, marginBottom: 20 } },
+        stat('Shown', rows === null ? '...' : list.length), stat('New', rows === null ? '...' : count(r => r.status === 'new')),
+        stat('Follow-ups due', rows === null ? '...' : dueCount), stat('Converted', rows === null ? '...' : count(r => r.status === 'converted'))),
+      h('div', { style: Object.assign({}, card, { marginBottom: 20 }) },
+        h('div', { style: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(min(200px,100%),1fr))', gap: 12 } },
+          h('div', null, h('label', { style: lab, htmlFor: 'ld-q' }, 'Search'), h('input', { id: 'ld-q', type: 'search', value: q, placeholder: 'Name, email, organisation, message', onChange: (e) => setQ(e.target.value), onKeyDown: (e) => { if (e.key === 'Enter') load(); }, style: inputStyle })),
+          h('div', null, h('label', { style: lab, htmlFor: 'ld-cat' }, 'Category'), h('select', { id: 'ld-cat', value: cat, onChange: (e) => setCat(e.target.value), style: inputStyle }, [h('option', { key: 'all', value: '' }, 'All categories')].concat(CATEGORIES.map(c => h('option', { key: c[0], value: c[0] }, c[1]))))),
+          h('div', null, h('label', { style: lab, htmlFor: 'ld-st' }, 'Status'), h('select', { id: 'ld-st', value: status, onChange: (e) => setStatus(e.target.value), style: inputStyle }, [h('option', { key: 'all', value: '' }, 'All statuses')].concat(STATUSES.map(c => h('option', { key: c[0], value: c[0] }, c[1]))))),
+          h('div', null, h('label', { style: lab, htmlFor: 'ld-from' }, 'From date'), h('input', { id: 'ld-from', type: 'date', value: from, onChange: (e) => setFrom(e.target.value), style: inputStyle })),
+          h('div', null, h('label', { style: lab, htmlFor: 'ld-to' }, 'To date'), h('input', { id: 'ld-to', type: 'date', value: to, onChange: (e) => setTo(e.target.value), style: inputStyle }))),
+        h('div', { style: { display: 'flex', gap: 12, flexWrap: 'wrap', alignItems: 'center', marginTop: 14 } },
+          h('button', { type: 'button', onClick: load, disabled: loading, style: btn(true) }, loading ? 'Loading...' : 'Apply filters'),
+          h('button', { type: 'button', onClick: () => { setQ(''); setCat(''); setStatus(''); setFrom(''); setTo(''); setDueOnly(false); setTimeout(load, 0); }, style: btn(false) }, 'Reset'),
+          h('label', { style: { display: 'flex', gap: 8, alignItems: 'center', fontSize: 15 } }, h('input', { type: 'checkbox', checked: dueOnly, onChange: (e) => setDueOnly(e.target.checked), style: { width: 20, height: 20 } }), 'Follow-ups due'),
+          h('button', { type: 'button', disabled: !list.length, onClick: () => { if (window.confirm('This export contains personal data (names, emails, messages). Handle it according to your privacy policy. Export ' + list.length + ' lead(s) as CSV?')) downloadCsv(list); }, style: Object.assign({}, btn(false), { marginLeft: 'auto' }) }, 'Export CSV'))),
+      err ? h('div', { role: 'alert', style: { background: AC.errorTint, border: '1px solid ' + AC.error, color: AC.error, borderRadius: 10, padding: 14, marginBottom: 16 } }, err) : null,
+      topSources.length ? h('div', { style: Object.assign({}, card, { marginBottom: 20 }) },
+        h('div', { style: { fontWeight: 800, marginBottom: 8 } }, 'Lead sources'),
+        h('div', { style: { display: 'grid', gap: 4, fontSize: 15, color: AC.muted } }, topSources.map(k => h('div', { key: k, style: { display: 'flex', justifyContent: 'space-between', gap: 12 } }, h('span', { style: { overflowWrap: 'anywhere' } }, k), h('strong', { style: { color: AC.text } }, sources[k]))))) : null,
+      rows === null ? h('div', { style: { color: AC.muted } }, 'Loading leads...') :
+        (list.length === 0 && !err ? h('div', { style: Object.assign({}, card, { color: AC.muted, textAlign: 'center' }) }, 'No leads match these filters yet.') :
+          h('div', { style: { display: 'grid', gap: 12 } }, list.map(r => h('div', { key: r.id, style: { border: '1px solid ' + AC.border, borderRadius: 12, overflow: 'hidden', background: '#fff' } },
+            h('button', { type: 'button', 'aria-expanded': openId === r.id, onClick: () => setOpenId(openId === r.id ? null : r.id), style: { width: '100%', textAlign: 'left', background: 'none', border: 'none', cursor: 'pointer', padding: 14, fontFamily: AC.font, color: AC.text, display: 'grid', gridTemplateColumns: 'minmax(0,2fr) minmax(0,1fr) minmax(0,1fr)', gap: 10, alignItems: 'center' } },
+              h('div', { style: { minWidth: 0 } }, h('div', { style: { fontWeight: 800, overflowWrap: 'anywhere' } }, r.full_name), h('div', { style: { fontSize: 14, color: AC.muted, overflowWrap: 'anywhere' } }, [r.organisation, r.email].filter(Boolean).join(' - '))),
+              h('div', { style: { fontSize: 14 } }, h('span', { style: { background: AC.goldTint, border: '1px solid ' + AC.gold, borderRadius: 999, padding: '2px 10px', fontWeight: 700 } }, label(CATEGORIES, r.lead_category)), h('div', { style: { color: AC.muted, marginTop: 4 } }, fmtDate(r.created_at))),
+              h('div', { style: { fontSize: 14, fontWeight: 700, color: r.status === 'new' ? AC.error : (r.status === 'converted' ? AC.success : AC.text) } }, label(STATUSES, r.status), r.follow_up_at ? h('div', { style: { fontWeight: 400, color: AC.muted } }, 'Follow up ' + r.follow_up_at) : null)),
+            openId === r.id ? h(Detail, { key: 'd' + r.id, lead: r, onSaved }) : null)))));
+  }
+
+  window.NF_LEADS = { AdminLeadsPanel };
+})();
+    // === NEURALFUSION_LEADS_MODULE_END ===
 
     // Mount
     const root = ReactDOM.createRoot(document.getElementById('root'));
