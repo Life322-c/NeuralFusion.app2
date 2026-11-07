@@ -93,3 +93,31 @@ The SEO content layer buys significant time but is not a permanent solution.
 Consider migrating to Next.js for true SSR, which will make every page
 fully crawlable with zero workarounds. This is the highest-leverage
 long-term technical investment for organic growth
+
+
+---
+
+## Commercial pages and lead system (added 2026-11-07)
+
+New static routes: `/organisations`, `/academic-partnerships`, `/executive`, and a rebuilt `/contact`.
+Shared files: `commercial.css`, `commercial.js`. The pages are generated HTML; edit them directly.
+
+### Database (required before the forms work)
+1. Run `migration_business_leads.sql` in the Supabase SQL editor. It only adds a table and functions. It does not touch existing data.
+2. Table `business_leads` has RLS on, no policies and no table grants. Forms call `submit_business_lead()`. Admins use `admin_list_business_leads()` and `admin_update_business_lead()`, which check `profiles.is_admin` on the server.
+3. Verify with the three queries at the bottom of the migration file.
+
+### Admin
+Admin > Leads: search, filter by category, status and date, status updates, assignee, follow-up date, internal notes, source summary, CSV export.
+
+### Email notification (optional, not configured)
+No email provider exists in the project. `supabase/functions/notify-lead/index.ts` is a ready but untested option using Resend. Needs: `RESEND_API_KEY`, `LEAD_NOTIFY_TO`, `LEAD_NOTIFY_FROM`, `LEAD_WEBHOOK_SECRET` and a Database Webhook on INSERT. Until then, check Admin > Leads.
+
+### Spam protection
+Honeypot, minimum time on page, 3 submissions per email per hour, identical-message de-duplication, global flood guard. No CAPTCHA (it would need a CSP change and a Cloudflare Turnstile or hCaptcha key).
+
+### Deep links used by the new pages
+`/?view=cfi|teams|lessons|protocol`, `/?auth=login|signup`. Allowlisted in `app.js` (`?v=57`); `style.css?v=5`.
+
+### Analytics events (GTM dataLayer)
+`nf_commercial_page_view`, `nf_lead_submitted`, `nf_contact_conversion`, `nf_cfi_cta_click`, `nf_org_programme_click`, `nf_org_partnership_click`, `nf_academic_partnership_click`, `nf_executive_programme_click`. Existing `nf_cfi_started` and `nf_cfi_completed` are unchanged. GTM triggers for the new events must be created in the container.
