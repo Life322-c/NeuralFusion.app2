@@ -13,6 +13,13 @@ NeuralFusion was founded by Life Edet. It is not an AI chatbot, a productivity a
 - [CFI Methodology](https://tryneuralfusion.com/methodology): what the CFI measures, does not measure, and its current limitations
 - [Human Intelligence & AI](https://tryneuralfusion.com/human-intelligence-ai): human cognitive agency in the age of AI
 
+## Pathways
+
+- [For Organisations](https://tryneuralfusion.com/organisations): team assessment, training and decision practice for organisations
+- [Academic Partnerships](https://tryneuralfusion.com/academic-partnerships): collaboration, pilots and methodology discussion. States clearly what is and is not validated
+- [Executive Programme](https://tryneuralfusion.com/executive): individual assessment, Core Loop and Decision Room for founders and senior leaders
+- [Contact](https://tryneuralfusion.com/contact): enquiry pathways
+
 ## Research
 
 - [Research & Publications](https://tryneuralfusion.com/research)
