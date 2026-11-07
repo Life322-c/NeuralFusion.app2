@@ -46,6 +46,28 @@
     <priority>0.8</priority>
   </url>
 
+  <!-- Commercial pathways -->
+  <url>
+    <loc>https://tryneuralfusion.com/organisations</loc>
+    <lastmod>2026-11-07</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.9</priority>
+  </url>
+
+  <url>
+    <loc>https://tryneuralfusion.com/academic-partnerships</loc>
+    <lastmod>2026-11-07</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+
+  <url>
+    <loc>https://tryneuralfusion.com/executive</loc>
+    <lastmod>2026-11-07</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+
   <!-- Trust / E-E-A-T pages -->
   <url>
     <loc>https://tryneuralfusion.com/about</loc>
@@ -85,9 +107,9 @@
 
   <url>
     <loc>https://tryneuralfusion.com/contact</loc>
-    <lastmod>2026-10-15</lastmod>
-    <changefreq>yearly</changefreq>
-    <priority>0.4</priority>
+    <lastmod>2026-11-07</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
   </url>
 
   <!-- Blog index -->
