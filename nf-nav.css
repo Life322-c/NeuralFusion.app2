@@ -1,0 +1,224 @@
+/* NeuralFusion public navigation: one stylesheet for every signed-out surface.
+   Used by the static pages (via nf-nav.js) AND the React app's signed-out bar (app.js, PublicNav).
+   Everything is namespaced "nfx-" and scoped under .nfx-header so legacy page CSS
+   (bare ul / li / a / svg / header rules, li::before bullets) cannot leak in.
+
+   Desktop (>= 900px): three click-to-open dropdown panels. Hover only styles; it never opens a panel.
+   Mobile  (<  900px): the same <nav> becomes a full-screen overlay with three independent accordions. */
+
+.nfx-header {
+  --nfx-navy: #050C1A;
+  --nfx-navy-2: #0A1628;
+  --nfx-gold: #C9A84C;
+  --nfx-gold-light: #E2BE78;
+  --nfx-text: #E9EDF5;
+  --nfx-muted: #A9B1C6;
+  --nfx-line: rgba(201, 168, 76, 0.22);
+  --nfx-line-soft: rgba(201, 168, 76, 0.12);
+  --nfx-wash: rgba(201, 168, 76, 0.10);
+  --nfx-bar-h: 64px;
+  --nfx-h: 65px; /* bar + 1px border: where the mobile overlay content starts */
+  --nfx-font: 'DM Sans', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --nfx-mono: 'Space Mono', ui-monospace, Menlo, Consolas, monospace;
+}
+
+header.nfx-header {
+  position: sticky; top: 0; z-index: 200;
+  margin: 0; padding: 0; width: 100%;
+  background: var(--nfx-navy); /* solid, so the bar looks identical over dark and cream pages */
+  border: 0; border-bottom: 1px solid var(--nfx-line);
+  color: var(--nfx-text); font-family: var(--nfx-font); font-size: 14px; line-height: 1.4; text-align: left;
+  box-sizing: border-box; display: block;
+}
+header.nfx-header.nfx-fixed { position: fixed; top: 0; left: 0; right: 0; z-index: 100; }
+.nfx-header *, .nfx-header *::before, .nfx-header *::after { box-sizing: border-box; }
+
+.nfx-header .nfx-bar {
+  display: flex; align-items: center; gap: 20px;
+  max-width: 1280px; margin: 0 auto; padding: 0 24px; height: var(--nfx-bar-h);
+}
+
+/* ---------- brand ---------- */
+.nfx-header .nfx-brand {
+  display: inline-flex; align-items: center; gap: 10px; flex: none;
+  color: var(--nfx-gold); text-decoration: none; white-space: nowrap;
+  font-family: var(--nfx-mono); font-size: 14px; font-weight: 400; letter-spacing: 0.14em; text-transform: uppercase;
+  position: relative; z-index: 3; min-height: 44px; margin: 0; padding: 0;
+}
+.nfx-header .nfx-brand:hover { color: var(--nfx-gold-light); }
+.nfx-header .nfx-brand svg { display: block; width: 18px; height: 18px; flex: none; }
+
+/* ---------- nav container ---------- */
+.nfx-header .nfx-nav { display: flex; align-items: center; flex: 1; min-width: 0; gap: 8px; margin: 0 0 0 12px; padding: 0; }
+.nfx-header .nfx-groups { display: flex; align-items: center; gap: 2px; list-style: none; margin: 0; padding: 0; }
+.nfx-header .nfx-group { position: relative; list-style: none; margin: 0; padding: 0; }
+.nfx-header .nfx-group::before, .nfx-header .nfx-panel li::before { content: none; display: none; }
+
+/* ---------- group triggers (buttons) ---------- */
+.nfx-header .nfx-trigger {
+  -webkit-appearance: none; appearance: none;
+  position: relative; display: inline-flex; align-items: center; gap: 7px;
+  min-height: 44px; margin: 0; padding: 0 14px;
+  background: none; border: 0; border-radius: 8px; cursor: pointer;
+  color: var(--nfx-muted);
+  font-family: var(--nfx-font) !important; font-size: 14px !important; font-weight: 500 !important; letter-spacing: 0 !important; line-height: 1;
+  text-transform: none; white-space: nowrap;
+  transition: color 0.15s ease, background-color 0.15s ease;
+}
+.nfx-header .nfx-trigger:hover { color: #fff; background: rgba(255, 255, 255, 0.05); }
+.nfx-header .nfx-group.is-open > .nfx-trigger { color: var(--nfx-gold-light); background: var(--nfx-wash); }
+.nfx-header .nfx-group.has-current > .nfx-trigger { color: var(--nfx-gold-light); }
+.nfx-header .nfx-group.has-current > .nfx-trigger::after {
+  content: ''; position: absolute; left: 14px; right: 14px; bottom: 5px; height: 2px; border-radius: 2px; background: var(--nfx-gold);
+}
+.nfx-header .nfx-chev {
+  display: block; width: 12px; height: 12px; flex: none; fill: none; stroke: currentColor; stroke-width: 1.8;
+  stroke-linecap: round; stroke-linejoin: round; transition: transform 0.22s ease;
+}
+.nfx-header .nfx-group.is-open > .nfx-trigger .nfx-chev { transform: rotate(180deg); }
+
+/* ---------- dropdown panel (desktop) ---------- */
+.nfx-header .nfx-panel {
+  position: absolute; left: 0; top: calc(100% + 18px); z-index: 5; /* trigger is 44px centred in the 64px bar: 10px + 1px border + 7px gap */
+  min-width: 268px; max-width: calc(100vw - 24px);
+  margin: 0; padding: 8px;
+  background: var(--nfx-navy-2); border: 1px solid var(--nfx-line); border-radius: 12px;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.55);
+  opacity: 0; visibility: hidden; transform: translateY(-6px);
+  transition: opacity 0.18s ease, transform 0.18s ease, visibility 0s linear 0.18s;
+}
+.nfx-header .nfx-group.is-open > .nfx-panel { opacity: 1; visibility: visible; transform: none; transition-delay: 0s; }
+.nfx-header .nfx-panel ul { list-style: none; margin: 0; padding: 0; display: block; }
+.nfx-header .nfx-panel li { list-style: none; margin: 0; padding: 0; display: block; position: static; }
+.nfx-header .nfx-panel a {
+  display: flex; align-items: center; width: 100%; min-height: 44px; margin: 0; padding: 10px 14px;
+  border: 0; border-left: 2px solid transparent; border-radius: 8px;
+  color: var(--nfx-text); text-decoration: none;
+  font-family: var(--nfx-font); font-size: 14.5px; font-weight: 400; line-height: 1.3;
+  transition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+}
+.nfx-header .nfx-panel a:hover { background: var(--nfx-wash); color: #fff; }
+.nfx-header .nfx-panel a[aria-current="page"] { color: var(--nfx-gold-light); background: rgba(201, 168, 76, 0.08); border-left-color: var(--nfx-gold); font-weight: 600; }
+
+/* ---------- actions (Sign in / Take the CFI) ---------- */
+.nfx-header .nfx-actions { display: flex; align-items: center; gap: 10px; margin: 0 0 0 auto; padding: 0; }
+.nfx-header .nfx-signin {
+  -webkit-appearance: none; appearance: none;
+  display: inline-flex; align-items: center; justify-content: center; min-height: 44px; margin: 0; padding: 0 14px;
+  background: none; border: 0; border-radius: 8px; cursor: pointer; text-decoration: none;
+  color: var(--nfx-muted); font-family: var(--nfx-font) !important; font-size: 14px !important; font-weight: 500 !important; letter-spacing: 0 !important; text-transform: none;
+  transition: color 0.15s ease, background-color 0.15s ease;
+}
+.nfx-header .nfx-signin:hover { color: #fff; background: rgba(255, 255, 255, 0.05); }
+.nfx-header .nfx-cta {
+  -webkit-appearance: none; appearance: none;
+  display: inline-flex; align-items: center; justify-content: center; min-height: 44px; margin: 0; padding: 0 20px;
+  background: var(--nfx-gold); border: 1px solid var(--nfx-gold); border-radius: 8px; cursor: pointer; text-decoration: none;
+  color: var(--nfx-navy); font-family: var(--nfx-font) !important; font-size: 14px !important; font-weight: 700 !important; letter-spacing: 0 !important; text-transform: none; white-space: nowrap;
+  transition: background-color 0.15s ease, border-color 0.15s ease;
+}
+.nfx-header .nfx-cta:hover { background: var(--nfx-gold-light); border-color: var(--nfx-gold-light); color: var(--nfx-navy); }
+.nfx-header .nfx-spinner { width: 16px; height: 16px; border: 2px solid rgba(196, 160, 80, 0.3); border-top-color: #C4A050; border-radius: 50%; animation: nfx-spin 0.8s linear infinite; }
+@keyframes nfx-spin { to { transform: rotate(360deg); } }
+
+/* ---------- hamburger toggle ---------- */
+.nfx-header .nfx-toggle {
+  -webkit-appearance: none; appearance: none;
+  display: none; position: relative; z-index: 3; flex: none; margin: 0 0 0 auto; padding: 0;
+  width: 46px; height: 46px; align-items: center; justify-content: center;
+  background: none; border: 1px solid var(--nfx-line); border-radius: 12px; color: var(--nfx-gold-light); cursor: pointer;
+}
+.nfx-header .nfx-toggle:hover { background: var(--nfx-wash); }
+.nfx-header .nfx-bars, .nfx-header .nfx-bars::before, .nfx-header .nfx-bars::after {
+  display: block; width: 20px; height: 2px; border-radius: 1px; background: currentColor; content: ''; position: relative;
+  transition: transform 0.22s ease, background-color 0.22s ease;
+}
+.nfx-header .nfx-bars::before { position: absolute; top: -6px; left: 0; }
+.nfx-header .nfx-bars::after { position: absolute; top: 6px; left: 0; }
+.nfx-header .nfx-toggle[aria-expanded="true"] .nfx-bars { background: transparent; }
+.nfx-header .nfx-toggle[aria-expanded="true"] .nfx-bars::before { transform: translateY(6px) rotate(45deg); }
+.nfx-header .nfx-toggle[aria-expanded="true"] .nfx-bars::after { transform: translateY(-6px) rotate(-45deg); }
+
+/* ---------- focus (keyboard) ---------- */
+.nfx-header a:focus-visible, .nfx-header button:focus-visible {
+  outline: 2px solid var(--nfx-gold-light); outline-offset: 2px; border-radius: 8px;
+}
+.nfx-header .nfx-cta:focus-visible { outline-color: #fff; }
+
+/* ---------- mobile + tablet portrait (< 900px) ---------- */
+@media (max-width: 899.98px) {
+  .nfx-header .nfx-bar { padding: 0 16px; gap: 12px; }
+  .nfx-header .nfx-toggle { display: inline-flex; }
+
+  .nfx-header .nfx-nav {
+    position: fixed; inset: 0; z-index: 2;
+    flex-direction: column; align-items: stretch; flex: none; gap: 0; margin: 0;
+    padding: calc(var(--nfx-h) + 12px) 20px calc(32px + env(safe-area-inset-bottom, 0px));
+    background: var(--nfx-navy);
+    overflow-y: auto; overscroll-behavior: contain; -webkit-overflow-scrolling: touch;
+    opacity: 0; visibility: hidden; transform: translateY(-8px);
+    transition: opacity 0.2s ease, transform 0.2s ease, visibility 0s linear 0.2s;
+  }
+  .nfx-header.nfx-open .nfx-nav { opacity: 1; visibility: visible; transform: none; transition-delay: 0s; }
+  .nfx-header .nfx-nav::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: var(--nfx-h); border-bottom: 1px solid var(--nfx-line); pointer-events: none; }
+
+  .nfx-header .nfx-groups { flex-direction: column; align-items: stretch; gap: 0; width: 100%; max-width: 560px; margin: 0 auto; }
+  .nfx-header .nfx-group { border-bottom: 1px solid var(--nfx-line-soft); }
+  .nfx-header .nfx-trigger {
+    width: 100%; justify-content: space-between; min-height: 60px; padding: 0 4px; border-radius: 0; background: none !important;
+    color: var(--nfx-gold);
+    font-family: var(--nfx-mono) !important; font-size: 13px !important; font-weight: 700 !important; letter-spacing: 0.22em !important; text-transform: uppercase;
+  }
+  .nfx-header .nfx-group.is-open > .nfx-trigger,
+  .nfx-header .nfx-group.has-current > .nfx-trigger { color: var(--nfx-gold-light); }
+  .nfx-header .nfx-group.has-current > .nfx-trigger::after { display: none; }
+  .nfx-header .nfx-chev { width: 16px; height: 16px; }
+
+  /* accordion: grid rows animate 0fr -> 1fr; collapsed links are visibility:hidden so they cannot be tabbed to */
+  .nfx-header .nfx-panel {
+    position: static; display: grid; grid-template-rows: 0fr;
+    min-width: 0; max-width: none; margin: 0; padding: 0;
+    background: none; border: 0; border-radius: 0; box-shadow: none;
+    opacity: 1; transform: none; visibility: hidden;
+    transition: grid-template-rows 0.28s ease, visibility 0s linear 0.28s;
+  }
+  .nfx-header .nfx-group.is-open > .nfx-panel { grid-template-rows: 1fr; visibility: visible; transition-delay: 0s; }
+  .nfx-header .nfx-panel > ul { min-height: 0; overflow: hidden; padding: 0 0 0 4px; }
+  .nfx-header .nfx-group.is-open > .nfx-panel > ul { padding-bottom: 12px; }
+  .nfx-header .nfx-panel a { min-height: 52px; padding: 13px 12px; font-size: 17px; border-radius: 8px; }
+
+  .nfx-header .nfx-actions { flex-direction: column; align-items: stretch; gap: 12px; width: 100%; max-width: 560px; margin: 28px auto 0; }
+  .nfx-header .nfx-cta { order: -1; min-height: 52px; font-size: 16px !important; }
+  .nfx-header .nfx-signin { min-height: 52px; font-size: 16px !important; border: 1px solid var(--nfx-line); color: var(--nfx-text); }
+  .nfx-header .nfx-spinner { align-self: center; }
+}
+
+/* ---------- desktop width guard: keep the bar on one line down to 900px ---------- */
+@media (min-width: 900px) and (max-width: 1040px) {
+  .nfx-header .nfx-bar { gap: 12px; padding: 0 16px; }
+  .nfx-header .nfx-brand { font-size: 13px; letter-spacing: 0.1em; }
+  .nfx-header .nfx-trigger, .nfx-header .nfx-signin { padding: 0 10px; }
+  .nfx-header .nfx-cta { padding: 0 14px; }
+}
+
+/* ---------- scroll lock while the mobile menu is open ---------- */
+html.nfx-lock, html.nfx-lock body { overflow: hidden; }
+
+/* ---------- no-JS fallback: show everything as a plain, readable list ---------- */
+html:not(.nfx-js) .nfx-header .nfx-chev { display: none; }
+html:not(.nfx-js) .nfx-header .nfx-toggle { display: none; }
+@media (max-width: 899.98px) {
+  html:not(.nfx-js) .nfx-header .nfx-bar { flex-wrap: wrap; height: auto; min-height: var(--nfx-bar-h); padding-bottom: 12px; }
+  html:not(.nfx-js) .nfx-header .nfx-nav { position: static; inset: auto; opacity: 1; visibility: visible; transform: none; padding: 0; width: 100%; overflow: visible; }
+  html:not(.nfx-js) .nfx-header .nfx-nav::before { display: none; }
+  html:not(.nfx-js) .nfx-header .nfx-panel { grid-template-rows: 1fr; visibility: visible; }
+}
+@media (min-width: 900px) {
+  html:not(.nfx-js) .nfx-header .nfx-group:hover > .nfx-panel,
+  html:not(.nfx-js) .nfx-header .nfx-group:focus-within > .nfx-panel { opacity: 1; visibility: visible; transform: none; transition-delay: 0s; }
+}
+
+/* ---------- reduced motion ---------- */
+@media (prefers-reduced-motion: reduce) {
+  .nfx-header *, .nfx-header *::before, .nfx-header *::after { transition-duration: 0.01ms !important; animation-duration: 0.01ms !important; }
+}
