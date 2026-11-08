@@ -49,63 +49,8 @@ a:hover { color: #fff; }
 .skip-link:focus { left: 12px; }
 .container { width: 100%; max-width: var(--maxw); margin: 0 auto; padding: 0 24px; }
 
-/* ---------- Header and navigation ---------- */
-.nf-header {
-  position: sticky; top: 0; z-index: 200;
-  background: rgba(5, 12, 26, 0.94);
-  -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px);
-  border-bottom: 1px solid var(--line);
-}
-.nf-header .container { display: flex; align-items: center; justify-content: space-between; gap: 16px; min-height: 66px; }
-.nf-brand {
-  display: inline-flex; align-items: center; gap: 10px; text-decoration: none; color: var(--gold);
-  font-family: var(--mono); font-size: 14px; letter-spacing: 0.14em; text-transform: uppercase; white-space: nowrap;
-}
-.nf-brand:hover { color: var(--gold-light); }
-.nf-nav { display: flex; align-items: center; gap: 2px; }
-.nf-nav a.nav-link {
-  color: var(--muted); text-decoration: none; font-size: 14px; font-weight: 500;
-  padding: 10px 12px; border-bottom: 2px solid transparent; white-space: nowrap;
-}
-.nf-nav a.nav-link:hover { color: #fff; }
-.nf-nav a.nav-link[aria-current="page"] { color: var(--gold-light); border-bottom-color: var(--gold); }
-.nf-nav .nav-cta { margin-left: 10px; }
-.nf-nav .nav-signin { margin-left: 6px; }
-.nav-toggle {
-  display: none; background: none; border: 1px solid var(--line); color: var(--gold-light);
-  width: 46px; height: 46px; border-radius: 10px; cursor: pointer; align-items: center; justify-content: center;
-}
-.nav-toggle .bars, .nav-toggle .bars::before, .nav-toggle .bars::after {
-  display: block; width: 20px; height: 2px; background: currentColor; content: ''; position: relative; transition: transform 0.2s ease, opacity 0.2s ease;
-}
-.nav-toggle .bars::before { position: absolute; top: -6px; }
-.nav-toggle .bars::after { position: absolute; top: 6px; }
-.nav-toggle[aria-expanded="true"] .bars { background: transparent; }
-.nav-toggle[aria-expanded="true"] .bars::before { transform: translateY(6px) rotate(45deg); }
-.nav-toggle[aria-expanded="true"] .bars::after { transform: translateY(-6px) rotate(-45deg); }
-
-@media (max-width: 1180px) {
-  .nav-toggle { display: inline-flex; }
-  .js .nf-nav {
-    display: none; position: absolute; left: 0; right: 0; top: 100%;
-    flex-direction: column; align-items: stretch; gap: 0;
-    background: var(--navy); border-bottom: 1px solid var(--line);
-    padding: 8px 24px 20px; max-height: calc(100vh - 66px); overflow-y: auto;
-  }
-  .js .nf-nav.open { display: flex; }
-  .nf-nav a.nav-link { padding: 16px 0; border-bottom: 1px solid var(--line-soft); font-size: 16px; }
-  .nf-nav a.nav-link[aria-current="page"] { border-bottom-color: var(--gold); }
-  .nf-nav .nav-cta, .nf-nav .nav-signin { margin: 14px 0 0; text-align: center; }
-  .nf-nav .nav-more-label { display: block; }
-  .nf-nav a.nav-more { display: block; }
-  .nf-header .container { flex-wrap: wrap; }
-  html:not(.js) .nf-nav { width: 100%; flex-wrap: wrap; padding-bottom: 12px; }
-}
-.nav-more { display: none; }
-.nav-more-label {
-  display: none; font-family: var(--mono); font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase;
-  color: var(--gold); padding: 18px 0 4px;
-}
+/* ---------- Header and navigation ----------
+   Moved to /nf-nav.css (+ /nf-nav.js), shared by every public page and the React app. */
 
 /* ---------- Buttons ---------- */
 .btn {
