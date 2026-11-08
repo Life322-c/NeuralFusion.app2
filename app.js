@@ -122,7 +122,7 @@ const { useState, useEffect, useCallback, useRef, useMemo } = React;
     // Horizontal lockup: icon + wordmark, vertically centered, consistent
     // gap. Used in the primary nav. Collapses to icon-only via CSS below
     // a set breakpoint (see .nf-lockup-text in style.css).
-    function NFLogoLockup({ iconSize = 30, gap = 12, wordmarkColor = '#F5EDD8', tagline, taglineColor = '#9A8A6A' }) {
+    function NFLogoLockup({ iconSize = 30, gap = 12, wordmarkColor = '#F5EDD8', tagline, taglineColor = '#9A8A6A', mono = false }) {
       return React.createElement(
         "div",
         { className: "nf-lockup", style: { display: 'flex', alignItems: 'center', gap } },
@@ -130,7 +130,7 @@ const { useState, useEffect, useCallback, useRef, useMemo } = React;
         React.createElement(
           "div",
           { className: "nf-lockup-text", style: { display: 'flex', flexDirection: 'column', justifyContent: 'center', minWidth: 0 } },
-          React.createElement("div", { style: { fontFamily: "'Syne', sans-serif", fontSize: 15, fontWeight: 700, letterSpacing: '0.06em', color: wordmarkColor, lineHeight: 1.15, whiteSpace: 'nowrap' } }, 'NEURALFUSION', React.createElement("sup", { style: { fontSize: '0.5em', marginLeft: 1 } }, '')),
+          React.createElement("div", { style: mono ? { fontFamily: "'Space Mono', monospace", fontSize: 16, fontWeight: 400, letterSpacing: '0.2em', color: wordmarkColor, lineHeight: 1.15, whiteSpace: 'nowrap' } : { fontFamily: "'Syne', sans-serif", fontSize: 15, fontWeight: 700, letterSpacing: '0.06em', color: wordmarkColor, lineHeight: 1.15, whiteSpace: 'nowrap' } }, 'NEURALFUSION', React.createElement("sup", { style: { fontSize: '0.5em', marginLeft: 1 } }, '')),
           tagline && React.createElement("div", { style: { fontFamily: "'Space Mono', monospace", fontSize: 10.5, letterSpacing: '0.08em', color: taglineColor, marginTop: 2, whiteSpace: 'nowrap' } }, tagline)
         )
       );
@@ -1443,7 +1443,7 @@ Most learners take four to six weeks working through the lessons at the suggeste
             position:'fixed', top:0, left:0, right:0, zIndex:100,
             background:'rgba(5,12,26,0.85)', backdropFilter:'blur(20px)',
             borderBottom:`1px solid ${C.border}`,
-          }}, React.createElement("div", {style: { maxWidth:1280, margin:'0 auto', padding:'0 24px', height:60, display:'flex', alignItems:'center', justifyContent:'space-between' }}, React.createElement("button", {className: "nf-logo-btn", onClick: ()=>setView('home'), style: { background:'none', border:'none', display:'flex', alignItems:'center', cursor:'pointer' }}, React.createElement(NFLogoLockup, {iconSize: 30, gap: 12, wordmarkColor: C.text, tagline: 'Cognitive OS', taglineColor: C.muted})), React.createElement("div", {className: "desktop-nav" + (user ? "" : " nf-anon")}, navItems.filter(item => user || item.v === 'home').map(item => (
+          }}, React.createElement("div", {style: { maxWidth:1280, margin:'0 auto', padding:'0 24px', height:60, display:'flex', alignItems:'center', justifyContent:'space-between' }}, React.createElement("button", {className: "nf-logo-btn", onClick: ()=>setView('home'), style: { background:'none', border:'none', display:'flex', alignItems:'center', cursor:'pointer' }}, React.createElement(NFLogoLockup, user ? {iconSize: 30, gap: 12, wordmarkColor: C.text, tagline: 'Cognitive OS', taglineColor: C.muted} : {iconSize: 26, gap: 12, mono: true, wordmarkColor: C.cyan})), React.createElement("div", {className: "desktop-nav" + (user ? "" : " nf-anon")}, navItems.filter(item => user || item.v === 'home').map(item => (
                   React.createElement("button", {key: item.v, onClick: ()=>setView(item.v), style: {
                     background:'none', border:'none', padding:'8px 12px',
                     color: navView===item.v ? C.cyan : C.muted,
@@ -1482,11 +1482,16 @@ Most learners take four to six weeks working through the lessons at the suggeste
                     React.createElement("button", {className: "desktop-only", onClick: ()=>setShowAuth(true), style: { background:'none', border:'none', color:C.muted, ...inter, fontSize:11, cursor:'pointer' }}, 'Sign in'),
                     React.createElement("button", {className: "btn-primary desktop-only", style: { fontSize:10, padding:'10px 20px' }, onClick: ()=>setView('cfi')}, 'Take the CFI →')
                   )
-                ), React.createElement("button", {className: "hamburger-btn" + (user ? "" : " nf-anon"), onClick: ()=>setMenuOpen(!menuOpen), style: {
+                ), React.createElement("button", {className: "hamburger-btn" + (user ? "" : " nf-anon"), "aria-label": menuOpen ? "Close menu" : "Open menu", "aria-expanded": menuOpen ? "true" : "false", onClick: ()=>setMenuOpen(!menuOpen), style: user ? {
                   background:'none', border:`1px solid ${C.border}`, borderRadius:2,
                   color:C.muted, width:40, height:36, flexDirection:'column',
                   alignItems:'center', justifyContent:'center', gap:5, cursor:'pointer',
-                }}, React.createElement("div", {style: { width:18, height:1, background:C.muted }}), React.createElement("div", {style: { width:14, height:1, background:C.muted }}), React.createElement("div", {style: { width:10, height:1, background:C.muted }}))))), menuOpen && (
+                } : {
+                  background:'none', border:'1px solid rgba(196,160,80,0.25)', borderRadius:12,
+                  width:44, height:44, flexDirection:'column',
+                  alignItems:'center', justifyContent:'center', gap:5, cursor:'pointer',
+                }}, user ? [React.createElement("div", {key:'a', style: { width:18, height:1, background:C.muted }}), React.createElement("div", {key:'b', style: { width:14, height:1, background:C.muted }}), React.createElement("div", {key:'c', style: { width:10, height:1, background:C.muted }})]
+                  : [0,1,2].map(i => React.createElement("div", {key:i, style: { width:20, height:2, borderRadius:1, background:'#E2BE78' }})))))), menuOpen && !user && React.createElement(AnonMenu, {onNav: (v)=>{ setView(v); setMenuOpen(false); }}), menuOpen && user && (
             React.createElement("div", {style: {
               position:'fixed', inset:0, zIndex:99, background:'rgba(5,12,26,0.97)',
               backdropFilter:'blur(20px)', paddingTop:70, display:'flex', flexDirection:'column',
@@ -4921,7 +4926,58 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
     // ═══════════════════════════════════════════════════════════════════
     //  FOOTER
     // ═══════════════════════════════════════════════════════════════════
-    function Footer({ setView }) {
+    // ── Grouped public navigation (signed-out menu and footer) ─────────
+    const NF_LINK_GROUPS = [
+      { title: 'PATHWAYS', items: [
+        { label: 'For Organisations', href: '/organisations' },
+        { label: 'Academic Partnerships', href: '/academic-partnerships' },
+        { label: 'Executive Programme', href: '/executive' },
+        { label: 'Take the CFI', v: 'cfi' },
+        { label: 'NeuralFusion for Teams', v: 'teams' },
+      ] },
+      { title: 'UNDERSTAND', items: [
+        { label: 'The Four Thinking Modes', href: '/thinking' },
+        { label: 'Cognitive fragmentation', href: '/cognitive-fragmentation' },
+        { label: 'Decision-making', href: '/decision-making' },
+        { label: 'CFI methodology', href: '/methodology' },
+        { label: 'Research', href: '/research' },
+        { label: 'Blog', href: '/blog' },
+      ] },
+      { title: 'COMPANY', items: [
+        { label: 'About', href: '/about' },
+        { label: 'Contact', href: '/contact' },
+        { label: 'Privacy', href: '/privacy' },
+        { label: 'Terms', href: '/terms' },
+      ] },
+    ];
+    function NFGroupedLinks({ onNav, columns }) {
+      const linkStyle = { display: 'block', width: '100%', textAlign: 'left', background: 'none', border: 'none', padding: '14px 0', color: '#A8ADBF', fontFamily: "'DM Sans', sans-serif", fontSize: 17, lineHeight: 1.3, textDecoration: 'none', cursor: 'pointer' };
+      return React.createElement("div", { style: columns ? { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '0 40px' } : {} },
+        NF_LINK_GROUPS.map(g => React.createElement("div", { key: g.title, style: { marginBottom: 20 } },
+          React.createElement("div", { style: { fontFamily: "'Space Mono', monospace", fontSize: 12, letterSpacing: '0.22em', color: '#C4A050', margin: '16px 0 6px' } }, g.title),
+          g.items.map(it => it.href
+            ? React.createElement("a", { key: it.label, href: it.href, style: linkStyle }, it.label)
+            : React.createElement("button", { key: it.label, type: 'button', onClick: () => onNav(it.v), style: linkStyle }, it.label)))));
+    }
+    function NFLegalLine() {
+      return React.createElement("div", { style: { borderTop: '1px solid rgba(196,160,80,0.15)', marginTop: 8, paddingTop: 28, color: '#8E93A6', fontFamily: "'DM Sans', sans-serif", fontSize: 15, lineHeight: 1.65, textAlign: 'left' } },
+        '\u00A9 2026 ', React.createElement("span", { style: { color: '#C4A050' } }, 'Life Edet'),
+        ' \u00B7 NeuralFusion is a trademark of Life Edet. The CFI is a proprietary self-report framework, not a clinical or diagnostic instrument.');
+    }
+    function AnonMenu({ onNav }) {
+      return React.createElement("div", { role: 'dialog', 'aria-label': 'Menu', style: { position: 'fixed', inset: 0, zIndex: 99, background: '#03040A', paddingTop: 61, overflowY: 'auto' } },
+        React.createElement("div", { style: { padding: '12px 20px 48px', maxWidth: 560 } },
+          React.createElement(NFGroupedLinks, { onNav }),
+          React.createElement(NFLegalLine, null)));
+    }
+
+    function Footer({ setView, user }) {
+      if (!user) {
+        return React.createElement("footer", { className: "nf-footer", style: { background: '#03040A', borderTop: `1px solid ${C.border}`, padding: '24px 20px 48px' } },
+          React.createElement("div", { style: { maxWidth: 1200, margin: '0 auto' } },
+            React.createElement(NFGroupedLinks, { onNav: (v) => setView(v), columns: true }),
+            React.createElement(NFLegalLine, null)));
+      }
       const links = [
         { label:'Home', v:'home' },
         { label:'Take the CFI', v:'cfi' },
@@ -5763,7 +5819,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
       const viewProps = { refreshCfiHistory, authLoading, setView, user, session, paystackKey, setShowAuth, openAuth, isPro, setIsPro, cfiResult, setCfiResult, cfiHistory, lessonProgress, setLessonProgress, proPrice };
 
       return (
-        React.createElement("div", {style: { background:C.void, minHeight:'100vh', color:C.text }}, showAuth && React.createElement(AuthModal, {initialTab: authInitialTab, onClose: ()=>{ setShowAuth(false); setAuthInitialTab('login'); }, onSuccess: ()=>{ setShowAuth(false); setAuthInitialTab('login'); }}), React.createElement(Navbar, {view: view, setView: setView, user: user, profile: profile, setShowAuth: setShowAuth, onSignOut: handleSignOut, authLoading: authLoading, hasOrg: hasOrg}), React.createElement("main", null, view==='home'        && React.createElement(HomeView, viewProps), view==='feed'        && React.createElement(HomeView, Object.assign({}, viewProps, { mode: 'feed' })), view==='cfi'         && React.createElement(CFIView, viewProps), view==='protocol'    && React.createElement(ProtocolView, viewProps), view==='decisions'   && React.createElement(DecisionVaultView, viewProps), view==='record'      && React.createElement(ThinkingRecordView, viewProps), view==='verify'      && React.createElement(VerifyCredentialView, null), view==='pressure'    && React.createElement(PressureModeView, viewProps), view==='analytics'   && React.createElement(AnalyticsView, viewProps), view==='lessons'     && React.createElement(LessonsView, viewProps), view==='legal'       && React.createElement(LegalView, {setView: setView}), view==='teams'       && React.createElement(window.NF_ORG.TeamsLanding, {user: user, setShowAuth: setShowAuth, setView: setView, openAuth: openAuth, onOrgsChanged: l => setHasOrg(l.length > 0)}), view==='org'         && React.createElement(window.NF_ORG.OrgPortal, {user: user, session: session, setView: setView, setShowAuth: setShowAuth, openAuth: openAuth, onOrgsChanged: l => setHasOrg(l.length > 0)}), view==='join'        && React.createElement(window.NF_ORG.JoinPage, {user: user, session: session, setView: setView, setShowAuth: setShowAuth, openAuth: openAuth, onOrgsChanged: l => setHasOrg(l.length > 0)}), view==='admin'       && profile?.is_admin === true && React.createElement(AdminView, {user: user, setView: setView, onPriceChange: setProPrice})), React.createElement(Footer, {setView: setView}), React.createElement(BottomNav, {view: view, setView: setView, user: user, hasOrg: hasOrg}))
+        React.createElement("div", {style: { background:C.void, minHeight:'100vh', color:C.text }}, showAuth && React.createElement(AuthModal, {initialTab: authInitialTab, onClose: ()=>{ setShowAuth(false); setAuthInitialTab('login'); }, onSuccess: ()=>{ setShowAuth(false); setAuthInitialTab('login'); }}), React.createElement(Navbar, {view: view, setView: setView, user: user, profile: profile, setShowAuth: setShowAuth, onSignOut: handleSignOut, authLoading: authLoading, hasOrg: hasOrg}), React.createElement("main", null, view==='home'        && React.createElement(HomeView, viewProps), view==='feed'        && React.createElement(HomeView, Object.assign({}, viewProps, { mode: 'feed' })), view==='cfi'         && React.createElement(CFIView, viewProps), view==='protocol'    && React.createElement(ProtocolView, viewProps), view==='decisions'   && React.createElement(DecisionVaultView, viewProps), view==='record'      && React.createElement(ThinkingRecordView, viewProps), view==='verify'      && React.createElement(VerifyCredentialView, null), view==='pressure'    && React.createElement(PressureModeView, viewProps), view==='analytics'   && React.createElement(AnalyticsView, viewProps), view==='lessons'     && React.createElement(LessonsView, viewProps), view==='legal'       && React.createElement(LegalView, {setView: setView}), view==='teams'       && React.createElement(window.NF_ORG.TeamsLanding, {user: user, setShowAuth: setShowAuth, setView: setView, openAuth: openAuth, onOrgsChanged: l => setHasOrg(l.length > 0)}), view==='org'         && React.createElement(window.NF_ORG.OrgPortal, {user: user, session: session, setView: setView, setShowAuth: setShowAuth, openAuth: openAuth, onOrgsChanged: l => setHasOrg(l.length > 0)}), view==='join'        && React.createElement(window.NF_ORG.JoinPage, {user: user, session: session, setView: setView, setShowAuth: setShowAuth, openAuth: openAuth, onOrgsChanged: l => setHasOrg(l.length > 0)}), view==='admin'       && profile?.is_admin === true && React.createElement(AdminView, {user: user, setView: setView, onPriceChange: setProPrice})), React.createElement(Footer, {setView: setView, user: user}), React.createElement(BottomNav, {view: view, setView: setView, user: user, hasOrg: hasOrg}))
       );
     }
 
