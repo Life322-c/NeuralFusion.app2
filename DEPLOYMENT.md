@@ -97,27 +97,78 @@ long-term technical investment for organic growth
 
 ---
 
-## Commercial pages and lead system (added 2026-11-07)
+## Commercial pages and lead system (corrected 2026-11-07)
 
-New static routes: `/organisations`, `/academic-partnerships`, `/executive`, and a rebuilt `/contact`.
-Shared files: `commercial.css`, `commercial.js`. The pages are generated HTML; edit them directly.
+Status vocabulary used here and in `docs/TESTING_REPORT.md`: **implemented** (code exists), **tested** (a test was run; the report says what kind), **deployed** (live in your Supabase, Vercel or GTM). As delivered, **nothing in this section is deployed**, and the database and email parts have **not been run against a real Supabase project**.
 
-### Database (required before the forms work)
-1. Run `migration_business_leads.sql` in the Supabase SQL editor. It only adds a table and functions. It does not touch existing data.
-2. Table `business_leads` has RLS on, no policies and no table grants. Forms call `submit_business_lead()`. Admins use `admin_list_business_leads()` and `admin_update_business_lead()`, which check `profiles.is_admin` on the server.
-3. Verify with the three queries at the bottom of the migration file.
+New static routes: `/organisations`, `/academic-partnerships`, `/executive`, and a rebuilt `/contact`. Shared files: `commercial.css`, `commercial.js?v=2`. The pages are plain HTML; edit them directly. No platform file (`app.js`, `style.css`, `sw.js`, `index.html`, `vercel.json`) was changed in this pass.
 
-### Admin
-Admin > Leads: search, filter by category, status and date, status updates, assignee, follow-up date, internal notes, source summary, CSV export.
+Related docs: `docs/ENVIRONMENT.md`, `docs/ANALYTICS_GTM.md`, `docs/SECURITY_REVIEW.md`, `docs/TESTING_REPORT.md`, `tests/README.md`.
 
-### Email notification (optional, not configured)
-No email provider exists in the project. `supabase/functions/notify-lead/index.ts` is a ready but untested option using Resend. Needs: `RESEND_API_KEY`, `LEAD_NOTIFY_TO`, `LEAD_NOTIFY_FROM`, `LEAD_WEBHOOK_SECRET` and a Database Webhook on INSERT. Until then, check Admin > Leads.
+### Step 1: Database (required before the forms work)
+1. Supabase dashboard > SQL editor > run `migration_business_leads.sql`. It is additive and idempotent: it creates a `private` schema, the `business_leads` table, indexes, one trigger and the functions. It does not drop, truncate or alter existing objects.
+2. **Run `tests/sql/business_leads_tests.sql` in the same editor.** It needs at least one profile with `is_admin = true`, runs in one transaction and rolls back. A pass lists `PASS` lines. A failure stops with an error starting `FAIL <id>`. Do not go live before this passes.
+3. Run the three verification queries at the bottom of the migration file.
 
-### Spam protection
-Honeypot, minimum time on page, 3 submissions per email per hour, identical-message de-duplication, global flood guard. No CAPTCHA (it would need a CSP change and a Cloudflare Turnstile or hCaptcha key).
+### Step 2: Ship the site
+Push to the Git repo connected to Vercel. `commercial.js` is cache-busted with `?v=2`. Then in the browser: open `/contact`, send a real test enquiry, and confirm it appears in Admin > Leads.
+
+### Step 3: Email notifications (optional, not operational until you complete this and test it)
+1. Resend: create an account, add and verify the sending domain (DNS records), create an API key with sending access only.
+2. Install the Supabase CLI, then:
+```bash
+supabase login
+supabase link --project-ref ckrxgbosyohcmjtemrvu
+supabase secrets set RESEND_API_KEY=re_xxx \
+  LEAD_NOTIFY_FROM="NeuralFusion Leads <leads@tryneuralfusion.com>" \
+  LEAD_NOTIFY_TO="you@example.com" \
+  LEAD_WEBHOOK_SECRET="$(openssl rand -hex 32)"
+supabase functions deploy notify-lead --no-verify-jwt
+```
+   `--no-verify-jwt` is required because Database Webhooks carry no user JWT. The shared secret is the authentication. Note the secret value you generated.
+3. Dashboard > Database > Webhooks > Create: table `public.business_leads`, event **Insert**, type **Supabase Edge Functions**, function `notify-lead`, method POST, add HTTP header `x-webhook-secret` with the same secret.
+4. Test: submit a lead on the live site. Within a minute you should get an email. Confirm in the SQL editor:
+```sql
+select id, created_at, notified_at, notify_attempts, notify_error
+from public.business_leads order by created_at desc limit 5;
+```
+   `notified_at` set means the email was handed to Resend. Check Edge Functions > notify-lead > Logs on failure.
+5. Webhooks are not retried. The function supports a sweep that retries leads not notified within 3 days (`POST {"sweep": true}` with the secret header). Scheduling it with pg_cron and pg_net is **optional and untested**:
+```sql
+-- requires extensions pg_cron and pg_net, and a Vault secret named lead_webhook_secret
+select cron.schedule('notify-lead-sweep', '*/15 * * * *', $$
+  select net.http_post(
+    url := 'https://ckrxgbosyohcmjtemrvu.supabase.co/functions/v1/notify-lead',
+    headers := jsonb_build_object('Content-Type','application/json',
+      'x-webhook-secret', (select decrypted_secret from vault.decrypted_secrets where name = 'lead_webhook_secret')),
+    body := '{"sweep": true}'::jsonb);
+$$);
+```
+   Without a sweep, a failed notification is not retried automatically. Admin > Leads still shows every lead.
+
+### Step 4: Analytics
+Follow `docs/ANALYTICS_GTM.md` (variables, triggers, tags). Then verify in GTM Preview and GA4 DebugView.
+
+### Step 5: Privacy policy
+`privacy.html` now has section 08 for enquiries. It names Resend and Google Tag Manager. **If you do not deploy Resend, delete that bullet before publishing.** Have the policy reviewed (see manual steps in `docs/TESTING_REPORT.md`).
+
+### Admin > Leads
+Search, category, status and date filters, status updates, assignee, follow-up date, internal notes, source summary, follow-up due filter, CSV export. Every read and write goes through `admin_list_business_leads` and `admin_update_business_lead`, which check `profiles.is_admin` on the server. Date filters use the Africa/Lagos calendar day.
+
+### Retention (manual, destructive: run deliberately)
+The policy promises deletion or anonymisation after 24 months. Nothing runs automatically. Review, then delete:
+```sql
+select count(*) from public.business_leads
+ where status <> 'converted' and coalesce(last_contacted_at, created_at) < now() - interval '24 months';
+-- after reviewing:
+-- delete from public.business_leads
+--  where status <> 'converted' and coalesce(last_contacted_at, created_at) < now() - interval '24 months';
+-- Erasure on request (replace the id):
+-- delete from public.business_leads where id = '00000000-0000-0000-0000-000000000000';
+```
 
 ### Deep links used by the new pages
-`/?view=cfi|teams|lessons|protocol`, `/?auth=login|signup`. Allowlisted in `app.js` (`?v=57`); `style.css?v=5`.
+`/?view=cfi|teams|lessons|protocol`, `/?auth=login|signup`. Allowlisted in `app.js` (`?v=58`).
 
-### Analytics events (GTM dataLayer)
-`nf_commercial_page_view`, `nf_lead_submitted`, `nf_contact_conversion`, `nf_cfi_cta_click`, `nf_org_programme_click`, `nf_org_partnership_click`, `nf_academic_partnership_click`, `nf_executive_programme_click`. Existing `nf_cfi_started` and `nf_cfi_completed` are unchanged. GTM triggers for the new events must be created in the container.
+### Rollback
+The migration only adds objects. To disable the system without losing data: remove the Database Webhook, and revoke `execute` on `public.submit_business_lead` from `anon` and `authenticated`. To remove it entirely (destructive, you choose): `drop function` the seven functions, then `drop table public.business_leads`.
