@@ -168,7 +168,7 @@ select count(*) from public.business_leads
 ```
 
 ### Deep links used by the new pages
-`/?view=cfi|teams|lessons|protocol`, `/?auth=login|signup`. Allowlisted in `app.js` (`?v=58`).
+`/?view=cfi|teams|lessons|protocol`, `/?auth=login|signup`. Allowlisted in `app.js` (`?v=59`).
 
 ### Rollback
 The migration only adds objects. To disable the system without losing data: remove the Database Webhook, and revoke `execute` on `public.submit_business_lead` from `anon` and `authenticated`. To remove it entirely (destructive, you choose): `drop function` the seven functions, then `drop table public.business_leads`.
