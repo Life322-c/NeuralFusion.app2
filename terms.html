@@ -274,18 +274,9 @@
   .footer-links a { color: var(--text-muted); text-decoration: none; }
   .footer-links a:hover { color: var(--gold); }
 
-  /* Shared public navigation (added with the commercial pages) */
-  .legacy-nav { display: flex; flex-wrap: wrap; gap: 4px 16px; align-items: center; justify-content: center; font-family: 'DM Sans', sans-serif; font-size: 13px; }
-  .legacy-nav a { color: #c9cfdd; text-decoration: none; padding: 6px 2px; border-bottom: 2px solid transparent; }
-  .legacy-nav a:hover { color: #fff; }
-  .legacy-nav a[aria-current="page"] { color: #e8c97a; border-bottom-color: #c9a84c; }
-  .legacy-nav a.cta { color: #0a1628; background: #c9a84c; padding: 6px 12px; border-radius: 6px; font-weight: 600; border-bottom: 0; }
-  .legacy-nav a.cta:hover { background: #e8c97a; color: #0a1628; }
-  @media (max-width: 960px) {
-    .site-header { flex-wrap: wrap; padding: 12px 18px !important; gap: 8px 12px; }
-    .legacy-nav { order: 3; width: 100%; justify-content: flex-start; }
-  }
 </style>
+<link rel="stylesheet" href="/nf-nav.css?v=1" />
+<script src="/nf-nav.js?v=1"></script>
 </head>
 <body>
 <!-- Google Tag Manager (noscript) -->
@@ -293,19 +284,49 @@
 height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 <!-- End Google Tag Manager (noscript) -->
 
-<header class="site-header">
-  <a class="logo" href="https://tryneuralfusion.com/">
-    <svg width="16" height="16" viewBox="0 0 100 100" aria-hidden="true"><rect x="13" y="13" width="14" height="74" fill="currentColor"/><polygon points="27,13 41,13 71,87 57,87" fill="currentColor"/><rect x="57" y="13" width="14" height="74" fill="currentColor"/><rect x="57" y="13" width="30" height="14" fill="currentColor"/><rect x="57" y="44" width="24" height="14" fill="currentColor"/></svg>
-    NeuralFusion<span></span>
-  </a>
-    <nav class="legacy-nav" aria-label="Primary">
-    <a href="/organisations">For Organisations</a>
-    <a href="/academic-partnerships">Academic Partnerships</a>
-    <a href="/executive">Executive Programme</a>
-    <a href="/research">Research</a>
-    <a class="cta" href="/?view=cfi">Take the CFI</a>
-  </nav>
-<div class="badge">Legal &amp; Compliance</div>
+<header class="nfx-header">
+  <div class="nfx-bar">
+    <a class="nfx-brand" href="/" aria-label="NeuralFusion home"><svg width="18" height="18" viewBox="0 0 100 100" aria-hidden="true" focusable="false"><rect x="13" y="13" width="14" height="74" fill="currentColor"/><polygon points="27,13 41,13 71,87 57,87" fill="currentColor"/><rect x="57" y="13" width="14" height="74" fill="currentColor"/><rect x="57" y="13" width="30" height="14" fill="currentColor"/><rect x="57" y="44" width="24" height="14" fill="currentColor"/></svg><span>NeuralFusion</span></a>
+    <button class="nfx-toggle" type="button" aria-expanded="false" aria-controls="nfx-nav" aria-label="Open menu"><span class="nfx-bars" aria-hidden="true"></span></button>
+    <nav class="nfx-nav" id="nfx-nav" aria-label="Primary">
+      <ul class="nfx-groups">
+        <li class="nfx-group">
+          <button class="nfx-trigger" type="button" id="nfx-t-pathways" aria-expanded="false" aria-controls="nfx-p-pathways">Pathways<svg class="nfx-chev" viewBox="0 0 12 12" aria-hidden="true" focusable="false"><path d="M2.5 4.5 6 8l3.5-3.5"/></svg></button>
+          <div class="nfx-panel" id="nfx-p-pathways"><ul>
+            <li><a href="/organisations">For Organisations</a></li>
+            <li><a href="/academic-partnerships">Academic Partnerships</a></li>
+            <li><a href="/executive">Executive Programme</a></li>
+            <li><a href="/?view=cfi">Take the CFI</a></li>
+            <li><a href="/?view=teams">NeuralFusion for Teams</a></li>
+          </ul></div>
+        </li>
+        <li class="nfx-group">
+          <button class="nfx-trigger" type="button" id="nfx-t-understand" aria-expanded="false" aria-controls="nfx-p-understand">Understand<svg class="nfx-chev" viewBox="0 0 12 12" aria-hidden="true" focusable="false"><path d="M2.5 4.5 6 8l3.5-3.5"/></svg></button>
+          <div class="nfx-panel" id="nfx-p-understand"><ul>
+            <li><a href="/thinking">The Four Thinking Modes</a></li>
+            <li><a href="/cognitive-fragmentation">Cognitive fragmentation</a></li>
+            <li><a href="/decision-making">Decision-making</a></li>
+            <li><a href="/methodology">CFI methodology</a></li>
+            <li><a href="/research">Research</a></li>
+            <li><a href="/blog">Blog</a></li>
+          </ul></div>
+        </li>
+        <li class="nfx-group has-current">
+          <button class="nfx-trigger" type="button" id="nfx-t-company" aria-expanded="false" aria-controls="nfx-p-company">Company<svg class="nfx-chev" viewBox="0 0 12 12" aria-hidden="true" focusable="false"><path d="M2.5 4.5 6 8l3.5-3.5"/></svg></button>
+          <div class="nfx-panel" id="nfx-p-company"><ul>
+            <li><a href="/about">About</a></li>
+            <li><a href="/contact">Contact</a></li>
+            <li><a href="/privacy">Privacy</a></li>
+            <li><a href="/terms" aria-current="page">Terms</a></li>
+          </ul></div>
+        </li>
+      </ul>
+      <div class="nfx-actions">
+        <a class="nfx-signin" href="/?auth=login" data-track="signin_click" data-where="header">Sign in</a>
+        <a class="nfx-cta" href="/?view=cfi" data-track="cfi_cta_click" data-where="header">Take the CFI</a>
+      </div>
+    </nav>
+  </div>
 </header>
 
 <main>
