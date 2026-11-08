@@ -1,5 +1,4 @@
 /* NeuralFusion commercial pages: shared behaviour (CSP-safe external script, no inline JS).
-   - Responsive nav with accessible mobile menu and active page state
    - Analytics events pushed to the existing GTM dataLayer (no personal data)
    - Lead forms: rendered from data attributes, validated, and sent to the
      server-side Supabase function public.submit_business_lead (see migration_business_leads.sql)
@@ -52,30 +51,7 @@
   }
   function stored(k) { try { return sessionStorage.getItem(k) || ''; } catch (e) { return ''; } }
 
-  /* ---------- navigation ---------- */
-  function initNav() {
-    var toggle = document.querySelector('.nav-toggle');
-    var nav = document.getElementById('nf-nav');
-    if (toggle && nav) {
-      var close = function () { nav.classList.remove('open'); toggle.setAttribute('aria-expanded', 'false'); };
-      toggle.addEventListener('click', function () {
-        var open = nav.classList.toggle('open');
-        toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
-      });
-      document.addEventListener('keydown', function (e) {
-        if (e.key === 'Escape' && nav.classList.contains('open')) { close(); toggle.focus(); }
-      });
-      nav.addEventListener('click', function (e) { if (e.target.closest('a')) close(); });
-      window.addEventListener('resize', function () { if (window.innerWidth > 1180) close(); });
-    }
-    var current = document.body.getAttribute('data-nav');
-    if (current) {
-      var links = document.querySelectorAll('.nf-nav a[data-nav-id]');
-      for (var i = 0; i < links.length; i++) {
-        if (links[i].getAttribute('data-nav-id') === current) links[i].setAttribute('aria-current', 'page');
-      }
-    }
-  }
+  /* Navigation lives in /nf-nav.js (shared by every public page). */
 
   /* ---------- click tracking via data-track ---------- */
   function initClickTracking() {
@@ -327,7 +303,6 @@
 
   onReady(function () {
     captureSource();
-    initNav();
     initClickTracking();
     initForms();
     var page = document.body.getAttribute('data-page');
