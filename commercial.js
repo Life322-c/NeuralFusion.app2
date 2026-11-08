@@ -14,13 +14,18 @@
   var RPC_URL = SUPABASE_URL + '/rest/v1/rpc/submit_business_lead';
   var PAGE_LOADED_AT = Date.now();
 
-  /* ---------- analytics (privacy conscious: names and short labels only) ---------- */
+  /* ---------- analytics (privacy by construction) ----------
+     Only these four keys can ever reach the dataLayer, and every value must be a short lowercase token
+     (letters, digits, underscore, hyphen). An email address, name, phone number or free text cannot pass
+     that pattern, so personal data cannot be sent by accident. Form field values are never passed here. */
+  var TRACK_KEYS = ['page', 'where', 'category', 'code'];
+  var TRACK_VALUE = /^[a-z0-9_-]{1,40}$/i;
   function track(name, props) {
     try {
       var clean = {};
-      Object.keys(props || {}).forEach(function (k) {
-        var v = props[k];
-        if (typeof v === 'number' || typeof v === 'boolean' || (typeof v === 'string' && v.length <= 60)) clean[k] = v;
+      TRACK_KEYS.forEach(function (k) {
+        var v = (props || {})[k];
+        if (typeof v === 'string' && TRACK_VALUE.test(v)) clean[k] = v;
       });
       (window.dataLayer = window.dataLayer || []).push(Object.assign({ event: 'nf_' + name }, clean));
     } catch (e) { /* analytics must never break the page */ }
@@ -94,6 +99,7 @@
     field_too_long: 'One of the fields is too long. Please shorten it and try again.',
     rate_limited: 'You have sent several enquiries in a short time. Please wait an hour or email us directly.',
     busy: 'We are receiving a very high volume of enquiries. Please try again later.',
+    too_fast: 'That was very quick. Please check your details and press send again.',
     server_error: 'We could not send your enquiry. Please try again in a moment.',
     network: 'Network problem. Check your connection and try again.',
     timeout: 'The request took too long. Please try again.'
@@ -297,11 +303,13 @@
           return;
         }
         var code = r.body && r.body.error ? r.body.error : 'server_error';
+        track('lead_error', { category: effCat, page: document.body.getAttribute('data-page') || 'unknown', code: String(code) });
         status.textContent = ERRORS[code] || ERRORS.server_error;
         status.className = 'form-status error';
         busy = false; submit.disabled = false; submit.textContent = button;
       }).catch(function (err) {
         clearTimeout(timer);
+        track('lead_error', { category: effCat, page: document.body.getAttribute('data-page') || 'unknown', code: (err && err.name === 'AbortError') ? 'timeout' : 'network' });
         status.textContent = (err && err.name === 'AbortError') ? ERRORS.timeout : ERRORS.network;
         status.className = 'form-status error';
         busy = false; submit.disabled = false; submit.textContent = button;
