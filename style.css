@@ -1101,13 +1101,6 @@ input::placeholder, textarea::placeholder { color: var(--text-dim); }
   .bottom-nav     { display: none !important; }
 }
 
-/* Signed-out visitors see the public commercial links, which need more width than the app nav.
-   Between 900px and 1179px they keep the hamburger menu instead of an overflowing bar. */
-@media (min-width: 900px) and (max-width: 1179px) {
-  .desktop-nav.nf-anon   { display: none !important; }
-  .hamburger-btn.nf-anon { display: flex !important; }
-}
-
 .desktop-only { display: none !important; }
 @media (min-width: 900px) {
   .desktop-only { display: inline-flex !important; }
