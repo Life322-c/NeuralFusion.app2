@@ -1397,6 +1397,193 @@ Most learners take four to six weeks working through the lessons at the suggeste
       );
     }
 
+    // ── PUBLIC NAV (signed-out visitors) ──────────────────────────────
+    // Same markup and classes as the static pages (nf-nav.css), so the SPA and the standalone pages look and behave
+    // identically. Behaviour mirrors nf-nav.js: desktop = click-to-open dropdowns (one at a time);
+    // mobile = full-screen overlay with three independent accordions. Groups come from NF_LINK_GROUPS.
+    const NFX_MQ = '(max-width: 899.98px)';
+    // nf-nav.css treats pages without this class as "no JavaScript" and shows a plain list; the static pages get it from nf-nav.js.
+    document.documentElement.classList.add('nfx-js');
+    function nfxPlainClick(e) { return !(e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || (e.button && e.button !== 0)); }
+    function nfxSetInert(header, on) {
+      let el = header;
+      while (el && el !== document.body) {
+        const parent = el.parentNode;
+        Array.prototype.forEach.call(parent.children, (sib) => {
+          if (sib === el || /^(SCRIPT|STYLE|LINK|NOSCRIPT|TEMPLATE)$/.test(sib.tagName)) return;
+          if (on) { if (!sib.hasAttribute('inert')) { sib.setAttribute('inert', ''); sib.setAttribute('data-nfx-inert', '1'); } }
+          else if (sib.getAttribute('data-nfx-inert')) { sib.removeAttribute('inert'); sib.removeAttribute('data-nfx-inert'); }
+        });
+        el = parent;
+      }
+    }
+    function PublicNav({ view, setView, setShowAuth, authLoading }) {
+      const h = React.createElement;
+      const [isMobile, setIsMobile] = useState(() => !!(window.matchMedia && window.matchMedia(NFX_MQ).matches));
+      const [menuOpen, setMenuOpen] = useState(false);
+      const [openIds, setOpenIds] = useState([]);
+      const headerRef = useRef(null), toggleRef = useRef(null), brandRef = useRef(null), navRef = useRef(null);
+      const trigRefs = useRef({}), panelRefs = useRef({}), pendingFocus = useRef(null);
+      const groups = NF_LINK_GROUPS.map(g => ({ id: g.title.toLowerCase(), label: g.title.charAt(0) + g.title.slice(1).toLowerCase(), items: g.items }));
+
+      const closeMenu = (restoreFocus) => {
+        setMenuOpen(false); setOpenIds([]);
+        if (restoreFocus && toggleRef.current) toggleRef.current.focus();
+      };
+      const toggleGroup = (id) => setOpenIds(cur => cur.includes(id) ? cur.filter(x => x !== id) : (isMobile ? cur.concat(id) : [id]));
+      const linksIn = (id) => Array.prototype.slice.call(panelRefs.current[id] ? panelRefs.current[id].querySelectorAll('a') : []);
+
+      // viewport mode
+      useEffect(() => {
+        if (!window.matchMedia) return;
+        const mq = window.matchMedia(NFX_MQ);
+        const onChange = () => { setIsMobile(mq.matches); setMenuOpen(false); setOpenIds([]); };
+        if (mq.addEventListener) mq.addEventListener('change', onChange); else mq.addListener(onChange);
+        return () => { if (mq.removeEventListener) mq.removeEventListener('change', onChange); else mq.removeListener(onChange); };
+      }, []);
+      // Escape closes the menu (mobile) or the open dropdown (desktop)
+      useEffect(() => {
+        const onKey = (e) => {
+          if (e.key !== 'Escape') return;
+          if (menuOpen) { e.preventDefault(); closeMenu(true); return; }
+          if (openIds.length) {
+            const id = openIds[0], g = trigRefs.current[id] && trigRefs.current[id].closest('.nfx-group');
+            const hadFocus = g && g.contains(document.activeElement);
+            setOpenIds([]);
+            if (hadFocus && trigRefs.current[id]) trigRefs.current[id].focus();
+          }
+        };
+        document.addEventListener('keydown', onKey);
+        return () => document.removeEventListener('keydown', onKey);
+      }, [menuOpen, openIds]);
+      // tap/click outside closes desktop dropdowns (pointerdown so iOS taps on blank areas count)
+      useEffect(() => {
+        if (isMobile || !openIds.length) return;
+        const onDown = (e) => { if (headerRef.current && !headerRef.current.contains(e.target)) setOpenIds([]); };
+        document.addEventListener('pointerdown', onDown);
+        return () => document.removeEventListener('pointerdown', onDown);
+      }, [isMobile, openIds]);
+      // overlay open: lock background scroll, make the page behind inert, move focus inside
+      useEffect(() => {
+        if (!menuOpen) return;
+        document.documentElement.classList.add('nfx-lock');
+        if (headerRef.current) nfxSetInert(headerRef.current, true);
+        const first = trigRefs.current[groups[0].id];
+        if (first) first.focus();
+        return () => { document.documentElement.classList.remove('nfx-lock'); if (headerRef.current) nfxSetInert(headerRef.current, false); };
+      }, [menuOpen]);
+      // keyboard open (ArrowDown/ArrowUp on a trigger): focus a link once the panel is visible
+      useEffect(() => {
+        const pf = pendingFocus.current;
+        if (pf && openIds.includes(pf.id)) {
+          pendingFocus.current = null;
+          const items = linksIn(pf.id);
+          if (items.length) (pf.which === 'last' ? items[items.length - 1] : items[0]).focus();
+        }
+      }, [openIds]);
+      // keep desktop panels inside the viewport
+      useEffect(() => {
+        if (isMobile) return;
+        Object.keys(panelRefs.current).forEach((id) => {
+          const el = panelRefs.current[id];
+          if (!el) return;
+          el.style.left = '';
+          if (openIds.includes(id)) {
+            const over = el.getBoundingClientRect().right - (window.innerWidth - 12);
+            if (over > 0) el.style.left = (-over) + 'px';
+          }
+        });
+      }, [openIds, isMobile]);
+      // back/forward cache: never restore with a panel open
+      useEffect(() => {
+        const onShow = (e) => { if (e.persisted) { setMenuOpen(false); setOpenIds([]); } };
+        window.addEventListener('pageshow', onShow);
+        return () => window.removeEventListener('pageshow', onShow);
+      }, []);
+
+      const trap = (e) => {
+        if (e.key !== 'Tab' || !menuOpen) return;
+        const list = [brandRef.current, toggleRef.current].concat(Array.prototype.slice.call(navRef.current.querySelectorAll('a[href], button:not([disabled])')))
+          .filter(el => el && getComputedStyle(el).visibility !== 'hidden');
+        if (!list.length) return;
+        const first = list[0], last = list[list.length - 1], a = document.activeElement;
+        if (e.shiftKey && (a === first || list.indexOf(a) === -1)) { e.preventDefault(); last.focus(); }
+        else if (!e.shiftKey && (a === last || list.indexOf(a) === -1)) { e.preventDefault(); first.focus(); }
+      };
+      const trigKey = (e, id, idx) => {
+        if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+          e.preventDefault();
+          pendingFocus.current = { id, which: e.key === 'ArrowUp' ? 'last' : 'first' };
+          if (openIds.includes(id)) { const items = linksIn(id); pendingFocus.current = null; if (items.length) (e.key === 'ArrowUp' ? items[items.length - 1] : items[0]).focus(); }
+          else setOpenIds(cur => isMobile ? cur.concat(id) : [id]);
+        } else if (!isMobile && (e.key === 'ArrowRight' || e.key === 'ArrowLeft')) {
+          e.preventDefault();
+          const next = groups[(idx + (e.key === 'ArrowRight' ? 1 : groups.length - 1)) % groups.length];
+          if (openIds.includes(id)) setOpenIds([next.id]);
+          if (trigRefs.current[next.id]) trigRefs.current[next.id].focus();
+        }
+      };
+      const panelKey = (e, id) => {
+        const items = linksIn(id), i = items.indexOf(document.activeElement);
+        if (e.key === 'ArrowDown') { e.preventDefault(); items[(i + 1) % items.length].focus(); }
+        else if (e.key === 'ArrowUp') { e.preventDefault(); items[(i - 1 + items.length) % items.length].focus(); }
+        else if (e.key === 'Home') { e.preventDefault(); items[0].focus(); }
+        else if (e.key === 'End') { e.preventDefault(); items[items.length - 1].focus(); }
+      };
+      const goCfi = (e) => { if (nfxPlainClick(e)) { e.preventDefault(); setView('cfi'); } closeMenu(false); };
+
+      const logo = h('svg', { width: 18, height: 18, viewBox: '0 0 100 100', 'aria-hidden': 'true', focusable: 'false' },
+        h('rect', { x: 13, y: 13, width: 14, height: 74, fill: 'currentColor' }),
+        h('polygon', { points: '27,13 41,13 71,87 57,87', fill: 'currentColor' }),
+        h('rect', { x: 57, y: 13, width: 14, height: 74, fill: 'currentColor' }),
+        h('rect', { x: 57, y: 13, width: 30, height: 14, fill: 'currentColor' }),
+        h('rect', { x: 57, y: 44, width: 24, height: 14, fill: 'currentColor' }));
+      const chev = h('svg', { className: 'nfx-chev', viewBox: '0 0 12 12', 'aria-hidden': 'true', focusable: 'false' }, h('path', { d: 'M2.5 4.5 6 8l3.5-3.5' }));
+
+      return h('header', { className: 'nfx-header nfx-fixed' + (menuOpen ? ' nfx-open' : ''), ref: headerRef, onKeyDown: trap },
+        h('div', { className: 'nfx-bar' },
+          h('a', { className: 'nfx-brand', href: '/', ref: brandRef, 'aria-label': 'NeuralFusion home', onClick: (e) => { if (nfxPlainClick(e)) { e.preventDefault(); setView('home'); } closeMenu(false); } }, logo, h('span', null, 'NeuralFusion')),
+          h('button', { className: 'nfx-toggle', type: 'button', ref: toggleRef, 'aria-expanded': menuOpen ? 'true' : 'false', 'aria-controls': 'nfx-nav', 'aria-label': menuOpen ? 'Close menu' : 'Open menu', onClick: () => { if (menuOpen) closeMenu(true); else setMenuOpen(true); } },
+            h('span', { className: 'nfx-bars', 'aria-hidden': 'true' })),
+          h('nav', { className: 'nfx-nav', id: 'nfx-nav', 'aria-label': 'Primary', ref: navRef },
+            h('ul', { className: 'nfx-groups' }, groups.map((g, idx) => {
+              const open = openIds.includes(g.id);
+              const hasCurrent = g.items.some(it => it.v && it.v === view);
+              return h('li', {
+                key: g.id, className: 'nfx-group' + (open ? ' is-open' : '') + (hasCurrent ? ' has-current' : ''),
+                onBlur: (e) => { if (!isMobile && open && e.relatedTarget && !e.currentTarget.contains(e.relatedTarget)) setOpenIds(cur => cur.filter(x => x !== g.id)); },
+              },
+                h('button', { className: 'nfx-trigger', type: 'button', id: 'nfx-t-' + g.id, 'aria-expanded': open ? 'true' : 'false', 'aria-controls': 'nfx-p-' + g.id, ref: (el) => { trigRefs.current[g.id] = el; }, onClick: () => toggleGroup(g.id), onKeyDown: (e) => trigKey(e, g.id, idx) }, g.label, chev),
+                h('div', { className: 'nfx-panel', id: 'nfx-p-' + g.id, ref: (el) => { panelRefs.current[g.id] = el; }, onKeyDown: (e) => panelKey(e, g.id) },
+                  h('ul', null, g.items.map(it => h('li', { key: it.label },
+                    h('a', {
+                      href: it.href || ('/?view=' + it.v),
+                      'aria-current': (it.v && it.v === view) ? 'page' : undefined,
+                      onClick: (e) => { if (it.v && nfxPlainClick(e)) { e.preventDefault(); setView(it.v); } closeMenu(false); },
+                    }, it.label)))))
+              );
+            })),
+            h('div', { className: 'nfx-actions' }, authLoading
+              ? h('div', { className: 'nfx-spinner', 'aria-hidden': 'true' })
+              : [
+                  h('button', { key: 'si', type: 'button', className: 'nfx-signin', onClick: () => { closeMenu(false); setShowAuth(true); } }, 'Sign in'),
+                  h('a', { key: 'cta', className: 'nfx-cta', href: '/?view=cfi', onClick: goCfi }, 'Take the CFI'),
+                ]))));
+    }
+
+    // Signed-in mobile menu: the public extras (About, Blog) collapse under one "More" section.
+    function NFMoreSection({ items, delay }) {
+      const [open, setOpen] = useState(false);
+      return React.createElement("div", { style: { borderBottom: `1px solid ${C.border}`, animation: `fadeUp 0.3s ease ${delay}s both` } },
+        React.createElement("button", { type: 'button', 'aria-expanded': open ? 'true' : 'false', 'aria-controls': 'nf-more-panel', onClick: () => setOpen(!open),
+          style: { display: 'flex', alignItems: 'center', width: '100%', minHeight: 56, textAlign: 'left', background: 'none', border: 'none', padding: '18px 0', cursor: 'pointer' } },
+          React.createElement("span", { style: { flex: 1, ...syne, fontSize: 14, fontWeight: 700, color: C.text } }, 'More'),
+          React.createElement("svg", { viewBox: '0 0 12 12', width: 14, height: 14, 'aria-hidden': 'true', style: { fill: 'none', stroke: C.muted, strokeWidth: 1.8, strokeLinecap: 'round', strokeLinejoin: 'round', transition: 'transform 0.22s ease', transform: open ? 'rotate(180deg)' : 'none' } }, React.createElement("path", { d: 'M2.5 4.5 6 8l3.5-3.5' }))),
+        React.createElement("div", { id: 'nf-more-panel', style: { display: 'grid', gridTemplateRows: open ? '1fr' : '0fr', visibility: open ? 'visible' : 'hidden', transition: 'grid-template-rows 0.28s ease' } },
+          React.createElement("div", { style: { minHeight: 0, overflow: 'hidden' } }, items.map(it => React.createElement("a", { key: it.label, href: it.href, target: it.newTab ? '_blank' : undefined, rel: it.newTab ? 'noopener noreferrer' : undefined,
+            style: { display: 'flex', alignItems: 'center', minHeight: 52, padding: '12px 0 12px 12px', textDecoration: 'none', ...syne, fontSize: 14, fontWeight: 700, color: C.muted } }, it.label, it.newTab ? React.createElement("span", { style: { ...mono, fontSize: 10, marginLeft: 8 } }, '\u2197') : null)))));
+    }
+
     // ── NAVBAR ────────────────────────────────────────────────────────
     function Navbar({ view, setView, user, profile, setShowAuth, onSignOut, authLoading , hasOrg }) {
       const [menuOpen, setMenuOpen] = useState(false);
@@ -1410,6 +1597,16 @@ Most learners take four to six weeks working through the lessons at the suggeste
           setAwaitingReview(rows.filter(d => d.status === 'open' && d.review_date && new Date(d.review_date) <= new Date()).length);
         });
       }, [user]);
+      // Signed-in mobile menu: Escape closes it and the page behind does not scroll.
+      useEffect(() => {
+        if (!(menuOpen && user)) return;
+        const onKey = (e) => { if (e.key === 'Escape') setMenuOpen(false); };
+        document.addEventListener('keydown', onKey);
+        document.documentElement.classList.add('nfx-lock');
+        return () => { document.removeEventListener('keydown', onKey); document.documentElement.classList.remove('nfx-lock'); };
+      }, [menuOpen, user]);
+      // Signed-out visitors get the grouped public navigation (Pathways / Understand / Company).
+      if (!user) return React.createElement(PublicNav, { view, setView, setShowAuth, authLoading });
       // First-time and anonymous visitors get a short, plain-language nav.
       // Signed-in users get the full functional app nav (all routes below
       // remain unchanged and reachable, only the anonymous label set differs).
@@ -1482,23 +1679,22 @@ Most learners take four to six weeks working through the lessons at the suggeste
                     React.createElement("button", {className: "desktop-only", onClick: ()=>setShowAuth(true), style: { background:'none', border:'none', color:C.muted, ...inter, fontSize:11, cursor:'pointer' }}, 'Sign in'),
                     React.createElement("button", {className: "btn-primary desktop-only", style: { fontSize:10, padding:'10px 20px' }, onClick: ()=>setView('cfi')}, 'Take the CFI →')
                   )
-                ), React.createElement("button", {className: "hamburger-btn" + (user ? "" : " nf-anon"), "aria-label": menuOpen ? "Close menu" : "Open menu", "aria-expanded": menuOpen ? "true" : "false", onClick: ()=>setMenuOpen(!menuOpen), style: user ? {
+                ), React.createElement("button", {className: "hamburger-btn" + (user ? "" : " nf-anon"), "aria-label": menuOpen ? "Close menu" : "Open menu", "aria-expanded": menuOpen ? "true" : "false", "aria-controls": "nf-app-menu", onClick: ()=>setMenuOpen(!menuOpen), style: user ? {
                   background:'none', border:`1px solid ${C.border}`, borderRadius:2,
-                  color:C.muted, width:40, height:36, flexDirection:'column',
+                  color:C.muted, width:44, height:44, flexDirection:'column',
                   alignItems:'center', justifyContent:'center', gap:5, cursor:'pointer',
                 } : {
                   background:'none', border:'1px solid rgba(196,160,80,0.25)', borderRadius:12,
                   width:44, height:44, flexDirection:'column',
                   alignItems:'center', justifyContent:'center', gap:5, cursor:'pointer',
-                }}, user ? [React.createElement("div", {key:'a', style: { width:18, height:1, background:C.muted }}), React.createElement("div", {key:'b', style: { width:14, height:1, background:C.muted }}), React.createElement("div", {key:'c', style: { width:10, height:1, background:C.muted }})]
-                  : [0,1,2].map(i => React.createElement("div", {key:i, style: { width:20, height:2, borderRadius:1, background:'#E2BE78' }})))))), menuOpen && !user && React.createElement(AnonMenu, {onNav: (v)=>{ setView(v); setMenuOpen(false); }}), menuOpen && user && (
-            React.createElement("div", {style: {
+                }}, user ? (menuOpen
+                  ? [React.createElement("div", {key:'x1', style: { width:20, height:1.5, background:C.text, transform:'translateY(3.25px) rotate(45deg)' }}), React.createElement("div", {key:'x2', style: { width:20, height:1.5, background:C.text, transform:'translateY(-3.25px) rotate(-45deg)' }})]
+                  : [React.createElement("div", {key:'a', style: { width:18, height:1, background:C.muted }}), React.createElement("div", {key:'b', style: { width:14, height:1, background:C.muted }}), React.createElement("div", {key:'c', style: { width:10, height:1, background:C.muted }})])
+                  : [0,1,2].map(i => React.createElement("div", {key:i, style: { width:20, height:2, borderRadius:1, background:'#E2BE78' }})))))), menuOpen && user && (
+            React.createElement("div", {id: "nf-app-menu", role: "dialog", "aria-label": "Menu", style: {
               position:'fixed', inset:0, zIndex:99, background:'rgba(5,12,26,0.97)',
               backdropFilter:'blur(20px)', paddingTop:70, display:'flex', flexDirection:'column',
-            }}, React.createElement("button", {onClick: ()=>setMenuOpen(false), style: {
-                position:'absolute', top:20, right:24, background:'none', border:'none',
-                color:C.muted, fontSize:14, cursor:'pointer', lineHeight:1,
-              }}, '×'), React.createElement("div", {style: { padding:'32px 24px', flex:1, overflowY:'auto' }}, navItems.map((item,i) => (
+            }}, React.createElement("div", {style: { padding:'32px 24px', flex:1, overflowY:'auto' }}, navItems.map((item,i) => (
                   React.createElement("button", {key: item.v, onClick: ()=>{ setView(item.v); setMenuOpen(false); }, style: {
                     display:'flex', alignItems:'center', width:'100%', textAlign:'left',
                     background:'none', border:'none', borderBottom:`1px solid ${C.border}`,
@@ -1512,17 +1708,7 @@ Most learners take four to six weeks working through the lessons at the suggeste
                   borderBottom:`1px solid ${C.border}`,
                   padding:'18px 0', cursor:'pointer', textDecoration:'none',
                   animation:`fadeUp 0.3s ease ${(navItems.length+ci)*0.05}s both`,
-                }}, React.createElement("div", {style: { flex:1, ...syne, fontSize:14, fontWeight:700, color:C.text, overflowWrap:'break-word', minWidth:0}}, l.label))), React.createElement("a", {href: aboutHref, style: {
-                  display:'flex', alignItems:'center', width:'100%', textAlign:'left',
-                  borderBottom:`1px solid ${C.border}`,
-                  padding:'18px 0', cursor:'pointer', textDecoration:'none',
-                  animation:`fadeUp 0.3s ease ${navItems.length*0.05}s both`,
-                }}, React.createElement("div", {style: { flex:1, ...syne, fontSize:14, fontWeight:700, color:C.text, overflowWrap:'break-word', minWidth:0}}, 'About')), React.createElement("a", {href: blogHref, target: "_blank", rel: "noopener noreferrer", style: {
-                  display:'flex', alignItems:'center', width:'100%', textAlign:'left',
-                  borderBottom:`1px solid ${C.border}`,
-                  padding:'18px 0', cursor:'pointer', textDecoration:'none',
-                  animation:`fadeUp 0.3s ease ${(navItems.length+1)*0.05}s both`,
-                }}, React.createElement("div", {style: { flex:1, ...syne, fontSize:14, fontWeight:700, color:C.text, overflowWrap:'break-word', minWidth:0}}, 'Blog'), React.createElement("div", {style: { ...mono, fontSize:10, color:C.muted }}, '↗'))), React.createElement("div", {style: {
+                }}, React.createElement("div", {style: { flex:1, ...syne, fontSize:14, fontWeight:700, color:C.text, overflowWrap:'break-word', minWidth:0}}, l.label))), React.createElement(NFMoreSection, {delay: navItems.length*0.05, items: [{label:'About', href:aboutHref}, {label:'Blog', href:blogHref, newTab:true}]})), React.createElement("div", {style: {
                 padding:'24px', borderTop:`1px solid ${C.border}`,
                 animation:'fadeUp 0.35s ease 0.35s both',
               }}, user ? (
@@ -4964,13 +5150,6 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
         '\u00A9 2026 ', React.createElement("span", { style: { color: '#C4A050' } }, 'Life Edet'),
         ' \u00B7 NeuralFusion is a trademark of Life Edet. The CFI is a proprietary self-report framework, not a clinical or diagnostic instrument.');
     }
-    function AnonMenu({ onNav }) {
-      return React.createElement("div", { role: 'dialog', 'aria-label': 'Menu', style: { position: 'fixed', inset: 0, zIndex: 99, background: '#03040A', paddingTop: 61, overflowY: 'auto' } },
-        React.createElement("div", { style: { padding: '12px 20px 48px', maxWidth: 560 } },
-          React.createElement(NFGroupedLinks, { onNav }),
-          React.createElement(NFLegalLine, null)));
-    }
-
     function Footer({ setView, user }) {
       if (!user) {
         return React.createElement("footer", { className: "nf-footer", style: { background: '#03040A', borderTop: `1px solid ${C.border}`, padding: '24px 20px 48px' } },
