@@ -6807,6 +6807,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
   const label = (list, v) => { const f = list.find(x => x[0] === v); return f ? f[1] : (v || ''); };
   const fmtDate = (iso) => { try { return new Date(iso).toLocaleString(undefined, { year: 'numeric', month: 'short', day: '2-digit', hour: '2-digit', minute: '2-digit' }); } catch (_) { return iso || ''; } };
   const today = () => new Date().toISOString().slice(0, 10);
+  let leadsFullListAvailable = true; // flips to false if migration_lead_management.sql has not been run yet
 
   const inputStyle = { fontFamily: AC.font, fontSize: 16, padding: '10px 12px', minHeight: 44, border: '1px solid ' + AC.border, borderRadius: 8, background: '#fff', color: AC.text, width: '100%', boxSizing: 'border-box' };
   const btn = (primary) => ({ fontFamily: AC.font, fontSize: 15, fontWeight: 700, minHeight: 44, padding: '10px 18px', borderRadius: 8, cursor: 'pointer',
@@ -6831,10 +6832,155 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
     setTimeout(() => URL.revokeObjectURL(url), 1000);
   }
 
+  // ---- Clipboard (modern API with a legacy fallback) ----
+  function legacyCopy(text) {
+    try {
+      const ta = document.createElement('textarea');
+      ta.value = text; ta.setAttribute('readonly', '');
+      ta.style.cssText = 'position:fixed;top:0;left:0;width:1px;height:1px;opacity:0;';
+      document.body.appendChild(ta); ta.focus(); ta.select();
+      try { ta.setSelectionRange(0, text.length); } catch (_) {}
+      const ok = document.execCommand('copy');
+      document.body.removeChild(ta);
+      return !!ok;
+    } catch (_) { return false; }
+  }
+  function copyText(text) {
+    text = String(text == null ? '' : text);
+    if (navigator.clipboard && navigator.clipboard.writeText && window.isSecureContext) {
+      return navigator.clipboard.writeText(text).then(() => true, () => legacyCopy(text));
+    }
+    return Promise.resolve(legacyCopy(text));
+  }
+  // Built only from the lead record loaded from the database. Empty optional fields are left out, never filled with placeholders.
+  function leadDetailsText(l) {
+    const lines = ['NEURALFUSION LEAD DETAILS', '', 'Name: ' + (l.full_name || ''), 'Email: ' + (l.email || '')];
+    const opt = (k, v) => { if (v !== null && v !== undefined && String(v).trim() !== '') lines.push(k + ': ' + v); };
+    opt('Organisation', l.organisation); opt('Position', l.position); opt('Country', l.country); opt('Phone', l.phone);
+    lines.push('Category: ' + label(CATEGORIES, l.lead_category));
+    opt('Enquiry Type', l.enquiry_type); opt('Team Size', l.team_size);
+    lines.push('', 'Message:', l.message || '', '');
+    opt('Source', l.source_page);
+    lines.push('Date Received: ' + fmtDate(l.created_at), 'Status: ' + label(STATUSES, l.status));
+    return lines.join('\n');
+  }
+  const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  function validateLead(f) {
+    const e = {};
+    if (!String(f.full_name || '').trim()) e.full_name = 'Full name is required.';
+    const em = String(f.email || '').trim();
+    if (!em) e.email = 'Email address is required.'; else if (!EMAIL_RE.test(em) || em.length > 254) e.email = 'Enter a valid email address.';
+    if (!String(f.message || '').trim()) e.message = 'Message is required.';
+    if (!f.lead_category) e.lead_category = 'Choose a category.';
+    if (!f.status) e.status = 'Choose a status.';
+    return e;
+  }
+  function friendlyError(error, what) {
+    const m = (error && error.message) || '';
+    if (/not_authorised/.test(m)) return 'You do not have permission to ' + what + '.';
+    if (/invalid_email/.test(m)) return 'The database rejected that email address. Enter a valid one.';
+    if (/full_name_required/.test(m)) return 'Full name is required.';
+    if (/message_required/.test(m)) return 'Message is required.';
+    if (/lead_not_found/.test(m)) return 'This lead no longer exists. Refresh the list.';
+    if (/does not exist|schema cache|Could not find/i.test(m)) return 'The lead management functions are not installed yet. Run migration_lead_management.sql in the Supabase SQL editor.';
+    if (/Failed to fetch|NetworkError|network/i.test(m)) return 'Network problem. Check your connection and try again.';
+    return 'Could not ' + what + (m ? ': ' + m.slice(0, 200) : '. Please try again.');
+  }
+
+  function Modal({ title, onClose, busy, children, width }) {
+    useEffect(() => {
+      const onKey = (e) => { if (e.key === 'Escape' && !busy) onClose(); };
+      document.addEventListener('keydown', onKey);
+      return () => document.removeEventListener('keydown', onKey);
+    }, [busy, onClose]);
+    return h('div', { style: { position: 'fixed', inset: 0, background: 'rgba(17,24,39,0.55)', zIndex: 10000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 12 } },
+      h('div', { role: 'dialog', 'aria-modal': 'true', 'aria-label': title, style: { background: '#fff', borderRadius: 12, width: '100%', maxWidth: width || 720, maxHeight: '92vh', overflowY: 'auto', padding: 20, fontFamily: AC.font, color: AC.text, boxSizing: 'border-box' } },
+        h('div', { style: { fontSize: 20, fontWeight: 800, marginBottom: 14 } }, title), children));
+  }
+
+  const EDIT_KEYS = ['full_name', 'email', 'organisation', 'position', 'country', 'phone', 'lead_category', 'enquiry_type', 'team_size', 'message', 'status', 'assigned_to', 'follow_up_at', 'internal_notes'];
+  const formFrom = (l) => { const f = {}; EDIT_KEYS.forEach(k => { f[k] = l[k] === null || l[k] === undefined ? '' : String(l[k]); }); f.follow_up_at = f.follow_up_at.slice(0, 10); return f; };
+
+  function EditLead({ lead, onClose, onSaved, notify }) {
+    const original = formFrom(lead);
+    const [f, setF] = useState(original);
+    const [errs, setErrs] = useState({});
+    const [srv, setSrv] = useState(null);
+    const [busy, setBusy] = useState(false);
+    const dirty = EDIT_KEYS.some(k => f[k] !== original[k]);
+    const set = (k, v) => { setF(Object.assign({}, f, { [k]: v })); if (errs[k]) setErrs(Object.assign({}, errs, { [k]: undefined })); };
+    const close = () => { if (busy) return; if (dirty && !window.confirm('Discard your unsaved changes?')) return; onClose(); };
+    const save = async () => {
+      setSrv(null);
+      const v = validateLead(f);
+      if (Object.keys(v).length) { setErrs(v); setSrv('Please fix the highlighted fields.'); return; }
+      if (!dirty) { setSrv('No changes to save.'); return; }
+      const t = (k) => String(f[k] || '').trim();
+      const patch = {
+        full_name: t('full_name'), email: t('email').toLowerCase(), organisation: t('organisation'), position: t('position'), country: t('country'),
+        phone: t('phone') || null, lead_category: f.lead_category, enquiry_type: t('enquiry_type'), team_size: t('team_size') || null,
+        message: f.message.trim(), status: f.status, assigned_to: t('assigned_to'), follow_up_at: f.follow_up_at || null, internal_notes: f.internal_notes,
+      };
+      setBusy(true);
+      const { data, error } = await sb.rpc('admin_edit_business_lead', { p_id: String(lead.id), p_patch: patch });
+      setBusy(false);
+      if (error) { console.error('[admin_edit_business_lead]', error); setSrv(friendlyError(error, 'save changes')); return; }
+      if (!data || typeof data !== 'object') { setSrv('The save did not return the updated record. Refresh the list to confirm.'); return; }
+      onSaved(data); notify('Lead updated.', true); onClose();
+    };
+    const lab = { display: 'block', fontSize: 14, fontWeight: 700, marginBottom: 4 };
+    const field = (k, text, opts) => {
+      opts = opts || {};
+      const id = 'ed-' + k;
+      const common = { id, value: f[k], disabled: busy, 'aria-invalid': errs[k] ? 'true' : undefined, onChange: (e) => set(k, e.target.value), style: Object.assign({}, inputStyle, errs[k] ? { borderColor: AC.error } : {}) };
+      let ctl;
+      if (opts.select) {
+        const list = opts.select.slice(); if (f[k] && !list.some(x => x[0] === f[k])) list.push([f[k], f[k]]);
+        ctl = h('select', common, list.map(x => h('option', { key: x[0], value: x[0] }, x[1])));
+      } else if (opts.area) ctl = h('textarea', Object.assign({}, common, { rows: opts.rows || 5, maxLength: opts.max || 8000, style: Object.assign({}, common.style, { resize: 'vertical' }) }));
+      else ctl = h('input', Object.assign({}, common, { type: opts.type || 'text', maxLength: opts.max || 200, autoFocus: k === 'full_name' }));
+      return h('div', { key: k, style: { marginBottom: 12, gridColumn: opts.wide ? '1 / -1' : undefined } },
+        h('label', { htmlFor: id, style: lab }, text + (opts.req ? ' *' : '')), ctl,
+        errs[k] ? h('div', { role: 'alert', style: { color: AC.error, fontSize: 14, marginTop: 4 } }, errs[k]) : null);
+    };
+    return h(Modal, { title: 'Edit lead', onClose: close, busy },
+      h('div', { style: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(min(260px,100%),1fr))', columnGap: 16 } },
+        field('full_name', 'Full name', { req: true }), field('email', 'Email', { req: true, type: 'email', max: 254 }),
+        field('organisation', 'Organisation'), field('position', 'Position'), field('country', 'Country'), field('phone', 'Phone', { type: 'tel', max: 40 }),
+        field('lead_category', 'Lead category', { req: true, select: CATEGORIES }), field('enquiry_type', 'Enquiry type'),
+        field('team_size', 'Team size', { max: 40 }), field('status', 'Status', { req: true, select: STATUSES }),
+        field('assigned_to', 'Assigned to', { max: 120 }), field('follow_up_at', 'Follow-up date', { type: 'date' }),
+        field('message', 'Message', { req: true, area: true, rows: 5, wide: true }), field('internal_notes', 'Internal notes (never shown to the lead)', { area: true, rows: 4, wide: true })),
+      srv ? h('div', { role: 'alert', style: { background: AC.errorTint, border: '1px solid ' + AC.error, color: AC.error, borderRadius: 8, padding: 10, marginBottom: 12 } }, srv) : null,
+      h('div', { style: { display: 'flex', gap: 10, justifyContent: 'flex-end', flexWrap: 'wrap' } },
+        h('button', { type: 'button', onClick: close, disabled: busy, style: btn(false) }, 'Cancel'),
+        h('button', { type: 'button', onClick: save, disabled: busy, style: btn(true) }, busy ? 'Saving...' : 'Save changes')));
+  }
+
+  function DeleteLead({ lead, onClose, onDeleted, notify }) {
+    const [busy, setBusy] = useState(false);
+    const [err, setErr] = useState(null);
+    const go = async () => {
+      setBusy(true); setErr(null);
+      const { data, error } = await sb.rpc('admin_delete_business_lead', { p_id: String(lead.id) });
+      setBusy(false);
+      if (error || !data || data.deleted !== true) { if (error) console.error('[admin_delete_business_lead]', error); setErr(error ? friendlyError(error, 'delete this lead') : 'The database did not confirm the deletion. The lead was kept.'); return; }
+      onDeleted(lead.id); notify('Lead deleted.', true); onClose();
+    };
+    return h(Modal, { title: 'Delete lead', onClose, busy, width: 460 },
+      h('p', { style: { fontSize: 16, lineHeight: 1.6, margin: '0 0 8px' } }, 'Are you sure you want to permanently delete this lead? This action cannot be undone.'),
+      h('p', { style: { fontSize: 15, color: AC.muted, margin: '0 0 16px', overflowWrap: 'anywhere' } }, [lead.full_name, lead.email].filter(Boolean).join(' - ')),
+      err ? h('div', { role: 'alert', style: { background: AC.errorTint, border: '1px solid ' + AC.error, color: AC.error, borderRadius: 8, padding: 10, marginBottom: 12 } }, err) : null,
+      h('div', { style: { display: 'flex', gap: 10, justifyContent: 'flex-end', flexWrap: 'wrap' } },
+        h('button', { type: 'button', onClick: onClose, disabled: busy, autoFocus: true, style: btn(false) }, 'Cancel'),
+        h('button', { type: 'button', onClick: go, disabled: busy, style: Object.assign({}, btn(true), { background: AC.error, borderColor: AC.error }) }, busy ? 'Deleting...' : 'Confirm Delete')));
+  }
+
   function Detail({ lead, onSaved }) {
     const [d, setD] = useState({ status: lead.status, assigned_to: lead.assigned_to || '', internal_notes: lead.internal_notes || '', follow_up_at: lead.follow_up_at || '' });
     const [busy, setBusy] = useState(false);
     const [msg, setMsg] = useState(null);
+    useEffect(() => { setD({ status: lead.status, assigned_to: lead.assigned_to || '', internal_notes: lead.internal_notes || '', follow_up_at: lead.follow_up_at || '' }); }, [lead.status, lead.assigned_to, lead.internal_notes, lead.follow_up_at]);
     const set = (k, v) => setD(Object.assign({}, d, { [k]: v }));
     const save = async () => {
       setBusy(true); setMsg(null);
@@ -6853,7 +6999,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
       h('div', { style: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(min(300px,100%),1fr))', gap: 20 } },
         h('div', null,
           row('Email', h('a', { href: 'mailto:' + lead.email, style: { color: AC.goldDark } }, lead.email)),
-          row('Organisation', lead.organisation), row('Position', lead.position), row('Country', lead.country),
+          row('Organisation', lead.organisation), row('Position', lead.position), row('Country', lead.country), row('Phone', lead.phone),
           row('Enquiry type', lead.enquiry_type), row('Group size', lead.team_size),
           row('Source page', lead.source_page), row('Referrer', lead.referrer),
           row('Campaign', [lead.utm_source, lead.utm_medium, lead.utm_campaign].filter(Boolean).join(' / ')),
@@ -6883,23 +7029,47 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
     const [dueOnly, setDueOnly] = useState(false);
     const [openId, setOpenId] = useState(null);
     const [loading, setLoading] = useState(false);
+    const [toast, setToast] = useState(null);
+    const [editing, setEditing] = useState(null);
+    const [deleting, setDeleting] = useState(null);
+    const [auto, setAuto] = useState(true);
+    const [loadedAt, setLoadedAt] = useState(null);
+    const toastTimer = React.useRef(null);
+    const live = React.useRef({});
+    live.current = { cat, status, q, from, to, busyModal: !!(editing || deleting) };
+    const notify = (text, ok) => { setToast({ text, ok: ok !== false }); clearTimeout(toastTimer.current); toastTimer.current = setTimeout(() => setToast(null), 3500); };
+    useEffect(() => () => clearTimeout(toastTimer.current), []);
 
-    const load = async () => {
-      setLoading(true); setErr(null);
-      const { data, error } = await sb.rpc('admin_list_business_leads', {
-        p_category: cat || null, p_status: status || null, p_search: q || null, p_from: from || null, p_to: to || null, p_limit: 1000,
-      });
-      setLoading(false);
+    const load = async (silent) => {
+      const f = live.current;
+      if (!silent) { setLoading(true); setErr(null); }
+      const params = { p_category: f.cat || null, p_status: f.status || null, p_search: f.q || null, p_from: f.from || null, p_to: f.to || null, p_limit: 1000 };
+      let res = null;
+      if (leadsFullListAvailable) {
+        res = await sb.rpc('admin_list_business_leads_full', params);
+        if (res.error && /does not exist|schema cache|Could not find/i.test(res.error.message || '')) { leadsFullListAvailable = false; res = null; }
+      }
+      if (!res) res = await sb.rpc('admin_list_business_leads', params);
+      const { data, error } = res;
+      if (!silent) setLoading(false);
       if (error) {
         console.error('[admin_list_business_leads]', error);
+        if (silent) return;
         const m = error.message || '';
         setErr(/not_authorised/.test(m) ? 'You do not have permission to view leads.'
           : (/does not exist|schema cache|Could not find/i.test(m) ? 'The leads database has not been set up yet. Run migration_business_leads.sql in the Supabase SQL editor.' : 'Could not load leads. Please try again.'));
         setRows([]); return;
       }
       setRows(Array.isArray(data) ? data : []);
+      setLoadedAt(new Date());
     };
     useEffect(() => { load(); }, []);
+    // Lightweight auto-refresh: only while this panel is mounted, the tab is visible and no dialog is open.
+    useEffect(() => {
+      if (!auto) return undefined;
+      const t = setInterval(() => { if (document.visibilityState === 'visible' && !live.current.busyModal) load(true); }, 60000);
+      return () => clearInterval(t);
+    }, [auto]);
 
     const list = (rows || []).filter(r => !dueOnly || (r.follow_up_at && r.follow_up_at <= today() && r.status !== 'converted' && r.status !== 'not_interested'));
     const count = (fn) => (rows || []).filter(fn).length;
@@ -6908,7 +7078,13 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
     (rows || []).forEach(r => { const k = (r.utm_source ? r.utm_source + ' (campaign)' : (r.referrer ? r.referrer.split('/')[0] : 'direct')) + ' > ' + r.source_page; sources[k] = (sources[k] || 0) + 1; });
     const topSources = Object.keys(sources).sort((a, b) => sources[b] - sources[a]).slice(0, 8);
 
-    const onSaved = (u) => setRows((rows || []).map(r => r.id === u.id ? u : r));
+    const onSaved = (u) => setRows((prev) => (prev || []).map(r => String(r.id) === String(u.id) ? Object.assign({}, r, u) : r));
+    const onDeleted = (id) => setRows((prev) => (prev || []).filter(r => String(r.id) !== String(id)));
+    const copyEmail = async (r) => {
+      if (await copyText(r.email || '')) notify('Email address copied.', true);
+      else window.prompt('Copy the email address (Ctrl+C / Cmd+C):', r.email || '');
+    };
+    const copyDetails = async (r) => { notify((await copyText(leadDetailsText(r))) ? 'Lead details copied.' : 'Copy failed. Open the lead and select the text manually.', null); };
     const stat = (t, v) => h('div', { key: t, style: Object.assign({}, card, { textAlign: 'center' }) }, h('div', { style: { fontSize: 28, fontWeight: 800, color: AC.text } }, v), h('div', { style: { fontSize: 14, color: AC.muted } }, t));
     const lab = { display: 'block', fontSize: 14, fontWeight: 700, color: AC.text, marginBottom: 4 };
 
@@ -6924,9 +7100,12 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
           h('div', null, h('label', { style: lab, htmlFor: 'ld-from' }, 'From date'), h('input', { id: 'ld-from', type: 'date', value: from, onChange: (e) => setFrom(e.target.value), style: inputStyle })),
           h('div', null, h('label', { style: lab, htmlFor: 'ld-to' }, 'To date'), h('input', { id: 'ld-to', type: 'date', value: to, onChange: (e) => setTo(e.target.value), style: inputStyle }))),
         h('div', { style: { display: 'flex', gap: 12, flexWrap: 'wrap', alignItems: 'center', marginTop: 14 } },
-          h('button', { type: 'button', onClick: load, disabled: loading, style: btn(true) }, loading ? 'Loading...' : 'Apply filters'),
+          h('button', { type: 'button', onClick: () => load(), disabled: loading, style: btn(true) }, loading ? 'Loading...' : 'Apply filters'),
+          h('button', { type: 'button', onClick: () => load(), disabled: loading, style: btn(false) }, 'Refresh'),
           h('button', { type: 'button', onClick: () => { setQ(''); setCat(''); setStatus(''); setFrom(''); setTo(''); setDueOnly(false); setTimeout(load, 0); }, style: btn(false) }, 'Reset'),
           h('label', { style: { display: 'flex', gap: 8, alignItems: 'center', fontSize: 15 } }, h('input', { type: 'checkbox', checked: dueOnly, onChange: (e) => setDueOnly(e.target.checked), style: { width: 20, height: 20 } }), 'Follow-ups due'),
+          h('label', { style: { display: 'flex', gap: 8, alignItems: 'center', fontSize: 15 } }, h('input', { type: 'checkbox', checked: auto, onChange: (e) => setAuto(e.target.checked), style: { width: 20, height: 20 } }), 'Auto-refresh (1 min)'),
+          loadedAt ? h('span', { style: { fontSize: 14, color: AC.muted } }, 'Updated ' + loadedAt.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })) : null,
           h('button', { type: 'button', disabled: !list.length, onClick: () => { if (window.confirm('This export contains personal data (names, emails, messages). Handle it according to your privacy policy. Export ' + list.length + ' lead(s) as CSV?')) downloadCsv(list); }, style: Object.assign({}, btn(false), { marginLeft: 'auto' }) }, 'Export CSV'))),
       err ? h('div', { role: 'alert', style: { background: AC.errorTint, border: '1px solid ' + AC.error, color: AC.error, borderRadius: 10, padding: 14, marginBottom: 16 } }, err) : null,
       topSources.length ? h('div', { style: Object.assign({}, card, { marginBottom: 20 }) },
@@ -6936,13 +7115,22 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
         (list.length === 0 && !err ? h('div', { style: Object.assign({}, card, { color: AC.muted, textAlign: 'center' }) }, 'No leads match these filters yet.') :
           h('div', { style: { display: 'grid', gap: 12 } }, list.map(r => h('div', { key: r.id, style: { border: '1px solid ' + AC.border, borderRadius: 12, overflow: 'hidden', background: '#fff' } },
             h('button', { type: 'button', 'aria-expanded': openId === r.id, onClick: () => setOpenId(openId === r.id ? null : r.id), style: { width: '100%', textAlign: 'left', background: 'none', border: 'none', cursor: 'pointer', padding: 14, fontFamily: AC.font, color: AC.text, display: 'grid', gridTemplateColumns: 'minmax(0,2fr) minmax(0,1fr) minmax(0,1fr)', gap: 10, alignItems: 'center' } },
-              h('div', { style: { minWidth: 0 } }, h('div', { style: { fontWeight: 800, overflowWrap: 'anywhere' } }, r.full_name), h('div', { style: { fontSize: 14, color: AC.muted, overflowWrap: 'anywhere' } }, [r.organisation, r.email].filter(Boolean).join(' - '))),
+              h('div', { style: { minWidth: 0 } }, h('div', { style: { fontWeight: 800, overflowWrap: 'anywhere' } }, r.status === 'new' ? h('span', { style: { background: AC.error, color: '#fff', borderRadius: 6, padding: '1px 8px', fontSize: 12, fontWeight: 800, marginRight: 8, letterSpacing: 0.5 } }, 'NEW') : null, r.full_name), h('div', { style: { fontSize: 14, color: AC.muted, overflowWrap: 'anywhere' } }, [r.organisation, r.email].filter(Boolean).join(' - '))),
               h('div', { style: { fontSize: 14 } }, h('span', { style: { background: AC.goldTint, border: '1px solid ' + AC.gold, borderRadius: 999, padding: '2px 10px', fontWeight: 700 } }, label(CATEGORIES, r.lead_category)), h('div', { style: { color: AC.muted, marginTop: 4 } }, fmtDate(r.created_at))),
               h('div', { style: { fontSize: 14, fontWeight: 700, color: r.status === 'new' ? AC.error : (r.status === 'converted' ? AC.success : AC.text) } }, label(STATUSES, r.status), r.follow_up_at ? h('div', { style: { fontWeight: 400, color: AC.muted } }, 'Follow up ' + r.follow_up_at) : null)),
-            openId === r.id ? h(Detail, { key: 'd' + r.id, lead: r, onSaved }) : null)))));
+            h('div', { style: { display: 'flex', gap: 8, flexWrap: 'wrap', padding: '0 14px 12px' } },
+              h('button', { type: 'button', onClick: () => copyEmail(r), style: Object.assign({}, btn(false), { minHeight: 40, padding: '6px 14px' }) }, 'Copy Email'),
+              h('button', { type: 'button', onClick: () => copyDetails(r), style: Object.assign({}, btn(false), { minHeight: 40, padding: '6px 14px' }) }, 'Copy Details'),
+              h('button', { type: 'button', onClick: () => setEditing(r), style: Object.assign({}, btn(false), { minHeight: 40, padding: '6px 14px' }) }, 'Edit Lead'),
+              h('button', { type: 'button', onClick: () => setDeleting(r), style: Object.assign({}, btn(false), { minHeight: 40, padding: '6px 14px', color: AC.error, borderColor: AC.error }) }, 'Delete Lead'),
+              h('a', { href: 'mailto:' + r.email, style: { fontFamily: AC.font, fontSize: 14, color: AC.goldDark, alignSelf: 'center', marginLeft: 4 } }, 'Open in email app')),
+            openId === r.id ? h(Detail, { key: 'd' + r.id, lead: r, onSaved }) : null)))),
+      editing ? h(EditLead, { lead: editing, onClose: () => setEditing(null), onSaved, notify }) : null,
+      deleting ? h(DeleteLead, { lead: deleting, onClose: () => setDeleting(null), onDeleted, notify }) : null,
+      toast ? h('div', { role: 'status', 'aria-live': 'polite', style: { position: 'fixed', left: '50%', bottom: 24, transform: 'translateX(-50%)', zIndex: 10001, background: toast.ok ? AC.success : AC.error, color: '#fff', padding: '12px 20px', borderRadius: 10, fontFamily: AC.font, fontSize: 15, fontWeight: 700, boxShadow: '0 4px 16px rgba(0,0,0,0.25)', maxWidth: '90vw' } }, toast.text) : null);
   }
 
-  window.NF_LEADS = { AdminLeadsPanel };
+  window.NF_LEADS = { AdminLeadsPanel, __test: { leadDetailsText, validateLead, copyText, friendlyError, csvCell } };
 })();
     // === NEURALFUSION_LEADS_MODULE_END ===
 
