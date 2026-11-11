@@ -22,7 +22,7 @@ NeuralFusion was founded by Life Edet. It is not an AI chatbot, a productivity a
 
 ## Research
 
-- [Research & Publications](https://tryneuralfusion.com/research)
+- [Research & Publications](https://tryneuralfusion.com/research): founder paper (SSRN 2026), CFI research status and academic collaboration. The paper is not described as peer-reviewed journal articles and the CFI is not independently validated
 - [About / Founder](https://tryneuralfusion.com/about)
 
 ## Official Resources
