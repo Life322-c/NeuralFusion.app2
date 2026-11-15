@@ -274,6 +274,7 @@
         if (r.ok && r.body && r.body.ok === true) {
           try { sessionStorage.setItem(fpKey, '1'); } catch (err) { /* ignore */ }
           track('lead_submitted', { category: effCat, page: document.body.getAttribute('data-page') || 'unknown' });
+          if (window.nfPublicTrack) window.nfPublicTrack('lead_submitted', { category: effCat, page: document.body.getAttribute('data-page') || 'unknown' });
           if ((document.body.getAttribute('data-page') || '') === 'contact') track('contact_conversion', { category: effCat });
           showSuccess(r.body.duplicate === true);
           return;
