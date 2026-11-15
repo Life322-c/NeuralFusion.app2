@@ -70,15 +70,15 @@
 
 <style>
   :root {
-    --navy:        #0a1628;
-    --navy-mid:    #0f2040;
-    --gold:        #5B84FF;
-    --gold-light:  #A9BCFF;
+    --navy:        #0D2757;
+    --navy-mid:    #123066;
+    --gold:        #E8B931;
+    --gold-light:  #FFD76A;
     --gold-pale:   #E3EAFF;
     --cream:       #F5F7FC;
-    --text-main:   #1a1a2e;
-    --text-muted:  #5a6070;
-    --divider:     rgba(91,132,255,0.25);
+    --text-main:   #061431;
+    --text-muted:  #3B4660;
+    --divider:     rgba(232,185,49,0.25);
   }
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
   html { scroll-behavior: smooth; }
@@ -86,7 +86,7 @@
     background: var(--cream);
     color: var(--text-main);
     font-family: 'DM Sans', sans-serif;
-    font-weight: 300;
+    font-weight: 400;
     line-height: 1.85;
     font-size: 17px;
   }
@@ -274,6 +274,11 @@
   .footer-links a { color: var(--text-muted); text-decoration: none; }
   .footer-links a:hover { color: var(--gold); }
 
+
+  /* readability override: bold, high-contrast navy + gold */
+  body { font-weight: 400; }
+  .kicker, .pub-kicker, .label-tag.framework, footer span, .callout-label, .stage-name, .mode-name, .mode-icon { color: #7A5800 !important; }
+  a:hover, .byline a:hover, .doi-link:hover, .related-links a:hover, .footer-links a:hover { color: #7A5800 !important; }
 </style>
 <link rel="stylesheet" href="/nf-nav.css?v=3" />
 <script src="/nf-nav.js?v=3"></script>
