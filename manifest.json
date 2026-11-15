@@ -1,14 +1,18 @@
 {
   "name": "NeuralFusion - Train How You Think",
   "short_name": "NeuralFusion",
-  "description": "NeuralFusion teaches you how to think - not what to think. Master the Four Brains Framework for cognitive clarity and decision mastery.",
+  "description": "NeuralFusion is a cognitive operating system for how you think. Master the Four Thinking Modes Framework for cognitive clarity and decision mastery.",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
   "orientation": "portrait",
   "background_color": "#0B0B0D",
   "theme_color": "#0B0B0D",
-  "categories": ["education", "productivity", "lifestyle"],
+  "categories": [
+    "education",
+    "productivity",
+    "lifestyle"
+  ],
   "icons": [
     {
       "src": "/icons/icon-192.png",
