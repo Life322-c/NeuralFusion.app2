@@ -105,10 +105,11 @@
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500;1,600&family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=Space+Mono:wght@400;700&family=Syne:wght@500;600;700;800&display=swap" rel="stylesheet" />
-<link rel="stylesheet" href="/commercial.css?v=1" />
+<link rel="stylesheet" href="/commercial.css?v=2" />
 <script src="/commercial.js?v=2"></script>
-<link rel="stylesheet" href="/nf-nav.css?v=1" />
-<script src="/nf-nav.js?v=1"></script>
+<link rel="stylesheet" href="/nf-nav.css?v=3" />
+<script src="/nf-nav.js?v=3"></script>
+<script src="/nf-track.js?v=1" defer></script>
 </head>
 <body class="theme-contact" data-nav="contact" data-page="contact">
 <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-P47TD9MS" height="0" width="0" style="display:none;visibility:hidden" title="Google Tag Manager"></iframe></noscript>
@@ -120,39 +121,59 @@
     <nav class="nfx-nav" id="nfx-nav" aria-label="Primary">
       <ul class="nfx-groups">
         <li class="nfx-group">
-          <button class="nfx-trigger" type="button" id="nfx-t-pathways" aria-expanded="false" aria-controls="nfx-p-pathways">Pathways<svg class="nfx-chev" viewBox="0 0 12 12" aria-hidden="true" focusable="false"><path d="M2.5 4.5 6 8l3.5-3.5"/></svg></button>
-          <div class="nfx-panel" id="nfx-p-pathways"><ul>
-            <li><a href="/organisations">For Organisations</a></li>
-            <li><a href="/academic-partnerships">Academic Partnerships</a></li>
-            <li><a href="/executive">Executive Programme</a></li>
-            <li><a href="/?view=cfi">Take the CFI</a></li>
-            <li><a href="/?view=teams">NeuralFusion for Teams</a></li>
+          <button class="nfx-trigger" type="button" id="nfx-t-discover" aria-expanded="false" aria-controls="nfx-p-discover">Discover<svg class="nfx-chev" viewBox="0 0 12 12" aria-hidden="true" focusable="false"><path d="M2.5 4.5 6 8l3.5-3.5"/></svg></button>
+          <div class="nfx-panel" id="nfx-p-discover"><ul>
+            <li><a href="/">What is NeuralFusion?</a></li>
+            <li><a href="/thinking">Four Thinking Modes</a></li>
+            <li><a href="/#core-loop">Core Loop</a></li>
+            <li><a href="/cognitive-fragmentation">Cognitive Fragmentation</a></li>
+            <li><a href="/methodology">CFI Methodology</a></li>
           </ul></div>
         </li>
         <li class="nfx-group">
-          <button class="nfx-trigger" type="button" id="nfx-t-understand" aria-expanded="false" aria-controls="nfx-p-understand">Understand<svg class="nfx-chev" viewBox="0 0 12 12" aria-hidden="true" focusable="false"><path d="M2.5 4.5 6 8l3.5-3.5"/></svg></button>
-          <div class="nfx-panel" id="nfx-p-understand"><ul>
-            <li><a href="/thinking">The Four Thinking Modes</a></li>
-            <li><a href="/cognitive-fragmentation">Cognitive fragmentation</a></li>
-            <li><a href="/decision-making">Decision-making</a></li>
-            <li><a href="/methodology">CFI methodology</a></li>
+          <button class="nfx-trigger" type="button" id="nfx-t-individuals" aria-expanded="false" aria-controls="nfx-p-individuals">Individuals<svg class="nfx-chev" viewBox="0 0 12 12" aria-hidden="true" focusable="false"><path d="M2.5 4.5 6 8l3.5-3.5"/></svg></button>
+          <div class="nfx-panel" id="nfx-p-individuals"><ul>
+            <li><a href="/?view=cfi">Take the CFI</a></li>
+            <li><a href="/?view=lessons">Cognitive Training</a></li>
+            <li><a href="/executive">Executive Programme</a></li>
+          </ul></div>
+        </li>
+        <li class="nfx-group">
+          <button class="nfx-trigger" type="button" id="nfx-t-academia" aria-expanded="false" aria-controls="nfx-p-academia">Academia<svg class="nfx-chev" viewBox="0 0 12 12" aria-hidden="true" focusable="false"><path d="M2.5 4.5 6 8l3.5-3.5"/></svg></button>
+          <div class="nfx-panel" id="nfx-p-academia"><ul>
+            <li><a href="/academic-partnerships">Academic Programme</a></li>
+            <li><a href="/academic-partnerships#research-collab">Research Collaboration</a></li>
+            <li><a href="/academic-partnerships#enquire">Institutional Enquiries</a></li>
+          </ul></div>
+        </li>
+        <li class="nfx-group">
+          <button class="nfx-trigger" type="button" id="nfx-t-organisations" aria-expanded="false" aria-controls="nfx-p-organisations">Organisations<svg class="nfx-chev" viewBox="0 0 12 12" aria-hidden="true" focusable="false"><path d="M2.5 4.5 6 8l3.5-3.5"/></svg></button>
+          <div class="nfx-panel" id="nfx-p-organisations"><ul>
+            <li><a href="/organisations">Enterprise Programme</a></li>
+            <li><a href="/?view=teams">Team Development</a></li>
+            <li><a href="/organisations#enquire">Request a Demonstration</a></li>
+          </ul></div>
+        </li>
+        <li class="nfx-group">
+          <button class="nfx-trigger" type="button" id="nfx-t-insights" aria-expanded="false" aria-controls="nfx-p-insights">Insights<svg class="nfx-chev" viewBox="0 0 12 12" aria-hidden="true" focusable="false"><path d="M2.5 4.5 6 8l3.5-3.5"/></svg></button>
+          <div class="nfx-panel" id="nfx-p-insights"><ul>
+            <li><a href="/blog">Articles</a></li>
             <li><a href="/research">Research</a></li>
-            <li><a href="/blog">Blog</a></li>
+            <li><a href="/decision-making">Decision-making</a></li>
           </ul></div>
         </li>
         <li class="nfx-group has-current">
-          <button class="nfx-trigger" type="button" id="nfx-t-company" aria-expanded="false" aria-controls="nfx-p-company">Company<svg class="nfx-chev" viewBox="0 0 12 12" aria-hidden="true" focusable="false"><path d="M2.5 4.5 6 8l3.5-3.5"/></svg></button>
-          <div class="nfx-panel" id="nfx-p-company"><ul>
-            <li><a href="/about">About</a></li>
+          <button class="nfx-trigger" type="button" id="nfx-t-about" aria-expanded="false" aria-controls="nfx-p-about">About<svg class="nfx-chev" viewBox="0 0 12 12" aria-hidden="true" focusable="false"><path d="M2.5 4.5 6 8l3.5-3.5"/></svg></button>
+          <div class="nfx-panel" id="nfx-p-about"><ul>
+            <li><a href="/about#mission">Mission</a></li>
+            <li><a href="/about#founder">Founder</a></li>
             <li><a href="/contact" aria-current="page">Contact</a></li>
-            <li><a href="/privacy">Privacy</a></li>
-            <li><a href="/terms">Terms</a></li>
           </ul></div>
         </li>
       </ul>
       <div class="nfx-actions">
         <a class="nfx-signin" href="/?auth=login" data-track="signin_click" data-where="header">Sign in</a>
-        <a class="nfx-cta" href="/?view=cfi" data-track="cfi_cta_click" data-where="header">Take the CFI</a>
+        <a class="nfx-cta" href="/?view=cfi" data-track="cfi_cta_click" data-where="header">Get started</a>
       </div>
     </nav>
   </div>
@@ -181,7 +202,7 @@
         <p class="muted">For organisations exploring team assessment, training or a partnership. Prefer to start now? <a href="/organisations">See the organisations page</a> or <a href="/?view=teams">create a team</a>.</p>
         <ul class="checklist" style="margin-top:22px"><li>Include your group size and goals so we can reply usefully.</li></ul>
       </div>
-      <div data-lead-form data-category="corporate" data-source="/contact#corporate" data-title="Corporate enquiry" data-sub="Fields marked with an asterisk are required." data-enquiry-options="Organisational programme|Team pilot|Pricing and seats|Facilitator or training partnership|Something else" data-partnership-values="Facilitator or training partnership" data-team-size="1" data-org-required="1" data-message-label="What would you like to achieve?" data-button="Send corporate enquiry"><noscript><p class="callout">This form needs JavaScript. Please email <a href="mailto:edetlife94@gmail.com">edetlife94@gmail.com</a> instead.</p></noscript></div>
+      <div data-lead-form data-category="corporate" data-source="/contact#corporate" data-title="Corporate enquiry" data-sub="Fields marked with an asterisk are required." data-enquiry-options="Request a product demonstration|Organisational programme|Team pilot|Pricing and seats|Facilitator or training partnership|Something else" data-partnership-values="Facilitator or training partnership" data-team-size="1" data-org-required="1" data-message-label="What would you like to achieve?" data-button="Send corporate enquiry"><noscript><p class="callout">This form needs JavaScript. Please email <a href="mailto:edetlife94@gmail.com">edetlife94@gmail.com</a> instead.</p></noscript></div>
     </div>
   </div>
 </section>
@@ -194,7 +215,7 @@
         <p class="muted">For universities, business schools and researchers. <a href="/academic-partnerships">Read the academic partnerships page</a> first if you want the full picture, including what is and is not validated.</p>
         <ul class="checklist" style="margin-top:22px"><li>No institutional endorsements are claimed. We are seeking them.</li></ul>
       </div>
-      <div data-lead-form data-category="academic" data-source="/contact#academic" data-title="Academic partnership enquiry" data-sub="Fields marked with an asterisk are required." data-enquiry-options="Academic collaboration|University pilot programme|Research discussion|Student development programme|Educational workshop|Institutional training" data-org-required="1" data-org-label="Institution or organisation" data-position-label="Role or department" data-message-label="What would you like to explore?" data-button="Send academic enquiry"><noscript><p class="callout">This form needs JavaScript. Please email <a href="mailto:edetlife94@gmail.com">edetlife94@gmail.com</a> instead.</p></noscript></div>
+      <div data-lead-form data-category="academic" data-source="/contact#academic" data-title="Academic partnership enquiry" data-sub="Fields marked with an asterisk are required." data-enquiry-options="Request a product demonstration|Academic collaboration|University pilot programme|Research discussion|Student development programme|Educational workshop|Institutional training" data-org-required="1" data-org-label="Institution or organisation" data-position-label="Role or department" data-message-label="What would you like to explore?" data-button="Send academic enquiry"><noscript><p class="callout">This form needs JavaScript. Please email <a href="mailto:edetlife94@gmail.com">edetlife94@gmail.com</a> instead.</p></noscript></div>
     </div>
   </div>
 </section>
@@ -285,7 +306,7 @@
         </ul>
       </div>
     </div>
-    <p class="legal">&copy; 2026 <span>Life Edet</span> &middot; NeuralFusion is a trademark of Life Edet. The CFI is a proprietary self-report framework, not a clinical or diagnostic instrument.</p>
+    <p class="legal">NeuralFusion is a cognitive operating system for how you think.<br>&copy; 2026 <span>Life Edet</span> &middot; NeuralFusion is a trademark of Life Edet. The CFI is a proprietary self-report framework, not a clinical or diagnostic instrument.</p>
   </div>
 </footer>
 </body>
