@@ -146,10 +146,11 @@
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500;1,600&family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=Space+Mono:wght@400;700&family=Syne:wght@500;600;700;800&display=swap" rel="stylesheet" />
-<link rel="stylesheet" href="/commercial.css?v=1" />
+<link rel="stylesheet" href="/commercial.css?v=2" />
 <script src="/commercial.js?v=2"></script>
-<link rel="stylesheet" href="/nf-nav.css?v=1" />
-<script src="/nf-nav.js?v=1"></script>
+<link rel="stylesheet" href="/nf-nav.css?v=3" />
+<script src="/nf-nav.js?v=3"></script>
+<script src="/nf-track.js?v=1" defer></script>
 </head>
 <body class="theme-org" data-nav="organisations" data-page="organisations">
 <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-P47TD9MS" height="0" width="0" style="display:none;visibility:hidden" title="Google Tag Manager"></iframe></noscript>
@@ -160,40 +161,60 @@
     <button class="nfx-toggle" type="button" aria-expanded="false" aria-controls="nfx-nav" aria-label="Open menu"><span class="nfx-bars" aria-hidden="true"></span></button>
     <nav class="nfx-nav" id="nfx-nav" aria-label="Primary">
       <ul class="nfx-groups">
-        <li class="nfx-group has-current">
-          <button class="nfx-trigger" type="button" id="nfx-t-pathways" aria-expanded="false" aria-controls="nfx-p-pathways">Pathways<svg class="nfx-chev" viewBox="0 0 12 12" aria-hidden="true" focusable="false"><path d="M2.5 4.5 6 8l3.5-3.5"/></svg></button>
-          <div class="nfx-panel" id="nfx-p-pathways"><ul>
-            <li><a href="/organisations" aria-current="page">For Organisations</a></li>
-            <li><a href="/academic-partnerships">Academic Partnerships</a></li>
-            <li><a href="/executive">Executive Programme</a></li>
+        <li class="nfx-group">
+          <button class="nfx-trigger" type="button" id="nfx-t-discover" aria-expanded="false" aria-controls="nfx-p-discover">Discover<svg class="nfx-chev" viewBox="0 0 12 12" aria-hidden="true" focusable="false"><path d="M2.5 4.5 6 8l3.5-3.5"/></svg></button>
+          <div class="nfx-panel" id="nfx-p-discover"><ul>
+            <li><a href="/">What is NeuralFusion?</a></li>
+            <li><a href="/thinking">Four Thinking Modes</a></li>
+            <li><a href="/#core-loop">Core Loop</a></li>
+            <li><a href="/cognitive-fragmentation">Cognitive Fragmentation</a></li>
+            <li><a href="/methodology">CFI Methodology</a></li>
+          </ul></div>
+        </li>
+        <li class="nfx-group">
+          <button class="nfx-trigger" type="button" id="nfx-t-individuals" aria-expanded="false" aria-controls="nfx-p-individuals">Individuals<svg class="nfx-chev" viewBox="0 0 12 12" aria-hidden="true" focusable="false"><path d="M2.5 4.5 6 8l3.5-3.5"/></svg></button>
+          <div class="nfx-panel" id="nfx-p-individuals"><ul>
             <li><a href="/?view=cfi">Take the CFI</a></li>
-            <li><a href="/?view=teams">NeuralFusion for Teams</a></li>
+            <li><a href="/?view=lessons">Cognitive Training</a></li>
+            <li><a href="/executive">Executive Programme</a></li>
           </ul></div>
         </li>
         <li class="nfx-group">
-          <button class="nfx-trigger" type="button" id="nfx-t-understand" aria-expanded="false" aria-controls="nfx-p-understand">Understand<svg class="nfx-chev" viewBox="0 0 12 12" aria-hidden="true" focusable="false"><path d="M2.5 4.5 6 8l3.5-3.5"/></svg></button>
-          <div class="nfx-panel" id="nfx-p-understand"><ul>
-            <li><a href="/thinking">The Four Thinking Modes</a></li>
-            <li><a href="/cognitive-fragmentation">Cognitive fragmentation</a></li>
-            <li><a href="/decision-making">Decision-making</a></li>
-            <li><a href="/methodology">CFI methodology</a></li>
+          <button class="nfx-trigger" type="button" id="nfx-t-academia" aria-expanded="false" aria-controls="nfx-p-academia">Academia<svg class="nfx-chev" viewBox="0 0 12 12" aria-hidden="true" focusable="false"><path d="M2.5 4.5 6 8l3.5-3.5"/></svg></button>
+          <div class="nfx-panel" id="nfx-p-academia"><ul>
+            <li><a href="/academic-partnerships">Academic Programme</a></li>
+            <li><a href="/academic-partnerships#research-collab">Research Collaboration</a></li>
+            <li><a href="/academic-partnerships#enquire">Institutional Enquiries</a></li>
+          </ul></div>
+        </li>
+        <li class="nfx-group has-current">
+          <button class="nfx-trigger" type="button" id="nfx-t-organisations" aria-expanded="false" aria-controls="nfx-p-organisations">Organisations<svg class="nfx-chev" viewBox="0 0 12 12" aria-hidden="true" focusable="false"><path d="M2.5 4.5 6 8l3.5-3.5"/></svg></button>
+          <div class="nfx-panel" id="nfx-p-organisations"><ul>
+            <li><a href="/organisations" aria-current="page">Enterprise Programme</a></li>
+            <li><a href="/?view=teams">Team Development</a></li>
+            <li><a href="/organisations#enquire">Request a Demonstration</a></li>
+          </ul></div>
+        </li>
+        <li class="nfx-group">
+          <button class="nfx-trigger" type="button" id="nfx-t-insights" aria-expanded="false" aria-controls="nfx-p-insights">Insights<svg class="nfx-chev" viewBox="0 0 12 12" aria-hidden="true" focusable="false"><path d="M2.5 4.5 6 8l3.5-3.5"/></svg></button>
+          <div class="nfx-panel" id="nfx-p-insights"><ul>
+            <li><a href="/blog">Articles</a></li>
             <li><a href="/research">Research</a></li>
-            <li><a href="/blog">Blog</a></li>
+            <li><a href="/decision-making">Decision-making</a></li>
           </ul></div>
         </li>
         <li class="nfx-group">
-          <button class="nfx-trigger" type="button" id="nfx-t-company" aria-expanded="false" aria-controls="nfx-p-company">Company<svg class="nfx-chev" viewBox="0 0 12 12" aria-hidden="true" focusable="false"><path d="M2.5 4.5 6 8l3.5-3.5"/></svg></button>
-          <div class="nfx-panel" id="nfx-p-company"><ul>
-            <li><a href="/about">About</a></li>
+          <button class="nfx-trigger" type="button" id="nfx-t-about" aria-expanded="false" aria-controls="nfx-p-about">About<svg class="nfx-chev" viewBox="0 0 12 12" aria-hidden="true" focusable="false"><path d="M2.5 4.5 6 8l3.5-3.5"/></svg></button>
+          <div class="nfx-panel" id="nfx-p-about"><ul>
+            <li><a href="/about#mission">Mission</a></li>
+            <li><a href="/about#founder">Founder</a></li>
             <li><a href="/contact">Contact</a></li>
-            <li><a href="/privacy">Privacy</a></li>
-            <li><a href="/terms">Terms</a></li>
           </ul></div>
         </li>
       </ul>
       <div class="nfx-actions">
         <a class="nfx-signin" href="/?auth=login" data-track="signin_click" data-where="header">Sign in</a>
-        <a class="nfx-cta" href="/?view=cfi" data-track="cfi_cta_click" data-where="header">Take the CFI</a>
+        <a class="nfx-cta" href="/?view=cfi" data-track="cfi_cta_click" data-where="header">Get started</a>
       </div>
     </nav>
   </div>
@@ -214,19 +235,19 @@
       </div>
       <div class="hero-figure"><svg viewBox="0 0 400 400" role="img" aria-label="Diagram of four thinking modes connected to a central coordination point">
   <title>Four thinking modes connected to a central coordination point</title>
-  <g fill="none" stroke="#C9A84C" stroke-width="1.2" opacity="0.85">
+  <g fill="none" stroke="#5B84FF" stroke-width="1.2" opacity="0.85">
     <circle cx="200" cy="200" r="46"/><circle cx="200" cy="200" r="92" stroke-dasharray="3 7" opacity="0.5"/>
     <line x1="100" y1="98" x2="165" y2="165"/><line x1="322" y1="78" x2="235" y2="165"/>
     <line x1="78" y1="322" x2="165" y2="235"/><line x1="322" y1="322" x2="235" y2="235"/>
     <line x1="78" y1="78" x2="322" y2="78" opacity="0.35"/><line x1="322" y1="78" x2="322" y2="322" opacity="0.35"/>
     <line x1="322" y1="322" x2="78" y2="322" opacity="0.35"/><line x1="78" y1="322" x2="78" y2="78" opacity="0.35"/>
   </g>
-  <g fill="#0A1628" stroke="#C9A84C" stroke-width="1.5">
+  <g fill="#0A1628" stroke="#5B84FF" stroke-width="1.5">
     <rect x="26" y="58" width="104" height="40" rx="8"/><rect x="270" y="58" width="104" height="40" rx="8"/>
     <rect x="26" y="302" width="104" height="40" rx="8"/><rect x="270" y="302" width="104" height="40" rx="8"/>
   </g>
-  <circle cx="200" cy="200" r="10" fill="#C9A84C"/>
-  <g font-family="Space Mono, monospace" font-size="9" fill="#E8C97A" text-anchor="middle" letter-spacing="0.5">
+  <circle cx="200" cy="200" r="10" fill="#5B84FF"/>
+  <g font-family="Space Mono, monospace" font-size="9" fill="#A9BCFF" text-anchor="middle" letter-spacing="0.5">
     <text x="78" y="82">ANALYTIC</text><text x="322" y="82">INTUITIVE</text>
     <text x="78" y="326">ASSOCIATIVE</text><text x="322" y="326">REFLECTIVE</text>
     <text x="200" y="262" fill="#A3AEC4">COORDINATION</text>
@@ -271,7 +292,7 @@
     <div class="section-head">
       <p class="kicker">Introduction</p>
       <h2 id="introduction-h">What NeuralFusion is</h2>
-      <p>NeuralFusion is a Cognitive Performance Operating System: an assessment, a training path and a decision practice, brought together in one platform.</p>
+      <p>NeuralFusion is a cognitive operating system for how you think: an assessment, a training path and a decision practice, brought together in one platform.</p>
     </div>
     <div class="cards ">
 <div class="card"><h3>Understand</h3><p>The CFI shows how a person reports using four ways of thinking and how well they report coordinating them.</p></div>
@@ -356,10 +377,43 @@
       </div>
       <div>
         <h3>The Core Loop and Integration Protocol</h3>
-        <p class="muted">The Core Loop is a four-stage routine: decompose a problem, switch deliberately between modes, synthesise, and stabilise. The Integration Protocol applies it to a live decision in the Decision Room, using the person&rsquo;s own words. NeuralFusion organises and reflects people&rsquo;s thinking back to them. It does not make the decision for them.</p>
+        <p class="muted">The Core Loop is a five-stage routine: decompose a problem, sense your first impressions, expand the options, reflect on your assumptions, and fuse the result into one position. The Integration Protocol applies it to a live decision in the Decision Room, using the person&rsquo;s own words. NeuralFusion organises and reflects people&rsquo;s thinking back to them. It does not make the decision for them.</p>
         <p class="muted">Facilitated sessions and custom arrangements are discussed individually through the enquiry form below.</p>
       </div>
     </div>
+  </div>
+</section>
+<section class="section alt" id="who" aria-labelledby="who-h">
+  <div class="container">
+    <div class="section-head">
+      <p class="kicker">Who it is for</p>
+      <h2 id="who-h">Built for teams that make judgment calls</h2>
+      <p>NeuralFusion works on human reasoning, judgment and structured decision-making. It does not replace your people&rsquo;s judgment, and it is not an AI tool. It develops the thinking itself, with or without AI in the workflow.</p>
+    </div>
+    <div class="cards ">
+<div class="card"><h3>Technology companies</h3><p>Product, engineering and data teams that make trade-offs with incomplete information and need a shared way to test assumptions.</p></div>
+<div class="card"><h3>Consulting firms</h3><p>Teams that need a repeatable method for structuring a problem and checking their reasoning before they advise.</p></div>
+<div class="card"><h3>Financial organisations</h3><p>Analyst and risk teams practising how they separate evidence, instinct and assumption in a judgment call.</p></div>
+<div class="card"><h3>Leadership teams</h3><p>Groups that want a common language for how they weigh evidence, intuition and alternatives together.</p></div>
+<div class="card"><h3>Corporate training departments</h3><p>A structured, self-paced programme to add to existing leadership or decision-making training.</p></div>
+<div class="card"><h3>Professional development organisations</h3><p>A reflective tool and method to use inside courses, coaching and workshops.</p></div>
+</div>
+  </div>
+</section>
+<section class="section " id="admin" aria-labelledby="admin-h">
+  <div class="container">
+    <div class="section-head">
+      <p class="kicker">Onboarding and oversight</p>
+      <h2 id="admin-h">Team onboarding, and what administrators see</h2>
+      <p>Participation is visible. Individual answers are not.</p>
+    </div>
+    <div class="cards " style="grid-template-columns:repeat(auto-fit,minmax(min(440px,100%),1fr))">
+<div class="card"><h3>Team onboarding</h3><p>An owner creates a team and shares one link. Members join with the link, take the 40-question CFI and work through the lessons at their own pace.</p></div>
+<div class="card"><h3>What administrators see</h3><p>Who has completed each step and overall participation. Team averages for each scale appear only once the minimum number of completions has been reached (five by default, set by the owner). Individual answers and scores are never shown.</p></div>
+<div class="card"><h3>What members are told</h3><p>Before they take part, members are told that their organisation sees aggregate results and completion status, not their individual answers or scores.</p></div>
+<div class="card"><h3>Not for appraisal</h3><p>Results describe reported thinking habits. NeuralFusion is a development tool and is not designed for selection, hiring, promotion or performance ratings.</p></div>
+</div>
+    <p style="margin-top:24px"><a class="btn btn-primary" href="#enquire" data-track="org_demo_click" data-where="admin">Request a demonstration</a></p>
   </div>
 </section>
 <section class="section deep" id="process" aria-labelledby="process-h">
@@ -419,7 +473,7 @@
         <p class="muted">Tell us about your organisation and what you are trying to improve. We will reply to the email address you provide.</p>
         <ul class="checklist" style="margin-top:22px"><li>A real person reads every enquiry.</li><li>No obligation, and no assumptions about what is available.</li><li>Prefer to start immediately? <a href="/?view=teams">Create a team</a>.</li></ul>
       </div>
-      <div data-lead-form data-category="corporate" data-title="Corporate enquiry" data-sub="Fields marked with an asterisk are required." data-enquiry-options="Organisational programme|Team pilot|Pricing and seats|Facilitator or training partnership|Something else" data-partnership-values="Facilitator or training partnership" data-team-size="1" data-org-required="1" data-org-label="Organisation" data-position-label="Role or position" data-message-label="What would you like to achieve?" data-message-placeholder="For example: we want our leadership team to practise structured decision-making." data-button="Send corporate enquiry"><noscript><p class="callout">This form needs JavaScript. Please email <a href="mailto:edetlife94@gmail.com">edetlife94@gmail.com</a> instead.</p></noscript></div>
+      <div data-lead-form data-category="corporate" data-title="Corporate enquiry" data-sub="Fields marked with an asterisk are required." data-enquiry-options="Request a product demonstration|Organisational programme|Team pilot|Pricing and seats|Facilitator or training partnership|Something else" data-partnership-values="Facilitator or training partnership" data-team-size="1" data-org-required="1" data-org-label="Organisation" data-position-label="Role or position" data-message-label="What would you like to achieve?" data-message-placeholder="For example: we want our leadership team to practise structured decision-making." data-button="Send corporate enquiry"><noscript><p class="callout">This form needs JavaScript. Please email <a href="mailto:edetlife94@gmail.com">edetlife94@gmail.com</a> instead.</p></noscript></div>
     </div>
   </div>
 </section>
@@ -468,7 +522,7 @@
         </ul>
       </div>
     </div>
-    <p class="legal">&copy; 2026 <span>Life Edet</span> &middot; NeuralFusion is a trademark of Life Edet. The CFI is a proprietary self-report framework, not a clinical or diagnostic instrument.</p>
+    <p class="legal">NeuralFusion is a cognitive operating system for how you think.<br>&copy; 2026 <span>Life Edet</span> &middot; NeuralFusion is a trademark of Life Edet. The CFI is a proprietary self-report framework, not a clinical or diagnostic instrument.</p>
   </div>
 </footer>
 </body>
