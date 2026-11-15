@@ -4,6 +4,7 @@
 User-agent: *
 Allow: /
 Disallow: /.supabase/
+Disallow: /*?view=
 
 # Sitemap
 Sitemap: https://tryneuralfusion.com/sitemap.xml
