@@ -1404,7 +1404,7 @@ Most learners take four to six weeks working through the lessons at the suggeste
     // Same markup and classes as the static pages (nf-nav.css), so the SPA and the standalone pages look and behave
     // identically. Behaviour mirrors nf-nav.js: desktop = click-to-open dropdowns (one at a time);
     // mobile = full-screen overlay with three independent accordions. Groups come from NF_LINK_GROUPS.
-    const NFX_MQ = '(max-width: 1179.98px)';
+    const NFX_MQ = '(max-width: 1023.98px)';
     // nf-nav.css treats pages without this class as "no JavaScript" and shows a plain list; the static pages get it from nf-nav.js.
     document.documentElement.classList.add('nfx-js');
     function nfxPlainClick(e) { return !(e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || (e.button && e.button !== 0)); }
