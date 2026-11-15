@@ -3,19 +3,19 @@
    Everything is namespaced "nfx-" and scoped under .nfx-header so legacy page CSS
    (bare ul / li / a / svg / header rules, li::before bullets) cannot leak in.
 
-   Desktop (>= 900px): three click-to-open dropdown panels. Hover only styles; it never opens a panel.
-   Mobile  (<  900px): the same <nav> becomes a full-screen overlay with three independent accordions. */
+   Desktop (>= 1180px): six click-to-open dropdown panels. Hover only styles; it never opens a panel.
+   Mobile  (<  1180px): the same <nav> becomes a full-screen overlay with independent accordions. */
 
 .nfx-header {
-  --nfx-navy: #050C1A;
-  --nfx-navy-2: #0A1628;
-  --nfx-gold: #C9A84C;
-  --nfx-gold-light: #E2BE78;
+  --nfx-navy: #070D24;
+  --nfx-navy-2: #0C1636;
+  --nfx-gold: #5B84FF;
+  --nfx-gold-light: #A9BCFF;
   --nfx-text: #E9EDF5;
   --nfx-muted: #A9B1C6;
-  --nfx-line: rgba(201, 168, 76, 0.22);
-  --nfx-line-soft: rgba(201, 168, 76, 0.12);
-  --nfx-wash: rgba(201, 168, 76, 0.10);
+  --nfx-line: rgba(91, 132, 255, 0.28);
+  --nfx-line-soft: rgba(91, 132, 255, 0.14);
+  --nfx-wash: rgba(91, 132, 255, 0.12);
   --nfx-bar-h: 64px;
   --nfx-h: 65px; /* bar + 1px border: where the mobile overlay content starts */
   --nfx-font: 'DM Sans', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
@@ -98,7 +98,7 @@ header.nfx-header.nfx-fixed { position: fixed; top: 0; left: 0; right: 0; z-inde
   transition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease;
 }
 .nfx-header .nfx-panel a:hover { background: var(--nfx-wash); color: #fff; }
-.nfx-header .nfx-panel a[aria-current="page"] { color: var(--nfx-gold-light); background: rgba(201, 168, 76, 0.08); border-left-color: var(--nfx-gold); font-weight: 600; }
+.nfx-header .nfx-panel a[aria-current="page"] { color: var(--nfx-gold-light); background: rgba(91, 132, 255, 0.10); border-left-color: var(--nfx-gold); font-weight: 600; }
 
 /* ---------- actions (Sign in / Take the CFI) ---------- */
 .nfx-header .nfx-actions { display: flex; align-items: center; gap: 10px; margin: 0 0 0 auto; padding: 0; }
@@ -118,7 +118,7 @@ header.nfx-header.nfx-fixed { position: fixed; top: 0; left: 0; right: 0; z-inde
   transition: background-color 0.15s ease, border-color 0.15s ease;
 }
 .nfx-header .nfx-cta:hover { background: var(--nfx-gold-light); border-color: var(--nfx-gold-light); color: var(--nfx-navy); }
-.nfx-header .nfx-spinner { width: 16px; height: 16px; border: 2px solid rgba(196, 160, 80, 0.3); border-top-color: #C4A050; border-radius: 50%; animation: nfx-spin 0.8s linear infinite; }
+.nfx-header .nfx-spinner { width: 16px; height: 16px; border: 2px solid rgba(91, 132, 255, 0.3); border-top-color: #5B84FF; border-radius: 50%; animation: nfx-spin 0.8s linear infinite; }
 @keyframes nfx-spin { to { transform: rotate(360deg); } }
 
 /* ---------- hamburger toggle ---------- */
@@ -145,8 +145,8 @@ header.nfx-header.nfx-fixed { position: fixed; top: 0; left: 0; right: 0; z-inde
 }
 .nfx-header .nfx-cta:focus-visible { outline-color: #fff; }
 
-/* ---------- mobile + tablet portrait (< 900px) ---------- */
-@media (max-width: 899.98px) {
+/* ---------- mobile + tablet portrait (< 1180px) ---------- */
+@media (max-width: 1179.98px) {
   .nfx-header .nfx-bar { padding: 0 16px; gap: 12px; }
   .nfx-header .nfx-toggle { display: inline-flex; }
 
@@ -193,8 +193,8 @@ header.nfx-header.nfx-fixed { position: fixed; top: 0; left: 0; right: 0; z-inde
   .nfx-header .nfx-spinner { align-self: center; }
 }
 
-/* ---------- desktop width guard: keep the bar on one line down to 900px ---------- */
-@media (min-width: 900px) and (max-width: 1040px) {
+/* ---------- desktop width guard: keep the bar on one line down to 1180px ---------- */
+@media (min-width: 1180px) and (max-width: 1280px) {
   .nfx-header .nfx-bar { gap: 12px; padding: 0 16px; }
   .nfx-header .nfx-brand { font-size: 13px; letter-spacing: 0.1em; }
   .nfx-header .nfx-trigger, .nfx-header .nfx-signin { padding: 0 10px; }
@@ -207,13 +207,13 @@ html.nfx-lock, html.nfx-lock body { overflow: hidden; }
 /* ---------- no-JS fallback: show everything as a plain, readable list ---------- */
 html:not(.nfx-js) .nfx-header .nfx-chev { display: none; }
 html:not(.nfx-js) .nfx-header .nfx-toggle { display: none; }
-@media (max-width: 899.98px) {
+@media (max-width: 1179.98px) {
   html:not(.nfx-js) .nfx-header .nfx-bar { flex-wrap: wrap; height: auto; min-height: var(--nfx-bar-h); padding-bottom: 12px; }
   html:not(.nfx-js) .nfx-header .nfx-nav { position: static; inset: auto; opacity: 1; visibility: visible; transform: none; padding: 0; width: 100%; overflow: visible; }
   html:not(.nfx-js) .nfx-header .nfx-nav::before { display: none; }
   html:not(.nfx-js) .nfx-header .nfx-panel { grid-template-rows: 1fr; visibility: visible; }
 }
-@media (min-width: 900px) {
+@media (min-width: 1180px) {
   html:not(.nfx-js) .nfx-header .nfx-group:hover > .nfx-panel,
   html:not(.nfx-js) .nfx-header .nfx-group:focus-within > .nfx-panel { opacity: 1; visibility: visible; transform: none; transition-delay: 0s; }
 }
@@ -222,3 +222,8 @@ html:not(.nfx-js) .nfx-header .nfx-toggle { display: none; }
 @media (prefers-reduced-motion: reduce) {
   .nfx-header *, .nfx-header *::before, .nfx-header *::after { transition-duration: 0.01ms !important; animation-duration: 0.01ms !important; }
 }
+
+/* Skip link: first focusable element on every page, visible only when focused. */
+.skip-link { position:absolute; left:-9999px; top:8px; z-index:2000; background:#fff; color:#070D24; padding:12px 18px; border-radius:6px; font:600 15px 'DM Sans',system-ui,sans-serif; text-decoration:none; }
+.skip-link:focus { left:12px; outline:3px solid #5B84FF; outline-offset:2px; }
+main:focus, article[role="main"]:focus { outline:none; }
