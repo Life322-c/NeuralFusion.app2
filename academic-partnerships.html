@@ -146,10 +146,11 @@
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500;1,600&family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=Space+Mono:wght@400;700&family=Syne:wght@500;600;700;800&display=swap" rel="stylesheet" />
-<link rel="stylesheet" href="/commercial.css?v=1" />
+<link rel="stylesheet" href="/commercial.css?v=2" />
 <script src="/commercial.js?v=2"></script>
-<link rel="stylesheet" href="/nf-nav.css?v=1" />
-<script src="/nf-nav.js?v=1"></script>
+<link rel="stylesheet" href="/nf-nav.css?v=3" />
+<script src="/nf-nav.js?v=3"></script>
+<script src="/nf-track.js?v=1" defer></script>
 </head>
 <body class="theme-acad" data-nav="academic" data-page="academic">
 <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-P47TD9MS" height="0" width="0" style="display:none;visibility:hidden" title="Google Tag Manager"></iframe></noscript>
@@ -160,40 +161,60 @@
     <button class="nfx-toggle" type="button" aria-expanded="false" aria-controls="nfx-nav" aria-label="Open menu"><span class="nfx-bars" aria-hidden="true"></span></button>
     <nav class="nfx-nav" id="nfx-nav" aria-label="Primary">
       <ul class="nfx-groups">
-        <li class="nfx-group has-current">
-          <button class="nfx-trigger" type="button" id="nfx-t-pathways" aria-expanded="false" aria-controls="nfx-p-pathways">Pathways<svg class="nfx-chev" viewBox="0 0 12 12" aria-hidden="true" focusable="false"><path d="M2.5 4.5 6 8l3.5-3.5"/></svg></button>
-          <div class="nfx-panel" id="nfx-p-pathways"><ul>
-            <li><a href="/organisations">For Organisations</a></li>
-            <li><a href="/academic-partnerships" aria-current="page">Academic Partnerships</a></li>
-            <li><a href="/executive">Executive Programme</a></li>
+        <li class="nfx-group">
+          <button class="nfx-trigger" type="button" id="nfx-t-discover" aria-expanded="false" aria-controls="nfx-p-discover">Discover<svg class="nfx-chev" viewBox="0 0 12 12" aria-hidden="true" focusable="false"><path d="M2.5 4.5 6 8l3.5-3.5"/></svg></button>
+          <div class="nfx-panel" id="nfx-p-discover"><ul>
+            <li><a href="/">What is NeuralFusion?</a></li>
+            <li><a href="/thinking">Four Thinking Modes</a></li>
+            <li><a href="/#core-loop">Core Loop</a></li>
+            <li><a href="/cognitive-fragmentation">Cognitive Fragmentation</a></li>
+            <li><a href="/methodology">CFI Methodology</a></li>
+          </ul></div>
+        </li>
+        <li class="nfx-group">
+          <button class="nfx-trigger" type="button" id="nfx-t-individuals" aria-expanded="false" aria-controls="nfx-p-individuals">Individuals<svg class="nfx-chev" viewBox="0 0 12 12" aria-hidden="true" focusable="false"><path d="M2.5 4.5 6 8l3.5-3.5"/></svg></button>
+          <div class="nfx-panel" id="nfx-p-individuals"><ul>
             <li><a href="/?view=cfi">Take the CFI</a></li>
-            <li><a href="/?view=teams">NeuralFusion for Teams</a></li>
+            <li><a href="/?view=lessons">Cognitive Training</a></li>
+            <li><a href="/executive">Executive Programme</a></li>
+          </ul></div>
+        </li>
+        <li class="nfx-group has-current">
+          <button class="nfx-trigger" type="button" id="nfx-t-academia" aria-expanded="false" aria-controls="nfx-p-academia">Academia<svg class="nfx-chev" viewBox="0 0 12 12" aria-hidden="true" focusable="false"><path d="M2.5 4.5 6 8l3.5-3.5"/></svg></button>
+          <div class="nfx-panel" id="nfx-p-academia"><ul>
+            <li><a href="/academic-partnerships" aria-current="page">Academic Programme</a></li>
+            <li><a href="/academic-partnerships#research-collab">Research Collaboration</a></li>
+            <li><a href="/academic-partnerships#enquire">Institutional Enquiries</a></li>
           </ul></div>
         </li>
         <li class="nfx-group">
-          <button class="nfx-trigger" type="button" id="nfx-t-understand" aria-expanded="false" aria-controls="nfx-p-understand">Understand<svg class="nfx-chev" viewBox="0 0 12 12" aria-hidden="true" focusable="false"><path d="M2.5 4.5 6 8l3.5-3.5"/></svg></button>
-          <div class="nfx-panel" id="nfx-p-understand"><ul>
-            <li><a href="/thinking">The Four Thinking Modes</a></li>
-            <li><a href="/cognitive-fragmentation">Cognitive fragmentation</a></li>
-            <li><a href="/decision-making">Decision-making</a></li>
-            <li><a href="/methodology">CFI methodology</a></li>
+          <button class="nfx-trigger" type="button" id="nfx-t-organisations" aria-expanded="false" aria-controls="nfx-p-organisations">Organisations<svg class="nfx-chev" viewBox="0 0 12 12" aria-hidden="true" focusable="false"><path d="M2.5 4.5 6 8l3.5-3.5"/></svg></button>
+          <div class="nfx-panel" id="nfx-p-organisations"><ul>
+            <li><a href="/organisations">Enterprise Programme</a></li>
+            <li><a href="/?view=teams">Team Development</a></li>
+            <li><a href="/organisations#enquire">Request a Demonstration</a></li>
+          </ul></div>
+        </li>
+        <li class="nfx-group">
+          <button class="nfx-trigger" type="button" id="nfx-t-insights" aria-expanded="false" aria-controls="nfx-p-insights">Insights<svg class="nfx-chev" viewBox="0 0 12 12" aria-hidden="true" focusable="false"><path d="M2.5 4.5 6 8l3.5-3.5"/></svg></button>
+          <div class="nfx-panel" id="nfx-p-insights"><ul>
+            <li><a href="/blog">Articles</a></li>
             <li><a href="/research">Research</a></li>
-            <li><a href="/blog">Blog</a></li>
+            <li><a href="/decision-making">Decision-making</a></li>
           </ul></div>
         </li>
         <li class="nfx-group">
-          <button class="nfx-trigger" type="button" id="nfx-t-company" aria-expanded="false" aria-controls="nfx-p-company">Company<svg class="nfx-chev" viewBox="0 0 12 12" aria-hidden="true" focusable="false"><path d="M2.5 4.5 6 8l3.5-3.5"/></svg></button>
-          <div class="nfx-panel" id="nfx-p-company"><ul>
-            <li><a href="/about">About</a></li>
+          <button class="nfx-trigger" type="button" id="nfx-t-about" aria-expanded="false" aria-controls="nfx-p-about">About<svg class="nfx-chev" viewBox="0 0 12 12" aria-hidden="true" focusable="false"><path d="M2.5 4.5 6 8l3.5-3.5"/></svg></button>
+          <div class="nfx-panel" id="nfx-p-about"><ul>
+            <li><a href="/about#mission">Mission</a></li>
+            <li><a href="/about#founder">Founder</a></li>
             <li><a href="/contact">Contact</a></li>
-            <li><a href="/privacy">Privacy</a></li>
-            <li><a href="/terms">Terms</a></li>
           </ul></div>
         </li>
       </ul>
       <div class="nfx-actions">
         <a class="nfx-signin" href="/?auth=login" data-track="signin_click" data-where="header">Sign in</a>
-        <a class="nfx-cta" href="/?view=cfi" data-track="cfi_cta_click" data-where="header">Take the CFI</a>
+        <a class="nfx-cta" href="/?view=cfi" data-track="cfi_cta_click" data-where="header">Get started</a>
       </div>
     </nav>
   </div>
@@ -212,20 +233,21 @@
         </div>
         <p class="hero-note">For universities, business schools, research institutions, cognitive science departments, graduate and executive education programmes, and individual researchers.</p>
       </div>
-      <div class="hero-figure"><svg viewBox="0 0 400 400" role="img" aria-label="Diagram of a four-stage loop with an open question at its centre">
-  <title>A four-stage loop with an open question at its centre</title>
-  <g fill="none" stroke="#C9A84C" stroke-width="1.2">
+      <div class="hero-figure"><svg viewBox="0 0 400 400" role="img" aria-label="Diagram of a five-stage loop with an open question at its centre">
+  <title>A five-stage loop with an open question at its centre</title>
+  <g fill="none" stroke="#5B84FF" stroke-width="1.2">
     <circle cx="200" cy="200" r="130" stroke-dasharray="2 8" opacity="0.6"/>
     <circle cx="200" cy="200" r="78" opacity="0.5"/>
-    <path d="M200 70 A130 130 0 0 1 330 200" opacity="0.9"/>
-    <path d="M330 200 A130 130 0 0 1 200 330" opacity="0.9"/>
-    <path d="M200 330 A130 130 0 0 1 70 200" opacity="0.9"/>
-    <path d="M70 200 A130 130 0 0 1 200 70" opacity="0.9"/>
+    <path d="M200 70 A130 130 0 0 1 324 160" opacity="0.9"/>
+    <path d="M324 160 A130 130 0 0 1 276 305" opacity="0.9"/>
+    <path d="M276 305 A130 130 0 0 1 124 305" opacity="0.9"/>
+    <path d="M124 305 A130 130 0 0 1 76 160" opacity="0.9"/>
+    <path d="M76 160 A130 130 0 0 1 200 70" opacity="0.9"/>
   </g>
-  <g fill="#02060F" stroke="#C9A84C" stroke-width="1.5">
-    <circle cx="200" cy="70" r="9"/><circle cx="330" cy="200" r="9"/><circle cx="200" cy="330" r="9"/><circle cx="70" cy="200" r="9"/>
+  <g fill="#02060F" stroke="#5B84FF" stroke-width="1.5">
+    <circle cx="200" cy="70" r="9"/><circle cx="324" cy="160" r="9"/><circle cx="276" cy="305" r="9"/><circle cx="124" cy="305" r="9"/><circle cx="76" cy="160" r="9"/>
   </g>
-  <text x="200" y="196" text-anchor="middle" font-family="Cormorant Garamond, Georgia, serif" font-style="italic" font-size="34" fill="#E8C97A">?</text>
+  <text x="200" y="196" text-anchor="middle" font-family="Cormorant Garamond, Georgia, serif" font-style="italic" font-size="34" fill="#A9BCFF">?</text>
   <text x="200" y="224" text-anchor="middle" font-family="Space Mono, monospace" font-size="9" letter-spacing="1.5" fill="#A3AEC4">TO BE TESTED</text>
 </svg></div>
     </div>
@@ -394,6 +416,22 @@
     </ul>
   </div>
 </section>
+<section class="section alt" id="reporting" aria-labelledby="reporting-h">
+  <div class="container">
+    <div class="section-head">
+      <p class="kicker">Reporting and ethics</p>
+      <h2 id="reporting-h">Training, reporting and research ethics</h2>
+      <p>What a cohort does, what an institution sees, and what has to be in place before any study.</p>
+    </div>
+    <div class="cards " style="grid-template-columns:repeat(auto-fit,minmax(min(440px,100%),1fr))">
+<div class="card"><h3>Training structure</h3><p>Participants take the 40-question CFI, work through six short lessons, and practise the five-stage Core Loop (Decompose, Sense, Expand, Reflect, Fuse) on real decisions in the Decision Room.</p></div>
+<div class="card"><h3>What the institution sees</h3><p>A programme owner sees who has completed each step. Team averages for each scale appear only after a minimum number of people have completed the CFI, a number the owner sets. Individual answers and scores are never shown to the programme owner.</p></div>
+<div class="card"><h3>Before and after</h3><p>Where participants retake the CFI, aggregate change can be reviewed across the cohort. It describes how reported habits moved, not whether people improved or how they performed.</p></div>
+<div class="card"><h3>Ethics and consent</h3><p>Participation should be voluntary and explained in advance. Any research use needs your institution&rsquo;s own ethics approval before it begins. The platform is not for grading, selection or admissions. See the <a href="/privacy">privacy policy</a> for how data is handled.</p></div>
+</div>
+    <p style="margin-top:24px"><a class="btn btn-primary" href="#enquire" data-track="academic_demo_click" data-where="reporting">Request a product demonstration</a></p>
+  </div>
+</section>
 <section class="section " id="process" aria-labelledby="process-h">
   <div class="container">
     <div class="section-head">
@@ -437,7 +475,7 @@
         <p class="muted">Tell us about your institution or research interest. We will reply to the email address you provide.</p>
         <ul class="checklist" style="margin-top:22px"><li>A real person reads every enquiry.</li><li>We will be direct about what is and is not validated.</li><li>Prefer to read first? See the <a href="/methodology">methodology</a>.</li></ul>
       </div>
-      <div data-lead-form data-category="academic" data-title="Academic partnership enquiry" data-sub="Fields marked with an asterisk are required." data-enquiry-options="Academic collaboration|University pilot programme|Research discussion|Student development programme|Educational workshop|Institutional training|Research methodology discussion" data-org-required="1" data-org-label="Institution or organisation" data-position-label="Role or department" data-message-label="What would you like to explore?" data-message-placeholder="For example: we would like to discuss a small pilot with a graduate decision-making course." data-button="Send academic enquiry"><noscript><p class="callout">This form needs JavaScript. Please email <a href="mailto:edetlife94@gmail.com">edetlife94@gmail.com</a> instead.</p></noscript></div>
+      <div data-lead-form data-category="academic" data-title="Academic partnership enquiry" data-sub="Fields marked with an asterisk are required." data-enquiry-options="Request a product demonstration|Academic collaboration|University pilot programme|Research discussion|Student development programme|Educational workshop|Institutional training|Research methodology discussion" data-org-required="1" data-org-label="Institution or organisation" data-position-label="Role or department" data-message-label="What would you like to explore?" data-message-placeholder="For example: we would like to discuss a small pilot with a graduate decision-making course." data-button="Send academic enquiry"><noscript><p class="callout">This form needs JavaScript. Please email <a href="mailto:edetlife94@gmail.com">edetlife94@gmail.com</a> instead.</p></noscript></div>
     </div>
   </div>
 </section>
@@ -486,7 +524,7 @@
         </ul>
       </div>
     </div>
-    <p class="legal">&copy; 2026 <span>Life Edet</span> &middot; NeuralFusion is a trademark of Life Edet. The CFI is a proprietary self-report framework, not a clinical or diagnostic instrument.</p>
+    <p class="legal">NeuralFusion is a cognitive operating system for how you think.<br>&copy; 2026 <span>Life Edet</span> &middot; NeuralFusion is a trademark of Life Edet. The CFI is a proprietary self-report framework, not a clinical or diagnostic instrument.</p>
   </div>
 </footer>
 </body>
