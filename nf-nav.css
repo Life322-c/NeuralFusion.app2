@@ -3,8 +3,8 @@
    Everything is namespaced "nfx-" and scoped under .nfx-header so legacy page CSS
    (bare ul / li / a / svg / header rules, li::before bullets) cannot leak in.
 
-   Desktop (>= 1180px): six click-to-open dropdown panels. Hover only styles; it never opens a panel.
-   Mobile  (<  1180px): the same <nav> becomes a full-screen overlay with independent accordions. */
+   Desktop (>= 1024px): six click-to-open dropdown panels. Hover only styles; it never opens a panel.
+   Mobile  (<  1024px): the same <nav> becomes a full-screen overlay with independent accordions. */
 
 .nfx-header {
   --nfx-navy: #0A1D4A;
@@ -146,7 +146,7 @@ header.nfx-header.nfx-fixed { position: fixed; top: 0; left: 0; right: 0; z-inde
 .nfx-header .nfx-cta:focus-visible { outline-color: #fff; }
 
 /* ---------- mobile + tablet portrait (< 1180px) ---------- */
-@media (max-width: 1179.98px) {
+@media (max-width: 1023.98px) {
   .nfx-header .nfx-bar { padding: 0 16px; gap: 12px; }
   .nfx-header .nfx-toggle { display: inline-flex; }
 
@@ -194,7 +194,15 @@ header.nfx-header.nfx-fixed { position: fixed; top: 0; left: 0; right: 0; z-inde
 }
 
 /* ---------- desktop width guard: keep the bar on one line down to 1180px ---------- */
-@media (min-width: 1180px) and (max-width: 1280px) {
+@media (min-width: 1024px) and (max-width: 1179.98px) {
+  .nfx-header .nfx-bar { gap: 8px; padding: 0 10px; }
+  .nfx-header .nfx-nav { margin-left: 4px; gap: 4px; }
+  .nfx-header .nfx-brand { font-size: 12px; letter-spacing: 0.06em; gap: 6px; }
+  .nfx-header .nfx-trigger { padding: 0 7px; font-size: 13px !important; gap: 4px; }
+  .nfx-header .nfx-signin { padding: 0 8px; }
+  .nfx-header .nfx-cta { padding: 0 12px; }
+}
+@media (min-width: 1024px) and (max-width: 1280px) {
   .nfx-header .nfx-bar { gap: 12px; padding: 0 16px; }
   .nfx-header .nfx-brand { font-size: 13px; letter-spacing: 0.1em; }
   .nfx-header .nfx-trigger, .nfx-header .nfx-signin { padding: 0 10px; }
@@ -207,13 +215,13 @@ html.nfx-lock, html.nfx-lock body { overflow: hidden; }
 /* ---------- no-JS fallback: show everything as a plain, readable list ---------- */
 html:not(.nfx-js) .nfx-header .nfx-chev { display: none; }
 html:not(.nfx-js) .nfx-header .nfx-toggle { display: none; }
-@media (max-width: 1179.98px) {
+@media (max-width: 1023.98px) {
   html:not(.nfx-js) .nfx-header .nfx-bar { flex-wrap: wrap; height: auto; min-height: var(--nfx-bar-h); padding-bottom: 12px; }
   html:not(.nfx-js) .nfx-header .nfx-nav { position: static; inset: auto; opacity: 1; visibility: visible; transform: none; padding: 0; width: 100%; overflow: visible; }
   html:not(.nfx-js) .nfx-header .nfx-nav::before { display: none; }
   html:not(.nfx-js) .nfx-header .nfx-panel { grid-template-rows: 1fr; visibility: visible; }
 }
-@media (min-width: 1180px) {
+@media (min-width: 1024px) {
   html:not(.nfx-js) .nfx-header .nfx-group:hover > .nfx-panel,
   html:not(.nfx-js) .nfx-header .nfx-group:focus-within > .nfx-panel { opacity: 1; visibility: visible; transform: none; transition-delay: 0s; }
 }
