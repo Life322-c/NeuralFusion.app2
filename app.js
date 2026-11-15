@@ -2922,11 +2922,17 @@ function LandingView({ setView, setShowAuth }) {
   ];
 
   const styles = E('style', null, `
-    .nfl { --nv:#0A1D4A; --nv2:#0D2757; --nv3:#17397A; --bl:#E8B931; --blh:#E8B931; --vi:#E8B931; --pa:#F5F7FC; --pa2:#EAEEF8; --ink:#061431; --mu:#47506B; --ln:#E3EAFB; --ca:#FFD76A; --cr:#FFE9A8;
+    .nfl { --nv:#0A1D4A; --nv2:#0D2757; --nv3:#17397A; --bl:#E8B931; --blh:#E8B931; --vi:#E8B931; --pa:#F5F7FC; --pa2:#EAEEF8; --ink:#061431; --mu:#2B3654; --ln:#E3EAFB; --ca:#FFD76A; --cr:#FFE9A8;
       font-family:'Satoshi','DM Sans',sans-serif; color:var(--ink); background:var(--pa); padding-top:60px; line-height:1.6; }
     .nfl *, .nfl *::before, .nfl *::after { box-sizing:border-box; }
     .nfl h1,.nfl h2,.nfl h3 { font-family:'Clash Display','Syne',sans-serif; font-weight:600; letter-spacing:-0.015em; margin:0; overflow-wrap:break-word; text-wrap:balance; }
     .nfl p { margin:0; overflow-wrap:break-word; }
+    .nfl h1, .nfl h2, .nfl h3, .nfl h4, .nfl p, .nfl li, .nfl summary { color:inherit; }
+    .nfl h1 { font-size:clamp(34px,4.6vw,58px) !important; line-height:1.08 !important; font-weight:800 !important; letter-spacing:-0.02em; }
+    .nfl h2 { font-size:clamp(28px,3.6vw,44px) !important; line-height:1.15 !important; font-weight:800 !important; }
+    .nfl h3 { font-size:clamp(18px,1.6vw,21px) !important; line-height:1.25 !important; font-weight:700 !important; }
+    .nfl .lede { font-size:19px; }
+    .nfl .founder p { font-size:18px !important; line-height:1.7; color:var(--ink); } .nfl .founder p:last-child { color:var(--mu); font-size:16px !important; }
     .nfl a { color:inherit; }
     .nfl .w { max-width:1120px; margin:0 auto; padding:0 24px; }
     .nfl .sec { padding:88px 0; }
@@ -5581,7 +5587,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
     }
     function Footer({ setView, user }) {
       if (!user) {
-        return React.createElement("footer", { className: "nf-footer", style: { background: '#03040A', borderTop: `1px solid ${C.border}`, padding: '24px 20px 48px' } },
+        return React.createElement("footer", { className: "nf-footer", style: { background: '#061431', borderTop: `1px solid ${C.border}`, padding: '24px 20px 48px' } },
           React.createElement("div", { style: { maxWidth: 1200, margin: '0 auto' } },
             React.createElement(NFGroupedLinks, { onNav: (v) => setView(v), columns: true }),
             React.createElement(NFLegalLine, null)));
