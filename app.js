@@ -20,8 +20,8 @@ const { useState, useEffect, useCallback, useRef, useMemo } = React;
         }
         const box = document.createElement('div');
         box.setAttribute('role', opts.type === 'error' ? 'alert' : 'status');
-        const accent = opts.type === 'error' ? '#F87171' : '#C4A050';
-        box.style.cssText = 'background:#112240;color:#F5EDD8;border:1px solid ' + accent + ';border-radius:4px;padding:14px 16px;font:14px/1.5 "DM Sans",sans-serif;box-shadow:0 8px 32px rgba(0,0,0,0.5);';
+        const accent = opts.type === 'error' ? '#F87171' : '#5B84FF';
+        box.style.cssText = 'background:#112240;color:#E9EDF5;border:1px solid ' + accent + ';border-radius:4px;padding:14px 16px;font:14px/1.5 "DM Sans",sans-serif;box-shadow:0 8px 32px rgba(0,0,0,0.5);';
         const msg = document.createElement('div');
         msg.textContent = text;
         box.appendChild(msg);
@@ -32,7 +32,7 @@ const { useState, useEffect, useCallback, useRef, useMemo } = React;
           const b = document.createElement('button');
           b.type = 'button';
           b.textContent = label;
-          b.style.cssText = 'cursor:pointer;border-radius:3px;padding:6px 14px;font:600 12px "DM Sans",sans-serif;border:1px solid ' + accent + ';' + (primary ? 'background:' + accent + ';color:#050C1A;' : 'background:transparent;color:#F5EDD8;');
+          b.style.cssText = 'cursor:pointer;border-radius:3px;padding:6px 14px;font:600 12px "DM Sans",sans-serif;border:1px solid ' + accent + ';' + (primary ? 'background:' + accent + ';color:#050C1A;' : 'background:transparent;color:#E9EDF5;');
           b.addEventListener('click', onClick);
           return b;
         };
@@ -87,14 +87,14 @@ const { useState, useEffect, useCallback, useRef, useMemo } = React;
     // ── Design Tokens: Gold × Navy ───────────────────────────────────
     const C = {
       void: '#050C1A', deep: '#071020', surface: '#0C1A30', panel: '#112240',
-      border: 'rgba(196,160,80,0.15)', borderBright: 'rgba(196,160,80,0.35)',
-      cyan: '#C4A050', cyanBright: '#E2BE78', cyanDim: 'rgba(196,160,80,0.08)',
-      text: '#F5EDD8', muted: '#9A8A6A', dim: '#4A5A78',
+      border: 'rgba(91,132,255,0.15)', borderBright: 'rgba(91,132,255,0.35)',
+      cyan: '#5B84FF', cyanBright: '#A9BCFF', cyanDim: 'rgba(91,132,255,0.08)',
+      text: '#E9EDF5', muted: '#9AA6C6', dim: '#4A5A78',
       brains: {
-        analytical: { color: '#C4A050', dim: 'rgba(196,160,80,0.12)',  label: 'Analytical thinking', code: 'A', symbol: '◰' },
-        intuitive:  { color: '#E2BE78', dim: 'rgba(226,190,120,0.12)', label: 'Intuitive thinking',  code: 'I', symbol: '◱' },
-        associative:{ color: '#7AAFCF', dim: 'rgba(122,175,207,0.12)', label: 'Associative thinking',code: 'S', symbol: '◲' },
-        reflective: { color: '#D4AF6A', dim: 'rgba(212,175,106,0.12)', label: 'Reflective thinking', code: 'R', symbol: '◳' },
+        analytical: { color: '#6E96FF', dim: 'rgba(110,150,255,0.14)',  label: 'Analytical thinking', code: 'A', symbol: '◰' },
+        intuitive:  { color: '#A28BFF', dim: 'rgba(162,139,255,0.14)', label: 'Intuitive thinking',  code: 'I', symbol: '◱' },
+        associative:{ color: '#52BDEF', dim: 'rgba(82,189,239,0.14)', label: 'Associative thinking',code: 'S', symbol: '◲' },
+        reflective: { color: '#CDBEFF', dim: 'rgba(205,190,255,0.14)', label: 'Reflective thinking', code: 'R', symbol: '◳' },
         // Not a fifth brain: the CFI's pressure/overload item (dim E). Kept visually distinct
         // so it's never mistaken for the Analytical brain it used to silently fall back to.
         integration:{ color: '#8B8FA3', dim: 'rgba(139,143,163,0.12)',  label: 'Integration',     code: 'E', symbol: '◈' },
@@ -122,7 +122,7 @@ const { useState, useEffect, useCallback, useRef, useMemo } = React;
     // Horizontal lockup: icon + wordmark, vertically centered, consistent
     // gap. Used in the primary nav. Collapses to icon-only via CSS below
     // a set breakpoint (see .nf-lockup-text in style.css).
-    function NFLogoLockup({ iconSize = 30, gap = 12, wordmarkColor = '#F5EDD8', tagline, taglineColor = '#9A8A6A', mono = false }) {
+    function NFLogoLockup({ iconSize = 30, gap = 12, wordmarkColor = '#E9EDF5', tagline, taglineColor = '#9AA6C6', mono = false }) {
       return React.createElement(
         "div",
         { className: "nf-lockup", style: { display: 'flex', alignItems: 'center', gap } },
@@ -363,14 +363,14 @@ const { useState, useEffect, useCallback, useRef, useMemo } = React;
         { title: `Learning Objectives`, body: `By the end of Lesson One, you will be able to:
 
 1. Explain what NeuralFusion is and the specific problem it is designed to solve.
-2. Identify each of the Four Brains by name and function.
-3. Walk through the four stages of the NeuralFusion Core Loop from memory.
+2. Identify each of the Four Thinking Modes by name and function.
+3. Walk through the five stages of the NeuralFusion Core Loop from memory.
 4. Complete a first conscious NeuralFusion cycle on a real issue from your own life.
-5. Begin noticing, in real time, which brain is currently active.
+5. Begin noticing, in real time, which mode is currently active.
 
 WHY THIS LESSON MATTERS
 
-Every advanced skill in this curriculum (synthesis, stabilization, automatic fluency) is built on the foundation established here. If you rush Lesson One, later lessons will feel abstract, because you will be trying to switch and integrate brains you have not yet learned to recognize.
+Every advanced skill in this curriculum (synthesis, stabilization, automatic fluency) is built on the foundation established here. If you rush Lesson One, later lessons will feel abstract, because you will be trying to switch and integrate modes you have not yet learned to recognize.
 
 Think of this lesson as installing the map before you learn to navigate. Once you can name what is happening in your own mind, "this is Analytical," "this is Intuitive," you gain the first form of control: the ability to observe your thinking instead of simply being carried by it.` },
         { title: `Cognitive Principles`, body: `Two principles anchor this lesson, and both recur throughout the curriculum.
@@ -381,7 +381,7 @@ Left untrained, the mind moves between logic, emotion, memory, and impulse in an
 
 PRINCIPLE 2: INTEGRATION IS TRAINABLE
 
-The Four Brains are not new; every person already uses all four. What NeuralFusion adds is a trainable method for engaging them on purpose, in sequence, so their outputs combine into a single, usable conclusion instead of competing with each other.` },
+The Four Thinking Modes are not new; every person already uses all four. What NeuralFusion adds is a trainable method for engaging them on purpose, in sequence, so their outputs combine into a single, usable conclusion instead of competing with each other.` },
         { title: `What Is NeuralFusion?`, body: `NeuralFusion is a structured mental skill that trains the brain to combine multiple ways of thinking intentionally, instead of relying on only one at a time.
 
 Most untrained thinking happens in fragments:
@@ -397,12 +397,12 @@ KEY TAKEAWAY: NeuralFusion is not intelligence. It is control over intelligence.
 
 1. Overthinking: circling the same decision without reaching resolution.
 2. Mental confusion: difficulty locating a clear next step, even on familiar problems.
-3. Poor decisions: choices driven by whichever brain is loudest in the moment, not the one best suited to the problem.
+3. Poor decisions: choices driven by whichever mode is loudest in the moment, not the one best suited to the problem.
 4. Emotional reactivity: responding to pressure instead of to the actual situation.
 5. Inconsistent focus: attention that shifts randomly rather than by intention.
 
 These symptoms share a single root cause: the brain is switching modes randomly, without a structure to organize the switch. NeuralFusion introduces that structure.` },
-        { title: `The Four Brains, Revisited`, body: `NeuralFusion works by consciously activating and integrating four natural ways of thinking that every person already possesses:
+        { title: `The Four Thinking Modes, Revisited`, body: `NeuralFusion works by consciously activating and integrating four natural ways of thinking that every person already possesses:
 
 ▰ ANALYTICAL: Logic, structure, and facts. The mode of breakdown, planning, and precision.
 
@@ -412,16 +412,17 @@ These symptoms share a single root cause: the brain is switching modes randomly,
 
 △ REFLECTIVE: Self-awareness, evaluation, and meaning. The mode of learning and long-term perspective.
 
-Every human being has access to all four brains. Very few people are ever taught to coordinate them on purpose; most simply default to whichever mode habit, mood, or urgency selects for them.` },
-        { title: `The NeuralFusion Core Loop`, body: `NeuralFusion operates through a simple, repeatable four-stage loop:
+Every human being has access to all four thinking modes. Very few people are ever taught to coordinate them on purpose; most simply default to whichever mode habit, mood, or urgency selects for them.` },
+        { title: `The NeuralFusion Core Loop`, body: `NeuralFusion operates through a simple, repeatable five-stage loop:
 
-1. DECOMPOSITION: Break the problem or thought into clear, separate parts.
-2. MODE SWITCHING: Intentionally activate the brain best suited to each part.
-3. SYNTHESIS: Combine the outputs of each brain into one unified insight.
-4. STABILIZATION: Lock in the resulting clarity and reduce mental noise.
+1. DECOMPOSE: Break the problem or thought into clear, separate parts. This is where Analytical thinking leads.
+2. SENSE: Pause and notice your intuitive impressions and possible patterns. This is where Intuitive thinking leads.
+3. EXPAND: Explore alternatives and connect different perspectives. This is where Associative thinking leads.
+4. REFLECT: Examine your assumptions and evaluate your reasoning. This is where Reflective thinking leads.
+5. FUSE: Combine what each stage produced into one unified, considered conclusion, then hold it steady against noise and pressure. Lessons Three and Four train this stage in depth.
 
 With training, this loop can be completed in under a minute. At the beginner stage, expect it to take several minutes. Speed comes later, in Lesson Five.` },
-        { title: `Real-World Applications`, body: `BUSINESS: A founder is deciding whether to raise external funding. Analytical reviews the numbers. Intuitive surfaces unease about losing independence. Associative generates a middle option: a smaller raise from aligned investors. Reflective asks what kind of company the founder actually wants to build. Synthesis merges these into one direction; stabilization locks it in.
+        { title: `Real-World Applications`, body: `BUSINESS: A founder is deciding whether to raise external funding. Analytical reviews the numbers. Intuitive surfaces unease about losing independence. Associative generates a middle option: a smaller raise from aligned investors. Reflective asks what kind of company the founder actually wants to build. Fuse merges these into one direction, and stabilization holds it.
 
 LEADERSHIP: A manager must decide whether to address a team conflict directly or let it resolve on its own. Analytical weighs delivery timelines. Intuitive senses that avoidance will make it worse. Associative considers a facilitated conversation. Reflective asks what kind of leader this decision reflects.
 
@@ -430,65 +431,66 @@ STUDENT: A student is choosing between two elective courses. Analytical compares
 DAILY LIFE: Someone is deciding how to respond to a frustrating text message. Analytical reviews what was actually said. Intuitive notices the emotional charge. Associative considers alternative interpretations. Reflective asks what response actually serves the relationship.` },
         { title: `Try It Now`, body: `Pick one of the four examples above that most resembles a situation in your own life right now.
 
-Write one sentence for what each brain, Analytical, Intuitive, Associative, Reflective, would say about it.
+Write one sentence for what each mode, Analytical, Intuitive, Associative, Reflective, would say about it.
 
-Notice which brain you would have defaulted to if you had not paused to check the other three.` },
+Notice which mode you would have defaulted to if you had not paused to check the other three.` },
         { title: `First Guided Practice: Conscious Thought Control`, body: `This is your first full pass through the NeuralFusion Core Loop. Use a real issue: something mildly unresolved in your life right now, not a hypothetical.
 
 WORKSHEET
 
 1. Sit comfortably and relax your body for a few breaths.
 2. Choose a simple issue you are currently facing.
-3. Decomposition: write the issue in one sentence.
-4. Analytical: list facts only, no emotion, no interpretation.
-5. Intuitive: pause, then write your immediate gut response.
-6. Associative: write three ideas or connections related to the issue.
-7. Reflective: ask, "What does this teach me?" and write the answer.
-8. Observe how your sense of clarity has changed compared to when you started.
+3. Decompose: write the issue in one sentence.
+4. Decompose, Analytical: list facts only, no emotion, no interpretation.
+5. Sense, Intuitive: pause, then write your immediate gut response.
+6. Expand, Associative: write three ideas or connections related to the issue.
+7. Reflect, Reflective: ask, "What does this teach me?" and write the answer.
+8. Fuse: write one sentence that brings your four answers together into a single conclusion.
+9. Observe how your sense of clarity has changed compared to when you started.
 
-EXPERT TIP: Write your answers down rather than doing this exercise purely in your head. The act of writing forces true mode separation; without it, brains tend to blur together.` },
+EXPERT TIP: Write your answers down rather than doing this exercise purely in your head. The act of writing forces true mode separation; without it, modes tend to blur together.` },
         { title: `Reflection Questions & Practice Exercises`, body: `REFLECTION QUESTIONS
 
-· Which of the four brains did you notice yourself using most often today, before reading this lesson?
-· Which brain do you tend to trust the least, and why?
-· Describe a recent decision that might have gone differently if you had consciously used all four brains.
+· Which of the four thinking modes did you notice yourself using most often today, before reading this lesson?
+· Which mode do you tend to trust the least, and why?
+· Describe a recent decision that might have gone differently if you had consciously used all four thinking modes.
 · What does "mental leadership" mean to you after completing the first guided practice?
 
 EXERCISE A: MODE NAMING
-Throughout one full day, pause five separate times and silently name which brain is currently active. No action is required beyond naming it; this builds raw awareness, the prerequisite for all later control.
+Throughout one full day, pause five separate times and silently name which mode is currently active. No action is required beyond naming it; this builds raw awareness, the prerequisite for all later control.
 
 EXERCISE B: THE ONE-SENTENCE DECOMPOSITION
 Take any problem that feels overwhelming and force yourself to write it as a single sentence. Notice how much of the overwhelm was actually the problem itself, versus the absence of decomposition.
 
 DECISION DRILL: LOW-STAKES FUSION
-Choose a low-stakes decision you would normally make instantly. Deliberately run it through all four brains before deciding. The goal is not a better decision; it is building the habit of consulting all four.` },
+Choose a low-stakes decision you would normally make instantly. Deliberately run it through all four thinking modes before deciding. The goal is not a better decision; it is building the habit of consulting all four.` },
         { title: `Common Mistakes & Success Indicators`, body: `COMMON MISTAKES
 
 · Treating this as a one-time exercise rather than a repeatable skill; awareness fades quickly without practice.
-· Skipping the writing step and trying to do the loop entirely in your head, which allows brains to blur together.
-· Judging your gut response (Intuitive) as "wrong" before giving it a fair hearing alongside the other brains.
+· Skipping the writing step and trying to do the loop entirely in your head, which allows modes to blur together.
+· Judging your gut response (Intuitive) as "wrong" before giving it a fair hearing alongside the other modes.
 · Expecting instant speed; at the beginner stage, a slow, deliberate loop is the goal, not a fast one.
 
 SUCCESS INDICATORS
 
-· You can name, without hesitation, all four brains and their core function.
-· You catch yourself mid-thought and can identify which brain you are currently in.
+· You can name, without hesitation, all four thinking modes and their core function.
+· You catch yourself mid-thought and can identify which mode you are currently in.
 · The one-sentence decomposition step feels clarifying rather than reductive.
 · You completed the full guided practice worksheet on a real issue, not a hypothetical one.` },
         { title: `Key Insight, Recap & Assignment`, body: `KEY INSIGHT: You are not your thoughts. You are the conductor of them. NeuralFusion trains mental leadership: the ability to direct thinking rather than be directed by it.
 
 END-OF-LESSON RECAP
 
-· NeuralFusion is a trainable skill that fuses four natural brains into one coordinated process.
+· NeuralFusion is a trainable skill that fuses four natural thinking modes into one coordinated process.
 · Fragmented thinking produces overthinking, confusion, and poor decisions.
-· The Four Brains are Analytical, Intuitive, Associative, and Reflective.
-· The Core Loop, Decomposition, Mode Switching, Synthesis, Stabilization, is the engine of every later lesson.
-· Awareness of your current brain is the first and most essential form of control.
+· The Four Thinking Modes are Analytical, Intuitive, Associative, and Reflective.
+· The Core Loop, Decompose, Sense, Expand, Reflect, Fuse, is the engine of every later lesson.
+· Awareness of your current mode is the first and most essential form of control.
 
 ASSIGNMENT (Next 24 Hours)
 
 1. Observe when your thinking becomes chaotic or overwhelmed.
-2. Pause and ask: "Which brain am I stuck in?"
+2. Pause and ask: "Which mode am I stuck in?"
 3. Write one short reflection on what you noticed.
 
 No perfection is required at this stage. Awareness itself is progress.` }
@@ -496,14 +498,14 @@ No perfection is required at this stage. Awareness itself is progress.` }
       2: { pages: [
         { title: `Learning Objectives`, body: `By the end of Lesson Two, you will be able to:
 
-1. Recognize your dominant, default brain without conscious effort.
-2. Enter and exit any of the Four Brains on command, using a specific activation question.
-3. Identify the risk of overusing any single brain and correct for it.
+1. Recognize your dominant, default mode without conscious effort.
+2. Enter and exit any of the Four Thinking Modes on command, using a specific activation question.
+3. Identify the risk of overusing any single mode and correct for it.
 4. Apply the Emergency Reset protocol to interrupt mental overload within a minute.
 
 WHY THIS LESSON MATTERS
 
-Lesson One taught you to notice which brain is active. Lesson Two teaches you to choose it. This is the difference between observing your weather and being able to change it. Without this skill, awareness alone can become a passive habit: you notice you are overthinking, but you stay stuck in it. Mode activation gives you the lever to move.` },
+Lesson One taught you to notice which mode is active. Lesson Two teaches you to choose it. This is the difference between observing your weather and being able to change it. Without this skill, awareness alone can become a passive habit: you notice you are overthinking, but you stay stuck in it. Mode activation gives you the lever to move.` },
         { title: `Cognitive Principles & The Core Truth`, body: `PRINCIPLE 1: REACTION IS THE DEFAULT STATE
 
 Most people do not think; they react. Thoughts appear automatically because the brain defaults to habit, emotion, or urgency rather than deliberate selection. This is efficient for survival, but poorly suited to complex modern decisions.
@@ -513,7 +515,7 @@ PRINCIPLE 2: CONTROL BEGINS AT THE POINT OF CHOICE
 NeuralFusion replaces reaction with activation. Control does not begin when a decision is made; it begins the moment you choose how to think about the situation in the first place.
 
 KEY TAKEAWAY: Reaction is automatic. Activation is chosen. Every time you pause before a default thought pattern takes over, you are practicing NeuralFusion.` },
-        { title: `Each Brain: Best Use & Overuse Risk`, body: `Lesson One introduced the four brains by function. Lesson Two adds a second dimension: what each brain is best used for, and the specific risk that appears when it is overused.
+        { title: `Each Mode: Best Use & Overuse Risk`, body: `Lesson One introduced the four thinking modes by function. Lesson Two adds a second dimension: what each mode is best used for, and the specific risk that appears when it is overused.
 
 ▰ ANALYTICAL (Precision): Best for decisions, planning, and problem breakdown. Overused, it produces rigidity and overthinking.
 
@@ -523,8 +525,8 @@ KEY TAKEAWAY: Reaction is automatic. Activation is chosen. Every time you pause 
 
 △ REFLECTIVE (Meaning): Best for self-awareness, evaluation, and learning. Overused, it produces rumination.
 
-NeuralFusion is not about staying in one brain. It is about moving between all four deliberately, spending only as much time in each as the situation actually requires.` },
-        { title: `Mode Activation Signals`, body: `Each brain has a mental entry signal: a specific question that reliably switches your brain into that mode. Learning these signals is what gives you control.
+NeuralFusion is not about staying in one mode. It is about moving between all four deliberately, spending only as much time in each as the situation actually requires.` },
+        { title: `Mode Activation Signals`, body: `Each mode has a mental entry signal: a specific question that reliably switches your thinking into that mode. Learning these signals is what gives you control.
 
 ▰ ANALYTICAL: "What are the facts?"
 
@@ -544,10 +546,10 @@ STUDENT: A student receives a lower grade than expected and drops into Reflectiv
 DAILY LIFE: Someone feels a sudden urge to buy something impulsively while browsing online, Intuitive running unchecked. Activating Reflective mode creates enough of a pause to notice the impulse is about boredom, not need.` },
         { title: `Try It Now`, body: `Recall the last time you felt "stuck" in a thought loop.
 
-Identify which brain you were likely overusing, using the risk list above.
+Identify which mode you were likely overusing, using the risk list above.
 
-Say the activation question for a different brain out loud, right now, and notice the shift.` },
-        { title: `The NeuralFusion Switching Drill`, body: `This drill builds mode awareness by deliberately spending time in each of the four brains, back to back, on the same neutral topic.
+Say the activation question for a different mode out loud, right now, and notice the shift.` },
+        { title: `The NeuralFusion Switching Drill`, body: `This drill builds mode awareness by deliberately spending time in each of the four thinking modes, back to back, on the same neutral topic.
 
 WORKSHEET: 7 MINUTES
 
@@ -559,11 +561,11 @@ WORKSHEET: 7 MINUTES
 6. Spend 60 seconds in Reflective mode: meaning or lesson.
 7. Spend the remaining time noticing the distinct mental "texture" of each mode.
 
-EXPERT TIP: The goal is not the content you produce; it is building a felt sense of what each brain is like from the inside, so you can recognize it instantly in real situations.` },
+EXPERT TIP: The goal is not the content you produce; it is building a felt sense of what each mode is like from the inside, so you can recognize it instantly in real situations.` },
         { title: `Stopping Mental Overload: The Emergency Reset`, body: `When thoughts feel overwhelming, use this four-step protocol:
 
 1. Pause.
-2. Name the brain you are stuck in.
+2. Name the mode you are stuck in.
 3. Switch deliberately to Reflective mode.
 4. Ask: "What is one thing I can control right now?"
 
@@ -572,43 +574,43 @@ This collapses noise into clarity by forcing a single, small, actionable focus, 
 KEY TAKEAWAY: Mental freedom is the ability to switch your thoughts, not escape them. NeuralFusion gives you that freedom through the Emergency Reset.` },
         { title: `Reflection Questions & Practice Exercises`, body: `REFLECTION QUESTIONS
 
-· What is your default brain, and in which situations does it serve you least well?
+· What is your default mode, and in which situations does it serve you least well?
 · Which activation question was hardest for you to use naturally? What made it difficult?
 · Describe a moment this week when the Emergency Reset would have helped, in hindsight.
-· How did the "texture" of each brain feel different during the Switching Drill?
+· How did the "texture" of each mode feel different during the Switching Drill?
 
 EXERCISE A: FORCED MODE ENTRY
-Three times today, deliberately activate a brain you are not currently in, using its activation question, regardless of the situation.
+Three times today, deliberately activate a mode you are not currently in, using its activation question, regardless of the situation.
 
 DECISION DRILL: OVERUSE DETECTION
-Look back at a recent decision that did not go well. Identify which brain was likely overused. Name what the opposite, underused brain would have contributed.
+Look back at a recent decision that did not go well. Identify which mode was likely overused. Name what the opposite, underused mode would have contributed.
 
 MENTAL TRAINING ACTIVITY: THE RESET REHEARSAL
 Even when not overwhelmed, rehearse the Emergency Reset once per day so it is already familiar when you actually need it under pressure.` },
         { title: `Common Mistakes & Success Indicators`, body: `COMMON MISTAKES
 
 · Waiting until overload is severe before attempting the Emergency Reset; it works best used early.
-· Treating one brain as "better" than the others rather than situational.
-· Skipping the naming step in the Emergency Reset; naming the brain is what creates the separation needed to switch out of it.
+· Treating one mode as "better" than the others rather than situational.
+· Skipping the naming step in the Emergency Reset; naming the mode is what creates the separation needed to switch out of it.
 · Practicing the Switching Drill only once instead of repeating it until transitions feel distinct.
 
 SUCCESS INDICATORS
 
-· You can identify your default brain without needing to think hard about it.
+· You can identify your default mode without needing to think hard about it.
 · You have used at least one activation question in a real, unplanned situation this week.
 · You can recite the Emergency Reset from memory.
 · You notice mode dominance, your own or observed in others, more often in daily life.` },
         { title: `Recap & Assignment`, body: `END-OF-LESSON RECAP
 
 · Mental control begins at the point of choice, not after a thought has already run its course.
-· Each brain has a best use and a risk when overused: rigidity, impulsiveness, distraction, or rumination.
-· Each brain has a specific activation question that reliably switches you into it.
+· Each mode has a best use and a risk when overused: rigidity, impulsiveness, distraction, or rumination.
+· Each mode has a specific activation question that reliably switches you into it.
 · The Emergency Reset, Pause, Name, Switch to Reflective, Ask what you can control, interrupts overload in under a minute.
 
 ASSIGNMENT (Next 48 Hours)
 
-1. Identify your default brain in three separate situations.
-2. Practice switching brain deliberately at least once per day.
+1. Identify your default mode in three separate situations.
+2. Practice switching mode deliberately at least once per day.
 3. Write one sentence on what changed as a result.
 
 Consistency builds mastery. A single successful switch matters less than repeating the practice across multiple days.` }
@@ -624,26 +626,26 @@ Consistency builds mastery. A single successful switch matters less than repeati
 
 WHY THIS LESSON MATTERS
 
-Lessons One and Two built awareness and control of individual brains. Lesson Three is where those separate skills become useful: converting multiple, sometimes contradictory, streams of thought into one decision you can actually act on. This is the core power of NeuralFusion: most people are not short on information or ideas; they are short on a reliable method for integrating them.` },
+Lessons One and Two built awareness and control of individual modes. Lesson Three is where those separate skills become useful: converting multiple, sometimes contradictory, streams of thought into one decision you can actually act on. This is the core power of NeuralFusion: most people are not short on information or ideas; they are short on a reliable method for integrating them.` },
         { title: `Cognitive Principles`, body: `PRINCIPLE 1: FRAGMENTATION, NOT EFFORT, CAUSES DECISION FAILURE
 
-Decisions fail not because of a lack of intelligence but because of internal fragmentation: logic arguing with emotion, intuition contradicting the facts, creativity overwhelming focus. NeuralFusion ends this internal conflict by unifying the outputs of all four brains rather than letting one silence the others.
+Decisions fail not because of a lack of intelligence but because of internal fragmentation: logic arguing with emotion, intuition contradicting the facts, creativity overwhelming focus. NeuralFusion ends this internal conflict by unifying the outputs of all four thinking modes rather than letting one silence the others.
 
 PRINCIPLE 2: A FUSED MIND DOES NOT HESITATE
 
-Hesitation is frequently a symptom of unresolved fragmentation, not of an inherently difficult decision. Once brains are genuinely synthesized, the felt experience of the decision changes from uncertain to settled.
+Hesitation is frequently a symptom of unresolved fragmentation, not of an inherently difficult decision. Once modes are genuinely synthesized, the felt experience of the decision changes from uncertain to settled.
 
 KEY TAKEAWAY: NeuralFusion ends internal conflict by unifying outputs. A fused mind does not hesitate.` },
         { title: `What Synthesis Really Means`, body: `Synthesis is not compromise. Synthesis is integration. Three conditions define real synthesis:
 
-· Each brain contributes something to the final conclusion.
-· No single brain dominates or silences the others.
+· Each mode contributes something to the final conclusion.
+· No single mode dominates or silences the others.
 · One clear conclusion emerges from the combination.
 
-NeuralFusion treats the four brains as advisors, not rulers. Their role is to inform the decision, not to individually control it.` },
-        { title: `The NeuralFusion Synthesis Framework`, body: `After activating all four brains on a given decision, synthesis follows a strict, repeatable order:
+NeuralFusion treats the four thinking modes as advisors, not rulers. Their role is to inform the decision, not to individually control it.` },
+        { title: `The NeuralFusion Synthesis Framework`, body: `After activating all four thinking modes on a given decision, synthesis follows a strict, repeatable order:
 
-1. EXTRACT: Identify the single strongest output from each of the four brains.
+1. EXTRACT: Identify the single strongest output from each of the four thinking modes.
 2. ALIGN: Check the four outputs for overlap and for direct contradiction.
 3. COMPRESS: Reduce the aligned outputs into one core insight.
 4. DECIDE: Commit mentally to a single direction based on that insight.
@@ -655,10 +657,10 @@ LEADERSHIP: A manager must decide whether to promote from within or hire externa
 
 STUDENT: A student choosing a thesis topic finds the two candidate topics can be partially combined into one integrated question that serves long-term interests.
 
-DAILY LIFE: Someone deciding whether to move to a new city finds all four brains align. The decision is made, and the Commitment Lock is applied so it is not relitigated every time nerves appear.` },
+DAILY LIFE: Someone deciding whether to move to a new city finds all four thinking modes align. The decision is made, and the Commitment Lock is applied so it is not relitigated every time nerves appear.` },
         { title: `Try It Now`, body: `Think of a decision you are currently sitting on.
 
-Write one line of output for each brain: Analytical, Intuitive, Associative, Reflective.
+Write one line of output for each mode: Analytical, Intuitive, Associative, Reflective.
 
 Underline where they already agree; that overlap is the seed of your synthesis.` },
         { title: `Guided Practice: Full NeuralFusion Cycle`, body: `WORKSHEET: 10 MINUTES, ONE DECISION, ONE DIRECTION
@@ -681,35 +683,35 @@ Revisiting a decision without new information breaks fusion. The Commitment Lock
 
 HANDLING DOUBT AFTER A DECISION
 
-Doubt after a completed synthesis usually means a brain is reactivating unnecessarily, not that the decision itself was wrong.
+Doubt after a completed synthesis usually means a mode is reactivating unnecessarily, not that the decision itself was wrong.
 
-1. Identify which brain has reactivated.
+1. Identify which mode has reactivated.
 2. Acknowledge it without immediately acting on it.
 3. Return deliberately to the fused conclusion you already reached.
 
-EXPERT TIP: Doubt is data about a brain, not necessarily about the decision. Separating the two is what preserves stability after synthesis.` },
+EXPERT TIP: Doubt is data about a mode, not necessarily about the decision. Separating the two is what preserves stability after synthesis.` },
         { title: `Reflection Questions & Practice Exercises`, body: `REFLECTION QUESTIONS
 
-· Describe a past decision where one brain clearly dominated the others. What was the outcome?
+· Describe a past decision where one mode clearly dominated the others. What was the outcome?
 · What did the moment of "compression" feel like during your guided practice?
 · Where in your life do you tend to break the Commitment Lock by re-analyzing after deciding?
 · What is one decision currently waiting on you that could benefit from the Synthesis Framework?
 
 EXERCISE A: THE OVERLAP HUNT
-For any decision, write all four brain outputs before looking for agreement. Most people jump to compression too early; forcing full extraction first produces a more honest synthesis.
+For any decision, write all four mode outputs before looking for agreement. Most people jump to compression too early; forcing full extraction first produces a more honest synthesis.
 
 DECISION DRILL: 24-HOUR COMMITMENT
 Apply the full Synthesis Framework to a real decision, then commit to taking no further analysis on it for 24 hours, regardless of doubt that surfaces.` },
         { title: `Common Mistakes & Success Indicators`, body: `COMMON MISTAKES
 
-· Compressing before genuinely extracting all four brain outputs.
-· Treating disagreement between brains as a problem to eliminate rather than information to align.
+· Compressing before genuinely extracting all four mode outputs.
+· Treating disagreement between modes as a problem to eliminate rather than information to align.
 · Breaking the Commitment Lock the first time doubt appears, rather than running the doubt-handling protocol.
 · Skipping the step of reading the decision sentence aloud, which measurably reinforces the felt sense of closure.
 
 SUCCESS INDICATORS
 
-· You can produce four distinct brain outputs for a real decision without effort.
+· You can produce four distinct mode outputs for a real decision without effort.
 · You can identify the common theme across those outputs without forcing it.
 · You have applied the Commitment Lock at least once and held it despite doubt.
 · Your decisions increasingly feel settled rather than merely made.` },
@@ -717,8 +719,8 @@ SUCCESS INDICATORS
 
 END-OF-LESSON RECAP
 
-· Decisions fail from fragmentation, brains arguing with each other, not from a lack of intelligence.
-· Synthesis is integration: every brain contributes, none dominates, one conclusion emerges.
+· Decisions fail from fragmentation, modes arguing with each other, not from a lack of intelligence.
+· Synthesis is integration: every mode contributes, none dominates, one conclusion emerges.
 · The Synthesis Framework runs Extract → Align → Compress → Decide.
 · The Commitment Lock stops re-analysis once synthesis is complete.
 · Post-decision doubt is handled by identifying, acknowledging, and returning to the fused conclusion.
@@ -749,12 +751,12 @@ NeuralFusion does not treat pressure as something to eliminate or avoid. Pressur
 
 PRINCIPLE 2: STABILIZATION IS CONTAINMENT, NOT SUPPRESSION
 
-Stabilizing a brain does not mean silencing it. It means preventing any one brain, usually emotion or urgency-driven analysis, from seizing full control of the decision. The other brains remain present; they are simply prevented from being overridden.` },
+Stabilizing a mode does not mean silencing it. It means preventing any one mode, usually emotion or urgency-driven analysis, from seizing full control of the decision. The other modes remain present; they are simply prevented from being overridden.` },
         { title: `Why Clarity Collapses Under Pressure`, body: `Pressure reliably triggers three responses in an untrained mind:
 
 1. Emotional hijacking: feeling takes over before reasoning has a chance to contribute.
 2. Narrow attention: the mind fixates on the most urgent-seeming detail and loses the wider picture.
-3. Mode dominance: usually emotion or rushed analysis takes over completely, silencing the other brains.
+3. Mode dominance: usually emotion or rushed analysis takes over completely, silencing the other modes.
 
 Under real pressure, the brain shifts into survival prioritization rather than deliberate reasoning. This is a normal biological response, not a personal failure, but it is exactly the state NeuralFusion trains you to recognize and work with.
 
@@ -773,7 +775,7 @@ A short internal statement that locks in a completed synthesis, preventing re-fr
 Pressure distorts time, making distant consequences feel as urgent as immediate ones. NeuralFusion compresses time deliberately by asking: "What matters in the next 10 minutes?" This narrows the decision space to what is actually actionable right now.
 
 3. MODE CONTAINMENT
-When one brain flares up under pressure, most often emotion, the response is not to eliminate it. It is to identify it, reduce its influence on the current decision, and return authority to the already-completed synthesis. No brain is removed; it is simply regulated back to its appropriate role as one advisor among four.` },
+When one mode flares up under pressure, most often emotion, the response is not to eliminate it. It is to identify it, reduce its influence on the current decision, and return authority to the already-completed synthesis. No mode is removed; it is simply regulated back to its appropriate role as one advisor among four.` },
         { title: `Real-World Applications`, body: `BUSINESS: A founder receives an unexpectedly aggressive counteroffer minutes before a call. Anchor: "I already know my walk-away terms." Compression: "What matters in the next 10 minutes is staying calm on this call." Containment: the flare of anxious urgency is named and set aside.
 
 LEADERSHIP: A manager is blindsided by a public complaint during a meeting. Anchor: "I lead by listening first, deciding later." Compression: focus only on responding calmly in the room, deferring resolution to a scheduled follow-up.
@@ -789,7 +791,7 @@ Write the one thing that genuinely mattered in the next 10 minutes of that situa
         { title: `Guided Practice: Pressure Simulation`, body: `WORKSHEET: 8 MINUTES, STABILIZED THINKING DRILL
 
 1. Recall a recent stressful moment in specific detail.
-2. Identify which brain was dominant at the time.
+2. Identify which mode was dominant at the time.
 3. Re-run the situation mentally using one Cognitive Anchor.
 4. Apply Temporal Compression: name what actually mattered in the next 10 minutes.
 5. Notice how the level of tension changes compared to your memory of the original moment.
@@ -831,7 +833,7 @@ SUCCESS INDICATORS
 END-OF-LESSON RECAP
 
 · Pressure triggers emotional hijacking, narrow attention, and mode dominance in an untrained mind.
-· Stabilization is containment, not suppression: no brain is eliminated, only regulated.
+· Stabilization is containment, not suppression: no mode is eliminated, only regulated.
 · The three Stabilizers are the Cognitive Anchor, Temporal Compression, and Mode Containment.
 · Relapse is normal and reversible through recognition, re-statement, and one aligned action.
 
@@ -854,7 +856,7 @@ Stability strengthens with use. The first application under real pressure is rar
 
 WHY THIS LESSON MATTERS
 
-Every lesson so far has required deliberate effort: naming a brain, asking an activation question, running the Synthesis Framework step by step, applying a Stabilizer under pressure. This is appropriate for early training, but it is not the end state. Lesson Five completes the arc by training NeuralFusion to operate without conscious effort, the same way an experienced driver no longer thinks through each step of using a clutch.` },
+Every lesson so far has required deliberate effort: naming a mode, asking an activation question, running the Synthesis Framework step by step, applying a Stabilizer under pressure. This is appropriate for early training, but it is not the end state. Lesson Five completes the arc by training NeuralFusion to operate without conscious effort, the same way an experienced driver no longer thinks through each step of using a clutch.` },
         { title: `Cognitive Principles & Cognitive Fluency`, body: `PRINCIPLE 1: ELITE PERFORMANCE IS INTEGRATED, NOT EFFORTFUL
 
 High performers across disciplines are rarely distinguished by thinking harder than others in the moment of performance. They are distinguished by thinking in a more integrated way, built through extensive prior deliberate practice.
@@ -878,7 +880,7 @@ Lessons One through Four operate primarily in Stages One and Two. Lesson Five in
 This single word, used consistently, signals the brain to run the full loop without conscious step-by-step direction:
 
 1. Decompose the situation automatically.
-2. Activate the relevant brains.
+2. Activate the relevant modes.
 3. Synthesize rapidly.
 4. Stabilize instantly.
 
@@ -937,7 +939,7 @@ FINAL ASSIGNMENT: LIFETIME PROTOCOL
 This completes the core system of NeuralFusion Level One. "You do not control the mind by force; you train it by structure."` }
       ]},
       6: { pages: [
-        { title: `Glossary, Part 1`, body: `NEURALFUSION: The overall trainable cognitive skill system that coordinates the Four Brains into one controlled process.
+        { title: `Glossary, Part 1`, body: `NEURALFUSION: The overall trainable cognitive skill system that coordinates the Four Thinking Modes into one controlled process.
 
 COGNITIVE FRAGMENTATION: The default, untrained state of thinking in disconnected pieces (logic without intuition, emotion without reflection) rather than as one coordinated process.
 
@@ -951,10 +953,10 @@ ASSOCIATIVE BRAIN: Governs creativity, connection, and idea generation. Best use
 
 REFLECTIVE BRAIN: Governs self-awareness, evaluation, and meaning. Best used for learning and long-term perspective.
 
-MODE ACTIVATION SIGNAL: A short internal question used to deliberately switch into a specific brain.` },
-        { title: `Glossary, Part 2`, body: `THE CORE LOOP: The four-stage process, Decomposition, Mode Switching, Synthesis, Stabilization, that structures every application of NeuralFusion.
+MODE ACTIVATION SIGNAL: A short internal question used to deliberately switch into a specific mode.` },
+        { title: `Glossary, Part 2`, body: `THE CORE LOOP: The five-stage process, Decompose, Sense, Expand, Reflect, Fuse, that structures every application of NeuralFusion.
 
-SYNTHESIS: Combining the outputs of all four brains into one unified insight. Integration, not compromise.
+SYNTHESIS: Combining the outputs of all four thinking modes into one unified insight. Integration, not compromise.
 
 THE SYNTHESIS FRAMEWORK: The four-step method for synthesis, Extract, Align, Compress, Decide.
 
@@ -966,7 +968,7 @@ COGNITIVE ANCHOR: A short internal statement used to lock in synthesis and preve
 
 TEMPORAL COMPRESSION: A stabilizer that narrows focus to what matters in the next short window of time.
 
-MODE CONTAINMENT: A stabilizer that reduces the influence of an overactive brain without eliminating it.
+MODE CONTAINMENT: A stabilizer that reduces the influence of an overactive mode without eliminating it.
 
 MENTAL RELAPSE: The return of fragmented thinking after a decision has already been stabilized.
 
@@ -977,14 +979,15 @@ THE AUTOMATIC FUSION TRIGGER: The single-word cue ("Fuse") used to activate the 
 MENTAL LEADERSHIP: The core identity shift NeuralFusion aims to produce, from being carried by one's thoughts to consciously directing them.` },
         { title: `Quick-Reference: The Core Loop & Synthesis Framework`, body: `THE CORE LOOP
 
-1. Decomposition: break it into parts.
-2. Mode Switching: activate the right brain for each part.
-3. Synthesis: combine outputs into one insight.
-4. Stabilization: lock in clarity, reduce noise.
+1. Decompose: break it into parts.
+2. Sense: notice intuitive impressions and patterns.
+3. Expand: explore alternatives and connect perspectives.
+4. Reflect: examine assumptions and evaluate your reasoning.
+5. Fuse: combine the outputs into one conclusion and hold it steady.
 
 THE SYNTHESIS FRAMEWORK
 
-1. Extract: strongest output from each brain.
+1. Extract: strongest output from each mode.
 2. Align: check overlaps and contradictions.
 3. Compress: reduce to one core insight.
 4. Decide: commit to a single direction.
@@ -997,11 +1000,11 @@ THE THREE STABILIZERS
 
 THE EMERGENCY RESET
 
-1. Pause. 2. Name the brain you are stuck in. 3. Switch to Reflective. 4. Ask: "What is one thing I can control right now?"` },
+1. Pause. 2. Name the mode you are stuck in. 3. Switch to Reflective. 4. Ask: "What is one thing I can control right now?"` },
         { title: `Progress Tracker & Weekly Practice Schedule`, body: `Use this tracker to record your completion of each lesson's core components: Guided Practice completed, Assignment completed, date, and a personal confidence rating from 1 to 5.
 
 · Lesson 1, Foundation of Integrated Cognition
-· Lesson 2, Brain Mode Activation & Switching
+· Lesson 2, Mode Activation & Switching
 · Lesson 3, Synthesis & Decision Architecture
 · Lesson 4, Cognitive Stabilization Under Pressure
 · Lesson 5, Cognitive Fluency Installation
@@ -1040,16 +1043,16 @@ Use one entry per lesson, or more frequently if useful.
 
 · Lesson / Date
 · What I noticed about my thinking today
-· Which brain I relied on most
-· Which brain I underused
+· Which mode I relied on most
+· Which mode I underused
 · One moment I would handle differently now
 · What I want to practice next
 
 Short, honest entries written consistently are more valuable than long, polished entries written occasionally. The Reflection Journal is a training log, not a performance.` },
         { title: `Cognitive Performance Scorecard`, body: `Use this scorecard monthly to track your own sense of progress across the five core NeuralFusion capacities. Rate each from 1 (Rarely) to 5 (Consistently). This is a self-assessment tool for personal tracking, not a diagnostic or clinical instrument.
 
-· I can name my current brain on request.
-· I can switch deliberately into a specific brain using an activation signal.
+· I can name my current mode on request.
+· I can switch deliberately into a specific mode using an activation signal.
 · I can complete a full synthesis and produce a one-sentence decision.
 · I can apply at least one Stabilizer during a real pressure moment.
 · I notice NeuralFusion operating automatically, without deliberate effort.
@@ -1058,8 +1061,8 @@ This scorecard measures your own subjective sense of skill, consistent with how 
         { title: `Mastery Checklist: Level One`, body: `Complete this checklist honestly before considering Level One finished. Every item should reflect something you have actually done, not something you understand conceptually.
 
 · I completed all five lessons in order, including every guided practice.
-· I can name the Four Brains and describe the risk of overusing each.
-· I can state the four stages of the Core Loop from memory.
+· I can name the Four Thinking Modes and describe the risk of overusing each.
+· I can state the five stages of the Core Loop from memory.
 · I can state the four steps of the Synthesis Framework from memory.
 · I have applied the Commitment Lock to a real decision.
 · I can name the three Stabilizers and have used at least one under real pressure.
@@ -1071,7 +1074,7 @@ This scorecard measures your own subjective sense of skill, consistent with how 
 
 PART A: CONCEPTUAL UNDERSTANDING
 1. In your own words, define cognitive fragmentation and explain how NeuralFusion addresses it.
-2. Name the Four Brains and describe one overuse risk for each.
+2. Name the Four Thinking Modes and describe one overuse risk for each.
 3. Explain the difference between synthesis and compromise.
 4. Explain the difference between stabilization and suppression.
 5. Define cognitive fluency and describe what it feels like in practice.
@@ -1098,7 +1101,7 @@ There is no passing score. Completion of this assessment in full, honest written
 RECOMMENDED DAILY PRACTICE ROUTINE
 
 · Morning (2–3 min): One deliberate pass through the Core Loop on the day's first meaningful decision.
-· Midday (1 min): A single mode check; pause and name whatever brain is currently active.
+· Midday (1 min): A single mode check; pause and name whatever mode is currently active.
 · As needed: Use the Automatic Fusion Trigger ("Fuse") whenever a decision or reaction arises.
 · Under pressure: Apply a Stabilizer as the situation requires.
 · Evening (3–5 min): One Reflection Journal entry, focused on what was noticed rather than what was achieved.
@@ -1250,7 +1253,7 @@ Most learners take four to six weeks working through the lessons at the suggeste
       return (
         React.createElement("div", {style: { position:'absolute', inset:0, overflow:'hidden', pointerEvents:'none', borderRadius:'inherit' }}, React.createElement("div", {style: {
             position:'absolute', left:0, right:0, height:1,
-            background:'linear-gradient(90deg, transparent, rgba(196,160,80,0.3), transparent)',
+            background:'linear-gradient(90deg, transparent, rgba(91,132,255,0.3), transparent)',
             animation:'scanH 4s ease-in-out infinite',
           }}))
       );
@@ -1401,7 +1404,7 @@ Most learners take four to six weeks working through the lessons at the suggeste
     // Same markup and classes as the static pages (nf-nav.css), so the SPA and the standalone pages look and behave
     // identically. Behaviour mirrors nf-nav.js: desktop = click-to-open dropdowns (one at a time);
     // mobile = full-screen overlay with three independent accordions. Groups come from NF_LINK_GROUPS.
-    const NFX_MQ = '(max-width: 899.98px)';
+    const NFX_MQ = '(max-width: 1179.98px)';
     // nf-nav.css treats pages without this class as "no JavaScript" and shows a plain list; the static pages get it from nf-nav.js.
     document.documentElement.classList.add('nfx-js');
     function nfxPlainClick(e) { return !(e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || (e.button && e.button !== 0)); }
@@ -1567,7 +1570,7 @@ Most learners take four to six weeks working through the lessons at the suggeste
               ? h('div', { className: 'nfx-spinner', 'aria-hidden': 'true' })
               : [
                   h('button', { key: 'si', type: 'button', className: 'nfx-signin', onClick: () => { closeMenu(false); setShowAuth(true); } }, 'Sign in'),
-                  h('a', { key: 'cta', className: 'nfx-cta', href: '/?view=cfi', onClick: goCfi }, 'Take the CFI'),
+                  h('a', { key: 'cta', className: 'nfx-cta', href: '/?view=cfi', onClick: goCfi }, 'Get started'),
                 ]))));
     }
 
@@ -1671,7 +1674,7 @@ Most learners take four to six weeks working through the lessons at the suggeste
                   textDecoration:'none',
                   display:'inline-block',
                 }}, 'Blog')), React.createElement("div", {style: { display:'flex', alignItems:'center', gap:12 }}, React.createElement("div", {className: "nav-user-label", style: { ...mono, fontSize:9, letterSpacing:1, color:C.muted }}, user ? user.email?.split('@')[0].toUpperCase() : ''), authLoading ? (
-                  React.createElement("div", {className: "desktop-only", style: { width:16, height:16, border:'2px solid rgba(196,160,80,0.3)', borderTopColor:'#C4A050', borderRadius:'50%', animation:'nf-spin 0.8s linear infinite' }})
+                  React.createElement("div", {className: "desktop-only", style: { width:16, height:16, border:'2px solid rgba(91,132,255,0.3)', borderTopColor:'#5B84FF', borderRadius:'50%', animation:'nf-spin 0.8s linear infinite' }})
                 ) : user ? (
                   React.createElement("button", {className: "btn-outline desktop-only", style: { fontSize:10, padding:'8px 16px' }, onClick: onSignOut}, 'Sign out')
                 ) : (
@@ -1684,13 +1687,13 @@ Most learners take four to six weeks working through the lessons at the suggeste
                   color:C.muted, width:44, height:44, flexDirection:'column',
                   alignItems:'center', justifyContent:'center', gap:5, cursor:'pointer',
                 } : {
-                  background:'none', border:'1px solid rgba(196,160,80,0.25)', borderRadius:12,
+                  background:'none', border:'1px solid rgba(91,132,255,0.25)', borderRadius:12,
                   width:44, height:44, flexDirection:'column',
                   alignItems:'center', justifyContent:'center', gap:5, cursor:'pointer',
                 }}, user ? (menuOpen
                   ? [React.createElement("div", {key:'x1', style: { width:20, height:1.5, background:C.text, transform:'translateY(3.25px) rotate(45deg)' }}), React.createElement("div", {key:'x2', style: { width:20, height:1.5, background:C.text, transform:'translateY(-3.25px) rotate(-45deg)' }})]
                   : [React.createElement("div", {key:'a', style: { width:18, height:1, background:C.muted }}), React.createElement("div", {key:'b', style: { width:14, height:1, background:C.muted }}), React.createElement("div", {key:'c', style: { width:10, height:1, background:C.muted }})])
-                  : [0,1,2].map(i => React.createElement("div", {key:i, style: { width:20, height:2, borderRadius:1, background:'#E2BE78' }})))))), menuOpen && user && (
+                  : [0,1,2].map(i => React.createElement("div", {key:i, style: { width:20, height:2, borderRadius:1, background:'#A9BCFF' }})))))), menuOpen && user && (
             React.createElement("div", {id: "nf-app-menu", role: "dialog", "aria-label": "Menu", style: {
               position:'fixed', inset:0, zIndex:99, background:'rgba(5,12,26,0.97)',
               backdropFilter:'blur(20px)', paddingTop:70, display:'flex', flexDirection:'column',
@@ -1859,10 +1862,10 @@ function nfjEnsureStyles() {
   const s = document.createElement('style');
   s.id = 'nfj-styles';
   s.textContent = '.nfj-btn{min-height:48px;padding:12px 22px;border-radius:8px;font-weight:700;font-size:15px;cursor:pointer;border:1px solid transparent;font-family:"DM Sans",sans-serif;max-width:100%;text-align:center}'
-    + '.nfj-btn:focus-visible,.nfj-link:focus-visible{outline:2px solid #E2BE78;outline-offset:3px}'
-    + '.nfj-light .nfj-btn:focus-visible,.nfj-light .nfj-link:focus-visible{outline-color:#8F701F}'
+    + '.nfj-btn:focus-visible,.nfj-link:focus-visible{outline:2px solid #A9BCFF;outline-offset:3px}'
+    + '.nfj-light .nfj-btn:focus-visible,.nfj-light .nfj-link:focus-visible{outline-color:#2F4FCB}'
     + '.nfj-btn[disabled]{opacity:.6;cursor:not-allowed}.nfj-wrap{overflow-wrap:anywhere;min-width:0}'
-    + '.nfj-sum{list-style:none;justify-content:space-between;gap:12px}.nfj-sum::-webkit-details-marker{display:none}.nfj-sum::after{content:"+";font-size:22px;line-height:1;flex-shrink:0}details[open]>.nfj-sum::after{content:"\\2212"}.nfj-sum:focus-visible{outline:2px solid #E2BE78;outline-offset:2px}'
+    + '.nfj-sum{list-style:none;justify-content:space-between;gap:12px}.nfj-sum::-webkit-details-marker{display:none}.nfj-sum::after{content:"+";font-size:22px;line-height:1;flex-shrink:0}details[open]>.nfj-sum::after{content:"\\2212"}.nfj-sum:focus-visible{outline:2px solid #A9BCFF;outline-offset:2px}'
     + '@media (min-width:720px){.nfj-two{display:grid;grid-template-columns:1fr 1fr;gap:20px}}';
   document.head.appendChild(s);
 }
@@ -2089,7 +2092,34 @@ const NF_CHALLENGES = [
       { key: 'c', label: 'Ask what they know or want that I might be missing.', feedback: 'Curiosity can uncover a real reason or a misunderstanding. It takes patience and a real willingness to be wrong.' }],
     explanation: 'Certainty is a feeling, not a measure of being right. Stating the other view well protects you from your own blind spots.',
     application: 'Is there a disagreement where you may not have fully heard the other side?',
-    seed: 'I strongly disagree with someone and want to make sure I understand their view.' },
+    seed: 'I strongly disagree with someone and want to make sure I understand their view.' },,
+  { id: 'fuse-job-offer', title: 'FUSE: THE OFFER', mode: 'integrated', minutes: 6, difficulty: 'Medium',
+    scenario: 'You are offered a role with higher pay at a company you know little about. Your spreadsheet favours the move. Something feels uneasy, though you cannot say what. A colleague suggests asking to negotiate the start date. How do you reach a decision?',
+    options: [
+      { key: 'a', label: 'Go with the spreadsheet. The numbers are the objective part.', feedback: 'Numbers give structure, but they only hold what you put in them. The unease and the option to negotiate never entered the spreadsheet, so it may be answering a narrower question than the one you face.' },
+      { key: 'b', label: 'Split the decision into parts, name what the unease might be reacting to, list other options such as negotiating, check my assumptions, then write one position with a review date.', feedback: 'This uses each way of thinking on the part it suits, then brings them together into something you can act on and revisit. It takes longer than the other answers, which is the cost of a considered decision.' },
+      { key: 'c', label: 'Wait until the uneasy feeling goes away before deciding.', feedback: 'A feeling can fade for reasons that have nothing to do with the offer. Waiting can be reasonable if there is time, but without naming what the feeling points to, you may simply decide later with the same gap.' }],
+    explanation: 'Integrating is different from picking the strongest voice. Each way of thinking sees part of the problem, and the work is putting those parts into one position you can defend.',
+    application: 'Is there a decision where your analysis, your gut and your options point different ways?',
+    seed: 'My analysis, my gut and my options point in different directions on a decision and I want to bring them together.' },
+  { id: 'fuse-two-advisers', title: 'FUSE: TWO ADVISERS', mode: 'integrated', minutes: 6, difficulty: 'Medium',
+    scenario: 'Two people you trust give you opposite advice on a project. One says to push ahead now. The other says to wait three months. Both have good reasons and neither will move.',
+    options: [
+      { key: 'a', label: 'Follow the more experienced person.', feedback: 'Experience is evidence, not a tie-breaker. It does not tell you whether their assumptions match your situation.' },
+      { key: 'b', label: 'Find where their assumptions differ, test the one that matters most, then decide and say what would change my mind.', feedback: 'Disagreements often sit in an unstated assumption, such as how fast a rival will move. Testing that assumption turns two opinions into one question you can check.' },
+      { key: 'c', label: 'Compromise and start a smaller version in six weeks.', feedback: 'A middle path can be wise, but a compromise chosen only to end the disagreement may satisfy neither reason. Check that it answers the real difference between them.' }],
+    explanation: 'When good advisers disagree, the useful move is usually to find the assumption underneath, then fuse what you learn into a decision with a review point.',
+    application: 'Is there a decision where people you trust disagree?',
+    seed: 'People I trust disagree about a decision and I want to find what the disagreement is really about.' },
+  { id: 'fuse-behind-schedule', title: 'FUSE: BEHIND SCHEDULE', mode: 'integrated', minutes: 7, difficulty: 'Medium',
+    scenario: 'Your project is three weeks behind. Your team wants to cut scope. You feel the pull to push through with longer hours. A newer member suggests changing the approach entirely. You have one meeting to settle the plan.',
+    options: [
+      { key: 'a', label: 'Cut scope. It is the standard fix and the team is asking for it.', feedback: 'It may be right, but it answers how to do less, not why you are behind. If the cause is unclear, cutting scope may only delay the same problem.' },
+      { key: 'b', label: 'Push through. We have solved harder problems before.', feedback: 'Your instinct may carry real experience. But pushing through without checking the cause tends to spend people instead of solving the issue.' },
+      { key: 'c', label: 'Spend the first part of the meeting breaking the delay into causes, hear the unusual idea as a real option, check what I am assuming about the deadline, then agree one plan and when we will review it.', feedback: 'This gives each view a hearing and ends in one plan with a review date. It costs meeting time, but it makes the final choice one the team can explain.' }],
+    explanation: 'Under pressure, people lean on their usual way of thinking. Integrating means deliberately using the others before you commit.',
+    application: 'Is there a plan where you are leaning on one familiar way of thinking?',
+    seed: 'A project is behind and I want to think through the options before committing to a plan.' }
 ];
 NF_CHALLENGES.forEach((c, i) => { c.published = nfAddDays(NF_FEED_ANCHOR, i); });
 
@@ -2111,7 +2141,7 @@ const nfLoadLibrary = async () => {
     const { data, error } = await sb.from('thinking_challenges').select('*').eq('active', true).order('sort_order', { ascending: true }).limit(1000);
     if (error) throw error;
     const ok = (data || []).filter(c => c && Array.isArray(c.options) && c.options.length >= 3 && c.options.length <= 4);
-    if (ok.length >= 7) { NF_LIB_CACHE = ok; return ok; }
+    if (ok.length >= 7) { NF_LIB_CACHE = ok.concat(NF_CHALLENGES.filter(c => c.mode === 'integrated' && !ok.some(x => x.id === c.id))); return NF_LIB_CACHE; }
   } catch (e) { console.warn('[CHALLENGE LIBRARY] using built-in set:', e && e.message); }
   return NF_CHALLENGES;
 };
@@ -2129,9 +2159,23 @@ function nfWeakestMode(decisions, today) {
   const sorted = Object.keys(avg).sort((a, b) => avg[a] - avg[b]);
   return avg[sorted[0]] < avg[sorted[1]] ? sorted[0] : null;
 }
+// Daily Thinking Practice: Monday analytical, Tuesday intuitive, Wednesday associative, Thursday reflective,
+// Friday an integrated challenge. Weekends fall back to the general rotation. The choice depends only on the date,
+// so it is stable all day and earlier days always show the same exercise.
+const NF_WEEKDAY_MODE = { 1: 'analytical', 2: 'intuitive', 3: 'associative', 4: 'reflective', 5: 'integrated' };
+const NF_WEEKDAY_NAME = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+function nfWeekday(dateStr) { const p = String(dateStr).split('-').map(Number); return new Date(p[0], p[1] - 1, p[2]).getDay(); }
+function nfScheduled(lib, dateStr) {
+  const wm = NF_WEEKDAY_MODE[nfWeekday(dateStr)];
+  const pool = wm ? lib.filter(c => c.mode === wm) : [];
+  if (!pool.length) return nfRotate(lib, dateStr);
+  const week = Math.floor((nfDayNumber(dateStr) - nfDayNumber(NF_FEED_ANCHOR)) / 7);
+  return pool[((week % pool.length) + pool.length) % pool.length];
+}
 function nfPickChallenge(today, lib, decisions, rows) {
   const done = rows.find(r => r.challenge_date === today);
   if (done) { const c = lib.find(x => x.id === done.challenge_id); if (c) return { ch: c, why: null }; }
+  if (NF_WEEKDAY_MODE[nfWeekday(today)] && lib.some(c => c.mode === NF_WEEKDAY_MODE[nfWeekday(today)])) return { ch: nfScheduled(lib, today), why: null };
   const plain = nfRotate(lib, today);
   const weak = nfWeakestMode(decisions, today);
   if (!weak) return { ch: plain, why: null };
@@ -2379,6 +2423,42 @@ const nfSaveReview = async (id, patch, legacy) => {
 function nfReadDismissed(uid) { try { return JSON.parse(window.localStorage.getItem('nf_dismissed:' + uid) || '[]'); } catch (_) { return []; } }
 function nfWriteDismissed(uid, list) { try { window.localStorage.setItem('nf_dismissed:' + uid, JSON.stringify(list.slice(-200))); } catch (_) {} }
 
+// Anonymous (signed-out) events go to public_events. Privacy rules: allowlisted names only, a random per-tab
+// session id (sessionStorage, never a cookie, never linked to an account), path without query string, a coarse
+// traffic source, and nothing sent at all when the browser says Do Not Track or Global Privacy Control.
+const NF_PUBLIC_EVENTS = ['landing_viewed', 'primary_cta_clicked', 'secondary_cta_clicked', 'pathway_clicked', 'core_loop_stage_viewed'];
+function nfTrackingBlocked() {
+  try { return navigator.doNotTrack === '1' || window.doNotTrack === '1' || navigator.globalPrivacyControl === true; } catch (_) { return false; }
+}
+function nfSessionId() {
+  try {
+    let s = window.sessionStorage.getItem('nf_sid');
+    if (!s) { s = (window.crypto && window.crypto.randomUUID) ? window.crypto.randomUUID() : (Date.now().toString(36) + Math.random().toString(36).slice(2, 12)); window.sessionStorage.setItem('nf_sid', s); }
+    return s;
+  } catch (_) { return null; }
+}
+function nfTrafficSource() {
+  try {
+    const tok = (v) => (typeof v === 'string' && /^[a-z0-9_.\-]{1,40}$/i.test(v)) ? v.toLowerCase() : null;
+    const u = tok(new URLSearchParams(window.location.search).get('utm_source'));
+    if (u) return u;
+    if (document.referrer) { const h = new URL(document.referrer).hostname.replace(/^www\./, ''); if (h && h !== window.location.hostname.replace(/^www\./, '')) return h.slice(0, 40); }
+  } catch (_) {}
+  return 'direct';
+}
+function nfOncePerSession(key, fn) {
+  try { if (window.sessionStorage.getItem(key)) return; window.sessionStorage.setItem(key, '1'); } catch (_) {}
+  fn();
+}
+function nfPublicEvent(name, clean) {
+  if (NF_PUBLIC_EVENTS.indexOf(name) === -1 || nfTrackingBlocked()) return;
+  const sid = nfSessionId(); if (!sid) return;
+  try {
+    sb.from('public_events').insert({ session_id: sid, event_name: name, page: window.location.pathname.slice(0, 80), source: name === 'landing_viewed' ? nfTrafficSource() : null, props: clean })
+      .then(x => { if (x && x.error) console.warn('[NF PUBLIC EVENT]', x.error.message); });
+  } catch (_) {}
+}
+
 // Privacy-conscious events: names plus small numeric/short-string props only. Never session text.
 function nfEvent(name, props) {
   const clean = {};
@@ -2387,7 +2467,7 @@ function nfEvent(name, props) {
   try {
     sb.auth.getSession().then(r => {
       const s = r && r.data && r.data.session;
-      if (!s) return null;
+      if (!s) { nfPublicEvent(name, clean); return null; }
       return sb.from('product_events').insert({ user_id: s.user.id, event_name: name, props: clean }).then(x => { if (x.error) console.warn('[NF EVENT]', x.error.message); });
     }).catch(() => {});
   } catch (_) {}
@@ -2482,7 +2562,7 @@ function NFChallenge({ user, date, ch, why: whyPick, latestOpen, row, setView, o
 
   return E("div", { className: "nf-feed-block" },
     E("h3", { className: "nf-feed-title" }, ch.title),
-    E("div", { className: "nf-feed-meta" }, modeName, ' \u00b7 ', ch.minutes, ' min', done ? ' \u00b7 Done' : ''),
+    E("div", { className: "nf-feed-meta" }, NF_WEEKDAY_MODE[nfWeekday(date)] === ch.mode ? NF_WEEKDAY_NAME[nfWeekday(date)] + ' practice \u00b7 ' : '', modeName, ' \u00b7 ', ch.minutes, ' min', done ? ' \u00b7 Done' : ''),
     whyPick && !done && E("p", { className: "nf-feed-note" }, 'Chosen because your answers in the ' + whyPick + ' stage have been the shortest in your saved sessions. That is about how much you wrote, not how well you think.'),
     E("p", { className: "nf-feed-scenario" }, ch.scenario),
     !open && !done && E("button", { className: "nf-home-cta-outline", onClick: open_ }, 'Try this challenge'),
@@ -2666,7 +2746,7 @@ function ThinkingFeed({ user, setView, cfiHistory, completedLessons, hasCfi, mod
       earlier.length > 0 && E("details", { style: { marginTop: 18 } },
         E("summary", { className: "nf-feed-meta", style: { cursor: 'pointer', minHeight: 44, display: 'flex', alignItems: 'center' } }, 'Earlier challenges'),
         E("p", { className: "nf-feed-note" }, 'Open any of these whenever you like. Missing a day costs nothing.'),
-        earlier.map(d => { const r = rowFor(d); const c = (r && lib.find(x => x.id === r.challenge_id)) || nfRotate(lib, d);
+        earlier.map(d => { const r = rowFor(d); const c = (r && lib.find(x => x.id === r.challenge_id)) || nfScheduled(lib, d);
           return E("details", { key: d, style: { borderTop: `1px solid ${H.border}`, padding: '4px 0' } },
             E("summary", { style: { cursor: 'pointer', minHeight: 48, display: 'flex', alignItems: 'center', color: H.ink, fontSize: 16 } }, c.title, r ? '  \u00b7 Done' : ''),
             E("div", { style: { padding: '8px 0 16px' } }, E(NFChallenge, { user, date: d, ch: c, row: r, setView, onSaved: onChallengeSaved, defaultOpen: true })));
@@ -2758,6 +2838,479 @@ function ThinkingFeed({ user, setView, cfiHistory, completedLessons, hasCfi, mod
   );
 }
 
+// ═══════════════════════════════════════════════════════════════════
+//  PUBLIC LANDING PAGE (signed out)
+//  Navy / electric blue / controlled violet. Self-contained: all styles scoped under .nfl.
+//  Core Loop here follows the implemented sequence: Decompose → Sense → Expand → Reflect → Fuse.
+// ═══════════════════════════════════════════════════════════════════
+function LandingView({ setView, setShowAuth }) {
+  const E = React.createElement;
+  const [stage, setStage] = useState(0);
+  const tabRefs = useRef([]);
+  // Deep links such as /#core-loop: the sections only exist after React renders, so scroll once they do.
+  useEffect(() => {
+    const id = (window.location.hash || '').slice(1);
+    if (!id) return;
+    const el = document.getElementById(id);
+    if (el) el.scrollIntoView({ block: 'start' });
+  }, []);
+  useEffect(() => { nfOncePerSession('nf_lv', () => nfEvent('landing_viewed', {})); }, []);
+  const goCfi = (where) => { nfEvent('primary_cta_clicked', { where }); setView('cfi'); };
+  const scrollTo = (id) => {
+    nfEvent('secondary_cta_clicked', { where: 'hero', target: id });
+    const el = document.getElementById(id);
+    if (!el) return;
+    const calm = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    el.scrollIntoView({ behavior: calm ? 'auto' : 'smooth', block: 'start' });
+  };
+  const pathway = (which) => nfEvent('pathway_clicked', { pathway: which });
+
+  const loop = [
+    ['Decompose', 'Break a complex issue into understandable components.',
+      'Split the decision into parts you can look at one at a time: income and runway, what you would learn, who you would work with, what you would give up. Write each as its own question.'],
+    ['Sense', 'Examine intuitive impressions and possible patterns.',
+      'Notice your first reaction before you analyse it. Excited? Uneasy? Ask what it might be picking up on, such as the founder, the pace or the risk, and treat it as a hypothesis to test, not a verdict.'],
+    ['Expand', 'Explore alternatives and connect different perspectives.',
+      'Widen the options. Could you start part-time, take the offer in a year, or learn the same skill where you are? Ask how someone who chose the opposite would see it.'],
+    ['Reflect', 'Examine assumptions and evaluate your reasoning.',
+      'Check what you are taking for granted. Are you assuming the startup funds you for eighteen months? Are you moving toward something or away from something? What would change your mind?'],
+    ['Fuse', 'Bring the thinking process together into a considered conclusion.',
+      'State one position you can defend: what you decide, the main reason, the risk you accept and the date you will review it.'],
+  ];
+  const onTabKey = (e, i) => {
+    let n = null;
+    if (e.key === 'ArrowRight' || e.key === 'ArrowDown') n = (i + 1) % loop.length;
+    else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') n = (i + loop.length - 1) % loop.length;
+    else if (e.key === 'Home') n = 0;
+    else if (e.key === 'End') n = loop.length - 1;
+    if (n === null) return;
+    e.preventDefault(); setStage(n); nfEvent('core_loop_stage_viewed', { stage: loop[n][0] });
+    if (tabRefs.current[n]) tabRefs.current[n].focus();
+  };
+
+  const modes = [
+    { k: 'a', name: 'Analytical', what: 'Examine information, evidence, logic and structure.', glyph: E('rect', { x: 10, y: 10, width: 28, height: 28, rx: 2, fill: 'none', stroke: 'currentColor', strokeWidth: 2.5 }) },
+    { k: 'i', name: 'Intuitive', what: 'Recognise patterns and explore rapid judgments.', glyph: E('path', { d: 'M24 6 L27.5 20.5 L42 24 L27.5 27.5 L24 42 L20.5 27.5 L6 24 L20.5 20.5 Z', fill: 'none', stroke: 'currentColor', strokeWidth: 2.5, strokeLinejoin: 'round' }) },
+    { k: 's', name: 'Associative', what: 'Connect ideas and generate alternative possibilities.', glyph: E('g', { fill: 'none', stroke: 'currentColor', strokeWidth: 2.5 }, E('circle', { cx: 10, cy: 12, r: 4.5 }), E('circle', { cx: 38, cy: 14, r: 4.5 }), E('circle', { cx: 24, cy: 38, r: 4.5 }), E('path', { d: 'M14 14 L34 15 M12 16 L22 34 M36 18 L26 34' })) },
+    { k: 'r', name: 'Reflective', what: 'Examine assumptions, experiences and the reasoning behind decisions.', glyph: E('g', { fill: 'none', stroke: 'currentColor', strokeWidth: 2.5 }, E('circle', { cx: 24, cy: 24, r: 15 }), E('circle', { cx: 24, cy: 24, r: 6 })) },
+  ];
+
+  const ladder = [
+    ['Generating an answer', 'Fast, and increasingly easy to hand to a tool.'],
+    ['Understanding the answer', 'Knowing why it says what it says.'],
+    ['Evaluating the answer', 'Testing it against evidence, context and your own experience.'],
+    ['Reasoning through the problem', 'Working out the structure yourself, with or without help.'],
+    ['Fusing it into a decision', 'Bringing what you know and what you were given into a judgment you can stand behind.'],
+  ];
+
+  const uses = [
+    ['Academic research', 'Before you accept a literature summary, decide what the question really is and what evidence would change your view.'],
+    ['Complex problem-solving', 'A failing project has six possible causes. Separate them before you chase the loudest one.'],
+    ['Business decisions', 'A pricing change looks obvious in the spreadsheet. Check what the numbers assume about your customers.'],
+    ['Leadership', 'Two trusted people give you opposite advice. Find where their assumptions differ.'],
+    ['Professional development', 'You are offered a promotion into management. Work out what you would gain, lose and be assuming.'],
+    ['Innovation', 'Take a product that works and ask what it would look like built for the opposite customer.'],
+    ['Personal decisions', 'Whether to move cities, go back to study or end a long commitment, with your reasons written down.'],
+  ];
+
+  const faq = [
+    ['Is this a medical test or a personality test?', 'No. The CFI is not a diagnosis, a personality label or an intelligence test. It describes how you report working through problems and decisions today.'],
+    ['How long does the CFI take?', '40 questions, about 8 minutes.'],
+    ['Is NeuralFusion an AI chatbot?', 'No. NeuralFusion develops your own thinking. It does not think for you, and it is not against AI.'],
+    ['Is it free?', 'The CFI and the first lesson are free. The full set of lessons is a one-time payment. Teams can share one link and take the CFI and lessons together.'],
+    ['What happens to my data?', null],
+  ];
+
+  const styles = E('style', null, `
+    .nfl { --nv:#070D24; --nv2:#0C1636; --nv3:#142149; --bl:#3F6BFF; --blh:#5B84FF; --vi:#8A6DFF; --pa:#F5F7FC; --pa2:#EAEEF8; --ink:#0B1226; --mu:#47506B; --ln:#D5DBEA; --ca:#9FB3FF; --cr:#C7B8FF;
+      font-family:'Satoshi','DM Sans',sans-serif; color:var(--ink); background:var(--pa); padding-top:60px; line-height:1.6; }
+    .nfl *, .nfl *::before, .nfl *::after { box-sizing:border-box; }
+    .nfl h1,.nfl h2,.nfl h3 { font-family:'Clash Display','Syne',sans-serif; font-weight:600; letter-spacing:-0.015em; margin:0; overflow-wrap:break-word; text-wrap:balance; }
+    .nfl p { margin:0; overflow-wrap:break-word; }
+    .nfl a { color:inherit; }
+    .nfl .w { max-width:1120px; margin:0 auto; padding:0 24px; }
+    .nfl .sec { padding:88px 0; }
+    .nfl .sec.alt { background:var(--pa2); }
+    .nfl .sec.dark { background:var(--nv); color:#fff; }
+    .nfl h2 { font-size:clamp(28px,3.8vw,42px); line-height:1.15; max-width:760px; }
+    .nfl .lede { font-size:18px; color:var(--mu); max-width:640px; margin-top:16px; }
+    .nfl .dark .lede { color:#B8C3E6; }
+    .nfl .btn { display:inline-flex; align-items:center; justify-content:center; min-height:52px; padding:0 28px; border-radius:6px; font:600 15px 'Clash Display','Syne',sans-serif; letter-spacing:0.01em; cursor:pointer; text-decoration:none; border:1.5px solid transparent; transition:background .15s,border-color .15s; }
+    .nfl .btn.pri { background:var(--bl); color:#fff; }
+    .nfl .btn.pri:hover { background:var(--blh); }
+    .nfl .btn.ghost { background:transparent; color:#fff; border-color:#4A5A94; }
+    .nfl .btn.ghost:hover { border-color:var(--ca); }
+    .nfl .btn.line { background:transparent; color:var(--ink); border-color:#9AA6C6; }
+    .nfl .btn.line:hover { border-color:var(--bl); color:var(--bl); }
+    .nfl a:focus-visible, .nfl button:focus-visible, .nfl summary:focus-visible { outline:3px solid var(--blh); outline-offset:3px; }
+    .nfl .dark a:focus-visible, .nfl .dark button:focus-visible, .nfl .hero a:focus-visible, .nfl .hero button:focus-visible { outline-color:#fff; }
+
+    .nfl .hero { background:var(--nv); color:#fff; padding:72px 0 80px; }
+    .nfl .hero-grid { display:grid; grid-template-columns:1.05fr 0.95fr; gap:48px; align-items:center; }
+    .nfl .eyebrow { font:700 13px 'Space Mono',monospace; letter-spacing:0.12em; text-transform:uppercase; color:#A9BCFF; margin:0 0 18px; }
+    .nfl .hero h1 { font-size:clamp(34px,5vw,58px); line-height:1.07; }
+    .nfl .hero .sub { font-size:18px; color:#BFC9E9; margin-top:22px; max-width:540px; }
+    .nfl .hero .cta { display:flex; flex-wrap:wrap; gap:14px; margin-top:34px; }
+    .nfl .hero .note { font-size:14px; color:#8F9CC6; margin-top:18px; }
+    .nfl .hero svg { width:100%; height:auto; max-width:480px; display:block; margin:0 auto; }
+    .nfl .draw { stroke-dasharray:1; stroke-dashoffset:1; animation:nflDraw 1.8s .2s ease-out forwards; }
+    @keyframes nflDraw { to { stroke-dashoffset:0; } }
+    @media (prefers-reduced-motion: reduce) { .nfl .draw { animation:none; stroke-dashoffset:0; } }
+
+    .nfl .ladder { list-style:none; margin:44px 0 0; padding:0; display:grid; grid-template-columns:repeat(5,1fr); gap:0; border-top:2px solid var(--ink); }
+    .nfl .ladder li { padding:20px 18px 6px 0; position:relative; }
+    .nfl .ladder li + li { padding-left:18px; border-left:1px solid var(--ln); }
+    .nfl .ladder h3 { font-size:17px; line-height:1.3; }
+    .nfl .ladder p { font-size:14.5px; color:var(--mu); margin-top:8px; }
+    .nfl .ladder .mark { display:block; height:6px; margin:-22px 0 16px; background:var(--ln); }
+    .nfl .ladder li:nth-child(n+3) .mark { background:var(--bl); }
+    .nfl .ladder-key { display:flex; flex-wrap:wrap; gap:20px; margin-top:22px; font-size:14px; color:var(--mu); }
+    .nfl .ladder-key i { display:inline-block; width:22px; height:6px; margin-right:8px; vertical-align:middle; }
+    .nfl .balance { font-size:17px; margin-top:34px; max-width:700px; border-left:3px solid var(--bl); padding-left:18px; }
+
+    .nfl .three { display:grid; grid-template-columns:repeat(3,1fr); gap:28px; margin-top:44px; counter-reset:st; }
+    .nfl .three > div { border-top:2px solid var(--bl); padding-top:18px; }
+    .nfl .three h3 { font-size:22px; }
+    .nfl .three p { color:var(--mu); margin-top:10px; font-size:16px; }
+    .nfl .three .st { font:700 13px 'Space Mono',monospace; color:var(--bl); margin-bottom:6px; display:block; }
+
+    .nfl .modes { display:grid; grid-template-columns:repeat(4,1fr); gap:0; margin-top:44px; border:1px solid #2A3A74; }
+    .nfl .mode { padding:26px 22px 28px; }
+    .nfl .mode + .mode { border-left:1px solid #2A3A74; }
+    .nfl .mode svg { width:44px; height:44px; display:block; margin-bottom:18px; }
+    .nfl .mode h3 { font-size:21px; }
+    .nfl .mode p { font-size:15px; color:#B8C3E6; margin-top:8px; }
+    .nfl .mode.a { color:#6E96FF; } .nfl .mode.i { color:#A28BFF; } .nfl .mode.s { color:#52BDEF; } .nfl .mode.r { color:#CDBEFF; }
+    .nfl .mode h3, .nfl .mode p { color:#fff; } .nfl .mode p { color:#B8C3E6; }
+    .nfl .together { margin-top:30px; max-width:720px; font-size:17px; color:#D5DCF3; }
+
+    .nfl .loop { display:grid; grid-template-columns:260px 1fr; gap:0; margin-top:44px; border:1px solid var(--ln); background:#fff; }
+    .nfl .tabs { display:flex; flex-direction:column; border-right:1px solid var(--ln); background:var(--pa); }
+    .nfl .tab { text-align:left; background:none; border:0; border-bottom:1px solid var(--ln); padding:18px 20px; min-height:60px; font:600 17px 'Clash Display','Syne',sans-serif; color:var(--mu); cursor:pointer; display:flex; align-items:center; gap:12px; }
+    .nfl .tab:last-child { border-bottom:0; }
+    .nfl .tab .n { font:700 12px 'Space Mono',monospace; color:#7C86A6; }
+    .nfl .tab[aria-selected="true"] { background:#fff; color:var(--ink); box-shadow:inset 4px 0 0 var(--bl); }
+    .nfl .tab[aria-selected="true"] .n { color:var(--bl); }
+    .nfl .panel { padding:34px 36px; }
+    .nfl .panel h3 { font-size:26px; }
+    .nfl .panel .def { color:var(--mu); margin-top:8px; font-size:16px; }
+    .nfl .panel .ex { margin-top:22px; padding-top:20px; border-top:1px solid var(--ln); }
+    .nfl .panel .ex small { display:block; font-size:13.5px; color:var(--mu); margin-bottom:8px; }
+    .nfl .panel .ex p { font-size:17px; max-width:600px; }
+    .nfl .seq { display:flex; flex-wrap:wrap; gap:8px 6px; margin-top:26px; font:600 13px 'Space Mono',monospace; color:var(--mu); }
+    .nfl .seq b { color:var(--bl); }
+
+    .nfl .cfi { display:grid; grid-template-columns:1fr 1fr; gap:56px; align-items:start; }
+    .nfl .chips { list-style:none; margin:26px 0 0; padding:0; display:flex; flex-wrap:wrap; gap:10px; }
+    .nfl .chips li { padding:9px 16px; border:1px solid #9AA6C6; border-radius:999px; font-size:15px; background:#fff; }
+    .nfl .chips li.co { border-style:dashed; }
+    .nfl .facts { margin-top:22px; color:var(--mu); font-size:16px; }
+    .nfl .status { border:1.5px solid var(--ink); background:#fff; padding:26px 26px 24px; }
+    .nfl .status h3 { font-size:19px; }
+    .nfl .status ul { margin:14px 0 0; padding-left:20px; color:var(--mu); font-size:15.5px; }
+    .nfl .status li { margin-top:8px; }
+    .nfl .status a { color:var(--bl); font-weight:600; }
+
+    .nfl .uses { list-style:none; margin:40px 0 0; padding:0; display:grid; grid-template-columns:repeat(2,1fr); gap:0 48px; }
+    .nfl .uses li { padding:20px 0; border-top:1px solid var(--ln); }
+    .nfl .uses h3 { font-size:18px; }
+    .nfl .uses p { font-size:15.5px; color:var(--mu); margin-top:6px; }
+
+    .nfl .paths { display:grid; grid-template-columns:repeat(3,1fr); gap:24px; margin-top:44px; }
+    .nfl .path { background:#fff; border:1px solid var(--ln); padding:30px 26px 28px; display:flex; flex-direction:column; }
+    .nfl .path.first { border-top:4px solid var(--bl); }
+    .nfl .path.second { border-top:4px solid var(--vi); }
+    .nfl .path.third { border-top:4px solid var(--nv3); }
+    .nfl .path h3 { font-size:22px; }
+    .nfl .path p { color:var(--mu); margin:10px 0 24px; font-size:16px; flex:1; }
+    .nfl .path .btn { align-self:flex-start; }
+
+    .nfl .links { list-style:none; margin:36px 0 0; padding:0; display:grid; grid-template-columns:repeat(3,1fr); gap:14px; }
+    .nfl .links a { display:block; padding:16px 18px; border:1px solid #2A3A74; text-decoration:none; font-weight:600; min-height:56px; }
+    .nfl .links a:hover { border-color:var(--ca); }
+    .nfl .links span { display:block; font-weight:400; font-size:14px; color:#9FACD6; margin-top:2px; }
+    .nfl .fine { margin-top:26px; font-size:15px; color:#B8C3E6; max-width:700px; }
+
+    .nfl .founder { max-width:680px; border-left:3px solid var(--vi); padding-left:22px; }
+    .nfl .founder p + p { margin-top:12px; }
+    .nfl details { border-top:1px solid var(--ln); }
+    .nfl details:last-of-type { border-bottom:1px solid var(--ln); }
+    .nfl summary { cursor:pointer; min-height:56px; display:flex; align-items:center; font-weight:600; font-size:17px; }
+    .nfl details p { color:var(--mu); padding:0 0 18px; max-width:640px; }
+    .nfl .final { background:var(--nv); color:#fff; text-align:center; padding:96px 0; }
+    .nfl .final h2 { margin:0 auto; font-size:clamp(28px,4.2vw,46px); max-width:820px; }
+    .nfl .final p { color:#B8C3E6; font-size:18px; margin:18px auto 32px; }
+
+    @media (max-width: 960px) {
+      .nfl .hero-grid, .nfl .cfi { grid-template-columns:1fr; gap:40px; }
+      .nfl .ladder { grid-template-columns:1fr; border-top:0; }
+      .nfl .ladder li, .nfl .ladder li + li { padding:18px 0; border-left:0; border-top:1px solid var(--ln); }
+      .nfl .ladder .mark { display:none; }
+      .nfl .three, .nfl .paths, .nfl .links { grid-template-columns:1fr; }
+      .nfl .modes { grid-template-columns:repeat(2,1fr); }
+      .nfl .mode + .mode { border-left:0; } .nfl .mode:nth-child(even) { border-left:1px solid #2A3A74; } .nfl .mode:nth-child(n+3) { border-top:1px solid #2A3A74; }
+      .nfl .loop { grid-template-columns:1fr; }
+      .nfl .tabs { flex-direction:row; overflow-x:auto; border-right:0; border-bottom:1px solid var(--ln); }
+      .nfl .tab { border-bottom:0; border-right:1px solid var(--ln); white-space:nowrap; flex:0 0 auto; }
+      .nfl .tab[aria-selected="true"] { box-shadow:inset 0 -4px 0 var(--bl); }
+      .nfl .uses { grid-template-columns:1fr; }
+    }
+    @media (max-width: 560px) {
+      .nfl .sec { padding:64px 0; } .nfl .hero { padding:48px 0 56px; }
+      .nfl .modes { grid-template-columns:1fr; } .nfl .mode:nth-child(even) { border-left:0; } .nfl .mode + .mode { border-top:1px solid #2A3A74; }
+      .nfl .panel { padding:26px 22px; } .nfl .btn { width:100%; }
+    }
+  `);
+
+  const section = (id, cls, children) => E('section', { id, className: 'sec ' + (cls || ''), 'aria-labelledby': id ? id + '-h' : undefined }, E('div', { className: 'w' }, children));
+  const h2 = (id, t) => E('h2', { key: 'h2', id: id + '-h' }, t);
+
+  // Hero figure: four modes converge into one judgment, inside a ring of AI support.
+  const node = (x, y, c, label, dy) => E('g', { key: label },
+    E('circle', { cx: x, cy: y, r: 30, fill: '#0C1636', stroke: c, strokeWidth: 2.5 }),
+    E('circle', { cx: x, cy: y, r: 9, fill: c }),
+    E('text', { x, y: y + dy, textAnchor: 'middle', fill: '#DCE3F8', fontSize: 14, fontFamily: 'Satoshi,sans-serif' }, label));
+  const curve = (d, c, k) => E('path', { key: k, d, pathLength: 1, className: 'draw', fill: 'none', stroke: c, strokeWidth: 2.5, strokeLinecap: 'round' });
+  const figure = E('svg', { viewBox: '0 0 480 460', role: 'img', 'aria-label': 'Four thinking modes, Analytical, Intuitive, Associative and Reflective, converging into one integrated judgment, surrounded by AI support.' },
+    E('circle', { cx: 240, cy: 230, r: 214, fill: 'none', stroke: '#33427F', strokeWidth: 1.5, strokeDasharray: '3 7' }),
+    E('text', { x: 240, y: 28, textAnchor: 'middle', fill: '#8F9CC6', fontSize: 13, fontFamily: 'Satoshi,sans-serif' }, 'AI: answers, drafts, options'),
+    curve('M96 98 C 150 120 190 170 214 206', '#6E96FF', 'a'),
+    curve('M384 98 C 330 120 290 170 266 206', '#A28BFF', 'i'),
+    curve('M96 362 C 150 340 190 290 214 254', '#52BDEF', 's'),
+    curve('M384 362 C 330 340 290 290 266 254', '#CDBEFF', 'r'),
+    E('circle', { cx: 240, cy: 230, r: 44, fill: '#142149', stroke: '#fff', strokeWidth: 2 }),
+    E('text', { x: 240, y: 226, textAnchor: 'middle', fill: '#fff', fontSize: 14, fontWeight: 700, fontFamily: 'Clash Display,sans-serif' }, 'Your'),
+    E('text', { x: 240, y: 244, textAnchor: 'middle', fill: '#fff', fontSize: 14, fontWeight: 700, fontFamily: 'Clash Display,sans-serif' }, 'judgment'),
+    node(80, 84, '#6E96FF', 'Analytical', 52), node(400, 84, '#A28BFF', 'Intuitive', 52),
+    node(80, 376, '#52BDEF', 'Associative', -42), node(400, 376, '#CDBEFF', 'Reflective', -42));
+
+  const sel = loop[stage];
+
+  return E('div', { className: 'nfl' }, styles,
+
+    // 1. Hero
+    E('header', { className: 'hero' }, E('div', { className: 'w hero-grid' },
+      E('div', null,
+        E('p', { className: 'eyebrow' }, 'A cognitive operating system for how you think'),
+        E('h1', null, 'AI Can Expand Your Capabilities. But Who Is Developing Your Thinking?'),
+        E('p', { className: 'sub' }, 'NeuralFusion is a cognitive operating system for how you think. It helps you understand your thinking patterns, practise cognitive integration and strengthen independent judgment in an increasingly AI-driven world.'),
+        E('div', { className: 'cta' },
+          E('button', { className: 'btn pri', onClick: () => goCfi('hero') }, 'Explore Your Thinking'),
+          E('button', { className: 'btn ghost', onClick: () => scrollTo('how') }, 'Discover How NeuralFusion Works')),
+        E('p', { className: 'note' }, 'Free account. The CFI takes 40 questions, about 8 minutes.')),
+      E('div', null, figure))),
+
+    // 2. The problem
+    section('problem', 'alt', [
+      h2('problem', 'Access to Intelligence Is Expanding. The Development of Human Thinking Must Keep Pace.'),
+      E('p', { key: 'l', className: 'lede' }, 'A tool can hand you an answer in seconds. Five different things can happen after that, and they are not the same.'),
+      E('ol', { key: 'o', className: 'ladder' }, ladder.map(([t, x]) => E('li', { key: t }, E('span', { className: 'mark', 'aria-hidden': 'true' }), E('h3', null, t), E('p', null, x)))),
+      E('div', { key: 'k', className: 'ladder-key', 'aria-hidden': 'true' },
+        E('span', null, E('i', { style: { background: '#D5DBEA' } }), 'Easy to delegate'),
+        E('span', null, E('i', { style: { background: '#3F6BFF' } }), 'Where your own judgment does the work')),
+      E('p', { key: 'b', className: 'balance' }, 'AI can support every one of these steps. The point is that a person stays an active part of the reasoning and the judgment, and that this is a skill you can practise.')
+    ]),
+
+    // 3. What NeuralFusion is
+    section('how', '', [
+      h2('how', 'A Structured Approach to Developing Human Cognitive Capabilities.'),
+      E('p', { key: 'l', className: 'lede' }, 'NeuralFusion is a cognitive operating system for how you think. It is not a chatbot, a productivity app or a course to watch. It is a place to understand your thinking and practise it deliberately.'),
+      E('div', { key: 't', className: 'three' },
+        E('div', null, E('span', { className: 'st' }, '1'), E('h3', null, 'Understand'), E('p', null, 'Discover your thinking patterns through the Cognitive Fragmentation Index (CFI) assessment.')),
+        E('div', null, E('span', { className: 'st' }, '2'), E('h3', null, 'Practise'), E('p', null, 'Use structured cognitive exercises and the Core Loop on real problems and decisions.')),
+        E('div', null, E('span', { className: 'st' }, '3'), E('h3', null, 'Develop'), E('p', null, 'Track your engagement, your assessment history and how your practice changes over time.')))
+    ]),
+
+    // 4. Four modes
+    section('modes', 'dark', [
+      h2('modes', 'Four Ways of Thinking, Working as One System'),
+      E('p', { key: 'l', className: 'lede' }, 'The Four Thinking Modes Framework describes how people work through problems. Each mode sees something the others miss.'),
+      E('div', { key: 'm', className: 'modes' }, modes.map(m => E('div', { key: m.k, className: 'mode ' + m.k },
+        E('svg', { viewBox: '0 0 48 48', 'aria-hidden': 'true' }, m.glyph), E('h3', null, m.name), E('p', null, m.what)))),
+      E('p', { key: 't', className: 'together' }, 'These are not four separate minds. They are four ways of working on the same problem. Good judgment comes from how well they are coordinated, which is why the CFI also reports a Coordination score.'),
+      E('p', { key: 'a', style: { marginTop: 22 } }, E('a', { href: '/thinking', style: { fontWeight: 600 } }, 'Read about the four modes'))
+    ]),
+
+    // 5. Core Loop
+    section('core-loop', '', [
+      h2('core-loop', 'Thinking Should Have Structure.'),
+      E('p', { key: 'l', className: 'lede' }, 'The Core Loop takes one problem through five stages. Choose a stage to see it applied to a real decision.'),
+      E('div', { key: 'x', className: 'loop' },
+        E('div', { className: 'tabs', role: 'tablist', 'aria-label': 'Core Loop stages', 'aria-orientation': 'vertical' },
+          loop.map((s, i) => E('button', {
+            key: s[0], role: 'tab', id: 'nfl-tab-' + i, 'aria-selected': i === stage ? 'true' : 'false', 'aria-controls': 'nfl-panel',
+            tabIndex: i === stage ? 0 : -1, className: 'tab', ref: (el) => { tabRefs.current[i] = el; },
+            onClick: () => { setStage(i); nfEvent('core_loop_stage_viewed', { stage: s[0] }); }, onKeyDown: (e) => onTabKey(e, i)
+          }, E('span', { className: 'n', 'aria-hidden': 'true' }, i + 1), s[0]))),
+        E('div', { className: 'panel', role: 'tabpanel', id: 'nfl-panel', 'aria-labelledby': 'nfl-tab-' + stage, tabIndex: 0 },
+          E('h3', null, sel[0]), E('p', { className: 'def' }, sel[1]),
+          E('div', { className: 'ex' }, E('small', null, 'Example: should I leave a stable job to join an early-stage startup?'), E('p', null, sel[2])),
+          E('div', { className: 'seq', 'aria-hidden': 'true' }, loop.map((s, i) => E('span', { key: s[0] }, i === stage ? E('b', null, s[0].toUpperCase()) : s[0].toUpperCase(), i < loop.length - 1 ? ' \u2192' : ''))))),
+      E('p', { key: 'p', className: 'lede', style: { marginTop: 24 } }, 'Inside the app you work your own decision through these stages and save the result in your Decision Room.')
+    ]),
+
+    // 6. CFI
+    section('cfi', 'alt', E('div', { className: 'cfi' },
+      E('div', null,
+        h2('cfi', 'Understand Your Thinking Patterns.'),
+        E('p', { className: 'lede' }, 'The Cognitive Fragmentation Index describes how often you use each mode and how well you coordinate them, so you know where to practise.'),
+        E('ul', { className: 'chips' }, ['Analytical', 'Intuitive', 'Associative', 'Reflective'].map(t => E('li', { key: t }, t)), E('li', { className: 'co' }, 'Coordination')),
+        E('p', { className: 'facts' }, '40 questions, about 8 minutes. You need a free account so your result is saved and you can compare it when you retake it.'),
+        E('div', { style: { marginTop: 26 } }, E('button', { className: 'btn pri', onClick: () => goCfi('cfi_section') }, 'Take the Free CFI Assessment'))),
+      E('div', { className: 'status' },
+        E('h3', null, 'What the CFI is, and is not'),
+        E('ul', null,
+          E('li', null, 'CFI-2.0 is an early-stage instrument. It has not yet been validated, and we say so on the methodology page.'),
+          E('li', null, 'It is not a clinical or diagnostic test, an intelligence test or a personality label. It gives no IQ-style score.'),
+          E('li', null, 'It describes how you report thinking today. Treat it as a starting point for practice, not a verdict.')),
+        E('p', { style: { marginTop: 16 } }, E('a', { href: '/methodology' }, 'Read the full methodology and its limits'))))),
+
+    // 7. Applications
+    section('use', '', [
+      h2('use', 'Bring Better Thinking Into the Decisions That Matter.'),
+      E('ul', { key: 'u', className: 'uses' }, uses.map(([t, x]) => E('li', { key: t }, E('h3', null, t), E('p', null, x))))
+    ]),
+
+    // 8. Pathways
+    section('paths', 'alt', [
+      h2('paths', 'Choose Where to Begin'),
+      E('div', { key: 'p', className: 'paths' },
+        E('div', { className: 'path first' }, E('h3', null, 'For individuals'), E('p', null, 'Understand your thinking patterns. Practise structured cognitive development. Monitor your progress.'),
+          E('button', { className: 'btn pri', onClick: () => goCfi('pathway_individual') }, 'Start Your Development')),
+        E('div', { className: 'path second' }, E('h3', null, 'For universities and research institutions'), E('p', null, 'Explore structured cognitive development programmes, academic collaboration and research partnerships.'),
+          E('a', { className: 'btn line', href: '/academic-partnerships', onClick: () => pathway('academic') }, 'Explore Academic Partnerships')),
+        E('div', { className: 'path third' }, E('h3', null, 'For organisations'), E('p', null, 'Explore team-based cognitive development, structured decision-making practice and organisational programmes.'),
+          E('a', { className: 'btn line', href: '/organisations', onClick: () => pathway('enterprise') }, 'Explore Enterprise')))
+    ]),
+
+    // 9. Scientific transparency
+    section('science', 'dark', [
+      h2('science', 'Open About What We Know, and What We Don\u2019t'),
+      E('p', { key: 'l', className: 'lede' }, 'You can read how the CFI is built and scored, the framework behind it and its limitations before you take it.'),
+      E('ul', { key: 'k', className: 'links' },
+        [['CFI methodology', 'How the instrument is built and scored', '/methodology'],
+         ['Research documentation', 'What exists and what is still to do', '/research'],
+         ['Four Thinking Modes Framework', 'The framework behind the product', '/thinking'],
+         ['Cognitive fragmentation', 'The idea the CFI is named for', '/cognitive-fragmentation'],
+         ['Research limitations', 'Where the current evidence stops', '/methodology'],
+         ['Academic collaboration', 'For researchers and institutions', '/academic-partnerships']
+        ].map(([t, x, u]) => E('li', { key: t }, E('a', { href: u }, t, E('span', null, x))))),
+      E('p', { key: 'f', className: 'fine' }, 'NeuralFusion lists no university partnerships, peer-reviewed publications or institutional endorsements on this page, because none are claimed here.')
+    ]),
+
+    // Founder + FAQ
+    section('about', '', [
+      h2('about', 'Why NeuralFusion Exists'),
+      E('div', { key: 'q', className: 'founder', style: { marginTop: 26 } },
+        E('p', null, 'I built NeuralFusion because smart people around me, and I too, kept making poor decisions and feeling mentally tired for no clear reason. I could not find a tool that trained thinking itself.'),
+        E('p', null, 'Take the CFI. If it helps, stay. If it doesn\u2019t, tell me why.'),
+        E('p', { style: { color: '#47506B', fontSize: 15 } }, 'Life Edet, Founder'))
+    ]),
+    section('faq', 'alt', [
+      h2('faq', 'Common Questions'),
+      E('div', { key: 'f', style: { marginTop: 28, maxWidth: 760 } }, faq.map(([q, a]) => E('details', { key: q }, E('summary', null, q),
+        a ? E('p', null, a) : E('p', null, 'How your data is handled is explained in the ', E('a', { href: '/privacy', style: { color: '#3F6BFF', textDecoration: 'underline' } }, 'privacy policy'), '.'))))
+    ]),
+
+    // 10. Final conversion
+    E('section', { className: 'final', 'aria-labelledby': 'final-h' }, E('div', { className: 'w' },
+      E('h2', { id: 'final-h' }, 'Don\u2019t Just Adapt to the Future of Intelligence. Develop Your Own.'),
+      E('p', null, 'Start understanding and deliberately developing how you think.'),
+      E('button', { className: 'btn pri', onClick: () => goCfi('final') }, 'Begin with NeuralFusion'))));
+}
+
+// ═══════════════════════════════════════════════════════════════════
+//  FIRST-TIME ONBOARDING (signed in, new account, no CFI result yet)
+//  Five short steps: what NeuralFusion is, the four modes, the CFI, what the CFI can and cannot tell you, begin.
+//  Skippable at any point and shown once per account. Existing accounts (older than 14 days) never see it.
+// ═══════════════════════════════════════════════════════════════════
+function NFOnboarding({ user, setView, hasCfi }) {
+  const E = React.createElement;
+  const key = 'nf_onboarded:' + (user && user.id);
+  const isNew = (() => { try { const t = Date.parse(user && user.created_at); return !isNaN(t) && (Date.now() - t) < 14 * 86400000; } catch (_) { return false; } })();
+  const [open, setOpen] = useState(() => { try { return !!user && isNew && !hasCfi && !window.localStorage.getItem(key); } catch (_) { return false; } });
+  const [step, setStep] = useState(0);
+  const boxRef = useRef(null), headRef = useRef(null);
+  const mins = Math.ceil(CFI_ITEMS.length * 12 / 60);
+  const modes = [
+    ['Analytical', 'Examine information, evidence, logic and structure.'],
+    ['Intuitive', 'Recognise patterns and explore rapid judgments.'],
+    ['Associative', 'Connect ideas and generate alternative possibilities.'],
+    ['Reflective', 'Examine assumptions, experiences and the reasoning behind decisions.'],
+  ];
+  const finish = (how) => {
+    try { window.localStorage.setItem(key, how); } catch (_) {}
+    setOpen(false);
+  };
+  useEffect(() => { if (open) nfEvent('onboarding_started', {}); }, [open]);
+  useEffect(() => { if (open && headRef.current) headRef.current.focus(); }, [open, step]);
+  useEffect(() => {
+    if (!open) return undefined;
+    const onKey = (e) => {
+      if (e.key === 'Escape') { nfEvent('onboarding_skipped', { step: step + 1 }); finish('skipped'); return; }
+      if (e.key !== 'Tab' || !boxRef.current) return;
+      const f = boxRef.current.querySelectorAll('button, a[href]'); if (!f.length) return;
+      const first = f[0], last = f[f.length - 1];
+      if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+      else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+    };
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
+  }, [open, step]);
+  if (!open) return null;
+
+  const titles = ['Welcome to NeuralFusion', 'Four ways of thinking, working as one', 'The Cognitive Fragmentation Index', 'What the CFI can and cannot tell you', 'Ready when you are'];
+  const last = step === titles.length - 1;
+  const body = [
+    E('div', { key: 0 },
+      E('p', null, 'NeuralFusion is a cognitive operating system for how you think. It helps you understand your thinking patterns, practise thinking deliberately, and keep your own judgment active in a world where AI can answer for you.'),
+      E('p', null, 'It is not a chatbot, and it is not against AI. It develops the human thinking behind what AI helps you do.')),
+    E('div', { key: 1 },
+      E('ul', { className: 'nfo-modes' }, modes.map(m => E('li', { key: m[0] }, E('strong', null, m[0]), ' ', m[1]))),
+      E('p', null, 'These are not four separate minds. They work together on the same problem, and good judgment depends on how well you coordinate them.')),
+    E('div', { key: 2 },
+      E('p', null, 'The CFI asks ' + CFI_ITEMS.length + ' questions and takes about ' + mins + ' minutes. It shows how often you report using each of the four modes and how well you coordinate them.'),
+      E('p', null, 'You get a result you can read in plain language, plus areas to practise. You can retake it later and compare.')),
+    E('div', { key: 3 },
+      E('p', { className: 'nfo-sub' }, 'It can:'),
+      E('ul', null, E('li', null, 'Describe your thinking habits today, as you report them.'), E('li', null, 'Give you a starting point and something to compare against later.')),
+      E('p', { className: 'nfo-sub' }, 'It cannot:'),
+      E('ul', null, E('li', null, 'Diagnose anything, measure intelligence, or label your personality.'), E('li', null, 'Predict how well you will perform or decide.')),
+      E('p', null, 'CFI-2.0 is early-stage and has not yet been validated. ', E('a', { href: '/methodology', style: { color: C.cyan } }, 'Read the methodology and its limits'), '.')),
+    E('div', { key: 4 },
+      E('p', null, 'Take the CFI now, or look around first. Your account and progress will be here either way.')),
+  ][step];
+
+  return E('div', { className: 'nfo-back' },
+    E('style', null, `
+      .nfo-back { position:fixed; inset:0; z-index:1000; background:rgba(3,7,15,0.82); display:flex; align-items:center; justify-content:center; padding:16px; }
+      .nfo-box { width:100%; max-width:520px; max-height:calc(100vh - 32px); overflow-y:auto; background:${C.surface}; border:1px solid ${C.borderBright}; border-radius:12px; padding:28px 26px 22px; color:${C.text}; font-family:'Satoshi','DM Sans',sans-serif; text-align:left; }
+      .nfo-box h2 { font-family:'Clash Display','Syne',sans-serif; font-weight:600; font-size:24px; line-height:1.25; margin:0 0 14px; color:#fff; outline:none; }
+      .nfo-box p { font-size:16px; line-height:1.65; margin:0 0 12px; color:${C.text}; }
+      .nfo-box ul { margin:0 0 12px; padding-left:20px; font-size:16px; line-height:1.6; }
+      .nfo-box li { margin:0 0 6px; }
+      .nfo-modes { list-style:none; padding:0 !important; } .nfo-modes li { padding:10px 14px; border-left:2px solid ${C.cyan}; background:${C.deep}; margin-bottom:8px; }
+      .nfo-sub { font-weight:700; margin-bottom:4px !important; }
+      .nfo-count { font-family:'Space Mono',monospace; font-size:12px; letter-spacing:0.12em; color:${C.muted}; margin:0 0 14px !important; text-transform:uppercase; }
+      .nfo-row { display:flex; flex-wrap:wrap; gap:10px; justify-content:space-between; align-items:center; margin-top:20px; }
+      .nfo-btn { font:inherit; font-weight:600; font-size:15px; min-height:46px; padding:0 22px; border-radius:6px; cursor:pointer; border:1.5px solid ${C.borderBright}; background:transparent; color:${C.text}; }
+      .nfo-btn.pri { background:${C.cyan}; border-color:${C.cyan}; color:#050C1A; }
+      .nfo-link { font:inherit; font-size:14px; background:none; border:none; color:${C.muted}; text-decoration:underline; cursor:pointer; min-height:44px; padding:0 4px; }
+      .nfo-box button:focus-visible, .nfo-box a:focus-visible { outline:2px solid #fff; outline-offset:2px; }
+    `),
+    E('div', { className: 'nfo-box', role: 'dialog', 'aria-modal': 'true', 'aria-labelledby': 'nfo-h', ref: boxRef },
+      E('p', { className: 'nfo-count' }, 'Step ' + (step + 1) + ' of ' + titles.length),
+      E('h2', { id: 'nfo-h', tabIndex: -1, ref: headRef }, titles[step]),
+      body,
+      E('div', { className: 'nfo-row' },
+        step > 0 ? E('button', { type: 'button', className: 'nfo-btn', onClick: () => setStep(s => s - 1) }, 'Back') : E('button', { type: 'button', className: 'nfo-link', onClick: () => { nfEvent('onboarding_skipped', { step: step + 1 }); finish('skipped'); } }, 'Skip'),
+        last
+          ? E('div', { style: { display: 'flex', gap: 10, flexWrap: 'wrap' } },
+              E('button', { type: 'button', className: 'nfo-btn', onClick: () => { nfEvent('onboarding_completed', { choice: 'explore' }); finish('explored'); } }, 'Look around first'),
+              E('button', { type: 'button', className: 'nfo-btn pri', onClick: () => { nfEvent('onboarding_completed', { choice: 'cfi' }); finish('completed'); setView('cfi'); } }, 'Start the CFI'))
+          : E('button', { type: 'button', className: 'nfo-btn pri', onClick: () => setStep(s => s + 1) }, 'Next'))));
+}
+
 function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonProgress, authLoading, mode }) {
   const E = React.createElement;
   useEffect(() => { if (authLoading) return; nfEvent(user ? (mode === 'feed' ? 'thinking_feed_opened' : 'feed_viewed') : 'homepage_viewed', {}); }, [!!user, !!authLoading, mode]);
@@ -2771,7 +3324,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
   const styles = E("style", null, `
     .nf-home *, .nf-home *::before, .nf-home *::after { box-sizing:border-box; }
     .nf-home h1, .nf-home h2, .nf-home h3, .nf-home p { overflow-wrap:break-word; text-wrap:balance; }
-    .nf-home .nf-home-cta-primary { background:${H.gold}; color:#151513; font-family:'Clash Display','Syne',sans-serif; font-weight:600; font-size:15px; letter-spacing:0.02em; padding:16px 30px; min-height:52px; border-radius:4px; border:none; cursor:pointer; display:inline-flex; align-items:center; justify-content:center; box-shadow:0 6px 24px rgba(196,160,80,0.28); }
+    .nf-home .nf-home-cta-primary { background:${H.gold}; color:#151513; font-family:'Clash Display','Syne',sans-serif; font-weight:600; font-size:15px; letter-spacing:0.02em; padding:16px 30px; min-height:52px; border-radius:4px; border:none; cursor:pointer; display:inline-flex; align-items:center; justify-content:center; box-shadow:0 6px 24px rgba(91,132,255,0.28); }
     .nf-home .nf-home-cta-outline { background:transparent; color:${H.ink}; font-family:'Satoshi','DM Sans',sans-serif; font-weight:500; font-size:15px; padding:15px 26px; min-height:52px; border-radius:4px; border:1px solid ${H.borderStrong}; cursor:pointer; }
     .nf-home .nf-home-cta-outline:hover { border-color:${H.goldDeep}; }
     .nf-home button:focus-visible, .nf-home summary:focus-visible { outline:2px solid ${H.gold}; outline-offset:2px; }
@@ -2814,6 +3367,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
     const firstName = (() => { const m = (user && user.user_metadata) || {}; const n = String(m.full_name || m.name || m.first_name || '').trim().split(/\s+/)[0]; return n && n.length <= 30 ? n : ''; })();
     return E("div", { className: "nf-home", style: { background: H.bg, color: H.text, paddingTop: 60, minHeight: '100vh' } }, styles,
       E("div", { style: { ...wrap, padding: '32px 24px 80px' } },
+        E(NFOnboarding, { user, setView, hasCfi: hasResult || ((cfiHistory || []).length > 0) }),
         E(ThinkingFeed, { user, setView, cfiHistory, completedLessons, hasCfi: hasResult, mode: mode === 'feed' ? 'feed' : 'home', firstName }),
         mode === 'feed' ? null : E("div", { className: "nf-feed-sec", style: { marginTop: 36 } },
           hasResult ? E("p", { style: { ...para, marginBottom: 0 } }, cfiResult.created_at ? 'Your last CFI was on ' + new Date(cfiResult.created_at).toLocaleDateString() + '. ' : 'Your result is saved. ',
@@ -2822,166 +3376,8 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
             E("button", { onClick: () => setView('lessons'), style: { background: 'none', border: 'none', padding: 0, font: 'inherit', color: H.goldDeep, textDecoration: 'underline', cursor: 'pointer', minHeight: 44 } }, 'Lessons')) : null)));
   }
 
-  // ---------- Signed out: the full homepage ----------
-  const go = () => { nfEvent('primary_cta_clicked', { where: 'home' }); setView('cfi'); };
-  const list = (items) => E("ul", { className: "nf-home-list" }, items.map(t => E("li", { key: t }, t)));
-  const centered = { textAlign: 'center' };
-  const symptoms = [
-    'You research a decision for days and still can\u2019t make it.',
-    'You ask AI first and your own head second.',
-    'You know what to do, then freeze when the pressure comes.',
-    'You finish the day tired and can\u2019t say what you actually figured out.',
-    'You jump between ideas and finish none of them.',
-  ];
-  const costs = [
-    ['Decisions that look fine at the time', 'and turn out wrong later.'],
-    ['Decisions that come too late', 'so the opportunity is gone.'],
-    ['Meetings that go in circles', 'because nobody is thinking the same way.'],
-    ['Tiredness from thinking hard', 'without thinking well.'],
-  ];
-  const flow = [
-    ['1', 'Take the CFI', 'The CFI maps how you think across four modes.'],
-    ['2', 'See your pattern', 'You get your profile and where your thinking breaks down.'],
-    ['3', 'Train it', 'Work a real decision through the Core Loop: break it down, check your gut, widen the options, step back, then land on one position.'],
-    ['4', 'Check your progress', 'Retake the CFI later. Your change shows how your scores moved.'],
-  ];
-  const modes = [
-    ['Analytical', 'Facts, logic and evidence.'],
-    ['Intuitive', 'Gut feel and fast pattern recognition.'],
-    ['Associative', 'Connecting ideas that don\u2019t obviously belong together.'],
-    ['Reflective', 'Looking back at your assumptions, your emotions and what it all means.'],
-  ];
-  const gets = [
-    'Four scores, one for each way of thinking',
-    'A Coordination score for how you switch between them',
-    'A lesson and a practice idea to start with',
-    'A starting point to measure against later',
-  ];
-  const audience = [
-    ['Students and graduates', 'who want to decide better, not just study more.'],
-    ['Founders and professionals', 'making calls with incomplete information.'],
-    ['Anyone whose thinking feels scattered', 'and wants to know why.'],
-    ['Coaches and trainers', 'who want a structured way to work on thinking.'],
-  ];
-  const trust = [
-    'The scoring method is public. You can read exactly how the CFI works, and where it falls short, on the methodology page.',
-    'CFI-2.0 is a new, early-stage instrument. It has not been validated yet, and the methodology page says so.',
-    'We say plainly what it is not. It is not a diagnosis, and your change is a NeuralFusion measure, not a clinical one.',
-  ];
-  const faqFull = [
-    ['Is this a medical test or a personality test?', 'No. It is not a diagnosis, a personality label or an intelligence test. It shows your thinking habits today, so you can improve them.'],
-    ['How long does it take?', '40 questions, about 8 minutes.'],
-    ['Is it free?', 'The test and the first lesson are free. The full set of lessons is a one-time payment. Teams can create a team, share one link, and take the CFI and lessons together.'],
-    ['Is this an AI chatbot?', 'No. NeuralFusion trains your own thinking. It does not think for you.'],
-    ['Do I need an account?', 'Yes, a free one. It keeps your result safe so you can come back, take the CFI again and see how you have improved.'],
-    ['What happens to my data?', null],
-  ];
-  const card = (title, text, key) => E("div", { key: key || title, style: tile }, E("div", { style: tileTitle }, title), E("p", { style: { ...para, fontSize: 14 } }, text));
-
-  return E("div", { className: "nf-home", style: { background: H.bg, color: H.text, paddingTop: 60 } }, styles,
-
-    // Hero
-    E("div", { style: { ...wrap, padding: '80px 24px 72px', ...centered } },
-      E("h1", { style: { ...hDisplay, fontWeight: 600, fontSize: 'clamp(34px,6vw,56px)', lineHeight: 1.08, letterSpacing: '-0.02em', color: H.ink, margin: '0 0 20px' } }, 'Why is it so hard to think clearly lately?'),
-      E("p", { style: { ...para, fontSize: 18, maxWidth: 580, margin: '0 auto 32px' } }, 'Too much input, too many decisions, and AI answering before you\u2019ve finished the question. NeuralFusion shows you how you actually think, and trains the parts that are weak.'),
-      E("button", { className: "nf-home-cta-primary", onClick: go }, 'Take the free CFI'),
-      E("p", { style: { ...para, fontSize: 14, color: H.faint, marginTop: 16 } }, '40 questions, about 8 minutes. Free account to save your result.')),
-
-    // Sound familiar
-    section([
-      E("h2", { key: 'h', style: h2 }, 'Sound familiar?'),
-      E("div", { key: 'l', style: { marginTop: 20 } }, list(symptoms)),
-      E("p", { key: 'p', style: { ...para, marginTop: 20 } }, 'If you nodded at two or more, keep reading.')
-    ], true),
-
-    // What is going on
-    section([
-      E("h2", { key: 'h', style: h2 }, 'What is going on'),
-      E("p", { key: 'a', style: { ...para, marginBottom: 14 } }, 'Most people assume this is a focus problem or a discipline problem. It usually isn\u2019t. We call it cognitive fragmentation: your thinking splits into pieces that don\u2019t talk to each other.'),
-      E("p", { key: 'b', style: { ...para, marginBottom: 14 } }, 'Some people overanalyze. Some run on gut feeling only. Some drown in ideas. Some replay everything and never act.'),
-      E("p", { key: 'c', style: para }, 'It is common, it is not a medical condition, and it can be measured.')
-    ]),
-
-    // What it costs
-    section([
-      E("h2", { key: 'h', style: h2 }, 'What it costs you'),
-      E("div", { key: 'g', className: "nf-home-grid-4", style: { marginTop: 20 } }, costs.map(([t, x]) => card(t, x)))
-    ], true),
-
-    // How it works
-    section([
-      E("h2", { key: 'h', style: { ...h2, marginBottom: 28 } }, 'How NeuralFusion works'),
-      E("div", { key: 'g', className: "nf-home-steps" }, flow.map(([n, t, x]) => E("div", { key: n, style: tile },
-        E("div", { style: { ...hMono, fontSize: 13, color: H.goldDeep, marginBottom: 10 } }, n),
-        E("div", { style: tileTitle }, t), E("p", { style: { ...para, fontSize: 14 } }, x))))
-    ]),
-
-    // Four modes
-    section([
-      E("h2", { key: 'h', style: h2 }, 'The four ways you think'),
-      E("p", { key: 'p', style: { ...para, marginBottom: 28 } }, 'Everyone uses four modes of thinking. Most people lean on one or two. Good decisions usually need all four. Bad ones usually skip one.'),
-      E("div", { key: 'g', className: "nf-home-grid-4" }, modes.map(([t, x]) => card(t, x)))
-    ], true),
-
-    // What the free test gives you
-    section([
-      E("h2", { key: 'h', style: h2 }, 'What you get from the free CFI'),
-      E("div", { key: 'l', style: { marginTop: 20 } }, list(gets)),
-      E("div", { key: 'b', style: { marginTop: 28 } }, E("button", { className: "nf-home-cta-primary", onClick: go }, 'Take the free CFI'))
-    ]),
-
-    // AI era
-    section([
-      E("h2", { key: 'h', style: h2 }, 'Thinking in the AI era'),
-      E("p", { key: 'a', style: { ...para, marginBottom: 14 } }, 'AI is useful. But if it writes the first draft of all your thinking, your own judgment gets weaker without you noticing.'),
-      E("p", { key: 'b', style: para }, 'NeuralFusion is for people who want to use AI and still be the one who decides.')
-    ], true),
-
-    // Who it is for
-    section([
-      E("h2", { key: 'h', style: h2 }, 'Who it is for'),
-      E("div", { key: 'g', className: "nf-home-grid-4", style: { marginTop: 20 } }, audience.map(([t, x]) => card(t, x)))
-    ]),
-
-    // Teams
-    section([
-      E("div", { key: 'c', style: centered },
-        E("h2", { style: h2 }, 'For teams'),
-        E("p", { style: { ...para, maxWidth: 560, margin: '0 auto 24px' } }, 'Teams rarely fail from a lack of intelligence. They fail because everyone thinks the same way, or because no one does. Create a team, share one link, and see how your group thinks as a whole. It works for leadership teams, HR and training programmes.'),
-        E("button", { className: "nf-home-cta-outline", onClick: () => setView('teams') }, 'Create a team'))
-    ], true),
-
-    // Trust
-    section([
-      E("h2", { key: 'h', style: h2 }, 'Why you can trust this'),
-      E("div", { key: 'l', style: { marginTop: 20 } }, list(trust)),
-      E("p", { key: 'p', style: { ...para, marginTop: 20 } }, E("a", { className: "nf-home-link", href: "/methodology" }, 'Read the CFI methodology'))
-    ]),
-
-    // Founder note
-    section([
-      E("h2", { key: 'h', style: h2 }, 'Why I built this'),
-      E("div", { key: 'q', className: "nf-home-quote" },
-        E("p", { style: { ...para, color: H.text, marginBottom: 14 } }, 'I built NeuralFusion because smart people around me, and I too, kept making poor decisions and feeling mentally tired for no clear reason. I could not find a tool that trained thinking itself, so I built one.'),
-        E("p", { style: { ...para, color: H.text, marginBottom: 14 } }, 'Take the CFI. If it helps, stay. If it doesn\u2019t, tell me why.'),
-        E("p", { style: { ...para, fontSize: 14 } }, 'Life Edet, Founder'))
-    ], true),
-
-    // FAQ
-    section([
-      E("h2", { key: 'h', style: h2 }, 'Common questions'),
-      E("div", { key: 'f', style: { marginTop: 16 } }, faqFull.map(([q, a]) => E("details", { key: q }, E("summary", null, q),
-        a ? E("p", { style: para }, a)
-          : E("p", { style: para }, 'How your data is handled is explained in the ', E("a", { className: "nf-home-link", href: "/privacy" }, 'privacy policy'), '.'))))
-    ]),
-
-    // Final CTA
-    section([
-      E("div", { key: 'c', style: centered },
-        E("h2", { style: { ...h2, fontSize: 'clamp(28px,4vw,40px)' } }, 'Find out how you really think.'),
-        E("p", { style: { ...para, maxWidth: 480, margin: '0 auto 24px' } }, '40 questions, about 8 minutes, free.'),
-        E("button", { className: "nf-home-cta-primary", onClick: go }, 'Take the free CFI'))
-    ], true));
+  // ---------- Signed out: the public landing page ----------
+  return E(LandingView, { setView, setShowAuth });
 }
 
     // ═══════════════════════════════════════════════════════════════════
@@ -3107,8 +3503,8 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
     const PROTOCOL_AC = {
       bg: '#FFFFFF', surface: '#FFFFFF', surfaceAlt: '#F9FAFB',
       text: '#111827', muted: '#4B5563', border: '#D1D5DB',
-      gold: '#C8A95A', goldDark: '#8A6D2F', goldTint: '#FBF3E3',
-      focus: '#8A6D2F',
+      gold: '#5B84FF', goldDark: '#2F4FCB', goldTint: '#EEF2FF',
+      focus: '#2F4FCB',
       font: "'Atkinson Hyperlegible', 'Inter', -apple-system, sans-serif",
     };
 
@@ -3636,7 +4032,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
     function DecisionStatusBadge({ status }) {
       const map = {
         open: { label: 'Open', color: '#7AAFCF' },
-        awaiting_review: { label: 'Awaiting Review', color: '#E2BE78' },
+        awaiting_review: { label: 'Awaiting Review', color: '#A9BCFF' },
         reviewed: { label: 'Reviewed', color: '#7AAFCF' },
       };
       const s = map[status] || map.open;
@@ -3953,7 +4349,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
       bg: '#FFFFFF', card: '#FFFFFF', surface: '#FAF9F5',
       ink: '#161616', text: '#2B2C31', muted: '#6B6E76', faint: '#9A9DA6',
       border: '#ECE7DA', borderStrong: '#DED2AE',
-      gold: NF_GOLD, goldDeep: '#8F701F', goldTint: '#FBF4E3', goldTintStrong: '#F5E7C4',
+      gold: NF_GOLD, goldDeep: '#2F4FCB', goldTint: '#FBF4E3', goldTintStrong: '#F5E7C4',
     };
     const CP_JOURNEY = [
       { step: '01', title: 'Measure',    desc: 'Take the CFI.',            view: 'cfi' },
@@ -4004,12 +4400,21 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
     //  Fragmentation is a separate derived measure (cfiFragmentation), shown on its own card.
     //  Until there are enough responses for real norms, only raw 0-100 scores are shown.
     // ═══════════════════════════════════════════════════════════════════
-    function CFIResults({ cfiResult, setView, user, setShowAuth, onRetake, saveState, shareResultId }) {
+    function CFIResults({ cfiResult, setView, user, setShowAuth, onRetake, saveState, shareResultId, cfiHistory }) {
       const scores = cfiResult.scores;
       const lowestMode = CFI_MODES[cfiResult.lowest];
       const topLesson = LESSONS.find(l => l.id === cfiResult.lessonId) || LESSONS[0];
       const flags = cfiResult.flags || {};
       const answeredAlike = !!(flags.straight_lining || flags.possible_yes_saying);
+      // Second practice area: the next-lowest reported score (ties go to A, I, S, R, C order). Same practice text as the first.
+      const secondScale = CFI_SCALE_ORDER.filter(s => s !== cfiResult.lowest).reduce((m, s) => (m === null || scores[s] < scores[m]) ? s : m, null);
+      const secondMode = secondScale ? CFI_MODES[secondScale] : null;
+      // Previous saved result (not this one), for an honest side-by-side. Saved history only, nothing estimated.
+      const previous = (() => {
+        const hist = (cfiHistory || []).map(cfiResultFromRow).filter(Boolean).filter(r => !cfiResult.id || r.id !== cfiResult.id);
+        return hist.length ? hist[hist.length - 1] : null;
+      })();
+      const sinceLast = previous ? cfiChange(previous, cfiResult) : null;
 
       const [shareState, setShareState] = useState('idle');
 
@@ -4045,7 +4450,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
 
             // ── Header ──
             React.createElement("div", { style: { textAlign: 'center', marginBottom: 36 } },
-              React.createElement(CPEyebrow, null, "Your result"),
+              React.createElement(CPEyebrow, null, "Your cognitive development report"),
               React.createElement("h1", { style: { ...syne, fontSize: 'clamp(24px,5.5vw,34px)', fontWeight: 800, color: CP.ink, marginBottom: 14, lineHeight: 1.15 } }, "How you reported working through problems"),
               React.createElement("div", { style: { fontSize: 13.5, color: CP.muted, lineHeight: 1.7, maxWidth: 520, margin: '0 auto' } }, `Each score shows how often you said you do that kind of thinking, from 0 to 100. A higher score is not automatically better. This is ${CFI_VERSION}, a new, early-stage instrument. It is not a personality test, a mental health screening, a medical evaluation or a measure of intelligence.`)
             ),
@@ -4084,6 +4489,10 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
               React.createElement("div", { style: { padding: '14px 16px', background: CP.surface, borderRadius: 12, border: `1px solid ${CP.border}`, marginBottom: 18 } },
                 React.createElement("div", { style: { ...mono, fontSize: 9, letterSpacing: 1, color: CP.faint, marginBottom: 6 } }, 'TRY THIS (A SUGGESTION, NOT A MEASURED FINDING)'),
                 React.createElement("div", { style: { fontSize: 13.5, color: CP.text, lineHeight: 1.7 } }, lowestMode.practice)
+              ),
+              secondMode && React.createElement("div", { style: { padding: '14px 16px', background: CP.surface, borderRadius: 12, border: `1px solid ${CP.border}`, marginBottom: 18 } },
+                React.createElement("div", { style: { ...mono, fontSize: 9, letterSpacing: 1, color: CP.faint, marginBottom: 6 } }, 'ALSO WORTH PRACTISING: ' + secondMode.name.toUpperCase() + ' (' + scores[secondScale] + ' / 100, YOUR NEXT-LOWEST)'),
+                React.createElement("div", { style: { fontSize: 13.5, color: CP.text, lineHeight: 1.7 } }, secondMode.practice)
               ),
               React.createElement("div", { style: { padding: '18px', background: CP.surface, borderRadius: 14, border: `1px solid ${CP.border}` } },
                 React.createElement("div", { style: { ...mono, fontSize: 9.5, letterSpacing: 1, color: CP.goldDeep, marginBottom: 10 } }, 'RECOMMENDED LESSON'),
@@ -4134,6 +4543,14 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
               React.createElement(CPEyebrow, null, 'Track Your Progress'),
               React.createElement("div", { style: { ...syne, fontSize: 15, fontWeight: 800, color: CP.ink, marginBottom: 8 } }, 'Your starting point'),
               React.createElement("div", { style: { fontSize: 13.5, color: CP.muted, lineHeight: 1.7, marginBottom: 16, maxWidth: 480 } }, "Your first result is your baseline. Complete some training and retake the CFI, and My progress will show how each score moved, up or down."),
+              sinceLast && React.createElement("div", { style: { marginBottom: 18 } },
+                React.createElement("div", { style: { fontSize: 13.5, color: CP.text, lineHeight: 1.7, marginBottom: 8 } }, 'Compared with your previous CFI' + (previous.created_at ? ' on ' + new Date(previous.created_at).toLocaleDateString() : '') + ':'),
+                CFI_SCALE_ORDER.map(s => React.createElement("div", { key: s, style: { display: 'flex', justifyContent: 'space-between', gap: 12, padding: '7px 0', borderBottom: `1px solid ${CP.border}`, fontSize: 13.5, color: CP.text } },
+                  React.createElement("span", null, CFI_MODES[s].name), React.createElement("span", { style: { color: CP.muted } }, cfiPointsText(sinceLast[s])))),
+                React.createElement("div", { style: { display: 'flex', justifyContent: 'space-between', gap: 12, padding: '7px 0', borderBottom: `1px solid ${CP.border}`, fontSize: 13.5, color: CP.text } },
+                  React.createElement("span", null, 'Fragmentation'), React.createElement("span", { style: { color: CP.muted } }, cfiPointsText(sinceLast.F))),
+                React.createElement("div", { style: { fontSize: 12.5, color: CP.faint, lineHeight: 1.6, marginTop: 10 } }, 'A higher mode score means you reported that kind of thinking more often, not that the result is better. For Fragmentation, lower means your thinking is working together more. Scores move for many reasons, including how you felt on the day, so treat one change as a prompt for reflection, not proof of progress.')
+              ),
               React.createElement(CPButton, { variant: 'outline', onClick: () => setView('analytics') }, 'Open my progress →')
             ),
 
@@ -4286,8 +4703,8 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
       const AC = {
         bg: '#FFFFFF', surface: '#FFFFFF', surfaceAlt: '#F9FAFB',
         text: '#111827', muted: '#4B5563', border: '#D1D5DB',
-        gold: '#C8A95A', goldDark: '#8A6D2F', goldTint: '#FBF3E3',
-        focus: '#8A6D2F',
+        gold: '#5B84FF', goldDark: '#2F4FCB', goldTint: '#EEF2FF',
+        focus: '#2F4FCB',
         font: "'Atkinson Hyperlegible', 'Inter', -apple-system, sans-serif",
       };
 
@@ -4408,7 +4825,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
                 });
               }, style: { marginLeft:12, background:'none', border:'1px solid #991B1B', borderRadius:8, color:'#991B1B', padding:'4px 12px', cursor:'pointer', fontSize:13, fontWeight:700 }}, 'Retry')
             ),
-            React.createElement(CFIResults, { cfiResult, setView, user, setShowAuth, onRetake: handleRetake, saveState, shareResultId: savedResultId || (cfiHistory && cfiHistory.length ? cfiHistory[cfiHistory.length - 1].id : null) })
+            React.createElement(CFIResults, { cfiResult, setView, user, setShowAuth, onRetake: handleRetake, saveState, cfiHistory, shareResultId: savedResultId || (cfiHistory && cfiHistory.length ? cfiHistory[cfiHistory.length - 1].id : null) })
           )
         );
       }
@@ -4788,6 +5205,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
           if (res.ok && data.success) {
             try { localStorage.removeItem(pendingKey); } catch(_) {}
             setIsPro(true);
+            nfEvent('subscription_converted', { plan: 'pro' });
             nfNotify('Payment confirmed. Pro is now active.', { type: 'success' });
           } else {
             console.error('[verify-payment]', res.status, data);
@@ -4824,7 +5242,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
         });
       };
 
-      const levelColors = { Foundation:C.cyan, Intermediate:'#E2BE78', Advanced:'#C4A050', Mastery:'#7AAFCF', Reference:'#4CF7C0' };
+      const levelColors = { Foundation:C.cyan, Intermediate:'#A9BCFF', Advanced:'#5B84FF', Mastery:'#7AAFCF', Reference:'#4CF7C0' };
 
       if (activeLesson) {
         const lesson = LESSONS.find(l=>l.id===activeLesson);
@@ -4984,14 +5402,14 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
       );
 
       const HB = ({ title: t, children }) => (
-        React.createElement("div", {style: { background: 'rgba(196,160,80,0.06)', border: `1px solid rgba(196,160,80,0.18)`, borderLeft: `3px solid ${C.cyan}`, padding: '18px 22px', margin: '20px 0', fontSize: 14, color: C.muted, lineHeight: 1.8 }}, t && React.createElement("div", {style: { ...syne, fontSize: 12, fontWeight: 700, color: C.cyan, marginBottom: 6, textTransform: 'uppercase', letterSpacing: 1 }}, t), children)
+        React.createElement("div", {style: { background: 'rgba(91,132,255,0.06)', border: `1px solid rgba(91,132,255,0.18)`, borderLeft: `3px solid ${C.cyan}`, padding: '18px 22px', margin: '20px 0', fontSize: 14, color: C.muted, lineHeight: 1.8 }}, t && React.createElement("div", {style: { ...syne, fontSize: 12, fontWeight: 700, color: C.cyan, marginBottom: 6, textTransform: 'uppercase', letterSpacing: 1 }}, t), children)
       );
 
       const DataTable = ({ rows }) => (
         React.createElement("div", {style: { overflowX: 'auto', margin: '20px 0' }}, React.createElement("table", {style: { width: '100%', borderCollapse: 'collapse', fontSize: 13 }}, React.createElement("thead", null, React.createElement("tr", null, ['Data category','Purpose','Legal basis'].map(h => (
                   React.createElement("th", {key: h, style: { ...mono, fontSize: 9, letterSpacing: 2, textTransform: 'uppercase', color: C.muted, padding: '10px 14px', textAlign: 'left', borderBottom: `1px solid ${C.border}`, background: C.deep }}, h)
                 )))), React.createElement("tbody", null, rows.map((r,i) => (
-                React.createElement("tr", {key: i, style: { borderBottom: `1px solid rgba(196,160,80,0.06)` }}, React.createElement("td", {style: { padding: '12px 14px', color: C.cyan, fontWeight: 600, fontSize: 13, verticalAlign: 'top' }}, r[0]), React.createElement("td", {style: { padding: '12px 14px', color: C.muted, fontSize: 13, verticalAlign: 'top', lineHeight: 1.6 }}, r[1]), React.createElement("td", {style: { padding: '12px 14px', color: C.muted, fontSize: 13, verticalAlign: 'top', lineHeight: 1.6 }}, r[2]))
+                React.createElement("tr", {key: i, style: { borderBottom: `1px solid rgba(91,132,255,0.06)` }}, React.createElement("td", {style: { padding: '12px 14px', color: C.cyan, fontWeight: 600, fontSize: 13, verticalAlign: 'top' }}, r[0]), React.createElement("td", {style: { padding: '12px 14px', color: C.muted, fontSize: 13, verticalAlign: 'top', lineHeight: 1.6 }}, r[1]), React.createElement("td", {style: { padding: '12px 14px', color: C.muted, fontSize: 13, verticalAlign: 'top', lineHeight: 1.6 }}, r[2]))
               )))))
       );
 
@@ -5114,41 +5532,52 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
     // ═══════════════════════════════════════════════════════════════════
     // ── Grouped public navigation (signed-out menu and footer) ─────────
     const NF_LINK_GROUPS = [
-      { title: 'PATHWAYS', items: [
-        { label: 'For Organisations', href: '/organisations' },
-        { label: 'Academic Partnerships', href: '/academic-partnerships' },
-        { label: 'Executive Programme', href: '/executive' },
+      { title: 'DISCOVER', items: [
+        { label: 'What is NeuralFusion?', href: '/' },
+        { label: 'Four Thinking Modes', href: '/thinking' },
+        { label: 'Core Loop', href: '/#core-loop' },
+        { label: 'Cognitive Fragmentation', href: '/cognitive-fragmentation' },
+        { label: 'CFI Methodology', href: '/methodology' },
+      ] },
+      { title: 'INDIVIDUALS', items: [
         { label: 'Take the CFI', v: 'cfi' },
-        { label: 'NeuralFusion for Teams', v: 'teams' },
+        { label: 'Cognitive Training', v: 'lessons' },
+        { label: 'Executive Programme', href: '/executive' },
       ] },
-      { title: 'UNDERSTAND', items: [
-        { label: 'The Four Thinking Modes', href: '/thinking' },
-        { label: 'Cognitive fragmentation', href: '/cognitive-fragmentation' },
-        { label: 'Decision-making', href: '/decision-making' },
-        { label: 'CFI methodology', href: '/methodology' },
+      { title: 'ACADEMIA', items: [
+        { label: 'Academic Programme', href: '/academic-partnerships' },
+        { label: 'Research Collaboration', href: '/academic-partnerships#research-collab' },
+        { label: 'Institutional Enquiries', href: '/academic-partnerships#enquire' },
+      ] },
+      { title: 'ORGANISATIONS', items: [
+        { label: 'Enterprise Programme', href: '/organisations' },
+        { label: 'Team Development', v: 'teams' },
+        { label: 'Request a Demonstration', href: '/organisations#enquire' },
+      ] },
+      { title: 'INSIGHTS', items: [
+        { label: 'Articles', href: '/blog' },
         { label: 'Research', href: '/research' },
-        { label: 'Blog', href: '/blog' },
+        { label: 'Decision-making', href: '/decision-making' },
       ] },
-      { title: 'COMPANY', items: [
-        { label: 'About', href: '/about' },
+      { title: 'ABOUT', items: [
+        { label: 'Mission', href: '/about#mission' },
+        { label: 'Founder', href: '/about#founder' },
         { label: 'Contact', href: '/contact' },
-        { label: 'Privacy', href: '/privacy' },
-        { label: 'Terms', href: '/terms' },
       ] },
-    ];
-    function NFGroupedLinks({ onNav, columns }) {
+    ];    function NFGroupedLinks({ onNav, columns }) {
       const linkStyle = { display: 'block', width: '100%', textAlign: 'left', background: 'none', border: 'none', padding: '14px 0', color: '#A8ADBF', fontFamily: "'DM Sans', sans-serif", fontSize: 17, lineHeight: 1.3, textDecoration: 'none', cursor: 'pointer' };
       return React.createElement("div", { style: columns ? { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '0 40px' } : {} },
         NF_LINK_GROUPS.map(g => React.createElement("div", { key: g.title, style: { marginBottom: 20 } },
-          React.createElement("div", { style: { fontFamily: "'Space Mono', monospace", fontSize: 12, letterSpacing: '0.22em', color: '#C4A050', margin: '16px 0 6px' } }, g.title),
+          React.createElement("div", { style: { fontFamily: "'Space Mono', monospace", fontSize: 12, letterSpacing: '0.22em', color: '#5B84FF', margin: '16px 0 6px' } }, g.title),
           g.items.map(it => it.href
             ? React.createElement("a", { key: it.label, href: it.href, style: linkStyle }, it.label)
             : React.createElement("button", { key: it.label, type: 'button', onClick: () => onNav(it.v), style: linkStyle }, it.label)))));
     }
     function NFLegalLine() {
-      return React.createElement("div", { style: { borderTop: '1px solid rgba(196,160,80,0.15)', marginTop: 8, paddingTop: 28, color: '#8E93A6', fontFamily: "'DM Sans', sans-serif", fontSize: 15, lineHeight: 1.65, textAlign: 'left' } },
-        '\u00A9 2026 ', React.createElement("span", { style: { color: '#C4A050' } }, 'Life Edet'),
-        ' \u00B7 NeuralFusion is a trademark of Life Edet. The CFI is a proprietary self-report framework, not a clinical or diagnostic instrument.');
+      return React.createElement("div", { style: { borderTop: '1px solid rgba(91,132,255,0.15)', marginTop: 8, paddingTop: 28, color: '#8E93A6', fontFamily: "'DM Sans', sans-serif", fontSize: 15, lineHeight: 1.65, textAlign: 'left' } },
+        '\u00A9 2026 ', React.createElement("span", { style: { color: '#5B84FF' } }, 'Life Edet'),
+        ' \u00B7 NeuralFusion is a cognitive operating system for how you think. NeuralFusion is a trademark of Life Edet. The CFI is a proprietary self-report framework, not a clinical or diagnostic instrument. ',
+        React.createElement("a", { href: '/privacy', style: { color: '#9FB3FF' } }, 'Privacy'), ' \u00B7 ', React.createElement("a", { href: '/terms', style: { color: '#9FB3FF' } }, 'Terms'));
     }
     function Footer({ setView, user }) {
       if (!user) {
@@ -5207,7 +5636,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
       const AC = {
         bg: '#FFFFFF', surface: '#FFFFFF', surfaceAlt: '#F9FAFB',
         text: '#111827', muted: '#4B5563', border: '#D1D5DB',
-        gold: '#C8A95A', goldDark: '#8A6D2F', goldTint: '#FBF3E3', focus: '#8A6D2F',
+        gold: '#5B84FF', goldDark: '#2F4FCB', goldTint: '#EEF2FF', focus: '#2F4FCB',
         error: '#B91C1C', errorTint: '#FEF2F2', success: '#166534', successTint: '#F0FDF4',
         font: "'Atkinson Hyperlegible', 'Inter', -apple-system, sans-serif",
       };
@@ -5413,7 +5842,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
                     ),
                     React.createElement("button", {className:"btn-outline", style:{ fontSize:13, padding:'6px 12px' }, onClick: loadAdminData}, '↺ Refresh')
                   ),
-                  React.createElement("div", {className: "card bento-shimmer", style: { padding:'24px 28px', marginBottom:20, borderColor:'#C8A95A' }}, React.createElement("div", {style: { display:'flex', justifyContent:'space-between', alignItems:'center', flexWrap:'wrap', gap:12 }}, React.createElement("div", null, React.createElement("div", {style: { ...mono, fontSize:13, letterSpacing:'0.04em', color:AC.goldDark, marginBottom:8 }}, 'NEURALFUSION 100 · unique authenticated participants'), React.createElement("div", {style: { ...syne, fontSize:32, fontWeight:800, color:AC.goldDark }}, nf100Count, ' / 100')), React.createElement("div", {style: { textAlign:'right' }}, React.createElement("div", {style: { ...mono, fontSize:13, letterSpacing:'0.04em', color:C.muted, marginBottom:4 }}, 'Completed assessments'), React.createElement("div", {style: { ...syne, fontSize:16, fontWeight:700, color:C.text }}, completedCFI.length), React.createElement("div", {style: { ...mono, fontSize:13, letterSpacing:'0.04em', color:C.muted, marginTop:8, marginBottom:4 }}, 'Total attempts (incl. drafts)'), React.createElement("div", {style: { ...syne, fontSize:16, fontWeight:700, color:C.muted }}, cfiData.length)))), React.createElement("div", null, React.createElement("div", {style: { display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(min(180px,100%),1fr))', gap:16, marginBottom:32 }}, [
+                  React.createElement("div", {className: "card bento-shimmer", style: { padding:'24px 28px', marginBottom:20, borderColor:'#5B84FF' }}, React.createElement("div", {style: { display:'flex', justifyContent:'space-between', alignItems:'center', flexWrap:'wrap', gap:12 }}, React.createElement("div", null, React.createElement("div", {style: { ...mono, fontSize:13, letterSpacing:'0.04em', color:AC.goldDark, marginBottom:8 }}, 'NEURALFUSION 100 · unique authenticated participants'), React.createElement("div", {style: { ...syne, fontSize:32, fontWeight:800, color:AC.goldDark }}, nf100Count, ' / 100')), React.createElement("div", {style: { textAlign:'right' }}, React.createElement("div", {style: { ...mono, fontSize:13, letterSpacing:'0.04em', color:C.muted, marginBottom:4 }}, 'Completed assessments'), React.createElement("div", {style: { ...syne, fontSize:16, fontWeight:700, color:C.text }}, completedCFI.length), React.createElement("div", {style: { ...mono, fontSize:13, letterSpacing:'0.04em', color:C.muted, marginTop:8, marginBottom:4 }}, 'Total attempts (incl. drafts)'), React.createElement("div", {style: { ...syne, fontSize:16, fontWeight:700, color:C.muted }}, cfiData.length)))), React.createElement("div", null, React.createElement("div", {style: { display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(min(180px,100%),1fr))', gap:16, marginBottom:32 }}, [
                         { label:'Total users',       value:users.length,         color:AC.goldDark, icon:'◱' },
                         { label:'PRO subscribers',   value:proUsers.length,       color:AC.goldDark, icon:'★' },
                         { label:'Unique CFI participants', value:uniqueCFIUserIds.size, color:AC.goldDark, icon:'◈' },
@@ -5440,7 +5869,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
                               border:`1px solid ${C.border}`,
                               display:'flex', alignItems:'center', justifyContent:'center',
                               ...mono, fontSize:13, color:C.cyan, flexShrink:0,
-                            }}, (u.full_name||u.email||'?')[0].toUpperCase()), React.createElement("div", {style: { flex:1, minWidth:0 }}, React.createElement("div", {style: { fontSize:15, color:C.text, fontWeight:500, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}, u.full_name || 'Unnamed'), React.createElement("div", {style: { ...mono, fontSize:12, color:C.muted, letterSpacing:'0.04em' }}, u.email || u.id?.slice(0,12))), u.is_pro && React.createElement("div", {style: { ...mono, fontSize:12, color:AC.goldDark, background:'#FBF3E3', border:'1px solid #C8A95A', padding:'4px 10px', borderRadius:100 }}, 'Pro'))
+                            }}, (u.full_name||u.email||'?')[0].toUpperCase()), React.createElement("div", {style: { flex:1, minWidth:0 }}, React.createElement("div", {style: { fontSize:15, color:C.text, fontWeight:500, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}, u.full_name || 'Unnamed'), React.createElement("div", {style: { ...mono, fontSize:12, color:C.muted, letterSpacing:'0.04em' }}, u.email || u.id?.slice(0,12))), u.is_pro && React.createElement("div", {style: { ...mono, fontSize:12, color:AC.goldDark, background:'#EEF2FF', border:'1px solid #5B84FF', padding:'4px 10px', borderRadius:100 }}, 'Pro'))
                         )), users.length === 0 && React.createElement("div", {style: { color:C.dim, fontSize:15 }}, 'No users yet.')), React.createElement("div", {className: "card", style: { padding:'28px' }}, React.createElement("div", {style: { ...mono, fontSize:13, letterSpacing:'0.04em', color:C.cyan, marginBottom:20 }}, 'Quick actions'), React.createElement("div", {style: { display:'flex', flexDirection:'column', gap:10 }}, [
                             { label:'Manage Users', desc:'Grant or revoke Pro', tab:'users', icon:'◱' },
                             { label:'View CFI Results', desc:'Filter and delete assessments', tab:'cfi', icon:'◎' },
@@ -5453,7 +5882,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
                               border:`1px solid ${C.border}`, borderRadius:8,
                               cursor:'pointer', textAlign:'left', transition:'border-color 0.2s',
                             }, onMouseEnter: e => e.currentTarget.style.borderColor=C.borderBright, onMouseLeave: e => e.currentTarget.style.borderColor=C.border}, React.createElement("span", {style: { ...mono, fontSize:16, color:C.cyan }}, a.icon), React.createElement("div", null, React.createElement("div", {style: { fontSize:15, color:C.text, fontWeight:500 }}, a.label), React.createElement("div", {style: { ...mono, fontSize:12, color:C.muted, letterSpacing:'0.04em' }}, a.desc)))
-                          )))), React.createElement("div", {className: "card", style: { padding:'28px', borderColor:'#C8A95A' }}, React.createElement("div", {style: { ...mono, fontSize:13, letterSpacing:'0.04em', color:C.cyan, marginBottom:20 }}, 'Revenue snapshot'), [
+                          )))), React.createElement("div", {className: "card", style: { padding:'28px', borderColor:'#5B84FF' }}, React.createElement("div", {style: { ...mono, fontSize:13, letterSpacing:'0.04em', color:C.cyan, marginBottom:20 }}, 'Revenue snapshot'), [
                           { label:'Pro Price', value:`₦${(proPrice/100).toLocaleString()}`, color:C.cyan },
                           { label:'Est. Pro Revenue', value:`₦${((proUsers.length * proPrice)/100).toLocaleString()}`, color:AC.goldDark },
                           { label:'Pro Conversion', value:`${users.length ? Math.round(proUsers.length/users.length*100) : 0}%`, color:AC.goldDark },
@@ -5478,12 +5907,12 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
                             padding:'12px 20px', borderBottom:`1px solid ${C.border}`,
                             transition:'background 0.15s',
                           }, onMouseEnter: e => e.currentTarget.style.background=C.deep, onMouseLeave: e => e.currentTarget.style.background='transparent'}, React.createElement("div", {style: { fontSize:14, color:C.text, fontWeight:500, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}, u.full_name || 'N/A'), React.createElement("div", {style: { ...mono, fontSize:12, color:C.muted, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}, u.email || u.id?.slice(0,16)+'...'), React.createElement("div", null, u.is_pro
-                                ? React.createElement("span", {style: { ...mono, fontSize:12, color:AC.goldDark, background:'#FBF3E3', border:'1px solid #C8A95A', padding:'4px 10px', borderRadius:100 }}, 'Pro')
+                                ? React.createElement("span", {style: { ...mono, fontSize:12, color:AC.goldDark, background:'#EEF2FF', border:'1px solid #5B84FF', padding:'4px 10px', borderRadius:100 }}, 'Pro')
                                 : React.createElement("span", {style: { ...mono, fontSize:12, color:C.dim, background:C.deep, border:`1px solid ${C.border}`, padding:'4px 10px', borderRadius:100 }}, '--')
                               ), React.createElement("div", {style: { ...mono, fontSize:12, color:C.dim }}, u.created_at ? new Date(u.created_at).toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'2-digit'}) : '--'), React.createElement("div", {style: { display:'flex', gap:6, flexWrap:'wrap' }}, React.createElement("button", {onClick: () => togglePro(u.id, u.is_pro), style: {
                                 ...mono, fontSize:12, padding:'8px 12px', borderRadius:8, cursor:'pointer',
-                                background: u.is_pro ? '#FEF2F2' : '#FBF3E3',
-                                border: u.is_pro ? '1px solid #FCA5A5' : '1px solid #C8A95A',
+                                background: u.is_pro ? '#FEF2F2' : '#EEF2FF',
+                                border: u.is_pro ? '1px solid #FCA5A5' : '1px solid #5B84FF',
                                 color: u.is_pro ? AC.error : AC.goldDark,
                               }}, u.is_pro ? 'Revoke Pro' : 'Pro +'), React.createElement("button", {onClick: () => deleteUser(u.id), style: {
                                 ...mono, fontSize:12, padding:'8px 12px', borderRadius:8, cursor:'pointer',
@@ -5526,7 +5955,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
                             display:'grid', gridTemplateColumns:'1fr 1.5fr 100px 120px', gap:16,
                             padding:'14px 20px', borderBottom:`1px solid ${C.border}`,
                             transition:'background 0.15s',
-                          }, onMouseEnter: e => e.currentTarget.style.background=C.deep, onMouseLeave: e => e.currentTarget.style.background='transparent'}, React.createElement("div", {style: { fontSize:15, color:C.text, fontWeight:500 }}, u.full_name || 'N/A'), React.createElement("div", {style: { ...mono, fontSize:13, color:C.muted, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}, u.email || u.id?.slice(0,16)), React.createElement("div", null, React.createElement("span", {style: { ...mono, fontSize:12, color:AC.goldDark, background:'#FBF3E3', border:'1px solid #C8A95A', padding:'4px 10px', borderRadius:100 }}, 'Active PRO')), React.createElement("div", null, React.createElement("button", {onClick: () => togglePro(u.id, true), style: {
+                          }, onMouseEnter: e => e.currentTarget.style.background=C.deep, onMouseLeave: e => e.currentTarget.style.background='transparent'}, React.createElement("div", {style: { fontSize:15, color:C.text, fontWeight:500 }}, u.full_name || 'N/A'), React.createElement("div", {style: { ...mono, fontSize:13, color:C.muted, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}, u.email || u.id?.slice(0,16)), React.createElement("div", null, React.createElement("span", {style: { ...mono, fontSize:12, color:AC.goldDark, background:'#EEF2FF', border:'1px solid #5B84FF', padding:'4px 10px', borderRadius:100 }}, 'Active PRO')), React.createElement("div", null, React.createElement("button", {onClick: () => togglePro(u.id, true), style: {
                                 ...mono, fontSize:12, padding:'8px 14px', cursor:'pointer',
                                 background:'#FEF2F2', border:'1px solid #FCA5A5',
                                 color:AC.error, borderRadius:8,
@@ -5537,7 +5966,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
                 ), tab === 'leads' && (
                   React.createElement(window.NF_LEADS.AdminLeadsPanel, null)
                 ), tab === 'pricing' && (
-                  React.createElement("div", {style: { display:'grid', gridTemplateColumns:'repeat(auto-fit,minmax(min(400px,100%),1fr))', gap:20 }}, React.createElement("div", {className: "card", style: { padding:'40px', position:'relative', overflow:'hidden', borderColor:'#C8A95A' }}, React.createElement("div", {style: { ...mono, fontSize:13, letterSpacing:'0.04em', color:C.cyan, marginBottom:16 }}, 'PRO plan pricing'), React.createElement("div", {style: { ...syne, fontSize:18, fontWeight:800, color:C.text, marginBottom:8, overflowWrap:'break-word', minWidth:0}}, 'Edit Pro Price'), React.createElement("div", {style: { fontSize:15, color:C.muted, marginBottom:28, lineHeight:1.7 }}, 'Updates the price shown on the platform and passed to Paystack for payment processing.'), React.createElement("div", {style: { marginBottom:20 }}, React.createElement("div", {style: { ...mono, fontSize:12, letterSpacing:'0.04em', color:C.muted, marginBottom:8 }}, 'CURRENT PRICE (NAIRA)'), React.createElement("div", {style: { ...syne, fontSize:16, fontWeight:800, color:C.cyan, lineHeight:1.2, marginBottom:4, overflowWrap:'break-word', minWidth:0}}, `₦${(proPrice/100).toLocaleString()}`), React.createElement("div", {style: { ...mono, fontSize:12, color:C.muted }}, '=', proPrice.toLocaleString(), 'kobo')), React.createElement("div", {style: { marginBottom:20 }}, React.createElement("div", {style: { ...mono, fontSize:12, letterSpacing:'0.04em', color:C.muted, marginBottom:8 }}, 'NEW PRICE (₦)'), React.createElement("div", {style: { display:'flex', gap:12, alignItems:'center' }}, React.createElement("div", {style: { position:'relative', flex:1 }}, React.createElement("div", {style: { position:'absolute', left:16, top:'50%', transform:'translateY(-50%)', ...syne, fontSize:16, fontWeight:700, color:C.muted, overflowWrap:'break-word', minWidth:0}}, '₦'), React.createElement("input", {type: "number", value: priceInput, onChange: e => setPriceInput(e.target.value), style: { paddingLeft:36, fontSize:16, ...syne, fontWeight:700, overflowWrap:'break-word', minWidth:0}, min: "100", step: "100"})), React.createElement("button", {className: "btn-primary", onClick: savePrice, style: { whiteSpace:'nowrap' }}, priceSaved ? '✓ Saved!' : 'Save Price'))), React.createElement("div", {style: { padding:'20px', background:C.deep, borderRadius:8, border:`1px solid ${C.border}` }}, React.createElement("div", {style: { ...mono, fontSize:13, letterSpacing:'0.04em', color:C.muted, marginBottom:8 }}, 'Paystack integration'), React.createElement("div", {style: { fontSize:15, color:C.muted, lineHeight:1.7 }}, 'Live key:', React.createElement("span", {style: { color:C.cyan, fontFamily:'monospace' }}, 'loaded from platform_settings at runtime'), React.createElement("br", null), 'Currency: NGN · Gateway: Paystack inline · Verified server-side'))), React.createElement("div", {className: "card", style: { padding:'40px', position:'relative', overflow:'hidden', borderColor:'#C8A95A', gridColumn:'1 / -1' }}, React.createElement("div", {style: { ...mono, fontSize:13, letterSpacing:'0.04em', color:AC.goldDark, marginBottom:16 }}, 'Payment gateway'), React.createElement("div", {style: { ...syne, fontSize:18, fontWeight:800, color:C.text, marginBottom:8, overflowWrap:'break-word', minWidth:0}}, 'Paystack Public Key'), React.createElement("div", {style: { fontSize:15, color:C.muted, marginBottom:28, lineHeight:1.7 }}, 'Your Paystack public key (pk_live_... or pk_test_...). Stored in platform_settings and loaded at runtime, so no redeploy is needed.'), React.createElement("div", {style: { display:'flex', gap:12, alignItems:'center' }}, React.createElement("input", {type: "text", value: paystackKeyInput, onChange: e => setPaystackKeyInput(e.target.value), placeholder: 'pk_live_...', style: { flex:1, fontSize:15, fontFamily:'monospace', letterSpacing:'0.02em', overflowWrap:'break-word', minWidth:0 }}), React.createElement("button", {className: "btn-primary", onClick: savePaystackKey, style: { whiteSpace:'nowrap' }}, keySaved ? '✓ Saved!' : 'Save Key')), paystackKeyInput && React.createElement("div", {style: { marginTop:16, padding:'12px 16px', background:C.deep, borderRadius:8, border:`1px solid ${C.border}`, ...mono, fontSize:13, color:C.muted }}, 'Active: ', React.createElement("span", {style: { color:AC.goldDark }}, paystackKeyInput.slice(0,12), '...', paystackKeyInput.slice(-6)))))
+                  React.createElement("div", {style: { display:'grid', gridTemplateColumns:'repeat(auto-fit,minmax(min(400px,100%),1fr))', gap:20 }}, React.createElement("div", {className: "card", style: { padding:'40px', position:'relative', overflow:'hidden', borderColor:'#5B84FF' }}, React.createElement("div", {style: { ...mono, fontSize:13, letterSpacing:'0.04em', color:C.cyan, marginBottom:16 }}, 'PRO plan pricing'), React.createElement("div", {style: { ...syne, fontSize:18, fontWeight:800, color:C.text, marginBottom:8, overflowWrap:'break-word', minWidth:0}}, 'Edit Pro Price'), React.createElement("div", {style: { fontSize:15, color:C.muted, marginBottom:28, lineHeight:1.7 }}, 'Updates the price shown on the platform and passed to Paystack for payment processing.'), React.createElement("div", {style: { marginBottom:20 }}, React.createElement("div", {style: { ...mono, fontSize:12, letterSpacing:'0.04em', color:C.muted, marginBottom:8 }}, 'CURRENT PRICE (NAIRA)'), React.createElement("div", {style: { ...syne, fontSize:16, fontWeight:800, color:C.cyan, lineHeight:1.2, marginBottom:4, overflowWrap:'break-word', minWidth:0}}, `₦${(proPrice/100).toLocaleString()}`), React.createElement("div", {style: { ...mono, fontSize:12, color:C.muted }}, '=', proPrice.toLocaleString(), 'kobo')), React.createElement("div", {style: { marginBottom:20 }}, React.createElement("div", {style: { ...mono, fontSize:12, letterSpacing:'0.04em', color:C.muted, marginBottom:8 }}, 'NEW PRICE (₦)'), React.createElement("div", {style: { display:'flex', gap:12, alignItems:'center' }}, React.createElement("div", {style: { position:'relative', flex:1 }}, React.createElement("div", {style: { position:'absolute', left:16, top:'50%', transform:'translateY(-50%)', ...syne, fontSize:16, fontWeight:700, color:C.muted, overflowWrap:'break-word', minWidth:0}}, '₦'), React.createElement("input", {type: "number", value: priceInput, onChange: e => setPriceInput(e.target.value), style: { paddingLeft:36, fontSize:16, ...syne, fontWeight:700, overflowWrap:'break-word', minWidth:0}, min: "100", step: "100"})), React.createElement("button", {className: "btn-primary", onClick: savePrice, style: { whiteSpace:'nowrap' }}, priceSaved ? '✓ Saved!' : 'Save Price'))), React.createElement("div", {style: { padding:'20px', background:C.deep, borderRadius:8, border:`1px solid ${C.border}` }}, React.createElement("div", {style: { ...mono, fontSize:13, letterSpacing:'0.04em', color:C.muted, marginBottom:8 }}, 'Paystack integration'), React.createElement("div", {style: { fontSize:15, color:C.muted, lineHeight:1.7 }}, 'Live key:', React.createElement("span", {style: { color:C.cyan, fontFamily:'monospace' }}, 'loaded from platform_settings at runtime'), React.createElement("br", null), 'Currency: NGN · Gateway: Paystack inline · Verified server-side'))), React.createElement("div", {className: "card", style: { padding:'40px', position:'relative', overflow:'hidden', borderColor:'#5B84FF', gridColumn:'1 / -1' }}, React.createElement("div", {style: { ...mono, fontSize:13, letterSpacing:'0.04em', color:AC.goldDark, marginBottom:16 }}, 'Payment gateway'), React.createElement("div", {style: { ...syne, fontSize:18, fontWeight:800, color:C.text, marginBottom:8, overflowWrap:'break-word', minWidth:0}}, 'Paystack Public Key'), React.createElement("div", {style: { fontSize:15, color:C.muted, marginBottom:28, lineHeight:1.7 }}, 'Your Paystack public key (pk_live_... or pk_test_...). Stored in platform_settings and loaded at runtime, so no redeploy is needed.'), React.createElement("div", {style: { display:'flex', gap:12, alignItems:'center' }}, React.createElement("input", {type: "text", value: paystackKeyInput, onChange: e => setPaystackKeyInput(e.target.value), placeholder: 'pk_live_...', style: { flex:1, fontSize:15, fontFamily:'monospace', letterSpacing:'0.02em', overflowWrap:'break-word', minWidth:0 }}), React.createElement("button", {className: "btn-primary", onClick: savePaystackKey, style: { whiteSpace:'nowrap' }}, keySaved ? '✓ Saved!' : 'Save Key')), paystackKeyInput && React.createElement("div", {style: { marginTop:16, padding:'12px 16px', background:C.deep, borderRadius:8, border:`1px solid ${C.border}`, ...mono, fontSize:13, color:C.muted }}, 'Active: ', React.createElement("span", {style: { color:AC.goldDark }}, paystackKeyInput.slice(0,12), '...', paystackKeyInput.slice(-6)))))
                                 ))
             )))
       );
@@ -5553,8 +5982,8 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
     const TEAM_THEME = {
       bg: '#FFFFFF', surface: '#FFFFFF', surfaceAlt: '#F9FAFB',
       text: '#111827', muted: '#4B5563', border: '#D1D5DB',
-      gold: '#C8A95A', goldDark: '#8A6D2F', goldTint: '#FBF3E3',
-      focus: '#8A6D2F',
+      gold: '#5B84FF', goldDark: '#2F4FCB', goldTint: '#EEF2FF',
+      focus: '#2F4FCB',
       error: '#B91C1C', errorTint: '#FEF2F2', success: '#166534',
       font: "'Atkinson Hyperlegible', 'Inter', -apple-system, sans-serif",
     };
@@ -5683,7 +6112,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
 .nf-team-grid-2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;}
 .nf-team-btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:48px;padding:12px 22px;border-radius:12px;border:1px solid transparent;font-size:16px;font-weight:700;line-height:1.3;text-align:center;cursor:pointer;transition:background .15s ease,border-color .15s ease,color .15s ease;max-width:100%;}
 .nf-team-btn--primary{background:${T.goldDark};color:#FFFFFF;box-shadow:0 1px 3px rgba(138,109,47,0.35);}
-.nf-team-btn--primary:hover:not([disabled]){background:#735A26;}
+.nf-team-btn--primary:hover:not([disabled]){background:#2640A8;}
 .nf-team-btn--ghost{background:transparent;color:${T.text};}
 .nf-team-btn--ghost:hover:not([disabled]){background:${T.goldTint};color:${T.goldDark};}
 .nf-team-btn[disabled]{opacity:0.5;cursor:not-allowed;}
@@ -5895,7 +6324,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
           const u = data?.session?.user || null;
           setUser(u);
           setSession(data?.session || null);
-          if (u) loadUser(u);
+          if (u) { loadUser(u); nfOncePerSession('nf_ss', () => nfEvent('session_started', {})); }
           else setAuthLoading(false);
         }).catch(()=>{
           // Supabase unreachable (paused project, network error, etc.)
@@ -6020,7 +6449,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
   const AC = {
     bg: '#FFFFFF', surface: '#FFFFFF', surfaceAlt: '#F9FAFB',
     text: '#111827', muted: '#4B5563', border: '#D1D5DB',
-    gold: '#C8A95A', goldDark: '#8A6D2F', goldTint: '#FBF3E3', focus: '#8A6D2F',
+    gold: '#5B84FF', goldDark: '#2F4FCB', goldTint: '#EEF2FF', focus: '#2F4FCB',
     error: '#B91C1C', errorTint: '#FEF2F2', success: '#166534', successTint: '#F0FDF4',
     font: "'Atkinson Hyperlegible', 'Inter', -apple-system, sans-serif",
   };
@@ -6137,14 +6566,14 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
       + '.nf-portal *,.nf-portal *::before,.nf-portal *::after{box-sizing:border-box}'
       + '.nf-portal button,.nf-portal input,.nf-portal select,.nf-portal textarea{font-family:inherit}'
       + '.nf-portal h1,.nf-portal h2,.nf-portal h3,.nf-portal p{margin:0}'
-      + '.nf-portal :focus-visible{outline:3px solid #8A6D2F;outline-offset:3px}'
+      + '.nf-portal :focus-visible{outline:3px solid #2F4FCB;outline-offset:3px}'
       + '.nf-portal .nf-pbtn{transition:background .15s ease,border-color .15s ease}'
-      + '.nf-portal .nf-pbtn:hover:not([disabled]){background:#735A26!important;border-color:#735A26!important;color:#FFFFFF!important}'
-      + '.nf-portal .nf-pbtn--ghost:hover:not([disabled]){background:#FBF3E3!important;color:#8A6D2F!important;border-color:#8A6D2F!important}'
-      + '.nf-portal .nf-tab:hover{border-color:#C8A95A!important;background:#FBF3E3!important}'
+      + '.nf-portal .nf-pbtn:hover:not([disabled]){background:#2640A8!important;border-color:#2640A8!important;color:#FFFFFF!important}'
+      + '.nf-portal .nf-pbtn--ghost:hover:not([disabled]){background:#EEF2FF!important;color:#2F4FCB!important;border-color:#2F4FCB!important}'
+      + '.nf-portal .nf-tab:hover{border-color:#5B84FF!important;background:#EEF2FF!important}'
       + '.nf-portal .nf-team{background:transparent!important;min-height:0!important}'
       + '.nf-portal .nf-team-container{padding:8px 0 32px!important;max-width:none!important}'
-      + '.nf-portal .nfj-sum:focus-visible{outline:3px solid #8A6D2F;outline-offset:3px}'
+      + '.nf-portal .nfj-sum:focus-visible{outline:3px solid #2F4FCB;outline-offset:3px}'
       + '@media (max-width:767px){.nf-portal{font-size:16px}}'
       + '@media (prefers-reduced-motion:reduce){.nf-portal *{animation:none!important;transition:none!important}}';
     document.head.appendChild(s);
@@ -6971,7 +7400,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
   const { useState, useEffect } = React;
   const AC = {
     bg: '#FFFFFF', surfaceAlt: '#F9FAFB', text: '#111827', muted: '#4B5563', border: '#D1D5DB',
-    gold: '#C8A95A', goldDark: '#8A6D2F', goldTint: '#FBF3E3',
+    gold: '#5B84FF', goldDark: '#2F4FCB', goldTint: '#EEF2FF',
     error: '#B91C1C', errorTint: '#FEF2F2', success: '#166534', successTint: '#F0FDF4',
     font: "'Atkinson Hyperlegible', 'Inter', -apple-system, sans-serif",
   };
