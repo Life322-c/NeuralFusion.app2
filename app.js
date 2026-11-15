@@ -20,8 +20,8 @@ const { useState, useEffect, useCallback, useRef, useMemo } = React;
         }
         const box = document.createElement('div');
         box.setAttribute('role', opts.type === 'error' ? 'alert' : 'status');
-        const accent = opts.type === 'error' ? '#F87171' : '#5B84FF';
-        box.style.cssText = 'background:#112240;color:#E9EDF5;border:1px solid ' + accent + ';border-radius:4px;padding:14px 16px;font:14px/1.5 "DM Sans",sans-serif;box-shadow:0 8px 32px rgba(0,0,0,0.5);';
+        const accent = opts.type === 'error' ? '#F87171' : '#E8B931';
+        box.style.cssText = 'background:#123066;color:#FFFFFF;border:1px solid ' + accent + ';border-radius:4px;padding:14px 16px;font:14px/1.5 "DM Sans",sans-serif;box-shadow:0 8px 32px rgba(0,0,0,0.5);';
         const msg = document.createElement('div');
         msg.textContent = text;
         box.appendChild(msg);
@@ -32,7 +32,7 @@ const { useState, useEffect, useCallback, useRef, useMemo } = React;
           const b = document.createElement('button');
           b.type = 'button';
           b.textContent = label;
-          b.style.cssText = 'cursor:pointer;border-radius:3px;padding:6px 14px;font:600 12px "DM Sans",sans-serif;border:1px solid ' + accent + ';' + (primary ? 'background:' + accent + ';color:#050C1A;' : 'background:transparent;color:#E9EDF5;');
+          b.style.cssText = 'cursor:pointer;border-radius:3px;padding:6px 14px;font:600 12px "DM Sans",sans-serif;border:1px solid ' + accent + ';' + (primary ? 'background:' + accent + ';color:#081A3D;' : 'background:transparent;color:#FFFFFF;');
           b.addEventListener('click', onClick);
           return b;
         };
@@ -86,15 +86,15 @@ const { useState, useEffect, useCallback, useRef, useMemo } = React;
 
     // ── Design Tokens: Gold × Navy ───────────────────────────────────
     const C = {
-      void: '#050C1A', deep: '#071020', surface: '#0C1A30', panel: '#112240',
-      border: 'rgba(91,132,255,0.15)', borderBright: 'rgba(91,132,255,0.35)',
-      cyan: '#5B84FF', cyanBright: '#A9BCFF', cyanDim: 'rgba(91,132,255,0.08)',
-      text: '#E9EDF5', muted: '#9AA6C6', dim: '#4A5A78',
+      void: '#081A3D', deep: '#0A2048', surface: '#0D2757', panel: '#123066',
+      border: 'rgba(232,185,49,0.15)', borderBright: 'rgba(232,185,49,0.35)',
+      cyan: '#E8B931', cyanBright: '#FFD76A', cyanDim: 'rgba(232,185,49,0.08)',
+      text: '#FFFFFF', muted: '#D3DCF0', dim: '#A9B8D8',
       brains: {
-        analytical: { color: '#6E96FF', dim: 'rgba(110,150,255,0.14)',  label: 'Analytical thinking', code: 'A', symbol: '◰' },
-        intuitive:  { color: '#A28BFF', dim: 'rgba(162,139,255,0.14)', label: 'Intuitive thinking',  code: 'I', symbol: '◱' },
-        associative:{ color: '#52BDEF', dim: 'rgba(82,189,239,0.14)', label: 'Associative thinking',code: 'S', symbol: '◲' },
-        reflective: { color: '#CDBEFF', dim: 'rgba(205,190,255,0.14)', label: 'Reflective thinking', code: 'R', symbol: '◳' },
+        analytical: { color: '#FFD76A', dim: 'rgba(255,215,106,0.14)',  label: 'Analytical thinking', code: 'A', symbol: '◰' },
+        intuitive:  { color: '#7FB2FF', dim: 'rgba(127,178,255,0.14)', label: 'Intuitive thinking',  code: 'I', symbol: '◱' },
+        associative:{ color: '#F2A33A', dim: 'rgba(242,163,58,0.14)', label: 'Associative thinking',code: 'S', symbol: '◲' },
+        reflective: { color: '#DCE6FF', dim: 'rgba(220,230,255,0.14)', label: 'Reflective thinking', code: 'R', symbol: '◳' },
         // Not a fifth brain: the CFI's pressure/overload item (dim E). Kept visually distinct
         // so it's never mistaken for the Analytical brain it used to silently fall back to.
         integration:{ color: '#8B8FA3', dim: 'rgba(139,143,163,0.12)',  label: 'Integration',     code: 'E', symbol: '◈' },
@@ -122,7 +122,7 @@ const { useState, useEffect, useCallback, useRef, useMemo } = React;
     // Horizontal lockup: icon + wordmark, vertically centered, consistent
     // gap. Used in the primary nav. Collapses to icon-only via CSS below
     // a set breakpoint (see .nf-lockup-text in style.css).
-    function NFLogoLockup({ iconSize = 30, gap = 12, wordmarkColor = '#E9EDF5', tagline, taglineColor = '#9AA6C6', mono = false }) {
+    function NFLogoLockup({ iconSize = 30, gap = 12, wordmarkColor = '#FFFFFF', tagline, taglineColor = '#D3DCF0', mono = false }) {
       return React.createElement(
         "div",
         { className: "nf-lockup", style: { display: 'flex', alignItems: 'center', gap } },
@@ -1253,7 +1253,7 @@ Most learners take four to six weeks working through the lessons at the suggeste
       return (
         React.createElement("div", {style: { position:'absolute', inset:0, overflow:'hidden', pointerEvents:'none', borderRadius:'inherit' }}, React.createElement("div", {style: {
             position:'absolute', left:0, right:0, height:1,
-            background:'linear-gradient(90deg, transparent, rgba(91,132,255,0.3), transparent)',
+            background:'linear-gradient(90deg, transparent, rgba(232,185,49,0.3), transparent)',
             animation:'scanH 4s ease-in-out infinite',
           }}))
       );
@@ -1380,7 +1380,7 @@ Most learners take four to six weeks working through the lessons at the suggeste
                 }}, 'Forgot password?')))), tab==='signup' && (React.createElement(React.Fragment, null, React.createElement("div", {style: { marginBottom:14 }}, React.createElement("div", {style: { ...mono, fontSize:9, letterSpacing:1, color:C.muted, marginBottom:8 }}, 'Full name'), React.createElement("input", {value: name, onChange: e=>setName(e.target.value), placeholder: "Your name"})), React.createElement("div", {style: { marginBottom:14 }}, React.createElement("div", {style: { ...mono, fontSize:9, letterSpacing:1, color:C.muted, marginBottom:8 }}, 'Email'), React.createElement("input", {type: "email", value: email, onChange: e=>setEmail(e.target.value), placeholder: "you@example.com"})), React.createElement("div", {style: { marginBottom:14 }}, React.createElement("div", {style: { ...mono, fontSize:9, letterSpacing:1, color:C.muted, marginBottom:8 }}, 'Password'), React.createElement("input", {type: "password", value: password, onChange: e=>setPassword(e.target.value), placeholder: "••••••••"})), React.createElement("div", {style: { marginBottom:24 }}, React.createElement("div", {style: { ...mono, fontSize:9, letterSpacing:1, color:C.muted, marginBottom:8 }}, 'Confirm password'), React.createElement("input", {type: "password", value: confirmPassword, onChange: e=>setConfirmPassword(e.target.value), placeholder: "••••••••", onKeyDown: e=>e.key==='Enter'&&handleSignup()})))), tab==='forgot-password' && (React.createElement(React.Fragment, null, React.createElement("div", {style: { marginBottom:24 }}, React.createElement("div", {style: { ...mono, fontSize:9, letterSpacing:1, color:C.muted, marginBottom:8 }}, 'Email'), React.createElement("input", {type: "email", value: email, onChange: e=>setEmail(e.target.value), placeholder: "you@example.com", onKeyDown: e=>e.key==='Enter'&&handleForgotPassword()})))), tab==='update-password' && (React.createElement(React.Fragment, null, React.createElement("div", {style: { marginBottom:14 }}, React.createElement("div", {style: { ...mono, fontSize:9, letterSpacing:1, color:C.muted, marginBottom:8 }}, 'New password'), React.createElement("input", {type: "password", value: password, onChange: e=>setPassword(e.target.value), placeholder: "••••••••"})), React.createElement("div", {style: { marginBottom:24 }}, React.createElement("div", {style: { ...mono, fontSize:9, letterSpacing:1, color:C.muted, marginBottom:8 }}, 'Confirm password'), React.createElement("input", {type: "password", value: confirmPassword, onChange: e=>setConfirmPassword(e.target.value), placeholder: "••••••••", onKeyDown: e=>e.key==='Enter'&&handleUpdatePassword()})))), msg.text && (
               React.createElement("div", {style: { marginBottom:20, padding:'12px 16px', background:msg.type==='error'?'rgba(248,113,113,0.1)':'rgba(128,203,196,0.1)',
                 border:`1px solid ${msg.type==='error'?'#F8717144':'#7AAFCF44'}`, borderRadius:2,
-                color:msg.type==='error'?'#F87171':'#7AAFCF', fontSize:13 }}, msg.text)
+                color:msg.type==='error'?'#F87171':'#FFD76A', fontSize:13 }}, msg.text)
             ), React.createElement("button", {className: "btn-primary", style: { width:'100%', fontSize:12, opacity:loading?0.6:1 }, disabled: loading, onClick: 
                 tab==='login'            ? handleLogin :
                 tab==='signup'           ? handleSignup :
@@ -1674,7 +1674,7 @@ Most learners take four to six weeks working through the lessons at the suggeste
                   textDecoration:'none',
                   display:'inline-block',
                 }}, 'Blog')), React.createElement("div", {style: { display:'flex', alignItems:'center', gap:12 }}, React.createElement("div", {className: "nav-user-label", style: { ...mono, fontSize:9, letterSpacing:1, color:C.muted }}, user ? user.email?.split('@')[0].toUpperCase() : ''), authLoading ? (
-                  React.createElement("div", {className: "desktop-only", style: { width:16, height:16, border:'2px solid rgba(91,132,255,0.3)', borderTopColor:'#5B84FF', borderRadius:'50%', animation:'nf-spin 0.8s linear infinite' }})
+                  React.createElement("div", {className: "desktop-only", style: { width:16, height:16, border:'2px solid rgba(232,185,49,0.3)', borderTopColor:'#E8B931', borderRadius:'50%', animation:'nf-spin 0.8s linear infinite' }})
                 ) : user ? (
                   React.createElement("button", {className: "btn-outline desktop-only", style: { fontSize:10, padding:'8px 16px' }, onClick: onSignOut}, 'Sign out')
                 ) : (
@@ -1687,13 +1687,13 @@ Most learners take four to six weeks working through the lessons at the suggeste
                   color:C.muted, width:44, height:44, flexDirection:'column',
                   alignItems:'center', justifyContent:'center', gap:5, cursor:'pointer',
                 } : {
-                  background:'none', border:'1px solid rgba(91,132,255,0.25)', borderRadius:12,
+                  background:'none', border:'1px solid rgba(232,185,49,0.25)', borderRadius:12,
                   width:44, height:44, flexDirection:'column',
                   alignItems:'center', justifyContent:'center', gap:5, cursor:'pointer',
                 }}, user ? (menuOpen
                   ? [React.createElement("div", {key:'x1', style: { width:20, height:1.5, background:C.text, transform:'translateY(3.25px) rotate(45deg)' }}), React.createElement("div", {key:'x2', style: { width:20, height:1.5, background:C.text, transform:'translateY(-3.25px) rotate(-45deg)' }})]
                   : [React.createElement("div", {key:'a', style: { width:18, height:1, background:C.muted }}), React.createElement("div", {key:'b', style: { width:14, height:1, background:C.muted }}), React.createElement("div", {key:'c', style: { width:10, height:1, background:C.muted }})])
-                  : [0,1,2].map(i => React.createElement("div", {key:i, style: { width:20, height:2, borderRadius:1, background:'#A9BCFF' }})))))), menuOpen && user && (
+                  : [0,1,2].map(i => React.createElement("div", {key:i, style: { width:20, height:2, borderRadius:1, background:'#FFD76A' }})))))), menuOpen && user && (
             React.createElement("div", {id: "nf-app-menu", role: "dialog", "aria-label": "Menu", style: {
               position:'fixed', inset:0, zIndex:99, background:'rgba(5,12,26,0.97)',
               backdropFilter:'blur(20px)', paddingTop:70, display:'flex', flexDirection:'column',
@@ -1729,7 +1729,7 @@ Most learners take four to six weeks working through the lessons at the suggeste
 
     // ── BOTTOM NAV ────────────────────────────────────────────────────
     // Inactive nav colour: same slate family as C.dim, lifted to pass 4.5:1 on the navy bar.
-    const NAV_INACTIVE = '#6F7F9E';
+    const NAV_INACTIVE = '#C5CFE6';
     function BottomNav({ view, setView, user, hasOrg }) {
       const items = user ? [
         { v:'home', symbol:'\u2302', label:'Home' },
@@ -1855,17 +1855,17 @@ const nfjLoadDecisions = (uid) => nfjCached('dec:' + uid, 15000, async () => {
 function nfjTheme(light) {
   return light
     ? { light: true, ink: CP.ink, text: CP.text, muted: CP.muted, border: CP.border, strong: CP.borderStrong, card: CP.card, tint: CP.goldTint, accent: '#7A5F18', btn: CP.goldDeep, onAccent: '#FFFFFF', done: '#2F7D4F' }
-    : { light: false, ink: C.text, text: C.text, muted: C.muted, border: C.border, strong: C.borderBright, card: C.surface, tint: C.cyanDim, accent: C.cyan, btn: C.cyan, onAccent: '#050C1A', done: '#7AAFCF' };
+    : { light: false, ink: C.text, text: C.text, muted: C.muted, border: C.border, strong: C.borderBright, card: C.surface, tint: C.cyanDim, accent: C.cyan, btn: C.cyan, onAccent: '#081A3D', done: '#FFD76A' };
 }
 function nfjEnsureStyles() {
   if (typeof document === 'undefined' || document.getElementById('nfj-styles')) return;
   const s = document.createElement('style');
   s.id = 'nfj-styles';
   s.textContent = '.nfj-btn{min-height:48px;padding:12px 22px;border-radius:8px;font-weight:700;font-size:15px;cursor:pointer;border:1px solid transparent;font-family:"DM Sans",sans-serif;max-width:100%;text-align:center}'
-    + '.nfj-btn:focus-visible,.nfj-link:focus-visible{outline:2px solid #A9BCFF;outline-offset:3px}'
-    + '.nfj-light .nfj-btn:focus-visible,.nfj-light .nfj-link:focus-visible{outline-color:#2F4FCB}'
+    + '.nfj-btn:focus-visible,.nfj-link:focus-visible{outline:2px solid #FFD76A;outline-offset:3px}'
+    + '.nfj-light .nfj-btn:focus-visible,.nfj-light .nfj-link:focus-visible{outline-color:#0A2A6B}'
     + '.nfj-btn[disabled]{opacity:.6;cursor:not-allowed}.nfj-wrap{overflow-wrap:anywhere;min-width:0}'
-    + '.nfj-sum{list-style:none;justify-content:space-between;gap:12px}.nfj-sum::-webkit-details-marker{display:none}.nfj-sum::after{content:"+";font-size:22px;line-height:1;flex-shrink:0}details[open]>.nfj-sum::after{content:"\\2212"}.nfj-sum:focus-visible{outline:2px solid #A9BCFF;outline-offset:2px}'
+    + '.nfj-sum{list-style:none;justify-content:space-between;gap:12px}.nfj-sum::-webkit-details-marker{display:none}.nfj-sum::after{content:"+";font-size:22px;line-height:1;flex-shrink:0}details[open]>.nfj-sum::after{content:"\\2212"}.nfj-sum:focus-visible{outline:2px solid #FFD76A;outline-offset:2px}'
     + '@media (min-width:720px){.nfj-two{display:grid;grid-template-columns:1fr 1fr;gap:20px}}';
   document.head.appendChild(s);
 }
@@ -2922,7 +2922,7 @@ function LandingView({ setView, setShowAuth }) {
   ];
 
   const styles = E('style', null, `
-    .nfl { --nv:#070D24; --nv2:#0C1636; --nv3:#142149; --bl:#3F6BFF; --blh:#5B84FF; --vi:#8A6DFF; --pa:#F5F7FC; --pa2:#EAEEF8; --ink:#0B1226; --mu:#47506B; --ln:#D5DBEA; --ca:#9FB3FF; --cr:#C7B8FF;
+    .nfl { --nv:#0A1D4A; --nv2:#0D2757; --nv3:#17397A; --bl:#E8B931; --blh:#E8B931; --vi:#E8B931; --pa:#F5F7FC; --pa2:#EAEEF8; --ink:#061431; --mu:#47506B; --ln:#E3EAFB; --ca:#FFD76A; --cr:#FFE9A8;
       font-family:'Satoshi','DM Sans',sans-serif; color:var(--ink); background:var(--pa); padding-top:60px; line-height:1.6; }
     .nfl *, .nfl *::before, .nfl *::after { box-sizing:border-box; }
     .nfl h1,.nfl h2,.nfl h3 { font-family:'Clash Display','Syne',sans-serif; font-weight:600; letter-spacing:-0.015em; margin:0; overflow-wrap:break-word; text-wrap:balance; }
@@ -2934,24 +2934,24 @@ function LandingView({ setView, setShowAuth }) {
     .nfl .sec.dark { background:var(--nv); color:#fff; }
     .nfl h2 { font-size:clamp(28px,3.8vw,42px); line-height:1.15; max-width:760px; }
     .nfl .lede { font-size:18px; color:var(--mu); max-width:640px; margin-top:16px; }
-    .nfl .dark .lede { color:#B8C3E6; }
+    .nfl .dark .lede { color:#E3EAFB; }
     .nfl .btn { display:inline-flex; align-items:center; justify-content:center; min-height:52px; padding:0 28px; border-radius:6px; font:600 15px 'Clash Display','Syne',sans-serif; letter-spacing:0.01em; cursor:pointer; text-decoration:none; border:1.5px solid transparent; transition:background .15s,border-color .15s; }
-    .nfl .btn.pri { background:var(--bl); color:#fff; }
+    .nfl .btn.pri { background:var(--bl); color:#0A1D4A; font-weight:800; }
     .nfl .btn.pri:hover { background:var(--blh); }
-    .nfl .btn.ghost { background:transparent; color:#fff; border-color:#4A5A94; }
+    .nfl .btn.ghost { background:transparent; color:#fff; border-color:#E8B931; }
     .nfl .btn.ghost:hover { border-color:var(--ca); }
-    .nfl .btn.line { background:transparent; color:var(--ink); border-color:#9AA6C6; }
-    .nfl .btn.line:hover { border-color:var(--bl); color:var(--bl); }
+    .nfl .btn.line { background:transparent; color:var(--ink); border-color:#D3DCF0; }
+    .nfl .btn.line:hover { border-color:var(--bl); color:#0A1D4A; background:#FFF6DB; }
     .nfl a:focus-visible, .nfl button:focus-visible, .nfl summary:focus-visible { outline:3px solid var(--blh); outline-offset:3px; }
     .nfl .dark a:focus-visible, .nfl .dark button:focus-visible, .nfl .hero a:focus-visible, .nfl .hero button:focus-visible { outline-color:#fff; }
 
     .nfl .hero { background:var(--nv); color:#fff; padding:72px 0 80px; }
     .nfl .hero-grid { display:grid; grid-template-columns:1.05fr 0.95fr; gap:48px; align-items:center; }
-    .nfl .eyebrow { font:700 13px 'Space Mono',monospace; letter-spacing:0.12em; text-transform:uppercase; color:#A9BCFF; margin:0 0 18px; }
+    .nfl .eyebrow { font:700 13px 'Space Mono',monospace; letter-spacing:0.12em; text-transform:uppercase; color:#FFD76A; margin:0 0 18px; }
     .nfl .hero h1 { font-size:clamp(34px,5vw,58px); line-height:1.07; }
-    .nfl .hero .sub { font-size:18px; color:#BFC9E9; margin-top:22px; max-width:540px; }
+    .nfl .hero .sub { font-size:18px; color:#E3EAFB; margin-top:22px; max-width:540px; }
     .nfl .hero .cta { display:flex; flex-wrap:wrap; gap:14px; margin-top:34px; }
-    .nfl .hero .note { font-size:14px; color:#8F9CC6; margin-top:18px; }
+    .nfl .hero .note { font-size:14px; color:#D3DCF0; margin-top:18px; }
     .nfl .hero svg { width:100%; height:auto; max-width:480px; display:block; margin:0 auto; }
     .nfl .draw { stroke-dasharray:1; stroke-dashoffset:1; animation:nflDraw 1.8s .2s ease-out forwards; }
     @keyframes nflDraw { to { stroke-dashoffset:0; } }
@@ -2972,25 +2972,25 @@ function LandingView({ setView, setShowAuth }) {
     .nfl .three > div { border-top:2px solid var(--bl); padding-top:18px; }
     .nfl .three h3 { font-size:22px; }
     .nfl .three p { color:var(--mu); margin-top:10px; font-size:16px; }
-    .nfl .three .st { font:700 13px 'Space Mono',monospace; color:var(--bl); margin-bottom:6px; display:block; }
+    .nfl .three .st { font:700 13px 'Space Mono',monospace; color:#7A5800; margin-bottom:6px; display:block; }
 
-    .nfl .modes { display:grid; grid-template-columns:repeat(4,1fr); gap:0; margin-top:44px; border:1px solid #2A3A74; }
+    .nfl .modes { display:grid; grid-template-columns:repeat(4,1fr); gap:0; margin-top:44px; border:1px solid #3A5CA8; }
     .nfl .mode { padding:26px 22px 28px; }
-    .nfl .mode + .mode { border-left:1px solid #2A3A74; }
+    .nfl .mode + .mode { border-left:1px solid #3A5CA8; }
     .nfl .mode svg { width:44px; height:44px; display:block; margin-bottom:18px; }
     .nfl .mode h3 { font-size:21px; }
-    .nfl .mode p { font-size:15px; color:#B8C3E6; margin-top:8px; }
-    .nfl .mode.a { color:#6E96FF; } .nfl .mode.i { color:#A28BFF; } .nfl .mode.s { color:#52BDEF; } .nfl .mode.r { color:#CDBEFF; }
-    .nfl .mode h3, .nfl .mode p { color:#fff; } .nfl .mode p { color:#B8C3E6; }
-    .nfl .together { margin-top:30px; max-width:720px; font-size:17px; color:#D5DCF3; }
+    .nfl .mode p { font-size:15px; color:#E3EAFB; margin-top:8px; }
+    .nfl .mode.a { color:#FFD76A; } .nfl .mode.i { color:#7FB2FF; } .nfl .mode.s { color:#F2A33A; } .nfl .mode.r { color:#DCE6FF; }
+    .nfl .mode h3, .nfl .mode p { color:#fff; } .nfl .mode p { color:#E3EAFB; }
+    .nfl .together { margin-top:30px; max-width:720px; font-size:17px; color:#E3EAFB; }
 
     .nfl .loop { display:grid; grid-template-columns:260px 1fr; gap:0; margin-top:44px; border:1px solid var(--ln); background:#fff; }
     .nfl .tabs { display:flex; flex-direction:column; border-right:1px solid var(--ln); background:var(--pa); }
     .nfl .tab { text-align:left; background:none; border:0; border-bottom:1px solid var(--ln); padding:18px 20px; min-height:60px; font:600 17px 'Clash Display','Syne',sans-serif; color:var(--mu); cursor:pointer; display:flex; align-items:center; gap:12px; }
     .nfl .tab:last-child { border-bottom:0; }
-    .nfl .tab .n { font:700 12px 'Space Mono',monospace; color:#7C86A6; }
+    .nfl .tab .n { font:700 12px 'Space Mono',monospace; color:#4A5A7A; }
     .nfl .tab[aria-selected="true"] { background:#fff; color:var(--ink); box-shadow:inset 4px 0 0 var(--bl); }
-    .nfl .tab[aria-selected="true"] .n { color:var(--bl); }
+    .nfl .tab[aria-selected="true"] .n { color:#7A5800; }
     .nfl .panel { padding:34px 36px; }
     .nfl .panel h3 { font-size:26px; }
     .nfl .panel .def { color:var(--mu); margin-top:8px; font-size:16px; }
@@ -2998,18 +2998,18 @@ function LandingView({ setView, setShowAuth }) {
     .nfl .panel .ex small { display:block; font-size:13.5px; color:var(--mu); margin-bottom:8px; }
     .nfl .panel .ex p { font-size:17px; max-width:600px; }
     .nfl .seq { display:flex; flex-wrap:wrap; gap:8px 6px; margin-top:26px; font:600 13px 'Space Mono',monospace; color:var(--mu); }
-    .nfl .seq b { color:var(--bl); }
+    .nfl .seq b { color:#7A5800; }
 
     .nfl .cfi { display:grid; grid-template-columns:1fr 1fr; gap:56px; align-items:start; }
     .nfl .chips { list-style:none; margin:26px 0 0; padding:0; display:flex; flex-wrap:wrap; gap:10px; }
-    .nfl .chips li { padding:9px 16px; border:1px solid #9AA6C6; border-radius:999px; font-size:15px; background:#fff; }
+    .nfl .chips li { padding:9px 16px; border:1px solid #D3DCF0; border-radius:999px; font-size:15px; background:#fff; }
     .nfl .chips li.co { border-style:dashed; }
     .nfl .facts { margin-top:22px; color:var(--mu); font-size:16px; }
     .nfl .status { border:1.5px solid var(--ink); background:#fff; padding:26px 26px 24px; }
     .nfl .status h3 { font-size:19px; }
     .nfl .status ul { margin:14px 0 0; padding-left:20px; color:var(--mu); font-size:15.5px; }
     .nfl .status li { margin-top:8px; }
-    .nfl .status a { color:var(--bl); font-weight:600; }
+    .nfl .status a { color:#0A1D4A; font-weight:700; text-decoration:underline; }
 
     .nfl .uses { list-style:none; margin:40px 0 0; padding:0; display:grid; grid-template-columns:repeat(2,1fr); gap:0 48px; }
     .nfl .uses li { padding:20px 0; border-top:1px solid var(--ln); }
@@ -3026,10 +3026,10 @@ function LandingView({ setView, setShowAuth }) {
     .nfl .path .btn { align-self:flex-start; }
 
     .nfl .links { list-style:none; margin:36px 0 0; padding:0; display:grid; grid-template-columns:repeat(3,1fr); gap:14px; }
-    .nfl .links a { display:block; padding:16px 18px; border:1px solid #2A3A74; text-decoration:none; font-weight:600; min-height:56px; }
+    .nfl .links a { display:block; padding:16px 18px; border:1px solid #3A5CA8; text-decoration:none; font-weight:600; min-height:56px; }
     .nfl .links a:hover { border-color:var(--ca); }
-    .nfl .links span { display:block; font-weight:400; font-size:14px; color:#9FACD6; margin-top:2px; }
-    .nfl .fine { margin-top:26px; font-size:15px; color:#B8C3E6; max-width:700px; }
+    .nfl .links span { display:block; font-weight:400; font-size:14px; color:#D3DCF0; margin-top:2px; }
+    .nfl .fine { margin-top:26px; font-size:15px; color:#E3EAFB; max-width:700px; }
 
     .nfl .founder { max-width:680px; border-left:3px solid var(--vi); padding-left:22px; }
     .nfl .founder p + p { margin-top:12px; }
@@ -3039,7 +3039,7 @@ function LandingView({ setView, setShowAuth }) {
     .nfl details p { color:var(--mu); padding:0 0 18px; max-width:640px; }
     .nfl .final { background:var(--nv); color:#fff; text-align:center; padding:96px 0; }
     .nfl .final h2 { margin:0 auto; font-size:clamp(28px,4.2vw,46px); max-width:820px; }
-    .nfl .final p { color:#B8C3E6; font-size:18px; margin:18px auto 32px; }
+    .nfl .final p { color:#E3EAFB; font-size:18px; margin:18px auto 32px; }
 
     @media (max-width: 960px) {
       .nfl .hero-grid, .nfl .cfi { grid-template-columns:1fr; gap:40px; }
@@ -3048,7 +3048,7 @@ function LandingView({ setView, setShowAuth }) {
       .nfl .ladder .mark { display:none; }
       .nfl .three, .nfl .paths, .nfl .links { grid-template-columns:1fr; }
       .nfl .modes { grid-template-columns:repeat(2,1fr); }
-      .nfl .mode + .mode { border-left:0; } .nfl .mode:nth-child(even) { border-left:1px solid #2A3A74; } .nfl .mode:nth-child(n+3) { border-top:1px solid #2A3A74; }
+      .nfl .mode + .mode { border-left:0; } .nfl .mode:nth-child(even) { border-left:1px solid #3A5CA8; } .nfl .mode:nth-child(n+3) { border-top:1px solid #3A5CA8; }
       .nfl .loop { grid-template-columns:1fr; }
       .nfl .tabs { flex-direction:row; overflow-x:auto; border-right:0; border-bottom:1px solid var(--ln); }
       .nfl .tab { border-bottom:0; border-right:1px solid var(--ln); white-space:nowrap; flex:0 0 auto; }
@@ -3057,7 +3057,7 @@ function LandingView({ setView, setShowAuth }) {
     }
     @media (max-width: 560px) {
       .nfl .sec { padding:64px 0; } .nfl .hero { padding:48px 0 56px; }
-      .nfl .modes { grid-template-columns:1fr; } .nfl .mode:nth-child(even) { border-left:0; } .nfl .mode + .mode { border-top:1px solid #2A3A74; }
+      .nfl .modes { grid-template-columns:1fr; } .nfl .mode:nth-child(even) { border-left:0; } .nfl .mode + .mode { border-top:1px solid #3A5CA8; }
       .nfl .panel { padding:26px 22px; } .nfl .btn { width:100%; }
     }
   `);
@@ -3067,22 +3067,22 @@ function LandingView({ setView, setShowAuth }) {
 
   // Hero figure: four modes converge into one judgment, inside a ring of AI support.
   const node = (x, y, c, label, dy) => E('g', { key: label },
-    E('circle', { cx: x, cy: y, r: 30, fill: '#0C1636', stroke: c, strokeWidth: 2.5 }),
+    E('circle', { cx: x, cy: y, r: 30, fill: '#0D2757', stroke: c, strokeWidth: 2.5 }),
     E('circle', { cx: x, cy: y, r: 9, fill: c }),
     E('text', { x, y: y + dy, textAnchor: 'middle', fill: '#DCE3F8', fontSize: 14, fontFamily: 'Satoshi,sans-serif' }, label));
   const curve = (d, c, k) => E('path', { key: k, d, pathLength: 1, className: 'draw', fill: 'none', stroke: c, strokeWidth: 2.5, strokeLinecap: 'round' });
   const figure = E('svg', { viewBox: '0 0 480 460', role: 'img', 'aria-label': 'Four thinking modes, Analytical, Intuitive, Associative and Reflective, converging into one integrated judgment, surrounded by AI support.' },
     E('circle', { cx: 240, cy: 230, r: 214, fill: 'none', stroke: '#33427F', strokeWidth: 1.5, strokeDasharray: '3 7' }),
-    E('text', { x: 240, y: 28, textAnchor: 'middle', fill: '#8F9CC6', fontSize: 13, fontFamily: 'Satoshi,sans-serif' }, 'AI: answers, drafts, options'),
-    curve('M96 98 C 150 120 190 170 214 206', '#6E96FF', 'a'),
-    curve('M384 98 C 330 120 290 170 266 206', '#A28BFF', 'i'),
-    curve('M96 362 C 150 340 190 290 214 254', '#52BDEF', 's'),
-    curve('M384 362 C 330 340 290 290 266 254', '#CDBEFF', 'r'),
-    E('circle', { cx: 240, cy: 230, r: 44, fill: '#142149', stroke: '#fff', strokeWidth: 2 }),
+    E('text', { x: 240, y: 28, textAnchor: 'middle', fill: '#D3DCF0', fontSize: 13, fontFamily: 'Satoshi,sans-serif' }, 'AI: answers, drafts, options'),
+    curve('M96 98 C 150 120 190 170 214 206', '#FFD76A', 'a'),
+    curve('M384 98 C 330 120 290 170 266 206', '#7FB2FF', 'i'),
+    curve('M96 362 C 150 340 190 290 214 254', '#F2A33A', 's'),
+    curve('M384 362 C 330 340 290 290 266 254', '#DCE6FF', 'r'),
+    E('circle', { cx: 240, cy: 230, r: 44, fill: '#17397A', stroke: '#fff', strokeWidth: 2 }),
     E('text', { x: 240, y: 226, textAnchor: 'middle', fill: '#fff', fontSize: 14, fontWeight: 700, fontFamily: 'Clash Display,sans-serif' }, 'Your'),
     E('text', { x: 240, y: 244, textAnchor: 'middle', fill: '#fff', fontSize: 14, fontWeight: 700, fontFamily: 'Clash Display,sans-serif' }, 'judgment'),
-    node(80, 84, '#6E96FF', 'Analytical', 52), node(400, 84, '#A28BFF', 'Intuitive', 52),
-    node(80, 376, '#52BDEF', 'Associative', -42), node(400, 376, '#CDBEFF', 'Reflective', -42));
+    node(80, 84, '#FFD76A', 'Analytical', 52), node(400, 84, '#7FB2FF', 'Intuitive', 52),
+    node(80, 376, '#F2A33A', 'Associative', -42), node(400, 376, '#DCE6FF', 'Reflective', -42));
 
   const sel = loop[stage];
 
@@ -3106,8 +3106,8 @@ function LandingView({ setView, setShowAuth }) {
       E('p', { key: 'l', className: 'lede' }, 'A tool can hand you an answer in seconds. Five different things can happen after that, and they are not the same.'),
       E('ol', { key: 'o', className: 'ladder' }, ladder.map(([t, x]) => E('li', { key: t }, E('span', { className: 'mark', 'aria-hidden': 'true' }), E('h3', null, t), E('p', null, x)))),
       E('div', { key: 'k', className: 'ladder-key', 'aria-hidden': 'true' },
-        E('span', null, E('i', { style: { background: '#D5DBEA' } }), 'Easy to delegate'),
-        E('span', null, E('i', { style: { background: '#3F6BFF' } }), 'Where your own judgment does the work')),
+        E('span', null, E('i', { style: { background: '#E3EAFB' } }), 'Easy to delegate'),
+        E('span', null, E('i', { style: { background: '#E8B931' } }), 'Where your own judgment does the work')),
       E('p', { key: 'b', className: 'balance' }, 'AI can support every one of these steps. The point is that a person stays an active part of the reasoning and the judgment, and that this is a skill you can practise.')
     ]),
 
@@ -3209,7 +3209,7 @@ function LandingView({ setView, setShowAuth }) {
     section('faq', 'alt', [
       h2('faq', 'Common Questions'),
       E('div', { key: 'f', style: { marginTop: 28, maxWidth: 760 } }, faq.map(([q, a]) => E('details', { key: q }, E('summary', null, q),
-        a ? E('p', null, a) : E('p', null, 'How your data is handled is explained in the ', E('a', { href: '/privacy', style: { color: '#3F6BFF', textDecoration: 'underline' } }, 'privacy policy'), '.'))))
+        a ? E('p', null, a) : E('p', null, 'How your data is handled is explained in the ', E('a', { href: '/privacy', style: { color: '#0A2A6B', textDecoration: 'underline' } }, 'privacy policy'), '.'))))
     ]),
 
     // 10. Final conversion
@@ -3294,7 +3294,7 @@ function NFOnboarding({ user, setView, hasCfi }) {
       .nfo-count { font-family:'Space Mono',monospace; font-size:12px; letter-spacing:0.12em; color:${C.muted}; margin:0 0 14px !important; text-transform:uppercase; }
       .nfo-row { display:flex; flex-wrap:wrap; gap:10px; justify-content:space-between; align-items:center; margin-top:20px; }
       .nfo-btn { font:inherit; font-weight:600; font-size:15px; min-height:46px; padding:0 22px; border-radius:6px; cursor:pointer; border:1.5px solid ${C.borderBright}; background:transparent; color:${C.text}; }
-      .nfo-btn.pri { background:${C.cyan}; border-color:${C.cyan}; color:#050C1A; }
+      .nfo-btn.pri { background:${C.cyan}; border-color:${C.cyan}; color:#081A3D; }
       .nfo-link { font:inherit; font-size:14px; background:none; border:none; color:${C.muted}; text-decoration:underline; cursor:pointer; min-height:44px; padding:0 4px; }
       .nfo-box button:focus-visible, .nfo-box a:focus-visible { outline:2px solid #fff; outline-offset:2px; }
     `),
@@ -3324,7 +3324,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
   const styles = E("style", null, `
     .nf-home *, .nf-home *::before, .nf-home *::after { box-sizing:border-box; }
     .nf-home h1, .nf-home h2, .nf-home h3, .nf-home p { overflow-wrap:break-word; text-wrap:balance; }
-    .nf-home .nf-home-cta-primary { background:${H.gold}; color:#151513; font-family:'Clash Display','Syne',sans-serif; font-weight:600; font-size:15px; letter-spacing:0.02em; padding:16px 30px; min-height:52px; border-radius:4px; border:none; cursor:pointer; display:inline-flex; align-items:center; justify-content:center; box-shadow:0 6px 24px rgba(91,132,255,0.28); }
+    .nf-home .nf-home-cta-primary { background:${H.gold}; color:#151513; font-family:'Clash Display','Syne',sans-serif; font-weight:600; font-size:15px; letter-spacing:0.02em; padding:16px 30px; min-height:52px; border-radius:4px; border:none; cursor:pointer; display:inline-flex; align-items:center; justify-content:center; box-shadow:0 6px 24px rgba(232,185,49,0.28); }
     .nf-home .nf-home-cta-outline { background:transparent; color:${H.ink}; font-family:'Satoshi','DM Sans',sans-serif; font-weight:500; font-size:15px; padding:15px 26px; min-height:52px; border-radius:4px; border:1px solid ${H.borderStrong}; cursor:pointer; }
     .nf-home .nf-home-cta-outline:hover { border-color:${H.goldDeep}; }
     .nf-home button:focus-visible, .nf-home summary:focus-visible { outline:2px solid ${H.gold}; outline-offset:2px; }
@@ -3503,8 +3503,8 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
     const PROTOCOL_AC = {
       bg: '#FFFFFF', surface: '#FFFFFF', surfaceAlt: '#F9FAFB',
       text: '#111827', muted: '#4B5563', border: '#D1D5DB',
-      gold: '#5B84FF', goldDark: '#2F4FCB', goldTint: '#EEF2FF',
-      focus: '#2F4FCB',
+      gold: '#E8B931', goldDark: '#0A2A6B', goldTint: '#FFF6DB',
+      focus: '#0A2A6B',
       font: "'Atkinson Hyperlegible', 'Inter', -apple-system, sans-serif",
     };
 
@@ -4031,9 +4031,9 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
     // ═══════════════════════════════════════════════════════════════════
     function DecisionStatusBadge({ status }) {
       const map = {
-        open: { label: 'Open', color: '#7AAFCF' },
-        awaiting_review: { label: 'Awaiting Review', color: '#A9BCFF' },
-        reviewed: { label: 'Reviewed', color: '#7AAFCF' },
+        open: { label: 'Open', color: '#FFD76A' },
+        awaiting_review: { label: 'Awaiting Review', color: '#FFD76A' },
+        reviewed: { label: 'Reviewed', color: '#FFD76A' },
       };
       const s = map[status] || map.open;
       return React.createElement("span", { style: { ...mono, fontSize: 9, letterSpacing: 1, color: s.color, border: `1px solid ${s.color}`, borderRadius: 20, padding: '3px 10px', textTransform: 'uppercase', flexShrink: 0 } }, s.label);
@@ -4349,7 +4349,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
       bg: '#FFFFFF', card: '#FFFFFF', surface: '#FAF9F5',
       ink: '#161616', text: '#2B2C31', muted: '#6B6E76', faint: '#9A9DA6',
       border: '#ECE7DA', borderStrong: '#DED2AE',
-      gold: NF_GOLD, goldDeep: '#2F4FCB', goldTint: '#FBF4E3', goldTintStrong: '#F5E7C4',
+      gold: NF_GOLD, goldDeep: '#0A2A6B', goldTint: '#FBF4E3', goldTintStrong: '#F5E7C4',
     };
     const CP_JOURNEY = [
       { step: '01', title: 'Measure',    desc: 'Take the CFI.',            view: 'cfi' },
@@ -4517,7 +4517,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
                   React.createElement("div", { key: i, style: { padding: '14px 4px' } },
                     React.createElement("div", { style: { ...mono, fontSize: 10, letterSpacing: 1, color: CP.gold, marginBottom: 6 } }, s.num),
                     React.createElement("div", { style: { ...syne, fontSize: 13, fontWeight: 800, color: '#FFFFFF', marginBottom: 4 } }, s.title),
-                    React.createElement("div", { style: { fontSize: 12, color: 'rgba(255,255,255,0.55)', lineHeight: 1.5 } }, s.subtitle)
+                    React.createElement("div", { style: { fontSize: 12, color: 'rgba(255,255,255,0.85)', lineHeight: 1.5 } }, s.subtitle)
                   )
                 ))
               ),
@@ -4568,7 +4568,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
                 React.createElement("div", { style: { display: 'flex', justifyContent: 'space-between', gap: 24, fontSize: 12.5, color: 'rgba(255,255,255,0.85)', padding: '3px 0' } },
                   React.createElement("span", null, 'Fragmentation'), React.createElement("span", { style: { color: CP.gold, fontWeight: 700 } }, cfiResult.fragmentation)
                 ),
-                React.createElement("div", { style: { fontSize: 10.5, color: 'rgba(255,255,255,0.4)', marginTop: 10 } }, 'Discover how you think. tryneuralfusion.com')
+                React.createElement("div", { style: { fontSize: 10.5, color: 'rgba(255,255,255,0.8)', marginTop: 10 } }, 'Discover how you think. tryneuralfusion.com')
               ),
               React.createElement("div", null,
                 React.createElement(CPButton, { onClick: handleShare }, shareState === 'copied' ? 'Link copied ✓' : 'Share Profile')
@@ -4703,8 +4703,8 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
       const AC = {
         bg: '#FFFFFF', surface: '#FFFFFF', surfaceAlt: '#F9FAFB',
         text: '#111827', muted: '#4B5563', border: '#D1D5DB',
-        gold: '#5B84FF', goldDark: '#2F4FCB', goldTint: '#EEF2FF',
-        focus: '#2F4FCB',
+        gold: '#E8B931', goldDark: '#0A2A6B', goldTint: '#FFF6DB',
+        focus: '#0A2A6B',
         font: "'Atkinson Hyperlegible', 'Inter', -apple-system, sans-serif",
       };
 
@@ -5242,7 +5242,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
         });
       };
 
-      const levelColors = { Foundation:C.cyan, Intermediate:'#A9BCFF', Advanced:'#5B84FF', Mastery:'#7AAFCF', Reference:'#4CF7C0' };
+      const levelColors = { Foundation:C.cyan, Intermediate:'#FFD76A', Advanced:'#E8B931', Mastery:'#FFD76A', Reference:'#4CF7C0' };
 
       if (activeLesson) {
         const lesson = LESSONS.find(l=>l.id===activeLesson);
@@ -5402,14 +5402,14 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
       );
 
       const HB = ({ title: t, children }) => (
-        React.createElement("div", {style: { background: 'rgba(91,132,255,0.06)', border: `1px solid rgba(91,132,255,0.18)`, borderLeft: `3px solid ${C.cyan}`, padding: '18px 22px', margin: '20px 0', fontSize: 14, color: C.muted, lineHeight: 1.8 }}, t && React.createElement("div", {style: { ...syne, fontSize: 12, fontWeight: 700, color: C.cyan, marginBottom: 6, textTransform: 'uppercase', letterSpacing: 1 }}, t), children)
+        React.createElement("div", {style: { background: 'rgba(232,185,49,0.06)', border: `1px solid rgba(232,185,49,0.18)`, borderLeft: `3px solid ${C.cyan}`, padding: '18px 22px', margin: '20px 0', fontSize: 14, color: C.muted, lineHeight: 1.8 }}, t && React.createElement("div", {style: { ...syne, fontSize: 12, fontWeight: 700, color: C.cyan, marginBottom: 6, textTransform: 'uppercase', letterSpacing: 1 }}, t), children)
       );
 
       const DataTable = ({ rows }) => (
         React.createElement("div", {style: { overflowX: 'auto', margin: '20px 0' }}, React.createElement("table", {style: { width: '100%', borderCollapse: 'collapse', fontSize: 13 }}, React.createElement("thead", null, React.createElement("tr", null, ['Data category','Purpose','Legal basis'].map(h => (
                   React.createElement("th", {key: h, style: { ...mono, fontSize: 9, letterSpacing: 2, textTransform: 'uppercase', color: C.muted, padding: '10px 14px', textAlign: 'left', borderBottom: `1px solid ${C.border}`, background: C.deep }}, h)
                 )))), React.createElement("tbody", null, rows.map((r,i) => (
-                React.createElement("tr", {key: i, style: { borderBottom: `1px solid rgba(91,132,255,0.06)` }}, React.createElement("td", {style: { padding: '12px 14px', color: C.cyan, fontWeight: 600, fontSize: 13, verticalAlign: 'top' }}, r[0]), React.createElement("td", {style: { padding: '12px 14px', color: C.muted, fontSize: 13, verticalAlign: 'top', lineHeight: 1.6 }}, r[1]), React.createElement("td", {style: { padding: '12px 14px', color: C.muted, fontSize: 13, verticalAlign: 'top', lineHeight: 1.6 }}, r[2]))
+                React.createElement("tr", {key: i, style: { borderBottom: `1px solid rgba(232,185,49,0.06)` }}, React.createElement("td", {style: { padding: '12px 14px', color: C.cyan, fontWeight: 600, fontSize: 13, verticalAlign: 'top' }}, r[0]), React.createElement("td", {style: { padding: '12px 14px', color: C.muted, fontSize: 13, verticalAlign: 'top', lineHeight: 1.6 }}, r[1]), React.createElement("td", {style: { padding: '12px 14px', color: C.muted, fontSize: 13, verticalAlign: 'top', lineHeight: 1.6 }}, r[2]))
               )))))
       );
 
@@ -5565,19 +5565,19 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
         { label: 'Contact', href: '/contact' },
       ] },
     ];    function NFGroupedLinks({ onNav, columns }) {
-      const linkStyle = { display: 'block', width: '100%', textAlign: 'left', background: 'none', border: 'none', padding: '14px 0', color: '#A8ADBF', fontFamily: "'DM Sans', sans-serif", fontSize: 17, lineHeight: 1.3, textDecoration: 'none', cursor: 'pointer' };
+      const linkStyle = { display: 'block', width: '100%', textAlign: 'left', background: 'none', border: 'none', padding: '14px 0', color: '#D3DCF0', fontFamily: "'DM Sans', sans-serif", fontSize: 17, lineHeight: 1.3, textDecoration: 'none', cursor: 'pointer' };
       return React.createElement("div", { style: columns ? { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '0 40px' } : {} },
         NF_LINK_GROUPS.map(g => React.createElement("div", { key: g.title, style: { marginBottom: 20 } },
-          React.createElement("div", { style: { fontFamily: "'Space Mono', monospace", fontSize: 12, letterSpacing: '0.22em', color: '#5B84FF', margin: '16px 0 6px' } }, g.title),
+          React.createElement("div", { style: { fontFamily: "'Space Mono', monospace", fontSize: 12, letterSpacing: '0.22em', color: '#E8B931', margin: '16px 0 6px' } }, g.title),
           g.items.map(it => it.href
             ? React.createElement("a", { key: it.label, href: it.href, style: linkStyle }, it.label)
             : React.createElement("button", { key: it.label, type: 'button', onClick: () => onNav(it.v), style: linkStyle }, it.label)))));
     }
     function NFLegalLine() {
-      return React.createElement("div", { style: { borderTop: '1px solid rgba(91,132,255,0.15)', marginTop: 8, paddingTop: 28, color: '#8E93A6', fontFamily: "'DM Sans', sans-serif", fontSize: 15, lineHeight: 1.65, textAlign: 'left' } },
-        '\u00A9 2026 ', React.createElement("span", { style: { color: '#5B84FF' } }, 'Life Edet'),
+      return React.createElement("div", { style: { borderTop: '1px solid rgba(232,185,49,0.15)', marginTop: 8, paddingTop: 28, color: '#C5CFE6', fontFamily: "'DM Sans', sans-serif", fontSize: 15, lineHeight: 1.65, textAlign: 'left' } },
+        '\u00A9 2026 ', React.createElement("span", { style: { color: '#E8B931' } }, 'Life Edet'),
         ' \u00B7 NeuralFusion is a cognitive operating system for how you think. NeuralFusion is a trademark of Life Edet. The CFI is a proprietary self-report framework, not a clinical or diagnostic instrument. ',
-        React.createElement("a", { href: '/privacy', style: { color: '#9FB3FF' } }, 'Privacy'), ' \u00B7 ', React.createElement("a", { href: '/terms', style: { color: '#9FB3FF' } }, 'Terms'));
+        React.createElement("a", { href: '/privacy', style: { color: '#FFD76A' } }, 'Privacy'), ' \u00B7 ', React.createElement("a", { href: '/terms', style: { color: '#FFD76A' } }, 'Terms'));
     }
     function Footer({ setView, user }) {
       if (!user) {
@@ -5636,7 +5636,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
       const AC = {
         bg: '#FFFFFF', surface: '#FFFFFF', surfaceAlt: '#F9FAFB',
         text: '#111827', muted: '#4B5563', border: '#D1D5DB',
-        gold: '#5B84FF', goldDark: '#2F4FCB', goldTint: '#EEF2FF', focus: '#2F4FCB',
+        gold: '#E8B931', goldDark: '#0A2A6B', goldTint: '#FFF6DB', focus: '#0A2A6B',
         error: '#B91C1C', errorTint: '#FEF2F2', success: '#166534', successTint: '#F0FDF4',
         font: "'Atkinson Hyperlegible', 'Inter', -apple-system, sans-serif",
       };
@@ -5842,7 +5842,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
                     ),
                     React.createElement("button", {className:"btn-outline", style:{ fontSize:13, padding:'6px 12px' }, onClick: loadAdminData}, '↺ Refresh')
                   ),
-                  React.createElement("div", {className: "card bento-shimmer", style: { padding:'24px 28px', marginBottom:20, borderColor:'#5B84FF' }}, React.createElement("div", {style: { display:'flex', justifyContent:'space-between', alignItems:'center', flexWrap:'wrap', gap:12 }}, React.createElement("div", null, React.createElement("div", {style: { ...mono, fontSize:13, letterSpacing:'0.04em', color:AC.goldDark, marginBottom:8 }}, 'NEURALFUSION 100 · unique authenticated participants'), React.createElement("div", {style: { ...syne, fontSize:32, fontWeight:800, color:AC.goldDark }}, nf100Count, ' / 100')), React.createElement("div", {style: { textAlign:'right' }}, React.createElement("div", {style: { ...mono, fontSize:13, letterSpacing:'0.04em', color:C.muted, marginBottom:4 }}, 'Completed assessments'), React.createElement("div", {style: { ...syne, fontSize:16, fontWeight:700, color:C.text }}, completedCFI.length), React.createElement("div", {style: { ...mono, fontSize:13, letterSpacing:'0.04em', color:C.muted, marginTop:8, marginBottom:4 }}, 'Total attempts (incl. drafts)'), React.createElement("div", {style: { ...syne, fontSize:16, fontWeight:700, color:C.muted }}, cfiData.length)))), React.createElement("div", null, React.createElement("div", {style: { display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(min(180px,100%),1fr))', gap:16, marginBottom:32 }}, [
+                  React.createElement("div", {className: "card bento-shimmer", style: { padding:'24px 28px', marginBottom:20, borderColor:'#E8B931' }}, React.createElement("div", {style: { display:'flex', justifyContent:'space-between', alignItems:'center', flexWrap:'wrap', gap:12 }}, React.createElement("div", null, React.createElement("div", {style: { ...mono, fontSize:13, letterSpacing:'0.04em', color:AC.goldDark, marginBottom:8 }}, 'NEURALFUSION 100 · unique authenticated participants'), React.createElement("div", {style: { ...syne, fontSize:32, fontWeight:800, color:AC.goldDark }}, nf100Count, ' / 100')), React.createElement("div", {style: { textAlign:'right' }}, React.createElement("div", {style: { ...mono, fontSize:13, letterSpacing:'0.04em', color:C.muted, marginBottom:4 }}, 'Completed assessments'), React.createElement("div", {style: { ...syne, fontSize:16, fontWeight:700, color:C.text }}, completedCFI.length), React.createElement("div", {style: { ...mono, fontSize:13, letterSpacing:'0.04em', color:C.muted, marginTop:8, marginBottom:4 }}, 'Total attempts (incl. drafts)'), React.createElement("div", {style: { ...syne, fontSize:16, fontWeight:700, color:C.muted }}, cfiData.length)))), React.createElement("div", null, React.createElement("div", {style: { display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(min(180px,100%),1fr))', gap:16, marginBottom:32 }}, [
                         { label:'Total users',       value:users.length,         color:AC.goldDark, icon:'◱' },
                         { label:'PRO subscribers',   value:proUsers.length,       color:AC.goldDark, icon:'★' },
                         { label:'Unique CFI participants', value:uniqueCFIUserIds.size, color:AC.goldDark, icon:'◈' },
@@ -5869,7 +5869,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
                               border:`1px solid ${C.border}`,
                               display:'flex', alignItems:'center', justifyContent:'center',
                               ...mono, fontSize:13, color:C.cyan, flexShrink:0,
-                            }}, (u.full_name||u.email||'?')[0].toUpperCase()), React.createElement("div", {style: { flex:1, minWidth:0 }}, React.createElement("div", {style: { fontSize:15, color:C.text, fontWeight:500, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}, u.full_name || 'Unnamed'), React.createElement("div", {style: { ...mono, fontSize:12, color:C.muted, letterSpacing:'0.04em' }}, u.email || u.id?.slice(0,12))), u.is_pro && React.createElement("div", {style: { ...mono, fontSize:12, color:AC.goldDark, background:'#EEF2FF', border:'1px solid #5B84FF', padding:'4px 10px', borderRadius:100 }}, 'Pro'))
+                            }}, (u.full_name||u.email||'?')[0].toUpperCase()), React.createElement("div", {style: { flex:1, minWidth:0 }}, React.createElement("div", {style: { fontSize:15, color:C.text, fontWeight:500, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}, u.full_name || 'Unnamed'), React.createElement("div", {style: { ...mono, fontSize:12, color:C.muted, letterSpacing:'0.04em' }}, u.email || u.id?.slice(0,12))), u.is_pro && React.createElement("div", {style: { ...mono, fontSize:12, color:AC.goldDark, background:'#EEF2FF', border:'1px solid #E8B931', padding:'4px 10px', borderRadius:100 }}, 'Pro'))
                         )), users.length === 0 && React.createElement("div", {style: { color:C.dim, fontSize:15 }}, 'No users yet.')), React.createElement("div", {className: "card", style: { padding:'28px' }}, React.createElement("div", {style: { ...mono, fontSize:13, letterSpacing:'0.04em', color:C.cyan, marginBottom:20 }}, 'Quick actions'), React.createElement("div", {style: { display:'flex', flexDirection:'column', gap:10 }}, [
                             { label:'Manage Users', desc:'Grant or revoke Pro', tab:'users', icon:'◱' },
                             { label:'View CFI Results', desc:'Filter and delete assessments', tab:'cfi', icon:'◎' },
@@ -5882,7 +5882,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
                               border:`1px solid ${C.border}`, borderRadius:8,
                               cursor:'pointer', textAlign:'left', transition:'border-color 0.2s',
                             }, onMouseEnter: e => e.currentTarget.style.borderColor=C.borderBright, onMouseLeave: e => e.currentTarget.style.borderColor=C.border}, React.createElement("span", {style: { ...mono, fontSize:16, color:C.cyan }}, a.icon), React.createElement("div", null, React.createElement("div", {style: { fontSize:15, color:C.text, fontWeight:500 }}, a.label), React.createElement("div", {style: { ...mono, fontSize:12, color:C.muted, letterSpacing:'0.04em' }}, a.desc)))
-                          )))), React.createElement("div", {className: "card", style: { padding:'28px', borderColor:'#5B84FF' }}, React.createElement("div", {style: { ...mono, fontSize:13, letterSpacing:'0.04em', color:C.cyan, marginBottom:20 }}, 'Revenue snapshot'), [
+                          )))), React.createElement("div", {className: "card", style: { padding:'28px', borderColor:'#E8B931' }}, React.createElement("div", {style: { ...mono, fontSize:13, letterSpacing:'0.04em', color:C.cyan, marginBottom:20 }}, 'Revenue snapshot'), [
                           { label:'Pro Price', value:`₦${(proPrice/100).toLocaleString()}`, color:C.cyan },
                           { label:'Est. Pro Revenue', value:`₦${((proUsers.length * proPrice)/100).toLocaleString()}`, color:AC.goldDark },
                           { label:'Pro Conversion', value:`${users.length ? Math.round(proUsers.length/users.length*100) : 0}%`, color:AC.goldDark },
@@ -5907,12 +5907,12 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
                             padding:'12px 20px', borderBottom:`1px solid ${C.border}`,
                             transition:'background 0.15s',
                           }, onMouseEnter: e => e.currentTarget.style.background=C.deep, onMouseLeave: e => e.currentTarget.style.background='transparent'}, React.createElement("div", {style: { fontSize:14, color:C.text, fontWeight:500, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}, u.full_name || 'N/A'), React.createElement("div", {style: { ...mono, fontSize:12, color:C.muted, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}, u.email || u.id?.slice(0,16)+'...'), React.createElement("div", null, u.is_pro
-                                ? React.createElement("span", {style: { ...mono, fontSize:12, color:AC.goldDark, background:'#EEF2FF', border:'1px solid #5B84FF', padding:'4px 10px', borderRadius:100 }}, 'Pro')
+                                ? React.createElement("span", {style: { ...mono, fontSize:12, color:AC.goldDark, background:'#EEF2FF', border:'1px solid #E8B931', padding:'4px 10px', borderRadius:100 }}, 'Pro')
                                 : React.createElement("span", {style: { ...mono, fontSize:12, color:C.dim, background:C.deep, border:`1px solid ${C.border}`, padding:'4px 10px', borderRadius:100 }}, '--')
                               ), React.createElement("div", {style: { ...mono, fontSize:12, color:C.dim }}, u.created_at ? new Date(u.created_at).toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'2-digit'}) : '--'), React.createElement("div", {style: { display:'flex', gap:6, flexWrap:'wrap' }}, React.createElement("button", {onClick: () => togglePro(u.id, u.is_pro), style: {
                                 ...mono, fontSize:12, padding:'8px 12px', borderRadius:8, cursor:'pointer',
                                 background: u.is_pro ? '#FEF2F2' : '#EEF2FF',
-                                border: u.is_pro ? '1px solid #FCA5A5' : '1px solid #5B84FF',
+                                border: u.is_pro ? '1px solid #FCA5A5' : '1px solid #E8B931',
                                 color: u.is_pro ? AC.error : AC.goldDark,
                               }}, u.is_pro ? 'Revoke Pro' : 'Pro +'), React.createElement("button", {onClick: () => deleteUser(u.id), style: {
                                 ...mono, fontSize:12, padding:'8px 12px', borderRadius:8, cursor:'pointer',
@@ -5955,7 +5955,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
                             display:'grid', gridTemplateColumns:'1fr 1.5fr 100px 120px', gap:16,
                             padding:'14px 20px', borderBottom:`1px solid ${C.border}`,
                             transition:'background 0.15s',
-                          }, onMouseEnter: e => e.currentTarget.style.background=C.deep, onMouseLeave: e => e.currentTarget.style.background='transparent'}, React.createElement("div", {style: { fontSize:15, color:C.text, fontWeight:500 }}, u.full_name || 'N/A'), React.createElement("div", {style: { ...mono, fontSize:13, color:C.muted, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}, u.email || u.id?.slice(0,16)), React.createElement("div", null, React.createElement("span", {style: { ...mono, fontSize:12, color:AC.goldDark, background:'#EEF2FF', border:'1px solid #5B84FF', padding:'4px 10px', borderRadius:100 }}, 'Active PRO')), React.createElement("div", null, React.createElement("button", {onClick: () => togglePro(u.id, true), style: {
+                          }, onMouseEnter: e => e.currentTarget.style.background=C.deep, onMouseLeave: e => e.currentTarget.style.background='transparent'}, React.createElement("div", {style: { fontSize:15, color:C.text, fontWeight:500 }}, u.full_name || 'N/A'), React.createElement("div", {style: { ...mono, fontSize:13, color:C.muted, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}, u.email || u.id?.slice(0,16)), React.createElement("div", null, React.createElement("span", {style: { ...mono, fontSize:12, color:AC.goldDark, background:'#EEF2FF', border:'1px solid #E8B931', padding:'4px 10px', borderRadius:100 }}, 'Active PRO')), React.createElement("div", null, React.createElement("button", {onClick: () => togglePro(u.id, true), style: {
                                 ...mono, fontSize:12, padding:'8px 14px', cursor:'pointer',
                                 background:'#FEF2F2', border:'1px solid #FCA5A5',
                                 color:AC.error, borderRadius:8,
@@ -5966,7 +5966,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
                 ), tab === 'leads' && (
                   React.createElement(window.NF_LEADS.AdminLeadsPanel, null)
                 ), tab === 'pricing' && (
-                  React.createElement("div", {style: { display:'grid', gridTemplateColumns:'repeat(auto-fit,minmax(min(400px,100%),1fr))', gap:20 }}, React.createElement("div", {className: "card", style: { padding:'40px', position:'relative', overflow:'hidden', borderColor:'#5B84FF' }}, React.createElement("div", {style: { ...mono, fontSize:13, letterSpacing:'0.04em', color:C.cyan, marginBottom:16 }}, 'PRO plan pricing'), React.createElement("div", {style: { ...syne, fontSize:18, fontWeight:800, color:C.text, marginBottom:8, overflowWrap:'break-word', minWidth:0}}, 'Edit Pro Price'), React.createElement("div", {style: { fontSize:15, color:C.muted, marginBottom:28, lineHeight:1.7 }}, 'Updates the price shown on the platform and passed to Paystack for payment processing.'), React.createElement("div", {style: { marginBottom:20 }}, React.createElement("div", {style: { ...mono, fontSize:12, letterSpacing:'0.04em', color:C.muted, marginBottom:8 }}, 'CURRENT PRICE (NAIRA)'), React.createElement("div", {style: { ...syne, fontSize:16, fontWeight:800, color:C.cyan, lineHeight:1.2, marginBottom:4, overflowWrap:'break-word', minWidth:0}}, `₦${(proPrice/100).toLocaleString()}`), React.createElement("div", {style: { ...mono, fontSize:12, color:C.muted }}, '=', proPrice.toLocaleString(), 'kobo')), React.createElement("div", {style: { marginBottom:20 }}, React.createElement("div", {style: { ...mono, fontSize:12, letterSpacing:'0.04em', color:C.muted, marginBottom:8 }}, 'NEW PRICE (₦)'), React.createElement("div", {style: { display:'flex', gap:12, alignItems:'center' }}, React.createElement("div", {style: { position:'relative', flex:1 }}, React.createElement("div", {style: { position:'absolute', left:16, top:'50%', transform:'translateY(-50%)', ...syne, fontSize:16, fontWeight:700, color:C.muted, overflowWrap:'break-word', minWidth:0}}, '₦'), React.createElement("input", {type: "number", value: priceInput, onChange: e => setPriceInput(e.target.value), style: { paddingLeft:36, fontSize:16, ...syne, fontWeight:700, overflowWrap:'break-word', minWidth:0}, min: "100", step: "100"})), React.createElement("button", {className: "btn-primary", onClick: savePrice, style: { whiteSpace:'nowrap' }}, priceSaved ? '✓ Saved!' : 'Save Price'))), React.createElement("div", {style: { padding:'20px', background:C.deep, borderRadius:8, border:`1px solid ${C.border}` }}, React.createElement("div", {style: { ...mono, fontSize:13, letterSpacing:'0.04em', color:C.muted, marginBottom:8 }}, 'Paystack integration'), React.createElement("div", {style: { fontSize:15, color:C.muted, lineHeight:1.7 }}, 'Live key:', React.createElement("span", {style: { color:C.cyan, fontFamily:'monospace' }}, 'loaded from platform_settings at runtime'), React.createElement("br", null), 'Currency: NGN · Gateway: Paystack inline · Verified server-side'))), React.createElement("div", {className: "card", style: { padding:'40px', position:'relative', overflow:'hidden', borderColor:'#5B84FF', gridColumn:'1 / -1' }}, React.createElement("div", {style: { ...mono, fontSize:13, letterSpacing:'0.04em', color:AC.goldDark, marginBottom:16 }}, 'Payment gateway'), React.createElement("div", {style: { ...syne, fontSize:18, fontWeight:800, color:C.text, marginBottom:8, overflowWrap:'break-word', minWidth:0}}, 'Paystack Public Key'), React.createElement("div", {style: { fontSize:15, color:C.muted, marginBottom:28, lineHeight:1.7 }}, 'Your Paystack public key (pk_live_... or pk_test_...). Stored in platform_settings and loaded at runtime, so no redeploy is needed.'), React.createElement("div", {style: { display:'flex', gap:12, alignItems:'center' }}, React.createElement("input", {type: "text", value: paystackKeyInput, onChange: e => setPaystackKeyInput(e.target.value), placeholder: 'pk_live_...', style: { flex:1, fontSize:15, fontFamily:'monospace', letterSpacing:'0.02em', overflowWrap:'break-word', minWidth:0 }}), React.createElement("button", {className: "btn-primary", onClick: savePaystackKey, style: { whiteSpace:'nowrap' }}, keySaved ? '✓ Saved!' : 'Save Key')), paystackKeyInput && React.createElement("div", {style: { marginTop:16, padding:'12px 16px', background:C.deep, borderRadius:8, border:`1px solid ${C.border}`, ...mono, fontSize:13, color:C.muted }}, 'Active: ', React.createElement("span", {style: { color:AC.goldDark }}, paystackKeyInput.slice(0,12), '...', paystackKeyInput.slice(-6)))))
+                  React.createElement("div", {style: { display:'grid', gridTemplateColumns:'repeat(auto-fit,minmax(min(400px,100%),1fr))', gap:20 }}, React.createElement("div", {className: "card", style: { padding:'40px', position:'relative', overflow:'hidden', borderColor:'#E8B931' }}, React.createElement("div", {style: { ...mono, fontSize:13, letterSpacing:'0.04em', color:C.cyan, marginBottom:16 }}, 'PRO plan pricing'), React.createElement("div", {style: { ...syne, fontSize:18, fontWeight:800, color:C.text, marginBottom:8, overflowWrap:'break-word', minWidth:0}}, 'Edit Pro Price'), React.createElement("div", {style: { fontSize:15, color:C.muted, marginBottom:28, lineHeight:1.7 }}, 'Updates the price shown on the platform and passed to Paystack for payment processing.'), React.createElement("div", {style: { marginBottom:20 }}, React.createElement("div", {style: { ...mono, fontSize:12, letterSpacing:'0.04em', color:C.muted, marginBottom:8 }}, 'CURRENT PRICE (NAIRA)'), React.createElement("div", {style: { ...syne, fontSize:16, fontWeight:800, color:C.cyan, lineHeight:1.2, marginBottom:4, overflowWrap:'break-word', minWidth:0}}, `₦${(proPrice/100).toLocaleString()}`), React.createElement("div", {style: { ...mono, fontSize:12, color:C.muted }}, '=', proPrice.toLocaleString(), 'kobo')), React.createElement("div", {style: { marginBottom:20 }}, React.createElement("div", {style: { ...mono, fontSize:12, letterSpacing:'0.04em', color:C.muted, marginBottom:8 }}, 'NEW PRICE (₦)'), React.createElement("div", {style: { display:'flex', gap:12, alignItems:'center' }}, React.createElement("div", {style: { position:'relative', flex:1 }}, React.createElement("div", {style: { position:'absolute', left:16, top:'50%', transform:'translateY(-50%)', ...syne, fontSize:16, fontWeight:700, color:C.muted, overflowWrap:'break-word', minWidth:0}}, '₦'), React.createElement("input", {type: "number", value: priceInput, onChange: e => setPriceInput(e.target.value), style: { paddingLeft:36, fontSize:16, ...syne, fontWeight:700, overflowWrap:'break-word', minWidth:0}, min: "100", step: "100"})), React.createElement("button", {className: "btn-primary", onClick: savePrice, style: { whiteSpace:'nowrap' }}, priceSaved ? '✓ Saved!' : 'Save Price'))), React.createElement("div", {style: { padding:'20px', background:C.deep, borderRadius:8, border:`1px solid ${C.border}` }}, React.createElement("div", {style: { ...mono, fontSize:13, letterSpacing:'0.04em', color:C.muted, marginBottom:8 }}, 'Paystack integration'), React.createElement("div", {style: { fontSize:15, color:C.muted, lineHeight:1.7 }}, 'Live key:', React.createElement("span", {style: { color:C.cyan, fontFamily:'monospace' }}, 'loaded from platform_settings at runtime'), React.createElement("br", null), 'Currency: NGN · Gateway: Paystack inline · Verified server-side'))), React.createElement("div", {className: "card", style: { padding:'40px', position:'relative', overflow:'hidden', borderColor:'#E8B931', gridColumn:'1 / -1' }}, React.createElement("div", {style: { ...mono, fontSize:13, letterSpacing:'0.04em', color:AC.goldDark, marginBottom:16 }}, 'Payment gateway'), React.createElement("div", {style: { ...syne, fontSize:18, fontWeight:800, color:C.text, marginBottom:8, overflowWrap:'break-word', minWidth:0}}, 'Paystack Public Key'), React.createElement("div", {style: { fontSize:15, color:C.muted, marginBottom:28, lineHeight:1.7 }}, 'Your Paystack public key (pk_live_... or pk_test_...). Stored in platform_settings and loaded at runtime, so no redeploy is needed.'), React.createElement("div", {style: { display:'flex', gap:12, alignItems:'center' }}, React.createElement("input", {type: "text", value: paystackKeyInput, onChange: e => setPaystackKeyInput(e.target.value), placeholder: 'pk_live_...', style: { flex:1, fontSize:15, fontFamily:'monospace', letterSpacing:'0.02em', overflowWrap:'break-word', minWidth:0 }}), React.createElement("button", {className: "btn-primary", onClick: savePaystackKey, style: { whiteSpace:'nowrap' }}, keySaved ? '✓ Saved!' : 'Save Key')), paystackKeyInput && React.createElement("div", {style: { marginTop:16, padding:'12px 16px', background:C.deep, borderRadius:8, border:`1px solid ${C.border}`, ...mono, fontSize:13, color:C.muted }}, 'Active: ', React.createElement("span", {style: { color:AC.goldDark }}, paystackKeyInput.slice(0,12), '...', paystackKeyInput.slice(-6)))))
                                 ))
             )))
       );
@@ -5982,8 +5982,8 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
     const TEAM_THEME = {
       bg: '#FFFFFF', surface: '#FFFFFF', surfaceAlt: '#F9FAFB',
       text: '#111827', muted: '#4B5563', border: '#D1D5DB',
-      gold: '#5B84FF', goldDark: '#2F4FCB', goldTint: '#EEF2FF',
-      focus: '#2F4FCB',
+      gold: '#E8B931', goldDark: '#0A2A6B', goldTint: '#FFF6DB',
+      focus: '#0A2A6B',
       error: '#B91C1C', errorTint: '#FEF2F2', success: '#166534',
       font: "'Atkinson Hyperlegible', 'Inter', -apple-system, sans-serif",
     };
@@ -6112,7 +6112,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
 .nf-team-grid-2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;}
 .nf-team-btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:48px;padding:12px 22px;border-radius:12px;border:1px solid transparent;font-size:16px;font-weight:700;line-height:1.3;text-align:center;cursor:pointer;transition:background .15s ease,border-color .15s ease,color .15s ease;max-width:100%;}
 .nf-team-btn--primary{background:${T.goldDark};color:#FFFFFF;box-shadow:0 1px 3px rgba(138,109,47,0.35);}
-.nf-team-btn--primary:hover:not([disabled]){background:#2640A8;}
+.nf-team-btn--primary:hover:not([disabled]){background:#061431;}
 .nf-team-btn--ghost{background:transparent;color:${T.text};}
 .nf-team-btn--ghost:hover:not([disabled]){background:${T.goldTint};color:${T.goldDark};}
 .nf-team-btn[disabled]{opacity:0.5;cursor:not-allowed;}
@@ -6449,7 +6449,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
   const AC = {
     bg: '#FFFFFF', surface: '#FFFFFF', surfaceAlt: '#F9FAFB',
     text: '#111827', muted: '#4B5563', border: '#D1D5DB',
-    gold: '#5B84FF', goldDark: '#2F4FCB', goldTint: '#EEF2FF', focus: '#2F4FCB',
+    gold: '#E8B931', goldDark: '#0A2A6B', goldTint: '#FFF6DB', focus: '#0A2A6B',
     error: '#B91C1C', errorTint: '#FEF2F2', success: '#166534', successTint: '#F0FDF4',
     font: "'Atkinson Hyperlegible', 'Inter', -apple-system, sans-serif",
   };
@@ -6566,14 +6566,14 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
       + '.nf-portal *,.nf-portal *::before,.nf-portal *::after{box-sizing:border-box}'
       + '.nf-portal button,.nf-portal input,.nf-portal select,.nf-portal textarea{font-family:inherit}'
       + '.nf-portal h1,.nf-portal h2,.nf-portal h3,.nf-portal p{margin:0}'
-      + '.nf-portal :focus-visible{outline:3px solid #2F4FCB;outline-offset:3px}'
+      + '.nf-portal :focus-visible{outline:3px solid #0A2A6B;outline-offset:3px}'
       + '.nf-portal .nf-pbtn{transition:background .15s ease,border-color .15s ease}'
-      + '.nf-portal .nf-pbtn:hover:not([disabled]){background:#2640A8!important;border-color:#2640A8!important;color:#FFFFFF!important}'
-      + '.nf-portal .nf-pbtn--ghost:hover:not([disabled]){background:#EEF2FF!important;color:#2F4FCB!important;border-color:#2F4FCB!important}'
-      + '.nf-portal .nf-tab:hover{border-color:#5B84FF!important;background:#EEF2FF!important}'
+      + '.nf-portal .nf-pbtn:hover:not([disabled]){background:#0A2A6B!important;border-color:#0A2A6B!important;color:#FFFFFF!important}'
+      + '.nf-portal .nf-pbtn--ghost:hover:not([disabled]){background:#FFF6DB!important;color:#0A2A6B!important;border-color:#0A2A6B!important}'
+      + '.nf-portal .nf-tab:hover{border-color:#E8B931!important;background:#FFF6DB!important}'
       + '.nf-portal .nf-team{background:transparent!important;min-height:0!important}'
       + '.nf-portal .nf-team-container{padding:8px 0 32px!important;max-width:none!important}'
-      + '.nf-portal .nfj-sum:focus-visible{outline:3px solid #2F4FCB;outline-offset:3px}'
+      + '.nf-portal .nfj-sum:focus-visible{outline:3px solid #0A2A6B;outline-offset:3px}'
       + '@media (max-width:767px){.nf-portal{font-size:16px}}'
       + '@media (prefers-reduced-motion:reduce){.nf-portal *{animation:none!important;transition:none!important}}';
     document.head.appendChild(s);
@@ -7400,7 +7400,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
   const { useState, useEffect } = React;
   const AC = {
     bg: '#FFFFFF', surfaceAlt: '#F9FAFB', text: '#111827', muted: '#4B5563', border: '#D1D5DB',
-    gold: '#5B84FF', goldDark: '#2F4FCB', goldTint: '#EEF2FF',
+    gold: '#E8B931', goldDark: '#0A2A6B', goldTint: '#FFF6DB',
     error: '#B91C1C', errorTint: '#FEF2F2', success: '#166534', successTint: '#F0FDF4',
     font: "'Atkinson Hyperlegible', 'Inter', -apple-system, sans-serif",
   };
