@@ -11,31 +11,43 @@ The React app (app.js) defines the same three groups in NF_LINK_GROUPS; `--check
 """
 import re, sys, os, glob
 
-ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-VER = '1'
+_HERE = os.path.dirname(os.path.abspath(__file__))
+ROOT = _HERE if os.path.exists(os.path.join(_HERE, 'index.html')) else os.path.dirname(_HERE)
+VER = '3'
 
 # (id, label, [(label, href)])  Labels and order mirror NF_LINK_GROUPS in app.js.
 GROUPS = [
-    ('pathways', 'Pathways', [
-        ('For Organisations', '/organisations'),
-        ('Academic Partnerships', '/academic-partnerships'),
-        ('Executive Programme', '/executive'),
+    ('discover', 'Discover', [
+        ('What is NeuralFusion?', '/'),
+        ('Four Thinking Modes', '/thinking'),
+        ('Core Loop', '/#core-loop'),
+        ('Cognitive Fragmentation', '/cognitive-fragmentation'),
+        ('CFI Methodology', '/methodology'),
+    ]),
+    ('individuals', 'Individuals', [
         ('Take the CFI', '/?view=cfi'),
-        ('NeuralFusion for Teams', '/?view=teams'),
+        ('Cognitive Training', '/?view=lessons'),
+        ('Executive Programme', '/executive'),
     ]),
-    ('understand', 'Understand', [
-        ('The Four Thinking Modes', '/thinking'),
-        ('Cognitive fragmentation', '/cognitive-fragmentation'),
-        ('Decision-making', '/decision-making'),
-        ('CFI methodology', '/methodology'),
+    ('academia', 'Academia', [
+        ('Academic Programme', '/academic-partnerships'),
+        ('Research Collaboration', '/academic-partnerships#research-collab'),
+        ('Institutional Enquiries', '/academic-partnerships#enquire'),
+    ]),
+    ('organisations', 'Organisations', [
+        ('Enterprise Programme', '/organisations'),
+        ('Team Development', '/?view=teams'),
+        ('Request a Demonstration', '/organisations#enquire'),
+    ]),
+    ('insights', 'Insights', [
+        ('Articles', '/blog'),
         ('Research', '/research'),
-        ('Blog', '/blog'),
+        ('Decision-making', '/decision-making'),
     ]),
-    ('company', 'Company', [
-        ('About', '/about'),
+    ('about', 'About', [
+        ('Mission', '/about#mission'),
+        ('Founder', '/about#founder'),
         ('Contact', '/contact'),
-        ('Privacy', '/privacy'),
-        ('Terms', '/terms'),
     ]),
 ]
 
@@ -44,7 +56,7 @@ CURRENT = {
     'organisations.html': '/organisations', 'academic-partnerships.html': '/academic-partnerships',
     'executive.html': '/executive', 'thinking.html': '/thinking', 'cognitive-fragmentation.html': '/cognitive-fragmentation',
     'decision-making.html': '/decision-making', 'methodology.html': '/methodology', 'research.html': '/research',
-    'about.html': '/about', 'contact.html': '/contact', 'privacy.html': '/privacy', 'terms.html': '/terms',
+    'contact.html': '/contact',
 }
 SKIP = {'index.html', 'google0fa2b28e9dd5d7fa.html'}  # index.html is the React app: see PublicNav in app.js
 
@@ -82,13 +94,13 @@ def render_header(current):
     out += ['      </ul>',
             '      <div class="nfx-actions">',
             '        <a class="nfx-signin" href="/?auth=login" data-track="signin_click" data-where="header">Sign in</a>',
-            '        <a class="nfx-cta" href="/?view=cfi" data-track="cfi_cta_click" data-where="header">Take the CFI</a>',
+            '        <a class="nfx-cta" href="/?view=cfi" data-track="cfi_cta_click" data-where="header">Get started</a>',
             '      </div>', '    </nav>', '  </div>', '</header>']
     return '\n'.join(out)
 
 
 FONT_LINK = ('<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&amp;family=Space+Mono:wght@400;700&amp;display=swap" rel="stylesheet" />')
-HEAD_ASSETS = '<link rel="stylesheet" href="/nf-nav.css?v=%s" />\n<script src="/nf-nav.js?v=%s"></script>\n' % (VER, VER)
+HEAD_ASSETS = '<link rel="stylesheet" href="/nf-nav.css?v=%s" />\n<script src="/nf-nav.js?v=%s"></script>\n<script src="/nf-track.js?v=1" defer></script>\n' % (VER, VER)
 
 
 def pages():
@@ -107,6 +119,7 @@ def transform(s, rel):
     # drop the old shared nav assets / legacy nav CSS, then (re)insert the new ones once
     s = re.sub(r'<link rel="stylesheet" href="/nf-nav\.css[^>]*>\n?', '', s)
     s = re.sub(r'<script src="/nf-nav\.js[^>]*></script>\n?', '', s)
+    s = re.sub(r'<script src="/nf-track\.js[^>]*></script>\n?', '', s)
     s = re.sub(r'\n[ \t]*/\* Shared public navigation \(added with the commercial pages\) \*/\n(?:[ \t]*\.legacy-nav[^\n]*\n)+', '\n', s)
     s = re.sub(r'\n[ \t]*@media \(max-width: 960px\) \{\n[ \t]*\.site-header \{[^\n]*\n[ \t]*\.legacy-nav \{[^\n]*\n[ \t]*\}\n', '\n', s)
     add = HEAD_ASSETS
@@ -146,7 +159,7 @@ def main():
             ref = ref or nh
             if nh != ref: problems.append('%s: header markup differs from the other pages' % rel)
             if render_header(current_for(rel)) not in s: problems.append('%s: header is not the generated markup (or wrong current page)' % rel)
-            if '/nf-nav.css' not in s or '/nf-nav.js' not in s: problems.append('%s: missing nf-nav.css/js' % rel)
+            if '/nf-nav.css' not in s or '/nf-nav.js' not in s or '/nf-track.js' not in s: problems.append('%s: missing nf-nav.css/js' % rel)
         else:
             t = transform(s, rel)
             if t != s: open(f, 'w', encoding='utf-8').write(t)
