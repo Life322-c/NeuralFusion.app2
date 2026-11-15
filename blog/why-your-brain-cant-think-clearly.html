@@ -149,8 +149,8 @@
     "@context": "https://schema.org",
     "@type": "ImageObject",
     "@id": "https://tryneuralfusion.com/blog/why-your-brain-cant-think-clearly#fig-core-loop",
-    "name": "The four-stage NeuralFusion Core Loop as a circular process",
-    "description": "A circular flowchart of Decomposition, Mode Switching, Synthesis, and Stabilization connected by a continuous directional arrow."
+    "name": "The five-stage NeuralFusion Core Loop as a circular process",
+    "description": "A circular flowchart of Decompose, Sense, Expand, Reflect, and Fuse connected by a continuous directional arrow."
   },
   {
     "@context": "https://schema.org",
@@ -171,7 +171,7 @@
     "@type": "ImageObject",
     "@id": "https://tryneuralfusion.com/blog/why-your-brain-cant-think-clearly#fig-glance-flow",
     "name": "The Core Loop compressed into a single horizontal flow",
-    "description": "Four connected boxes summarizing Decompose, Switch Modes, Synthesize, and Stabilize in one row."
+    "description": "Five connected boxes summarizing Decompose, Sense, Expand, Reflect, and Fuse in one row."
   },
   {
     "@context": "https://schema.org",
@@ -191,13 +191,13 @@
     --navy:        #0a1628;
     --navy-mid:    #0f2040;
     --navy-light:  #162d58;
-    --gold:        #c9a84c;
-    --gold-light:  #e8c97a;
-    --gold-pale:   #f5e9c8;
-    --cream:       #faf7f0;
+    --gold:        #5B84FF;
+    --gold-light:  #A9BCFF;
+    --gold-pale:   #E3EAFF;
+    --cream:       #F5F7FC;
     --text-main:   #1a1a2e;
     --text-muted:  #5a6070;
-    --divider:     rgba(201,168,76,0.25);
+    --divider:     rgba(91,132,255,0.25);
   }
 
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -266,7 +266,7 @@
     top: -60px; right: -80px;
     width: 500px; height: 500px;
     border-radius: 50%;
-    background: radial-gradient(circle, rgba(201,168,76,0.09) 0%, transparent 70%);
+    background: radial-gradient(circle, rgba(91,132,255,0.09) 0%, transparent 70%);
     pointer-events: none;
   }
   .hero::after {
@@ -295,12 +295,12 @@
     letter-spacing: 0.2em;
     text-transform: uppercase;
     color: var(--gold);
-    border: 1px solid rgba(201,168,76,0.4);
+    border: 1px solid rgba(91,132,255,0.4);
     padding: 4px 10px;
   }
   .meta-date {
     font-size: 12px;
-    color: rgba(255,255,255,0.35);
+    color: rgba(255,255,255,0.7);
     font-family: 'DM Mono', monospace;
     letter-spacing: 0.08em;
   }
@@ -329,7 +329,7 @@
     margin-top: 32px;
     font-family: 'DM Mono', monospace;
     font-size: 11px;
-    color: rgba(255,255,255,0.28);
+    color: rgba(255,255,255,0.7);
     letter-spacing: 0.12em;
     text-transform: uppercase;
   }
@@ -378,7 +378,7 @@
     border-left: 3px solid var(--gold);
     margin: 52px 0;
     padding: 30px 38px;
-    background: rgba(201,168,76,0.05);
+    background: rgba(91,132,255,0.05);
   }
   .pull-quote p {
     font-family: 'Playfair Display', serif;
@@ -416,7 +416,7 @@
     font-size: 10px;
     letter-spacing: 0.16em;
     text-transform: uppercase;
-    color: rgba(255,255,255,0.45);
+    color: rgba(255,255,255,0.7);
     line-height: 1.5;
   }
 
@@ -441,7 +441,7 @@
     bottom: -40px; right: -40px;
     width: 200px; height: 200px;
     border-radius: 50%;
-    background: radial-gradient(circle, rgba(201,168,76,0.06), transparent 70%);
+    background: radial-gradient(circle, rgba(91,132,255,0.06), transparent 70%);
     pointer-events: none;
   }
   .framework-label {
@@ -730,7 +730,7 @@
   footer p {
     font-family: 'DM Mono', monospace;
     font-size: 11px;
-    color: rgba(255,255,255,0.2);
+    color: rgba(255,255,255,0.65);
     letter-spacing: 0.1em;
     margin: 0;
   }
@@ -849,11 +849,16 @@
     .compare-table { font-size: 12.5px; }
     .compare-table th, .compare-table td { padding: 10px 10px; }
   }
+
+  /* contrast on light backgrounds: deeper blue (WCAG AA) */
+  .kicker, .mode-name, .stage-name, .label-tag, .pub-kicker, .callout-label, .mode-icon, caption { color: #2F4FCB !important; }
 </style>
-<link rel="stylesheet" href="/nf-nav.css?v=1" />
-<script src="/nf-nav.js?v=1"></script>
+<link rel="stylesheet" href="/nf-nav.css?v=3" />
+<script src="/nf-nav.js?v=3"></script>
+<script src="/nf-track.js?v=1" defer></script>
 </head>
 <body>
+<a class="skip-link" href="#main">Skip to main content</a>
 <!-- Google Tag Manager (noscript) -->
 <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-P47TD9MS"
 height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
@@ -870,39 +875,59 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     <nav class="nfx-nav" id="nfx-nav" aria-label="Primary">
       <ul class="nfx-groups">
         <li class="nfx-group">
-          <button class="nfx-trigger" type="button" id="nfx-t-pathways" aria-expanded="false" aria-controls="nfx-p-pathways">Pathways<svg class="nfx-chev" viewBox="0 0 12 12" aria-hidden="true" focusable="false"><path d="M2.5 4.5 6 8l3.5-3.5"/></svg></button>
-          <div class="nfx-panel" id="nfx-p-pathways"><ul>
-            <li><a href="/organisations">For Organisations</a></li>
-            <li><a href="/academic-partnerships">Academic Partnerships</a></li>
-            <li><a href="/executive">Executive Programme</a></li>
-            <li><a href="/?view=cfi">Take the CFI</a></li>
-            <li><a href="/?view=teams">NeuralFusion for Teams</a></li>
-          </ul></div>
-        </li>
-        <li class="nfx-group has-current">
-          <button class="nfx-trigger" type="button" id="nfx-t-understand" aria-expanded="false" aria-controls="nfx-p-understand">Understand<svg class="nfx-chev" viewBox="0 0 12 12" aria-hidden="true" focusable="false"><path d="M2.5 4.5 6 8l3.5-3.5"/></svg></button>
-          <div class="nfx-panel" id="nfx-p-understand"><ul>
-            <li><a href="/thinking">The Four Thinking Modes</a></li>
-            <li><a href="/cognitive-fragmentation">Cognitive fragmentation</a></li>
-            <li><a href="/decision-making">Decision-making</a></li>
-            <li><a href="/methodology">CFI methodology</a></li>
-            <li><a href="/research">Research</a></li>
-            <li><a href="/blog" aria-current="page">Blog</a></li>
+          <button class="nfx-trigger" type="button" id="nfx-t-discover" aria-expanded="false" aria-controls="nfx-p-discover">Discover<svg class="nfx-chev" viewBox="0 0 12 12" aria-hidden="true" focusable="false"><path d="M2.5 4.5 6 8l3.5-3.5"/></svg></button>
+          <div class="nfx-panel" id="nfx-p-discover"><ul>
+            <li><a href="/">What is NeuralFusion?</a></li>
+            <li><a href="/thinking">Four Thinking Modes</a></li>
+            <li><a href="/#core-loop">Core Loop</a></li>
+            <li><a href="/cognitive-fragmentation">Cognitive Fragmentation</a></li>
+            <li><a href="/methodology">CFI Methodology</a></li>
           </ul></div>
         </li>
         <li class="nfx-group">
-          <button class="nfx-trigger" type="button" id="nfx-t-company" aria-expanded="false" aria-controls="nfx-p-company">Company<svg class="nfx-chev" viewBox="0 0 12 12" aria-hidden="true" focusable="false"><path d="M2.5 4.5 6 8l3.5-3.5"/></svg></button>
-          <div class="nfx-panel" id="nfx-p-company"><ul>
-            <li><a href="/about">About</a></li>
+          <button class="nfx-trigger" type="button" id="nfx-t-individuals" aria-expanded="false" aria-controls="nfx-p-individuals">Individuals<svg class="nfx-chev" viewBox="0 0 12 12" aria-hidden="true" focusable="false"><path d="M2.5 4.5 6 8l3.5-3.5"/></svg></button>
+          <div class="nfx-panel" id="nfx-p-individuals"><ul>
+            <li><a href="/?view=cfi">Take the CFI</a></li>
+            <li><a href="/?view=lessons">Cognitive Training</a></li>
+            <li><a href="/executive">Executive Programme</a></li>
+          </ul></div>
+        </li>
+        <li class="nfx-group">
+          <button class="nfx-trigger" type="button" id="nfx-t-academia" aria-expanded="false" aria-controls="nfx-p-academia">Academia<svg class="nfx-chev" viewBox="0 0 12 12" aria-hidden="true" focusable="false"><path d="M2.5 4.5 6 8l3.5-3.5"/></svg></button>
+          <div class="nfx-panel" id="nfx-p-academia"><ul>
+            <li><a href="/academic-partnerships">Academic Programme</a></li>
+            <li><a href="/academic-partnerships#research-collab">Research Collaboration</a></li>
+            <li><a href="/academic-partnerships#enquire">Institutional Enquiries</a></li>
+          </ul></div>
+        </li>
+        <li class="nfx-group">
+          <button class="nfx-trigger" type="button" id="nfx-t-organisations" aria-expanded="false" aria-controls="nfx-p-organisations">Organisations<svg class="nfx-chev" viewBox="0 0 12 12" aria-hidden="true" focusable="false"><path d="M2.5 4.5 6 8l3.5-3.5"/></svg></button>
+          <div class="nfx-panel" id="nfx-p-organisations"><ul>
+            <li><a href="/organisations">Enterprise Programme</a></li>
+            <li><a href="/?view=teams">Team Development</a></li>
+            <li><a href="/organisations#enquire">Request a Demonstration</a></li>
+          </ul></div>
+        </li>
+        <li class="nfx-group has-current">
+          <button class="nfx-trigger" type="button" id="nfx-t-insights" aria-expanded="false" aria-controls="nfx-p-insights">Insights<svg class="nfx-chev" viewBox="0 0 12 12" aria-hidden="true" focusable="false"><path d="M2.5 4.5 6 8l3.5-3.5"/></svg></button>
+          <div class="nfx-panel" id="nfx-p-insights"><ul>
+            <li><a href="/blog" aria-current="page">Articles</a></li>
+            <li><a href="/research">Research</a></li>
+            <li><a href="/decision-making">Decision-making</a></li>
+          </ul></div>
+        </li>
+        <li class="nfx-group">
+          <button class="nfx-trigger" type="button" id="nfx-t-about" aria-expanded="false" aria-controls="nfx-p-about">About<svg class="nfx-chev" viewBox="0 0 12 12" aria-hidden="true" focusable="false"><path d="M2.5 4.5 6 8l3.5-3.5"/></svg></button>
+          <div class="nfx-panel" id="nfx-p-about"><ul>
+            <li><a href="/about#mission">Mission</a></li>
+            <li><a href="/about#founder">Founder</a></li>
             <li><a href="/contact">Contact</a></li>
-            <li><a href="/privacy">Privacy</a></li>
-            <li><a href="/terms">Terms</a></li>
           </ul></div>
         </li>
       </ul>
       <div class="nfx-actions">
         <a class="nfx-signin" href="/?auth=login" data-track="signin_click" data-where="header">Sign in</a>
-        <a class="nfx-cta" href="/?view=cfi" data-track="cfi_cta_click" data-where="header">Take the CFI</a>
+        <a class="nfx-cta" href="/?view=cfi" data-track="cfi_cta_click" data-where="header">Get started</a>
       </div>
     </nav>
   </div>
@@ -923,7 +948,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 </section>
 
 <!-- ARTICLE -->
-<main class="article-wrap">
+<main id="main" tabindex="-1" class="article-wrap">
 
   <!-- HERO ILLUSTRATION -->
   <figure class="fig fig-hero" id="fig-hero">
@@ -939,7 +964,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
           <path d="M90 60 L100 220" stroke-dasharray="2 8" opacity="0.4"/>
           <path d="M55 120 L190 140" stroke-dasharray="2 8" opacity="0.4"/>
         </g>
-        <g fill="#c9a84c">
+        <g fill="#5B84FF">
           <circle cx="90" cy="60" r="6"/>
           <circle cx="190" cy="140" r="6"/>
           <circle cx="100" cy="220" r="6"/>
@@ -947,11 +972,11 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
         </g>
         <text x="120" y="250" text-anchor="middle" fill="rgba(255,255,255,0.45)" font-family="DM Mono, monospace" font-size="11" letter-spacing="1.5">FRAGMENTED</text>
 
-        <line x1="360" y1="30" x2="360" y2="240" stroke="#c9a84c" stroke-opacity="0.2" stroke-width="1"/>
+        <line x1="360" y1="30" x2="360" y2="240" stroke="#5B84FF" stroke-opacity="0.2" stroke-width="1"/>
 
-        <circle cx="560" cy="130" r="78" fill="none" stroke="#e8c97a" stroke-width="1.4" stroke-dasharray="1 0"/>
-        <path d="M560 52 A78 78 0 1 1 559 52" fill="none" stroke="#e8c97a" stroke-width="2" marker-end="url(#arrowHero2)"/>
-        <g fill="#faf7f0">
+        <circle cx="560" cy="130" r="78" fill="none" stroke="#A9BCFF" stroke-width="1.4" stroke-dasharray="1 0"/>
+        <path d="M560 52 A78 78 0 1 1 559 52" fill="none" stroke="#A9BCFF" stroke-width="2" marker-end="url(#arrowHero2)"/>
+        <g fill="#F5F7FC">
           <circle cx="560" cy="52" r="6"/>
           <circle cx="638" cy="130" r="6"/>
           <circle cx="560" cy="208" r="6"/>
@@ -965,7 +990,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
         </g>
         <defs>
           <marker id="arrowHero2" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
-            <path d="M0,0 L6,3 L0,6 Z" fill="#e8c97a"/>
+            <path d="M0,0 L6,3 L0,6 Z" fill="#A9BCFF"/>
           </marker>
         </defs>
         <text x="560" y="130" text-anchor="middle" fill="rgba(255,255,255,0.35)" font-family="DM Mono, monospace" font-size="10" letter-spacing="1">LOOP</text>
@@ -1001,8 +1026,8 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       <span class="stat-label">mode tends to dominate under pressure, leaving the others uncoordinated</span>
     </div>
     <div class="stat-cell">
-      <span class="stat-num">4</span>
-      <span class="stat-label">stages in the Core Loop: decompose, switch modes, synthesize, stabilize</span>
+      <span class="stat-num">5</span>
+      <span class="stat-label">stages in the Core Loop: decompose, sense, expand, reflect, fuse</span>
     </div>
   </div>
 
@@ -1039,11 +1064,11 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
           <rect x="170" y="50" width="130" height="100" fill="none" stroke="rgba(255,255,255,0.35)" stroke-width="1.3"/>
           <rect x="340" y="50" width="130" height="100" fill="none" stroke="rgba(255,255,255,0.35)" stroke-width="1.3"/>
           <rect x="490" y="50" width="130" height="100" fill="none" stroke="rgba(255,255,255,0.35)" stroke-width="1.3"/>
-          <text x="85" y="105" text-anchor="middle" fill="#e8c97a" font-weight="500">Logic</text>
-          <text x="235" y="105" text-anchor="middle" fill="#e8c97a" font-weight="500">Intuition</text>
-          <text x="405" y="105" text-anchor="middle" fill="#e8c97a" font-weight="500">Creativity</text>
-          <text x="555" y="98" text-anchor="middle" fill="#e8c97a" font-weight="500">Self-</text>
-          <text x="555" y="113" text-anchor="middle" fill="#e8c97a" font-weight="500">Awareness</text>
+          <text x="85" y="105" text-anchor="middle" fill="#A9BCFF" font-weight="500">Logic</text>
+          <text x="235" y="105" text-anchor="middle" fill="#A9BCFF" font-weight="500">Intuition</text>
+          <text x="405" y="105" text-anchor="middle" fill="#A9BCFF" font-weight="500">Creativity</text>
+          <text x="555" y="98" text-anchor="middle" fill="#A9BCFF" font-weight="500">Self-</text>
+          <text x="555" y="113" text-anchor="middle" fill="#A9BCFF" font-weight="500">Awareness</text>
         </g>
         <g stroke="rgba(255,255,255,0.15)" stroke-width="1" stroke-dasharray="2 5">
           <line x1="160" y1="100" x2="160" y2="100"/>
@@ -1083,20 +1108,20 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
         </g>
         <path d="M60 140 L230 60 L90 70 L200 150 L60 140" fill="none" stroke="rgba(255,255,255,0.4)" stroke-width="1.3" stroke-dasharray="4 4"/>
 
-        <line x1="320" y1="20" x2="320" y2="175" stroke="#c9a84c" stroke-opacity="0.2" stroke-width="1"/>
+        <line x1="320" y1="20" x2="320" y2="175" stroke="#5B84FF" stroke-opacity="0.2" stroke-width="1"/>
 
-        <text x="490" y="24" text-anchor="middle" fill="#e8c97a" font-family="DM Mono, monospace" font-size="10.5" letter-spacing="0.14em">ACTIVATED WITH INTENT</text>
-        <g fill="#e8c97a">
+        <text x="490" y="24" text-anchor="middle" fill="#A9BCFF" font-family="DM Mono, monospace" font-size="10.5" letter-spacing="0.14em">ACTIVATED WITH INTENT</text>
+        <g fill="#A9BCFF">
           <circle cx="400" cy="140" r="5.5"/>
           <circle cx="450" cy="70" r="5.5"/>
           <circle cx="530" cy="70" r="5.5"/>
           <circle cx="580" cy="140" r="5.5"/>
         </g>
         <path d="M400 140 C 420 100, 430 80, 450 70 C 480 60, 500 60, 530 70 C 550 80, 560 100, 580 140"
-              fill="none" stroke="#e8c97a" stroke-width="2.2" marker-end="url(#arrowControl)"/>
+              fill="none" stroke="#A9BCFF" stroke-width="2.2" marker-end="url(#arrowControl)"/>
         <defs>
           <marker id="arrowControl" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
-            <path d="M0,0 L6,3 L0,6 Z" fill="#e8c97a"/>
+            <path d="M0,0 L6,3 L0,6 Z" fill="#A9BCFF"/>
           </marker>
         </defs>
       </svg>
@@ -1144,14 +1169,14 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       <svg viewBox="0 0 500 300" role="img" aria-labelledby="fig-modes-title fig-modes-desc" loading="lazy" decoding="async">
         <title id="fig-modes-title">The four thinking modes and their entry signals</title>
         <desc id="fig-modes-desc">A quadrant diagram with Analytical, Intuitive, Associative, and Reflective modes positioned around a central point, each labeled with its entry signal question.</desc>
-        <circle cx="250" cy="150" r="95" fill="none" stroke="#c9a84c" stroke-opacity="0.3" stroke-width="1"/>
-        <line x1="155" y1="150" x2="345" y2="150" stroke="#c9a84c" stroke-opacity="0.2" stroke-width="1"/>
-        <line x1="250" y1="55" x2="250" y2="245" stroke="#c9a84c" stroke-opacity="0.2" stroke-width="1"/>
-        <circle cx="250" cy="150" r="34" fill="#0f2040" stroke="#c9a84c" stroke-width="1.5"/>
-        <text x="250" y="146" text-anchor="middle" fill="#faf7f0" font-family="DM Mono, monospace" font-size="9.5" letter-spacing="0.05em">MOVE</text>
-        <text x="250" y="159" text-anchor="middle" fill="#faf7f0" font-family="DM Mono, monospace" font-size="9.5" letter-spacing="0.05em">BETWEEN</text>
+        <circle cx="250" cy="150" r="95" fill="none" stroke="#5B84FF" stroke-opacity="0.3" stroke-width="1"/>
+        <line x1="155" y1="150" x2="345" y2="150" stroke="#5B84FF" stroke-opacity="0.2" stroke-width="1"/>
+        <line x1="250" y1="55" x2="250" y2="245" stroke="#5B84FF" stroke-opacity="0.2" stroke-width="1"/>
+        <circle cx="250" cy="150" r="34" fill="#0f2040" stroke="#5B84FF" stroke-width="1.5"/>
+        <text x="250" y="146" text-anchor="middle" fill="#F5F7FC" font-family="DM Mono, monospace" font-size="9.5" letter-spacing="0.05em">MOVE</text>
+        <text x="250" y="159" text-anchor="middle" fill="#F5F7FC" font-family="DM Mono, monospace" font-size="9.5" letter-spacing="0.05em">BETWEEN</text>
 
-        <g font-family="DM Sans, sans-serif" font-size="12.5" font-weight="500" fill="#e8c97a">
+        <g font-family="DM Sans, sans-serif" font-size="12.5" font-weight="500" fill="#A9BCFF">
           <text x="250" y="40" text-anchor="middle">Analytical</text>
           <text x="460" y="154" text-anchor="middle">Intuitive</text>
           <text x="250" y="272" text-anchor="middle">Associative</text>
@@ -1170,40 +1195,47 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 
 
   <!-- CORE LOOP -->
-  <h2>The NeuralFusion™ Core Loop: A Four-Stage Reasoning Architecture</h2>
+  <h2>The NeuralFusion™ Core Loop: A Five-Stage Reasoning Architecture</h2>
 
   <p>The Core Loop is the operating mechanism of NeuralFusion™. It is not a metaphor or a mindset shift. It is a repeatable, trainable cognitive process that can be completed in under two minutes with regular practice, and executed instinctively once integrated at full mastery.</p>
 
   <div class="framework-block">
     <div class="framework-label">NeuralFusion™ · Core Loop</div>
-    <div class="framework-title">Four Stages of Integrated Reasoning</div>
+    <div class="framework-title">Five Stages of Integrated Reasoning</div>
     <ol class="step-list">
       <li>
         <span class="step-num">01</span>
         <div class="step-content">
-          <strong>Decomposition</strong>
-          <span>Break the problem or decision into its core components. Separate the emotional weight from the factual structure. Clarity begins with reduction, not addition. The mind cannot integrate what it cannot first separate.</span>
+          <strong>Decompose</strong>
+          <span>Break the problem or decision into its core components. Separate the emotional weight from the factual structure, and let the Analytical mode lead. Clarity begins with reduction, not addition. The mind cannot integrate what it cannot first separate.</span>
         </div>
       </li>
       <li>
         <span class="step-num">02</span>
         <div class="step-content">
-          <strong>Mode Switching</strong>
-          <span>Deliberately activate each of the four thinking modes in sequence. Use the entry signal for each. Spend enough time in each mode to extract a genuine output, not a reflex. This is where most people shortcut, and where fragmentation begins.</span>
+          <strong>Sense</strong>
+          <span>Pause and notice your intuitive impressions before you analyse them. Name the first reaction and ask what pattern it might be picking up. Treat it as a signal to test, not a verdict. This is where the Intuitive mode contributes.</span>
         </div>
       </li>
       <li>
         <span class="step-num">03</span>
         <div class="step-content">
-          <strong>Synthesis</strong>
-          <span>Identify the strongest output from each mode. Locate the overlaps. Resolve the contradictions. Compress all four inputs into a single, unified insight. Synthesis is not compromise. It is integration at a higher level of resolution.</span>
+          <strong>Expand</strong>
+          <span>Explore alternatives and connect different perspectives. Ask what else this could be, and who would see it differently. This is where the Associative mode contributes, and where most people shortcut, which is where fragmentation begins.</span>
         </div>
       </li>
       <li>
         <span class="step-num">04</span>
         <div class="step-content">
-          <strong>Stabilization</strong>
-          <span>Lock the conclusion. Commit mentally. Use a cognitive anchor: a short internal statement that holds the synthesis under pressure. Reduce the influence of any mode attempting to re-fragment the decision after it has been made.</span>
+          <strong>Reflect</strong>
+          <span>Examine your assumptions and evaluate your reasoning. Ask what you are taking for granted and what would change your mind. This is where the Reflective mode contributes.</span>
+        </div>
+      </li>
+      <li>
+        <span class="step-num">05</span>
+        <div class="step-content">
+          <strong>Fuse</strong>
+          <span>Identify the strongest output from each stage, locate the overlaps and resolve the contradictions, then compress them into one unified conclusion. Fusing is not compromise. It is integration at a higher level of resolution. Then lock the conclusion: commit, and use a cognitive anchor, a short internal statement that holds it under pressure and reduces the pull of any mode trying to re-fragment the decision.</span>
         </div>
       </li>
     </ol>
@@ -1212,38 +1244,27 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
   <figure class="fig" id="fig-core-loop">
     <div class="fig-frame">
       <svg viewBox="0 0 460 300" role="img" aria-labelledby="fig-loop-title fig-loop-desc" loading="lazy" decoding="async">
-        <title id="fig-loop-title">The four-stage NeuralFusion Core Loop as a circular process</title>
-        <desc id="fig-loop-desc">A circular flowchart with four stages in order: Decomposition at the top, Mode Switching on the right, Synthesis at the bottom, and Stabilization on the left, connected by a continuous directional arrow forming a loop back to the start.</desc>
-        <path d="M230 45 A105 105 0 1 1 229 45" fill="none" stroke="#c9a84c" stroke-width="2" marker-end="url(#arrowLoop)"/>
+        <title id="fig-loop-title">The five-stage NeuralFusion Core Loop as a circular process</title>
+        <desc id="fig-loop-desc">A circular flowchart with five stages in order: Decompose at the top, then Sense, Expand, Reflect and Fuse clockwise around the circle, connected by a continuous directional arrow forming a loop back to the start.</desc>
+        <path d="M230 45 A105 105 0 1 1 229 45" fill="none" stroke="#5B84FF" stroke-width="2" marker-end="url(#arrowLoop)"/>
         <defs>
           <marker id="arrowLoop" markerWidth="9" markerHeight="9" refX="6" refY="3" orient="auto">
-            <path d="M0,0 L6,3 L0,6 Z" fill="#c9a84c"/>
+            <path d="M0,0 L6,3 L0,6 Z" fill="#5B84FF"/>
           </marker>
         </defs>
-        <g fill="#0f2040" stroke="#c9a84c" stroke-width="1.5">
-          <circle cx="230" cy="45" r="15"/>
-          <circle cx="335" cy="150" r="15"/>
-          <circle cx="230" cy="255" r="15"/>
-          <circle cx="125" cy="150" r="15"/>
+        <g fill="#0f2040" stroke="#5B84FF" stroke-width="1.5">
+          <circle cx="230" cy="45" r="15"/><circle cx="330" cy="118" r="15"/><circle cx="292" cy="235" r="15"/><circle cx="168" cy="235" r="15"/><circle cx="130" cy="118" r="15"/>
         </g>
-        <g fill="#e8c97a" font-family="DM Mono, monospace" font-size="11" font-weight="500">
-          <text x="230" y="49" text-anchor="middle">01</text>
-          <text x="335" y="154" text-anchor="middle">02</text>
-          <text x="230" y="259" text-anchor="middle">03</text>
-          <text x="125" y="154" text-anchor="middle">04</text>
+        <g fill="#A9BCFF" font-family="DM Mono, monospace" font-size="11" font-weight="500">
+          <text x="230" y="49" text-anchor="middle">01</text><text x="330" y="122" text-anchor="middle">02</text><text x="292" y="239" text-anchor="middle">03</text><text x="168" y="239" text-anchor="middle">04</text><text x="130" y="122" text-anchor="middle">05</text>
         </g>
-        <g font-family="DM Sans, sans-serif" font-size="13" font-weight="500" fill="#faf7f0">
-          <text x="230" y="20" text-anchor="middle">Decomposition</text>
-          <text x="365" y="146" text-anchor="start">Mode</text>
-          <text x="365" y="162" text-anchor="start">Switching</text>
-          <text x="230" y="290" text-anchor="middle">Synthesis</text>
-          <text x="95" y="146" text-anchor="end">Stabili-</text>
-          <text x="95" y="162" text-anchor="end">zation</text>
+        <g font-family="DM Sans, sans-serif" font-size="13" font-weight="500" fill="#F5F7FC">
+          <text x="230" y="20" text-anchor="middle">Decompose</text><text x="352" y="122" text-anchor="start">Sense</text><text x="292" y="270" text-anchor="middle">Expand</text><text x="168" y="270" text-anchor="middle">Reflect</text><text x="108" y="122" text-anchor="end">Fuse</text>
         </g>
         <text x="230" y="152" text-anchor="middle" fill="rgba(255,255,255,0.35)" font-family="DM Mono, monospace" font-size="9.5" letter-spacing="0.1em">CORE LOOP</text>
       </svg>
     </div>
-    <figcaption><span class="fig-kicker">Figure 5</span>Four stages, one continuous loop. Each cycle ends where it began, ready to run again on the next decision.</figcaption>
+    <figcaption><span class="fig-kicker">Figure 5</span>Five stages, one continuous loop. Each cycle ends where it began, ready to run again on the next decision.</figcaption>
   </figure>
 
 
@@ -1281,11 +1302,11 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
           <line x1="110" y1="126" x2="230" y2="105"/>
           <line x1="110" y1="176" x2="230" y2="110"/>
         </g>
-        <path d="M230 90 L230 115 L280 103 Z" fill="#c9a84c" fill-opacity="0.85"/>
+        <path d="M230 90 L230 115 L280 103 Z" fill="#5B84FF" fill-opacity="0.85"/>
 
-        <rect x="300" y="80" width="150" height="46" fill="#0f2040" stroke="#e8c97a" stroke-width="1.5"/>
-        <text x="375" y="99" text-anchor="middle" fill="#e8c97a" font-family="DM Sans, sans-serif" font-size="11" font-weight="500">SYNTHESIZED</text>
-        <text x="375" y="115" text-anchor="middle" fill="#e8c97a" font-family="DM Sans, sans-serif" font-size="11" font-weight="500">CONCLUSION</text>
+        <rect x="300" y="80" width="150" height="46" fill="#0f2040" stroke="#A9BCFF" stroke-width="1.5"/>
+        <text x="375" y="99" text-anchor="middle" fill="#A9BCFF" font-family="DM Sans, sans-serif" font-size="11" font-weight="500">SYNTHESIZED</text>
+        <text x="375" y="115" text-anchor="middle" fill="#A9BCFF" font-family="DM Sans, sans-serif" font-size="11" font-weight="500">CONCLUSION</text>
 
         <path d="M450 103 L495 103" stroke="rgba(255,255,255,0.5)" stroke-width="1.3" marker-end="url(#arrowSynth)"/>
         <defs>
@@ -1293,9 +1314,9 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
             <path d="M0,0 L6,3 L0,6 Z" fill="rgba(255,255,255,0.5)"/>
           </marker>
         </defs>
-        <rect x="495" y="78" width="50" height="50" rx="4" fill="none" stroke="#c9a84c" stroke-width="1.5"/>
-        <path d="M508 96 v-6 a12 12 0 0 1 24 0 v6" fill="none" stroke="#c9a84c" stroke-width="2"/>
-        <rect x="503" y="96" width="34" height="24" fill="#c9a84c" fill-opacity="0.2" stroke="#c9a84c" stroke-width="1.3"/>
+        <rect x="495" y="78" width="50" height="50" rx="4" fill="none" stroke="#5B84FF" stroke-width="1.5"/>
+        <path d="M508 96 v-6 a12 12 0 0 1 24 0 v6" fill="none" stroke="#5B84FF" stroke-width="2"/>
+        <rect x="503" y="96" width="34" height="24" fill="#5B84FF" fill-opacity="0.2" stroke="#5B84FF" stroke-width="1.3"/>
       </svg>
     </div>
     <figcaption><span class="fig-kicker">Figure 6</span>Synthesis compresses four legitimate signals into one conclusion. The Commitment Lock keeps it from re-fragmenting under pressure.</figcaption>
@@ -1315,7 +1336,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       <li><strong>Intuitive Mode:</strong> Pause completely. Write your strongest gut signal in a single line.</li>
       <li><strong>Associative Mode:</strong> Write three connections, alternatives, or unexpected angles you have not tried.</li>
       <li><strong>Reflective Mode:</strong> Ask honestly: what does this situation actually require of you right now?</li>
-      <li><strong>Synthesize:</strong> Underline the common theme or direction across all four outputs.</li>
+      <li><strong>Fuse:</strong> Underline the common theme or direction across all four outputs.</li>
       <li><strong>Decide:</strong> Write one sentence that commits to a direction. Then read it aloud.</li>
     </ul>
   </div>
@@ -1328,7 +1349,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
         <title id="fig-drill-title">The 10-minute Core Loop drill as a timeline</title>
         <desc id="fig-drill-desc">A horizontal timeline from zero to ten minutes with seven marked stops: write the problem, analytical, intuitive, associative, reflective, synthesize, and decide.</desc>
         <line x1="30" y1="90" x2="610" y2="90" stroke="rgba(255,255,255,0.35)" stroke-width="1.3"/>
-        <g fill="#e8c97a">
+        <g fill="#A9BCFF">
           <circle cx="45" cy="90" r="5"/>
           <circle cx="140" cy="90" r="5"/>
           <circle cx="235" cy="90" r="5"/>
@@ -1346,7 +1367,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
           <text x="520" y="70">9 min</text>
           <text x="600" y="70">10 min</text>
         </g>
-        <g font-family="DM Sans, sans-serif" font-size="10" fill="#faf7f0" text-anchor="middle">
+        <g font-family="DM Sans, sans-serif" font-size="10" fill="#F5F7FC" text-anchor="middle">
           <text x="45" y="115">Write</text>
           <text x="140" y="115">Analytical</text>
           <text x="235" y="115">Intuitive</text>
@@ -1416,7 +1437,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     </div>
     <div class="summary-row">
       <span class="summary-key">Core Loop</span>
-      <span class="summary-val">Decompose → Switch Modes → Synthesize → Stabilize</span>
+      <span class="summary-val">Decompose → Sense → Expand → Reflect → Fuse</span>
     </div>
     <div class="summary-row">
       <span class="summary-key">Outcome</span>
@@ -1432,30 +1453,33 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     <div class="fig-frame">
       <svg viewBox="0 0 640 110" role="img" aria-labelledby="fig-glance-title fig-glance-desc" loading="lazy" decoding="async">
         <title id="fig-glance-title">The Core Loop compressed into a single horizontal flow</title>
-        <desc id="fig-glance-desc">Four boxes in a row - Decompose, Switch Modes, Synthesize, Stabilize - connected by arrows, summarizing the full loop in one glance.</desc>
-        <g font-family="DM Sans, sans-serif" font-size="12" font-weight="500" fill="#faf7f0">
-          <rect x="10" y="30" width="135" height="50" fill="none" stroke="#c9a84c" stroke-width="1.3"/>
-          <text x="77" y="60" text-anchor="middle">Decompose</text>
-          <rect x="175" y="30" width="135" height="50" fill="none" stroke="#c9a84c" stroke-width="1.3"/>
-          <text x="242" y="60" text-anchor="middle">Switch Modes</text>
-          <rect x="340" y="30" width="135" height="50" fill="none" stroke="#c9a84c" stroke-width="1.3"/>
-          <text x="407" y="60" text-anchor="middle">Synthesize</text>
-          <rect x="505" y="30" width="130" height="50" fill="none" stroke="#c9a84c" stroke-width="1.3"/>
-          <text x="570" y="60" text-anchor="middle">Stabilize</text>
+        <desc id="fig-glance-desc">Five boxes in a row - Decompose, Sense, Expand, Reflect, Fuse - connected by arrows, summarizing the full loop in one glance.</desc>
+        <g font-family="DM Sans, sans-serif" font-size="12" font-weight="500" fill="#F5F7FC">
+          <rect x="10" y="30" width="108" height="50" fill="none" stroke="#5B84FF" stroke-width="1.3"/>
+          <text x="64" y="60" text-anchor="middle">Decompose</text>
+          <rect x="143" y="30" width="108" height="50" fill="none" stroke="#5B84FF" stroke-width="1.3"/>
+          <text x="197" y="60" text-anchor="middle">Sense</text>
+          <rect x="276" y="30" width="108" height="50" fill="none" stroke="#5B84FF" stroke-width="1.3"/>
+          <text x="330" y="60" text-anchor="middle">Expand</text>
+          <rect x="409" y="30" width="108" height="50" fill="none" stroke="#5B84FF" stroke-width="1.3"/>
+          <text x="463" y="60" text-anchor="middle">Reflect</text>
+          <rect x="542" y="30" width="108" height="50" fill="none" stroke="#5B84FF" stroke-width="1.3"/>
+          <text x="596" y="60" text-anchor="middle">Fuse</text>
         </g>
-        <g stroke="#e8c97a" stroke-width="1.4" marker-end="url(#arrowGlance)">
-          <path d="M148 55 L172 55"/>
-          <path d="M313 55 L337 55"/>
-          <path d="M478 55 L502 55"/>
+        <g stroke="#A9BCFF" stroke-width="1.4" marker-end="url(#arrowGlance)">
+          <path d="M121 55 L140 55"/>
+          <path d="M254 55 L273 55"/>
+          <path d="M387 55 L406 55"/>
+          <path d="M520 55 L539 55"/>
         </g>
         <defs>
           <marker id="arrowGlance" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
-            <path d="M0,0 L6,3 L0,6 Z" fill="#e8c97a"/>
+            <path d="M0,0 L6,3 L0,6 Z" fill="#A9BCFF"/>
           </marker>
         </defs>
       </svg>
     </div>
-    <figcaption><span class="fig-kicker">Figure 8</span>The entire framework, compressed into one line: four steps, repeated every time a real decision shows up.</figcaption>
+    <figcaption><span class="fig-kicker">Figure 8</span>The entire framework, compressed into one line: five steps, repeated every time a real decision shows up.</figcaption>
   </figure>
 
 
@@ -1508,12 +1532,12 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
         <line x1="50" y1="170" x2="610" y2="170" stroke="rgba(255,255,255,0.35)" stroke-width="1"/>
 
         <path d="M50 45 C 180 60, 300 100, 420 135 S 560 158, 600 162" fill="none" stroke="rgba(255,255,255,0.5)" stroke-width="2"/>
-        <path d="M50 155 C 180 140, 300 100, 420 65 S 560 40, 600 30" fill="none" stroke="#e8c97a" stroke-width="2.2"/>
+        <path d="M50 155 C 180 140, 300 100, 420 65 S 560 40, 600 30" fill="none" stroke="#A9BCFF" stroke-width="2.2"/>
 
         <text x="605" y="158" fill="rgba(255,255,255,0.55)" font-family="DM Mono, monospace" font-size="10">effort</text>
-        <text x="605" y="25" fill="#e8c97a" font-family="DM Mono, monospace" font-size="10">clarity</text>
+        <text x="605" y="25" fill="#A9BCFF" font-family="DM Mono, monospace" font-size="10">clarity</text>
 
-        <line x1="420" y1="20" x2="420" y2="170" stroke="#c9a84c" stroke-opacity="0.25" stroke-width="1" stroke-dasharray="3 4"/>
+        <line x1="420" y1="20" x2="420" y2="170" stroke="#5B84FF" stroke-opacity="0.25" stroke-width="1" stroke-dasharray="3 4"/>
         <text x="420" y="188" text-anchor="middle" fill="rgba(255,255,255,0.5)" font-family="DM Mono, monospace" font-size="10">6–12 weeks: loop runs automatically</text>
         <text x="50" y="188" fill="rgba(255,255,255,0.4)" font-family="DM Mono, monospace" font-size="10">week 0</text>
       </svg>
@@ -1533,6 +1557,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 </main>
 
 <footer>
+  <p>NeuralFusion is a cognitive operating system for how you think.</p>
   <p>© 2026 <span>Life Edet</span> · Inventor of NeuralFusion™ · All rights reserved · NeuralFusion™ is a trademark of Life Edet</p>
 </footer>
 
