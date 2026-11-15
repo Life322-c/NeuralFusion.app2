@@ -138,11 +138,11 @@
     --navy: #0B1220;
     --navy-deep: #060A12;
     --navy-panel: #101A2C;
-    --gold: #C9A24B;
-    --gold-bright: #E4C578;
-    --ivory: #F3F1EA;
+    --gold: #5B84FF;
+    --gold-bright: #A9BCFF;
+    --ivory: #F1F4FB;
     --grey: #8B93A3;
-    --line: rgba(201, 162, 75, 0.18);
+    --line: rgba(91,132,255, 0.18);
   }
 
   * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -164,8 +164,8 @@
     position: fixed;
     inset: 0;
     background-image:
-      linear-gradient(rgba(201, 162, 75, 0.035) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(201, 162, 75, 0.035) 1px, transparent 1px);
+      linear-gradient(rgba(91,132,255, 0.035) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(91,132,255, 0.035) 1px, transparent 1px);
     background-size: 48px 48px;
     pointer-events: none;
     z-index: 0;
@@ -454,10 +454,12 @@
     .btn { transition: none; }
   }
 </style>
-<link rel="stylesheet" href="/nf-nav.css?v=1" />
-<script src="/nf-nav.js?v=1"></script>
+<link rel="stylesheet" href="/nf-nav.css?v=3" />
+<script src="/nf-nav.js?v=3"></script>
+<script src="/nf-track.js?v=1" defer></script>
 </head>
 <body>
+<a class="skip-link" href="#main">Skip to main content</a>
 <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-P47TD9MS"
 height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 
@@ -470,39 +472,59 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     <nav class="nfx-nav" id="nfx-nav" aria-label="Primary">
       <ul class="nfx-groups">
         <li class="nfx-group">
-          <button class="nfx-trigger" type="button" id="nfx-t-pathways" aria-expanded="false" aria-controls="nfx-p-pathways">Pathways<svg class="nfx-chev" viewBox="0 0 12 12" aria-hidden="true" focusable="false"><path d="M2.5 4.5 6 8l3.5-3.5"/></svg></button>
-          <div class="nfx-panel" id="nfx-p-pathways"><ul>
-            <li><a href="/organisations">For Organisations</a></li>
-            <li><a href="/academic-partnerships">Academic Partnerships</a></li>
-            <li><a href="/executive">Executive Programme</a></li>
-            <li><a href="/?view=cfi">Take the CFI</a></li>
-            <li><a href="/?view=teams">NeuralFusion for Teams</a></li>
-          </ul></div>
-        </li>
-        <li class="nfx-group has-current">
-          <button class="nfx-trigger" type="button" id="nfx-t-understand" aria-expanded="false" aria-controls="nfx-p-understand">Understand<svg class="nfx-chev" viewBox="0 0 12 12" aria-hidden="true" focusable="false"><path d="M2.5 4.5 6 8l3.5-3.5"/></svg></button>
-          <div class="nfx-panel" id="nfx-p-understand"><ul>
-            <li><a href="/thinking">The Four Thinking Modes</a></li>
-            <li><a href="/cognitive-fragmentation">Cognitive fragmentation</a></li>
-            <li><a href="/decision-making">Decision-making</a></li>
-            <li><a href="/methodology">CFI methodology</a></li>
-            <li><a href="/research">Research</a></li>
-            <li><a href="/blog" aria-current="page">Blog</a></li>
+          <button class="nfx-trigger" type="button" id="nfx-t-discover" aria-expanded="false" aria-controls="nfx-p-discover">Discover<svg class="nfx-chev" viewBox="0 0 12 12" aria-hidden="true" focusable="false"><path d="M2.5 4.5 6 8l3.5-3.5"/></svg></button>
+          <div class="nfx-panel" id="nfx-p-discover"><ul>
+            <li><a href="/">What is NeuralFusion?</a></li>
+            <li><a href="/thinking">Four Thinking Modes</a></li>
+            <li><a href="/#core-loop">Core Loop</a></li>
+            <li><a href="/cognitive-fragmentation">Cognitive Fragmentation</a></li>
+            <li><a href="/methodology">CFI Methodology</a></li>
           </ul></div>
         </li>
         <li class="nfx-group">
-          <button class="nfx-trigger" type="button" id="nfx-t-company" aria-expanded="false" aria-controls="nfx-p-company">Company<svg class="nfx-chev" viewBox="0 0 12 12" aria-hidden="true" focusable="false"><path d="M2.5 4.5 6 8l3.5-3.5"/></svg></button>
-          <div class="nfx-panel" id="nfx-p-company"><ul>
-            <li><a href="/about">About</a></li>
+          <button class="nfx-trigger" type="button" id="nfx-t-individuals" aria-expanded="false" aria-controls="nfx-p-individuals">Individuals<svg class="nfx-chev" viewBox="0 0 12 12" aria-hidden="true" focusable="false"><path d="M2.5 4.5 6 8l3.5-3.5"/></svg></button>
+          <div class="nfx-panel" id="nfx-p-individuals"><ul>
+            <li><a href="/?view=cfi">Take the CFI</a></li>
+            <li><a href="/?view=lessons">Cognitive Training</a></li>
+            <li><a href="/executive">Executive Programme</a></li>
+          </ul></div>
+        </li>
+        <li class="nfx-group">
+          <button class="nfx-trigger" type="button" id="nfx-t-academia" aria-expanded="false" aria-controls="nfx-p-academia">Academia<svg class="nfx-chev" viewBox="0 0 12 12" aria-hidden="true" focusable="false"><path d="M2.5 4.5 6 8l3.5-3.5"/></svg></button>
+          <div class="nfx-panel" id="nfx-p-academia"><ul>
+            <li><a href="/academic-partnerships">Academic Programme</a></li>
+            <li><a href="/academic-partnerships#research-collab">Research Collaboration</a></li>
+            <li><a href="/academic-partnerships#enquire">Institutional Enquiries</a></li>
+          </ul></div>
+        </li>
+        <li class="nfx-group">
+          <button class="nfx-trigger" type="button" id="nfx-t-organisations" aria-expanded="false" aria-controls="nfx-p-organisations">Organisations<svg class="nfx-chev" viewBox="0 0 12 12" aria-hidden="true" focusable="false"><path d="M2.5 4.5 6 8l3.5-3.5"/></svg></button>
+          <div class="nfx-panel" id="nfx-p-organisations"><ul>
+            <li><a href="/organisations">Enterprise Programme</a></li>
+            <li><a href="/?view=teams">Team Development</a></li>
+            <li><a href="/organisations#enquire">Request a Demonstration</a></li>
+          </ul></div>
+        </li>
+        <li class="nfx-group has-current">
+          <button class="nfx-trigger" type="button" id="nfx-t-insights" aria-expanded="false" aria-controls="nfx-p-insights">Insights<svg class="nfx-chev" viewBox="0 0 12 12" aria-hidden="true" focusable="false"><path d="M2.5 4.5 6 8l3.5-3.5"/></svg></button>
+          <div class="nfx-panel" id="nfx-p-insights"><ul>
+            <li><a href="/blog" aria-current="page">Articles</a></li>
+            <li><a href="/research">Research</a></li>
+            <li><a href="/decision-making">Decision-making</a></li>
+          </ul></div>
+        </li>
+        <li class="nfx-group">
+          <button class="nfx-trigger" type="button" id="nfx-t-about" aria-expanded="false" aria-controls="nfx-p-about">About<svg class="nfx-chev" viewBox="0 0 12 12" aria-hidden="true" focusable="false"><path d="M2.5 4.5 6 8l3.5-3.5"/></svg></button>
+          <div class="nfx-panel" id="nfx-p-about"><ul>
+            <li><a href="/about#mission">Mission</a></li>
+            <li><a href="/about#founder">Founder</a></li>
             <li><a href="/contact">Contact</a></li>
-            <li><a href="/privacy">Privacy</a></li>
-            <li><a href="/terms">Terms</a></li>
           </ul></div>
         </li>
       </ul>
       <div class="nfx-actions">
         <a class="nfx-signin" href="/?auth=login" data-track="signin_click" data-where="header">Sign in</a>
-        <a class="nfx-cta" href="/?view=cfi" data-track="cfi_cta_click" data-where="header">Take the CFI</a>
+        <a class="nfx-cta" href="/?view=cfi" data-track="cfi_cta_click" data-where="header">Get started</a>
       </div>
     </nav>
   </div>
@@ -519,7 +541,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     <span>7 min read</span>
   </div>
 
-  <article>
+  <article id="main" role="main" tabindex="-1">
     <p><strong>Short answer:</strong> to use AI without losing your ability to think, form your own view first, use AI to expand options and organize information, ask it to challenge you instead of agree with you, verify claims that matter, and keep the final judgment and the decision yours. The goal is for AI to strengthen your reasoning, not stand in for it.</p>
 
     <p>This post is the practical guide. For the bigger question, read our overview of <a href="/human-intelligence-ai">human cognitive agency in the age of AI</a>.</p>
@@ -606,7 +628,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 </div>
 
 <footer>
-  NEURALFUSION COGNITIVE OPERATING SYSTEM &nbsp;·&nbsp; tryneuralfusion.com
+  NEURALFUSION · A COGNITIVE OPERATING SYSTEM FOR HOW YOU THINK &nbsp;·&nbsp; tryneuralfusion.com
 </footer>
 
 </body>
