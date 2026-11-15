@@ -1,19 +1,19 @@
 /* NeuralFusion commercial pages: shared styles.
    Used by /organisations, /academic-partnerships, /executive, /contact and /research.
-   Brand tokens match the app: navy #050C1A, gold #C9A84C, cream. No em dashes anywhere. */
+   Brand tokens match the app: navy #050C1A, gold #5B84FF, cream. No em dashes anywhere. */
 
 :root {
   --black: #02060F;
   --navy: #050C1A;
   --navy-2: #0A1628;
   --navy-3: #0F2040;
-  --gold: #C9A84C;
-  --gold-light: #E8C97A;
-  --gold-deep: #8A6D2F;
-  --cream: #F5EDD8;
+  --gold: #5B84FF;
+  --gold-light: #A9BCFF;
+  --gold-deep: #2F4FCB;
+  --cream: #E9EDF5;
   --text: #E9EDF5;
   --muted: #A3AEC4;
-  --line: rgba(201, 168, 76, 0.22);
+  --line: rgba(91,132,255, 0.22);
   --line-soft: rgba(255, 255, 255, 0.09);
   --err: #F4A3A3;
   --ok: #8FD6A8;
@@ -61,7 +61,7 @@ a:hover { color: #fff; }
 }
 .btn:hover { background: var(--gold-light); border-color: var(--gold-light); color: var(--navy); }
 .btn-ghost { background: transparent; color: var(--gold-light); }
-.btn-ghost:hover { background: rgba(201, 168, 76, 0.12); color: #fff; border-color: var(--gold-light); }
+.btn-ghost:hover { background: rgba(91,132,255, 0.12); color: #fff; border-color: var(--gold-light); }
 .btn[disabled] { opacity: 0.6; cursor: not-allowed; }
 .btn-row { display: flex; flex-wrap: wrap; gap: 14px; margin-top: 28px; }
 
@@ -92,7 +92,7 @@ p { margin: 0 0 16px; }
 .hero-figure svg { width: 100%; max-width: 440px; }
 .hero-note {
   margin-top: 26px; padding: 14px 18px; border-left: 3px solid var(--gold);
-  background: rgba(201, 168, 76, 0.07); color: var(--muted); font-size: 15px; max-width: 640px; border-radius: 0 8px 8px 0;
+  background: rgba(91,132,255, 0.07); color: var(--muted); font-size: 15px; max-width: 640px; border-radius: 0 8px 8px 0;
 }
 @media (max-width: 900px) {
   .hero { padding: 56px 0 52px; }
@@ -104,8 +104,8 @@ p { margin: 0 0 16px; }
 /* Audience-specific identities on one brand */
 .theme-org .hero {
   background:
-    linear-gradient(rgba(201,168,76,0.045) 1px, transparent 1px) 0 0 / 56px 56px,
-    linear-gradient(90deg, rgba(201,168,76,0.045) 1px, transparent 1px) 0 0 / 56px 56px,
+    linear-gradient(rgba(91,132,255,0.045) 1px, transparent 1px) 0 0 / 56px 56px,
+    linear-gradient(90deg, rgba(91,132,255,0.045) 1px, transparent 1px) 0 0 / 56px 56px,
     radial-gradient(900px 420px at 85% 0%, rgba(15,32,64,0.9), transparent 70%), var(--navy);
 }
 .theme-acad .hero {
@@ -117,7 +117,7 @@ p { margin: 0 0 16px; }
   content: ''; position: absolute; left: max(24px, calc((100vw - var(--maxw)) / 2 + 24px)); top: 0; bottom: 0; width: 1px; background: var(--line); opacity: 0.0;
 }
 .theme-exec .hero {
-  background: radial-gradient(700px 360px at 90% 10%, rgba(201,168,76,0.10), transparent 70%), linear-gradient(180deg, var(--black), var(--navy));
+  background: radial-gradient(700px 360px at 90% 10%, rgba(91,132,255,0.10), transparent 70%), linear-gradient(180deg, var(--black), var(--navy));
 }
 .theme-exec .hero h1 { letter-spacing: -0.02em; }
 .theme-contact .hero { padding: 64px 0 48px; background: radial-gradient(800px 340px at 80% 0%, rgba(15,32,64,0.9), transparent 70%), var(--navy); }
@@ -170,7 +170,7 @@ p { margin: 0 0 16px; }
 }
 .tag.neutral { color: var(--muted); border-color: var(--line-soft); }
 .callout {
-  border: 1px solid var(--line); background: rgba(201, 168, 76, 0.06); border-radius: var(--radius); padding: 22px 24px; color: var(--text);
+  border: 1px solid var(--line); background: rgba(91,132,255, 0.06); border-radius: var(--radius); padding: 22px 24px; color: var(--text);
 }
 .callout strong { color: var(--gold-light); }
 
@@ -206,7 +206,7 @@ p { margin: 0 0 16px; }
 }
 .field textarea { min-height: 130px; resize: vertical; }
 .field input::placeholder, .field textarea::placeholder { color: #7E8AA3; }
-.field input:focus, .field select:focus, .field textarea:focus { outline: 3px solid rgba(201,168,76,0.55); outline-offset: 1px; border-color: var(--gold); }
+.field input:focus, .field select:focus, .field textarea:focus { outline: 3px solid rgba(91,132,255,0.55); outline-offset: 1px; border-color: var(--gold); }
 .field.invalid input, .field.invalid select, .field.invalid textarea { border-color: var(--err); }
 .field .err { color: var(--err); font-size: 14px; min-height: 0; }
 .field .hint { color: var(--muted); font-size: 13px; }
@@ -226,7 +226,7 @@ p { margin: 0 0 16px; }
 .privacy-note { font-size: 13px; color: var(--muted); margin-top: 14px; }
 
 /* ---------- Final CTA ---------- */
-.final-cta { text-align: center; padding: 88px 0; background: radial-gradient(700px 300px at 50% 0%, rgba(201,168,76,0.12), transparent 70%), var(--navy-2); border-top: 1px solid var(--line); }
+.final-cta { text-align: center; padding: 88px 0; background: radial-gradient(700px 300px at 50% 0%, rgba(91,132,255,0.12), transparent 70%), var(--navy-2); border-top: 1px solid var(--line); }
 .final-cta h2 { max-width: 820px; margin: 0 auto 16px; }
 .final-cta p { color: var(--muted); max-width: 640px; margin: 0 auto; }
 .final-cta .btn-row { justify-content: center; }
