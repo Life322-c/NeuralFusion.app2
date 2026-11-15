@@ -62,17 +62,17 @@
   --ink-700:#0E1B2E;
   --raised:#122140;
 
-  --gold:#C4A050;
-  --gold-bright:#E7C687;
-  --gold-dim:rgba(196,160,80,0.08);
-  --gold-glow:rgba(196,160,80,0.20);
-  --line:rgba(196,160,80,0.14);
-  --line-soft:rgba(196,160,80,0.08);
+  --gold:#5B84FF;
+  --gold-bright:#A9BCFF;
+  --gold-dim:rgba(91,132,255,0.08);
+  --gold-glow:rgba(91,132,255,0.20);
+  --line:rgba(91,132,255,0.14);
+  --line-soft:rgba(91,132,255,0.08);
 
   --paper:#F4F0E6;
   --body-text:#D9DEE7;
   --muted:#93A0B4;
-  --dim:#57647A;
+  --dim:#8FA0C0;
 
   --syne:'Syne','Century Gothic','Futura',system-ui,sans-serif;
   --mono:'Space Mono',monospace;
@@ -109,7 +109,7 @@ a:focus-visible{outline:2px solid var(--gold-bright);outline-offset:3px;border-r
 .atmosphere{
   position:fixed;inset:0;z-index:0;pointer-events:none;
   background:
-    radial-gradient(1100px 620px at 12% -8%, rgba(196,160,80,0.10), transparent 60%),
+    radial-gradient(1100px 620px at 12% -8%, rgba(91,132,255,0.10), transparent 60%),
     radial-gradient(900px 700px at 100% 10%, rgba(127,179,213,0.06), transparent 55%),
     var(--void);
 }
@@ -208,11 +208,22 @@ footer.site-footer{
 }
 footer.site-footer a{color:var(--dim);}
 footer.site-footer a:hover{color:var(--gold-bright);}
+
+.topics{position:relative;z-index:1;max-width:var(--wide);margin:0 auto;padding:clamp(32px,5vw,48px) 24px 0}
+.topics h2{font-family:var(--syne);font-size:clamp(20px,2.6vw,26px);color:var(--paper);margin:0 0 20px}
+.topics ul{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(auto-fit,minmax(min(260px,100%),1fr));gap:16px}
+.topics li{border-left:2px solid var(--gold);padding:4px 0 4px 16px}
+.topics h3{font-family:var(--syne);font-size:16px;color:var(--paper);margin:0 0 6px}
+.topics p{font-size:14px;line-height:1.55;color:var(--muted);margin:0 0 8px}
+.topics a{display:block;font-size:14.5px;line-height:1.5;color:var(--gold-bright);padding:5px 0;min-height:32px}
+.topics a:hover{text-decoration:underline}
 </style>
-<link rel="stylesheet" href="/nf-nav.css?v=1" />
-<script src="/nf-nav.js?v=1"></script>
+<link rel="stylesheet" href="/nf-nav.css?v=3" />
+<script src="/nf-nav.js?v=3"></script>
+<script src="/nf-track.js?v=1" defer></script>
 </head>
 <body>
+<a class="skip-link" href="#main">Skip to main content</a>
 <!-- Google Tag Manager (noscript) -->
 <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-P47TD9MS"
 height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
@@ -228,51 +239,82 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     <nav class="nfx-nav" id="nfx-nav" aria-label="Primary">
       <ul class="nfx-groups">
         <li class="nfx-group">
-          <button class="nfx-trigger" type="button" id="nfx-t-pathways" aria-expanded="false" aria-controls="nfx-p-pathways">Pathways<svg class="nfx-chev" viewBox="0 0 12 12" aria-hidden="true" focusable="false"><path d="M2.5 4.5 6 8l3.5-3.5"/></svg></button>
-          <div class="nfx-panel" id="nfx-p-pathways"><ul>
-            <li><a href="/organisations">For Organisations</a></li>
-            <li><a href="/academic-partnerships">Academic Partnerships</a></li>
-            <li><a href="/executive">Executive Programme</a></li>
-            <li><a href="/?view=cfi">Take the CFI</a></li>
-            <li><a href="/?view=teams">NeuralFusion for Teams</a></li>
-          </ul></div>
-        </li>
-        <li class="nfx-group has-current">
-          <button class="nfx-trigger" type="button" id="nfx-t-understand" aria-expanded="false" aria-controls="nfx-p-understand">Understand<svg class="nfx-chev" viewBox="0 0 12 12" aria-hidden="true" focusable="false"><path d="M2.5 4.5 6 8l3.5-3.5"/></svg></button>
-          <div class="nfx-panel" id="nfx-p-understand"><ul>
-            <li><a href="/thinking">The Four Thinking Modes</a></li>
-            <li><a href="/cognitive-fragmentation">Cognitive fragmentation</a></li>
-            <li><a href="/decision-making">Decision-making</a></li>
-            <li><a href="/methodology">CFI methodology</a></li>
-            <li><a href="/research">Research</a></li>
-            <li><a href="/blog" aria-current="page">Blog</a></li>
+          <button class="nfx-trigger" type="button" id="nfx-t-discover" aria-expanded="false" aria-controls="nfx-p-discover">Discover<svg class="nfx-chev" viewBox="0 0 12 12" aria-hidden="true" focusable="false"><path d="M2.5 4.5 6 8l3.5-3.5"/></svg></button>
+          <div class="nfx-panel" id="nfx-p-discover"><ul>
+            <li><a href="/">What is NeuralFusion?</a></li>
+            <li><a href="/thinking">Four Thinking Modes</a></li>
+            <li><a href="/#core-loop">Core Loop</a></li>
+            <li><a href="/cognitive-fragmentation">Cognitive Fragmentation</a></li>
+            <li><a href="/methodology">CFI Methodology</a></li>
           </ul></div>
         </li>
         <li class="nfx-group">
-          <button class="nfx-trigger" type="button" id="nfx-t-company" aria-expanded="false" aria-controls="nfx-p-company">Company<svg class="nfx-chev" viewBox="0 0 12 12" aria-hidden="true" focusable="false"><path d="M2.5 4.5 6 8l3.5-3.5"/></svg></button>
-          <div class="nfx-panel" id="nfx-p-company"><ul>
-            <li><a href="/about">About</a></li>
+          <button class="nfx-trigger" type="button" id="nfx-t-individuals" aria-expanded="false" aria-controls="nfx-p-individuals">Individuals<svg class="nfx-chev" viewBox="0 0 12 12" aria-hidden="true" focusable="false"><path d="M2.5 4.5 6 8l3.5-3.5"/></svg></button>
+          <div class="nfx-panel" id="nfx-p-individuals"><ul>
+            <li><a href="/?view=cfi">Take the CFI</a></li>
+            <li><a href="/?view=lessons">Cognitive Training</a></li>
+            <li><a href="/executive">Executive Programme</a></li>
+          </ul></div>
+        </li>
+        <li class="nfx-group">
+          <button class="nfx-trigger" type="button" id="nfx-t-academia" aria-expanded="false" aria-controls="nfx-p-academia">Academia<svg class="nfx-chev" viewBox="0 0 12 12" aria-hidden="true" focusable="false"><path d="M2.5 4.5 6 8l3.5-3.5"/></svg></button>
+          <div class="nfx-panel" id="nfx-p-academia"><ul>
+            <li><a href="/academic-partnerships">Academic Programme</a></li>
+            <li><a href="/academic-partnerships#research-collab">Research Collaboration</a></li>
+            <li><a href="/academic-partnerships#enquire">Institutional Enquiries</a></li>
+          </ul></div>
+        </li>
+        <li class="nfx-group">
+          <button class="nfx-trigger" type="button" id="nfx-t-organisations" aria-expanded="false" aria-controls="nfx-p-organisations">Organisations<svg class="nfx-chev" viewBox="0 0 12 12" aria-hidden="true" focusable="false"><path d="M2.5 4.5 6 8l3.5-3.5"/></svg></button>
+          <div class="nfx-panel" id="nfx-p-organisations"><ul>
+            <li><a href="/organisations">Enterprise Programme</a></li>
+            <li><a href="/?view=teams">Team Development</a></li>
+            <li><a href="/organisations#enquire">Request a Demonstration</a></li>
+          </ul></div>
+        </li>
+        <li class="nfx-group has-current">
+          <button class="nfx-trigger" type="button" id="nfx-t-insights" aria-expanded="false" aria-controls="nfx-p-insights">Insights<svg class="nfx-chev" viewBox="0 0 12 12" aria-hidden="true" focusable="false"><path d="M2.5 4.5 6 8l3.5-3.5"/></svg></button>
+          <div class="nfx-panel" id="nfx-p-insights"><ul>
+            <li><a href="/blog" aria-current="page">Articles</a></li>
+            <li><a href="/research">Research</a></li>
+            <li><a href="/decision-making">Decision-making</a></li>
+          </ul></div>
+        </li>
+        <li class="nfx-group">
+          <button class="nfx-trigger" type="button" id="nfx-t-about" aria-expanded="false" aria-controls="nfx-p-about">About<svg class="nfx-chev" viewBox="0 0 12 12" aria-hidden="true" focusable="false"><path d="M2.5 4.5 6 8l3.5-3.5"/></svg></button>
+          <div class="nfx-panel" id="nfx-p-about"><ul>
+            <li><a href="/about#mission">Mission</a></li>
+            <li><a href="/about#founder">Founder</a></li>
             <li><a href="/contact">Contact</a></li>
-            <li><a href="/privacy">Privacy</a></li>
-            <li><a href="/terms">Terms</a></li>
           </ul></div>
         </li>
       </ul>
       <div class="nfx-actions">
         <a class="nfx-signin" href="/?auth=login" data-track="signin_click" data-where="header">Sign in</a>
-        <a class="nfx-cta" href="/?view=cfi" data-track="cfi_cta_click" data-where="header">Take the CFI</a>
+        <a class="nfx-cta" href="/?view=cfi" data-track="cfi_cta_click" data-where="header">Get started</a>
       </div>
     </nav>
   </div>
 </header>
 
-<main>
+<main id="main" tabindex="-1">
 
 <header class="page-header">
 <p class="eyebrow">NeuralFusion Insights</p>
 <h1>The Blog</h1>
 <p class="sub">Science-informed writing on cognitive performance, fragmentation, and the architecture of clear thinking.</p>
 </header>
+
+<nav class="topics" aria-labelledby="topics-h">
+<h2 id="topics-h">Explore by topic</h2>
+<ul>
+<li><h3>Human cognitive agency</h3><p>Keeping your own judgment active.</p><a href="/human-intelligence-ai">Human Intelligence &amp; AI</a></li>
+<li><h3>Human intelligence in the age of AI</h3><p>Using AI without handing over the thinking.</p><a href="/blog/how-to-use-ai-without-losing-critical-thinking">How to use AI without losing your ability to think</a></li>
+<li><h3>Cognitive fragmentation</h3><p>When thinking works in separate pieces.</p><a href="/cognitive-fragmentation">Cognitive fragmentation: the guide</a><a href="/blog/signs-of-cognitive-fragmentation">Signs of cognitive fragmentation</a><a href="/blog/why-your-brain-cant-think-clearly">Why your brain can&rsquo;t think clearly</a><a href="/blog/your-brain-isnt-broken-its-fragmented">Your brain isn&rsquo;t broken. It&rsquo;s fragmented.</a></li>
+<li><h3>Structured thinking and decision-making</h3><p>Methods you can use on a real decision.</p><a href="/decision-making">Decision-making: the guide</a><a href="/blog/how-to-make-decisions-under-pressure">How to make decisions under pressure</a><a href="/blog/how-to-think-more-clearly">How to think more clearly</a><a href="/blog/level-one-core-manual">Why smart people still make bad decisions</a></li>
+<li><h3>Cognitive development and integration</h3><p>Practising deliberately over time.</p><a href="/cognitive-performance">Cognitive performance: the guide</a><a href="/blog/cognitive-performance-operating-system">How to improve cognitive performance</a><a href="/thinking">Thinking &amp; mental clarity</a></li>
+</ul>
+</nav>
 
 <section class="posts-grid">
 
@@ -416,7 +458,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 </main>
 
 <footer class="site-footer">
-<p style="display:flex;align-items:center;justify-content:center;gap:7px;"><span style="color:var(--gold);display:inline-flex;"><svg width="13" height="13" viewBox="0 0 100 100" aria-hidden="true"><rect x="13" y="13" width="14" height="74" fill="currentColor"/><polygon points="27,13 41,13 71,87 57,87" fill="currentColor"/><rect x="57" y="13" width="14" height="74" fill="currentColor"/><rect x="57" y="13" width="30" height="14" fill="currentColor"/><rect x="57" y="44" width="24" height="14" fill="currentColor"/></svg></span> NEURALFUSION · <a href="https://tryneuralfusion.com/">tryneuralfusion.com</a></p>
+<p style="display:flex;align-items:center;justify-content:center;gap:7px;"><span style="color:var(--gold);display:inline-flex;"><svg width="13" height="13" viewBox="0 0 100 100" aria-hidden="true"><rect x="13" y="13" width="14" height="74" fill="currentColor"/><polygon points="27,13 41,13 71,87 57,87" fill="currentColor"/><rect x="57" y="13" width="14" height="74" fill="currentColor"/><rect x="57" y="13" width="30" height="14" fill="currentColor"/><rect x="57" y="44" width="24" height="14" fill="currentColor"/></svg></span> NEURALFUSION · COGNITIVE OPERATING SYSTEM FOR HOW YOU THINK · <a href="https://tryneuralfusion.com/">tryneuralfusion.com</a></p>
 </footer>
 
 </body>
