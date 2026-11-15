@@ -2,8 +2,8 @@
    Load in <head> WITHOUT defer so the "nfx-js" class lands before first paint (no flash of the no-JS layout).
    CSP-safe: external file, no inline JS, no dependencies.
 
-   Desktop (>= 1180px)  disclosure dropdowns: click toggles, one open at a time, outside tap / Escape / Tab-away closes.
-   Mobile  (<  1180px)  full-screen overlay with three independent accordions, focus trap, scroll lock, Escape to close.
+   Desktop (>= 1024px)  disclosure dropdowns: click toggles, one open at a time, outside tap / Escape / Tab-away closes.
+   Mobile  (<  1024px)  full-screen overlay with three independent accordions, focus trap, scroll lock, Escape to close.
    The React app's signed-out bar (app.js, PublicNav) implements the same behaviour with the same classes. */
 (function () {
   'use strict';
@@ -17,7 +17,7 @@
     var toggle = header.querySelector('.nfx-toggle');
     var brand = header.querySelector('.nfx-brand');
     var groups = [].slice.call(header.querySelectorAll('.nfx-group'));
-    var mq = window.matchMedia('(max-width: 1179.98px)');
+    var mq = window.matchMedia('(max-width: 1023.98px)');
 
     function trigger(g) { return g.querySelector('.nfx-trigger'); }
     function panel(g) { return g.querySelector('.nfx-panel'); }
