@@ -117,13 +117,13 @@
   :root {
     --navy:        #0a1628;
     --navy-mid:    #0f2040;
-    --gold:        #c9a84c;
-    --gold-light:  #e8c97a;
-    --gold-pale:   #f5e9c8;
-    --cream:       #faf7f0;
+    --gold:        #5B84FF;
+    --gold-light:  #A9BCFF;
+    --gold-pale:   #E3EAFF;
+    --cream:       #F5F7FC;
     --text-main:   #1a1a2e;
     --text-muted:  #5a6070;
-    --divider:     rgba(201,168,76,0.25);
+    --divider:     rgba(91,132,255,0.25);
   }
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
   html { scroll-behavior: smooth; }
@@ -282,10 +282,12 @@
   footer span { color: var(--gold); }
 
 </style>
-<link rel="stylesheet" href="/nf-nav.css?v=1" />
-<script src="/nf-nav.js?v=1"></script>
+<link rel="stylesheet" href="/nf-nav.css?v=3" />
+<script src="/nf-nav.js?v=3"></script>
+<script src="/nf-track.js?v=1" defer></script>
 </head>
 <body>
+<a class="skip-link" href="#main">Skip to main content</a>
 <!-- Google Tag Manager (noscript) -->
 <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-P47TD9MS"
 height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
@@ -299,45 +301,65 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     <nav class="nfx-nav" id="nfx-nav" aria-label="Primary">
       <ul class="nfx-groups">
         <li class="nfx-group">
-          <button class="nfx-trigger" type="button" id="nfx-t-pathways" aria-expanded="false" aria-controls="nfx-p-pathways">Pathways<svg class="nfx-chev" viewBox="0 0 12 12" aria-hidden="true" focusable="false"><path d="M2.5 4.5 6 8l3.5-3.5"/></svg></button>
-          <div class="nfx-panel" id="nfx-p-pathways"><ul>
-            <li><a href="/organisations">For Organisations</a></li>
-            <li><a href="/academic-partnerships">Academic Partnerships</a></li>
-            <li><a href="/executive">Executive Programme</a></li>
+          <button class="nfx-trigger" type="button" id="nfx-t-discover" aria-expanded="false" aria-controls="nfx-p-discover">Discover<svg class="nfx-chev" viewBox="0 0 12 12" aria-hidden="true" focusable="false"><path d="M2.5 4.5 6 8l3.5-3.5"/></svg></button>
+          <div class="nfx-panel" id="nfx-p-discover"><ul>
+            <li><a href="/">What is NeuralFusion?</a></li>
+            <li><a href="/thinking">Four Thinking Modes</a></li>
+            <li><a href="/#core-loop">Core Loop</a></li>
+            <li><a href="/cognitive-fragmentation">Cognitive Fragmentation</a></li>
+            <li><a href="/methodology">CFI Methodology</a></li>
+          </ul></div>
+        </li>
+        <li class="nfx-group">
+          <button class="nfx-trigger" type="button" id="nfx-t-individuals" aria-expanded="false" aria-controls="nfx-p-individuals">Individuals<svg class="nfx-chev" viewBox="0 0 12 12" aria-hidden="true" focusable="false"><path d="M2.5 4.5 6 8l3.5-3.5"/></svg></button>
+          <div class="nfx-panel" id="nfx-p-individuals"><ul>
             <li><a href="/?view=cfi">Take the CFI</a></li>
-            <li><a href="/?view=teams">NeuralFusion for Teams</a></li>
+            <li><a href="/?view=lessons">Cognitive Training</a></li>
+            <li><a href="/executive">Executive Programme</a></li>
           </ul></div>
         </li>
         <li class="nfx-group">
-          <button class="nfx-trigger" type="button" id="nfx-t-understand" aria-expanded="false" aria-controls="nfx-p-understand">Understand<svg class="nfx-chev" viewBox="0 0 12 12" aria-hidden="true" focusable="false"><path d="M2.5 4.5 6 8l3.5-3.5"/></svg></button>
-          <div class="nfx-panel" id="nfx-p-understand"><ul>
-            <li><a href="/thinking">The Four Thinking Modes</a></li>
-            <li><a href="/cognitive-fragmentation">Cognitive fragmentation</a></li>
-            <li><a href="/decision-making">Decision-making</a></li>
-            <li><a href="/methodology">CFI methodology</a></li>
+          <button class="nfx-trigger" type="button" id="nfx-t-academia" aria-expanded="false" aria-controls="nfx-p-academia">Academia<svg class="nfx-chev" viewBox="0 0 12 12" aria-hidden="true" focusable="false"><path d="M2.5 4.5 6 8l3.5-3.5"/></svg></button>
+          <div class="nfx-panel" id="nfx-p-academia"><ul>
+            <li><a href="/academic-partnerships">Academic Programme</a></li>
+            <li><a href="/academic-partnerships#research-collab">Research Collaboration</a></li>
+            <li><a href="/academic-partnerships#enquire">Institutional Enquiries</a></li>
+          </ul></div>
+        </li>
+        <li class="nfx-group">
+          <button class="nfx-trigger" type="button" id="nfx-t-organisations" aria-expanded="false" aria-controls="nfx-p-organisations">Organisations<svg class="nfx-chev" viewBox="0 0 12 12" aria-hidden="true" focusable="false"><path d="M2.5 4.5 6 8l3.5-3.5"/></svg></button>
+          <div class="nfx-panel" id="nfx-p-organisations"><ul>
+            <li><a href="/organisations">Enterprise Programme</a></li>
+            <li><a href="/?view=teams">Team Development</a></li>
+            <li><a href="/organisations#enquire">Request a Demonstration</a></li>
+          </ul></div>
+        </li>
+        <li class="nfx-group">
+          <button class="nfx-trigger" type="button" id="nfx-t-insights" aria-expanded="false" aria-controls="nfx-p-insights">Insights<svg class="nfx-chev" viewBox="0 0 12 12" aria-hidden="true" focusable="false"><path d="M2.5 4.5 6 8l3.5-3.5"/></svg></button>
+          <div class="nfx-panel" id="nfx-p-insights"><ul>
+            <li><a href="/blog">Articles</a></li>
             <li><a href="/research">Research</a></li>
-            <li><a href="/blog">Blog</a></li>
+            <li><a href="/decision-making">Decision-making</a></li>
           </ul></div>
         </li>
         <li class="nfx-group">
-          <button class="nfx-trigger" type="button" id="nfx-t-company" aria-expanded="false" aria-controls="nfx-p-company">Company<svg class="nfx-chev" viewBox="0 0 12 12" aria-hidden="true" focusable="false"><path d="M2.5 4.5 6 8l3.5-3.5"/></svg></button>
-          <div class="nfx-panel" id="nfx-p-company"><ul>
-            <li><a href="/about">About</a></li>
+          <button class="nfx-trigger" type="button" id="nfx-t-about" aria-expanded="false" aria-controls="nfx-p-about">About<svg class="nfx-chev" viewBox="0 0 12 12" aria-hidden="true" focusable="false"><path d="M2.5 4.5 6 8l3.5-3.5"/></svg></button>
+          <div class="nfx-panel" id="nfx-p-about"><ul>
+            <li><a href="/about#mission">Mission</a></li>
+            <li><a href="/about#founder">Founder</a></li>
             <li><a href="/contact">Contact</a></li>
-            <li><a href="/privacy">Privacy</a></li>
-            <li><a href="/terms">Terms</a></li>
           </ul></div>
         </li>
       </ul>
       <div class="nfx-actions">
         <a class="nfx-signin" href="/?auth=login" data-track="signin_click" data-where="header">Sign in</a>
-        <a class="nfx-cta" href="/?view=cfi" data-track="cfi_cta_click" data-where="header">Take the CFI</a>
+        <a class="nfx-cta" href="/?view=cfi" data-track="cfi_cta_click" data-where="header">Get started</a>
       </div>
     </nav>
   </div>
 </header>
 
-<main>
+<main id="main" tabindex="-1">
   <nav aria-label="Breadcrumb" style="font-size:13px;color:var(--text-muted);margin-bottom:24px;">
     <a href="https://tryneuralfusion.com/" style="color:var(--text-muted);">Home</a> / Cognitive Performance
   </nav>
@@ -383,7 +405,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
   <p>NeuralFusion quantifies cognitive fragmentation using the <strong>Cognitive Fragmentation Index (CFI)</strong>, a 40-item instrument covering four thinking modes and Coordination, with each score reported from 0 to 100, plus a derived Fragmentation score worked out from them. A higher score means you report that kind of thinking more often, not that it is better or worse. The instrument is early-stage and not yet validated, and is the starting baseline before any training begins.</p>
 
   <h2>How to train cognitive performance</h2>
-  <p>Cognitive performance is trainable the same way physical performance is: through a repeatable structure practiced consistently, not through occasional bursts of willpower. The core mechanism NeuralFusion uses is the <strong>Core Loop</strong>: a four-stage sequence (Decomposition, Mode Switching, Synthesis, Stabilization) that gives each thinking mode a defined role and a clear exit point, explained in full in <a href="https://tryneuralfusion.com/blog/why-your-brain-cant-think-clearly">Why Your Brain Can't Think Clearly</a>.</p>
+  <p>Cognitive performance is trainable the same way physical performance is: through a repeatable structure practiced consistently, not through occasional bursts of willpower. The core mechanism NeuralFusion uses is the <strong>Core Loop</strong>: a five-stage sequence (Decompose, Sense, Expand, Reflect, Fuse) that gives each thinking mode a defined role and a clear exit point, explained in full in <a href="https://tryneuralfusion.com/blog/why-your-brain-cant-think-clearly">Why Your Brain Can't Think Clearly</a>.</p>
   <p>In practice, most people notice a measurable difference in decision quality within the first week of applying the Core Loop to real situations, with full automatic integration typically developing over six to twelve weeks of consistent use.</p>
 
   <h2>Frequently Asked Questions</h2>
@@ -425,6 +447,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 
 <footer>
   <p style="text-align:center;font-size:12px;margin-bottom:12px;"><a href="https://tryneuralfusion.com/about" style="opacity:0.7;margin:0 8px;">About</a><a href="https://tryneuralfusion.com/research" style="opacity:0.7;margin:0 8px;">Research</a><a href="https://tryneuralfusion.com/methodology" style="opacity:0.7;margin:0 8px;">Methodology</a><a href="https://tryneuralfusion.com/privacy" style="opacity:0.7;margin:0 8px;">Privacy</a><a href="https://tryneuralfusion.com/terms" style="opacity:0.7;margin:0 8px;">Terms</a><a href="https://tryneuralfusion.com/contact" style="opacity:0.7;margin:0 8px;">Contact</a></p>
+  <p>NeuralFusion is a cognitive operating system for how you think.</p>
   <p>© 2026 <span>Life Edet</span> · Inventor of NeuralFusion · All rights reserved · NeuralFusion is a trademark of Life Edet</p>
 </footer>
 
