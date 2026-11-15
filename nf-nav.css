@@ -7,15 +7,15 @@
    Mobile  (<  1180px): the same <nav> becomes a full-screen overlay with independent accordions. */
 
 .nfx-header {
-  --nfx-navy: #070D24;
-  --nfx-navy-2: #0C1636;
-  --nfx-gold: #5B84FF;
-  --nfx-gold-light: #A9BCFF;
-  --nfx-text: #E9EDF5;
-  --nfx-muted: #A9B1C6;
-  --nfx-line: rgba(91, 132, 255, 0.28);
-  --nfx-line-soft: rgba(91, 132, 255, 0.14);
-  --nfx-wash: rgba(91, 132, 255, 0.12);
+  --nfx-navy: #0A1D4A;
+  --nfx-navy-2: #0D2757;
+  --nfx-gold: #E8B931;
+  --nfx-gold-light: #FFD76A;
+  --nfx-text: #FFFFFF;
+  --nfx-muted: #D3DCF0;
+  --nfx-line: rgba(232,185,49, 0.28);
+  --nfx-line-soft: rgba(232,185,49, 0.14);
+  --nfx-wash: rgba(232,185,49, 0.12);
   --nfx-bar-h: 64px;
   --nfx-h: 65px; /* bar + 1px border: where the mobile overlay content starts */
   --nfx-font: 'DM Sans', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
@@ -98,7 +98,7 @@ header.nfx-header.nfx-fixed { position: fixed; top: 0; left: 0; right: 0; z-inde
   transition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease;
 }
 .nfx-header .nfx-panel a:hover { background: var(--nfx-wash); color: #fff; }
-.nfx-header .nfx-panel a[aria-current="page"] { color: var(--nfx-gold-light); background: rgba(91, 132, 255, 0.10); border-left-color: var(--nfx-gold); font-weight: 600; }
+.nfx-header .nfx-panel a[aria-current="page"] { color: var(--nfx-gold-light); background: rgba(232,185,49, 0.10); border-left-color: var(--nfx-gold); font-weight: 600; }
 
 /* ---------- actions (Sign in / Take the CFI) ---------- */
 .nfx-header .nfx-actions { display: flex; align-items: center; gap: 10px; margin: 0 0 0 auto; padding: 0; }
@@ -118,7 +118,7 @@ header.nfx-header.nfx-fixed { position: fixed; top: 0; left: 0; right: 0; z-inde
   transition: background-color 0.15s ease, border-color 0.15s ease;
 }
 .nfx-header .nfx-cta:hover { background: var(--nfx-gold-light); border-color: var(--nfx-gold-light); color: var(--nfx-navy); }
-.nfx-header .nfx-spinner { width: 16px; height: 16px; border: 2px solid rgba(91, 132, 255, 0.3); border-top-color: #5B84FF; border-radius: 50%; animation: nfx-spin 0.8s linear infinite; }
+.nfx-header .nfx-spinner { width: 16px; height: 16px; border: 2px solid rgba(232,185,49, 0.3); border-top-color: #E8B931; border-radius: 50%; animation: nfx-spin 0.8s linear infinite; }
 @keyframes nfx-spin { to { transform: rotate(360deg); } }
 
 /* ---------- hamburger toggle ---------- */
@@ -224,6 +224,6 @@ html:not(.nfx-js) .nfx-header .nfx-toggle { display: none; }
 }
 
 /* Skip link: first focusable element on every page, visible only when focused. */
-.skip-link { position:absolute; left:-9999px; top:8px; z-index:2000; background:#fff; color:#070D24; padding:12px 18px; border-radius:6px; font:600 15px 'DM Sans',system-ui,sans-serif; text-decoration:none; }
-.skip-link:focus { left:12px; outline:3px solid #5B84FF; outline-offset:2px; }
+.skip-link { position:absolute; left:-9999px; top:8px; z-index:2000; background:#fff; color:#0A1D4A; padding:12px 18px; border-radius:6px; font:600 15px 'DM Sans',system-ui,sans-serif; text-decoration:none; }
+.skip-link:focus { left:12px; outline:3px solid #E8B931; outline-offset:2px; }
 main:focus, article[role="main"]:focus { outline:none; }
