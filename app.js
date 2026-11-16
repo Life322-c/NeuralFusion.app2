@@ -2420,7 +2420,7 @@ const nfSaveReview = async (id, patch, legacy) => {
     nfjInvalidate('dec:'); nfPassportInvalidate(); return { row: res.data };
   } catch (e) { console.error('[DECISION REVIEW]', e); return { row: null }; }
 };
-function nfReadDismissed(uid) { try { return JSON.parse(window.localStorage.getItem('nf_dismissed:' + uid) || '[]'); } catch (_) { return []; } }
+function nfReadDismissed(uid) { try { const v = JSON.parse(window.localStorage.getItem('nf_dismissed:' + uid) || '[]'); return Array.isArray(v) ? v : []; } catch (_) { return []; } }
 function nfWriteDismissed(uid, list) { try { window.localStorage.setItem('nf_dismissed:' + uid, JSON.stringify(list.slice(-200))); } catch (_) {} }
 
 // Anonymous (signed-out) events go to public_events. Privacy rules: allowlisted names only, a random per-tab
@@ -2741,7 +2741,7 @@ function ThinkingFeed({ user, setView, cfiHistory, completedLessons, hasCfi, mod
     // Today's challenge
     isFeed && E("div", { id: 'nf-today-challenge', className: "nf-feed-sec", style: { marginTop: 24 } },
       E("p", { className: "nf-feed-eyebrow" }, "TODAY'S THINKING CHALLENGE"),
-      ready ? E(NFChallenge, { key: today + (rowFor(today) ? ':done' : ':open') + pick.ch.id, user, date: today, ch: pick.ch, why: pick.why, latestOpen: data.decisions.find(d => d.status === 'open') || null, row: rowFor(today), setView, onSaved: onChallengeSaved, openSignal }) : E("p", { className: "nf-feed-note" }, 'Loading today\'s challenge...'),
+      ready && pick && pick.ch ? E(NFChallenge, { key: today + (rowFor(today) ? ':done' : ':open') + pick.ch.id, user, date: today, ch: pick.ch, why: pick.why, latestOpen: data.decisions.find(d => d.status === 'open') || null, row: rowFor(today), setView, onSaved: onChallengeSaved, openSignal }) : E("p", { className: "nf-feed-note" }, 'Loading today\'s challenge...'),
       data.errors.rows && E("p", { className: "nf-feed-note" }, "Your saved challenge answers couldn't be loaded right now. You can still read today's challenge."),
       earlier.length > 0 && E("details", { style: { marginTop: 18 } },
         E("summary", { className: "nf-feed-meta", style: { cursor: 'pointer', minHeight: 44, display: 'flex', alignItems: 'center' } }, 'Earlier challenges'),
@@ -6433,7 +6433,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
       const viewProps = { refreshCfiHistory, authLoading, setView, user, session, paystackKey, setShowAuth, openAuth, isPro, setIsPro, cfiResult, setCfiResult, cfiHistory, lessonProgress, setLessonProgress, proPrice };
 
       return (
-        React.createElement("div", {style: { background:C.void, minHeight:'100vh', color:C.text }}, showAuth && React.createElement(AuthModal, {initialTab: authInitialTab, onClose: ()=>{ setShowAuth(false); setAuthInitialTab('login'); }, onSuccess: ()=>{ setShowAuth(false); setAuthInitialTab('login'); }}), React.createElement(Navbar, {view: view, setView: setView, user: user, profile: profile, setShowAuth: setShowAuth, onSignOut: handleSignOut, authLoading: authLoading, hasOrg: hasOrg}), React.createElement("main", null, view==='home'        && React.createElement(HomeView, viewProps), view==='feed'        && React.createElement(HomeView, Object.assign({}, viewProps, { mode: 'feed' })), view==='cfi'         && React.createElement(CFIView, viewProps), view==='protocol'    && React.createElement(ProtocolView, viewProps), view==='decisions'   && React.createElement(DecisionVaultView, viewProps), view==='record'      && React.createElement(ThinkingRecordView, viewProps), view==='verify'      && React.createElement(VerifyCredentialView, null), view==='pressure'    && React.createElement(PressureModeView, viewProps), view==='analytics'   && React.createElement(AnalyticsView, viewProps), view==='lessons'     && React.createElement(LessonsView, viewProps), view==='legal'       && React.createElement(LegalView, {setView: setView}), view==='teams'       && React.createElement(window.NF_ORG.TeamsLanding, {user: user, setShowAuth: setShowAuth, setView: setView, openAuth: openAuth, onOrgsChanged: l => setHasOrg(l.length > 0)}), view==='org'         && React.createElement(window.NF_ORG.OrgPortal, {user: user, session: session, setView: setView, setShowAuth: setShowAuth, openAuth: openAuth, onOrgsChanged: l => setHasOrg(l.length > 0)}), view==='join'        && React.createElement(window.NF_ORG.JoinPage, {user: user, session: session, setView: setView, setShowAuth: setShowAuth, openAuth: openAuth, onOrgsChanged: l => setHasOrg(l.length > 0)}), view==='admin'       && profile?.is_admin === true && React.createElement(AdminView, {user: user, setView: setView, onPriceChange: setProPrice})), React.createElement(Footer, {setView: setView, user: user}), React.createElement(BottomNav, {view: view, setView: setView, user: user, hasOrg: hasOrg}))
+        React.createElement("div", {style: { background:C.void, minHeight:'100vh', color:C.text }}, showAuth && React.createElement(AuthModal, {initialTab: authInitialTab, onClose: ()=>{ setShowAuth(false); setAuthInitialTab('login'); }, onSuccess: ()=>{ setShowAuth(false); setAuthInitialTab('login'); }}), React.createElement(Navbar, {view: view, setView: setView, user: user, profile: profile, setShowAuth: setShowAuth, onSignOut: handleSignOut, authLoading: authLoading, hasOrg: hasOrg}), React.createElement("main", {key: user ? user.id : 'anon'}, view==='home'        && React.createElement(HomeView, viewProps), view==='feed'        && React.createElement(HomeView, Object.assign({}, viewProps, { mode: 'feed' })), view==='cfi'         && React.createElement(CFIView, viewProps), view==='protocol'    && React.createElement(ProtocolView, viewProps), view==='decisions'   && React.createElement(DecisionVaultView, viewProps), view==='record'      && React.createElement(ThinkingRecordView, viewProps), view==='verify'      && React.createElement(VerifyCredentialView, null), view==='pressure'    && React.createElement(PressureModeView, viewProps), view==='analytics'   && React.createElement(AnalyticsView, viewProps), view==='lessons'     && React.createElement(LessonsView, viewProps), view==='legal'       && React.createElement(LegalView, {setView: setView}), view==='teams'       && React.createElement(window.NF_ORG.TeamsLanding, {user: user, setShowAuth: setShowAuth, setView: setView, openAuth: openAuth, onOrgsChanged: l => setHasOrg(l.length > 0)}), view==='org'         && React.createElement(window.NF_ORG.OrgPortal, {user: user, session: session, setView: setView, setShowAuth: setShowAuth, openAuth: openAuth, onOrgsChanged: l => setHasOrg(l.length > 0)}), view==='join'        && React.createElement(window.NF_ORG.JoinPage, {user: user, session: session, setView: setView, setShowAuth: setShowAuth, openAuth: openAuth, onOrgsChanged: l => setHasOrg(l.length > 0)}), view==='admin'       && profile?.is_admin === true && React.createElement(AdminView, {user: user, setView: setView, onPriceChange: setProPrice})), React.createElement(Footer, {setView: setView, user: user}), React.createElement(BottomNav, {view: view, setView: setView, user: user, hasOrg: hasOrg}))
       );
     }
 
@@ -7748,9 +7748,39 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
 })();
     // === NEURALFUSION_LEADS_MODULE_END ===
 
+    // Root error boundary. Without this, any render error (for example right after sign-in, when the
+    // signed-out tree swaps for the signed-in one) unmounts the whole app and leaves a blank page
+    // until the user refreshes. On error we remount once automatically (same as a refresh, the session
+    // is restored from storage), and if it fails again we show a reload card instead of a blank screen.
+    class AppBoundary extends React.Component {
+      constructor(props) { super(props); this.state = { failed: false, attempt: 0 }; }
+      static getDerivedStateFromError() { return { failed: true }; }
+      componentDidCatch(err) {
+        console.error('[NF APP RENDER ERROR]', err);
+        let retried = false;
+        try { retried = window.sessionStorage.getItem('nf_boundary_retry') === '1'; } catch (_) {}
+        if (!retried) {
+          try { window.sessionStorage.setItem('nf_boundary_retry', '1'); } catch (_) {}
+          setTimeout(() => this.setState(st => ({ failed: false, attempt: st.attempt + 1 })), 0);
+          // Allow future automatic recoveries once the app has been healthy for a while.
+          setTimeout(() => { try { window.sessionStorage.removeItem('nf_boundary_retry'); } catch (_) {} }, 30000);
+        }
+      }
+      render() {
+        if (!this.state.failed) return React.createElement(React.Fragment, { key: this.state.attempt }, this.props.children);
+        let retried = false;
+        try { retried = window.sessionStorage.getItem('nf_boundary_retry') === '1'; } catch (_) {}
+        if (!retried) return null;
+        return React.createElement('div', { role: 'alert', style: { minHeight: '100vh', background: '#0A0E1A', color: '#FFFFFF', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24, textAlign: 'center', fontFamily: 'sans-serif' } },
+          React.createElement('div', { style: { maxWidth: 420 } },
+            React.createElement('p', { style: { fontSize: 18, lineHeight: 1.6, marginBottom: 20 } }, 'Something went wrong loading this page. Your data is safe.'),
+            React.createElement('button', { type: 'button', onClick: () => { try { window.sessionStorage.removeItem('nf_boundary_retry'); } catch (_) {} window.location.reload(); }, style: { background: '#E8B931', color: '#151513', border: 'none', borderRadius: 4, padding: '14px 26px', fontSize: 15, fontWeight: 600, cursor: 'pointer' } }, 'Reload page')));
+      }
+    }
+
     // Mount
     const root = ReactDOM.createRoot(document.getElementById('root'));
-    root.render(React.createElement(App));
+    root.render(React.createElement(AppBoundary, null, React.createElement(App)));
 
     // Hide splash
     window.addEventListener('load', ()=>{
