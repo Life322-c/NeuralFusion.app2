@@ -2941,7 +2941,7 @@ function LandingView({ setView, setShowAuth }) {
     ['Is this a medical test or a personality test?', 'No. The CFI is not a diagnosis, a personality label or an intelligence test. It describes how you report working through problems and decisions today.'],
     ['How long does the CFI take?', '40 questions, about 8 minutes.'],
     ['Is NeuralFusion an AI chatbot?', 'No. NeuralFusion develops your own thinking. It does not think for you, and it is not against AI.'],
-    ['Is it free?', 'The CFI and the first lesson are free. The full set of lessons is a one-time payment. Teams can share one link and take the CFI and lessons together.'],
+    ['Is it free?', 'The CFI and the first lesson are free. Lessons 2 to 5 and the Supplementary Learning Resources are a one-time payment. Teams can share one link and take the CFI and lessons together.'],
     ['What happens to my data?', null],
   ];
 
@@ -3002,6 +3002,14 @@ function LandingView({ setView, setShowAuth }) {
     .nfl .three > div { border-top:2px solid var(--bl); padding-top:18px; }
     .nfl .three h3 { font-size:22px; }
     .nfl .three p { color:var(--mu); margin-top:10px; font-size:16px; }
+    .nfl .five { list-style:none; margin:44px 0 0; padding:0; display:grid; grid-template-columns:repeat(5,1fr); gap:22px; }
+    .nfl .five > li { border-top:2px solid var(--bl); padding-top:18px; }
+    .nfl .five h3 { font-size:19px; }
+    .nfl .five p { color:var(--mu); margin-top:10px; font-size:15px; }
+    .nfl .five .st { font:700 13px 'Space Mono',monospace; color:#7A5800; margin-bottom:6px; display:block; }
+    .nfl .hero .aud { display:flex; flex-wrap:wrap; gap:10px 22px; margin-top:22px; font-size:15px; }
+    .nfl .hero .aud a { color:#FFD76A; text-decoration:underline; min-height:44px; display:inline-flex; align-items:center; }
+    @media (max-width: 1000px) { .nfl .five { grid-template-columns:repeat(2,1fr); } }
     .nfl .three .st { font:700 13px 'Space Mono',monospace; color:#7A5800; margin-bottom:6px; display:block; }
 
     .nfl .modes { display:grid; grid-template-columns:repeat(4,1fr); gap:0; margin-top:44px; border:1px solid #3A5CA8; }
@@ -3076,7 +3084,7 @@ function LandingView({ setView, setShowAuth }) {
       .nfl .ladder { grid-template-columns:1fr; border-top:0; }
       .nfl .ladder li, .nfl .ladder li + li { padding:18px 0; border-left:0; border-top:1px solid var(--ln); }
       .nfl .ladder .mark { display:none; }
-      .nfl .three, .nfl .paths, .nfl .links { grid-template-columns:1fr; }
+      .nfl .three, .nfl .five, .nfl .paths, .nfl .links { grid-template-columns:1fr; }
       .nfl .modes { grid-template-columns:repeat(2,1fr); }
       .nfl .mode + .mode { border-left:0; } .nfl .mode:nth-child(even) { border-left:1px solid #3A5CA8; } .nfl .mode:nth-child(n+3) { border-top:1px solid #3A5CA8; }
       .nfl .loop { grid-template-columns:1fr; }
@@ -3121,13 +3129,14 @@ function LandingView({ setView, setShowAuth }) {
     // 1. Hero
     E('header', { className: 'hero' }, E('div', { className: 'w hero-grid' },
       E('div', null,
-        E('p', { className: 'eyebrow' }, 'A cognitive operating system for how you think'),
+        E('p', { className: 'eyebrow' }, 'A Cognitive Performance Operating System for how you think'),
         E('h1', null, 'AI Can Expand Your Capabilities. But Who Is Developing Your Thinking?'),
-        E('p', { className: 'sub' }, 'NeuralFusion is a cognitive operating system for how you think. It helps you understand your thinking patterns, practise cognitive integration and strengthen independent judgment in an increasingly AI-driven world.'),
+        E('p', { className: 'sub' }, 'NeuralFusion is a Cognitive Performance Operating System for how you think. It helps you understand your thinking patterns, practise cognitive integration and strengthen independent judgment in an increasingly AI-driven world.'),
         E('div', { className: 'cta' },
           E('button', { className: 'btn pri', onClick: () => goCfi('hero') }, 'Explore Your Thinking'),
           E('button', { className: 'btn ghost', onClick: () => scrollTo('how') }, 'Discover How NeuralFusion Works')),
-        E('p', { className: 'note' }, 'Free account. The CFI takes 40 questions, about 8 minutes.')),
+        E('p', { className: 'note' }, 'Free account. The CFI-2.0 takes 40 questions, about 8 minutes.'),
+        E('p', { className: 'aud' }, E('a', { href: '#paths', onClick: (e) => { e.preventDefault(); pathway('hero_individual'); scrollTo('paths'); } }, 'Individuals'), E('a', { href: '/academic-partnerships', onClick: () => pathway('hero_academic') }, 'Universities'), E('a', { href: '/organisations', onClick: () => pathway('hero_enterprise') }, 'Organisations'))),
       E('div', null, figure))),
 
     // 2. The problem
@@ -3144,11 +3153,16 @@ function LandingView({ setView, setShowAuth }) {
     // 3. What NeuralFusion is
     section('how', '', [
       h2('how', 'A Structured Approach to Developing Human Cognitive Capabilities.'),
-      E('p', { key: 'l', className: 'lede' }, 'NeuralFusion is a cognitive operating system for how you think. It is not a chatbot, a productivity app or a course to watch. It is a place to understand your thinking and practise it deliberately.'),
-      E('div', { key: 't', className: 'three' },
-        E('div', null, E('span', { className: 'st' }, '1'), E('h3', null, 'Understand'), E('p', null, 'Discover your thinking patterns through the Cognitive Fragmentation Index (CFI) assessment.')),
-        E('div', null, E('span', { className: 'st' }, '2'), E('h3', null, 'Practise'), E('p', null, 'Use structured cognitive exercises and the Core Loop on real problems and decisions.')),
-        E('div', null, E('span', { className: 'st' }, '3'), E('h3', null, 'Develop'), E('p', null, 'Track your engagement, your assessment history and how your practice changes over time.')))
+      E('p', { key: 'l', className: 'lede' }, 'NeuralFusion is a Cognitive Performance Operating System. It trains people to integrate four thinking modes through a structured five-lesson programme. It is not a chatbot, a productivity app or a course to watch.'),
+      E('p', { key: 'pr', className: 'lede' }, 'The problem it addresses is cognitive fragmentation: thinking processes that run apart, difficulty coordinating different approaches to a complex problem, and decisions that vary from one occasion to the next.'),
+      E('ol', { key: 't', className: 'five' },
+        [['1', 'Assess', 'Complete the 40-item CFI-2.0.'],
+         ['2', 'Understand', 'Examine your four thinking-mode scores and your Coordination score.'],
+         ['3', 'Train', 'Complete the five instructional lessons.'],
+         ['4', 'Apply', 'Practise the five-stage Core Loop in real situations.'],
+         ['5', 'Review', 'Retake the CFI and examine changes in your reported Coordination and Fragmentation.']
+        ].map(([n, t, x]) => E('li', { key: t }, E('span', { className: 'st' }, n), E('h3', null, t), E('p', null, x)))),
+      E('p', { key: 'n', className: 'balance' }, 'These steps describe a method, not a guaranteed result. The CFI is early-stage and not independently validated, and changes in your scores are self-reported.')
     ]),
 
     // 4. Four modes
@@ -3293,7 +3307,7 @@ function NFOnboarding({ user, setView, hasCfi }) {
   const last = step === titles.length - 1;
   const body = [
     E('div', { key: 0 },
-      E('p', null, 'NeuralFusion is a cognitive operating system for how you think. It helps you understand your thinking patterns, practise thinking deliberately, and keep your own judgment active in a world where AI can answer for you.'),
+      E('p', null, 'NeuralFusion is a Cognitive Performance Operating System for how you think. It helps you understand your thinking patterns, practise thinking deliberately, and keep your own judgment active in a world where AI can answer for you.'),
       E('p', null, 'It is not a chatbot, and it is not against AI. It develops the human thinking behind what AI helps you do.')),
     E('div', { key: 1 },
       E('ul', { className: 'nfo-modes' }, modes.map(m => E('li', { key: m[0] }, E('strong', null, m[0]), ' ', m[1]))),
@@ -3387,7 +3401,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
   ];
   const faq = [
     ['Is this a medical test or a personality test?', 'No. It is not a diagnosis, a personality label or an intelligence test. It shows your thinking habits today, so you can improve them.'],
-    ['Is it free?', 'Yes. The test and the first lesson are free. The full set of lessons is a one-time payment. Teams can create a team, share one link, and take the CFI and lessons together.'],
+    ['Is it free?', 'Yes. The test and the first lesson are free. Lessons 2 to 5 and the Supplementary Learning Resources are a one-time payment. Teams can create a team, share one link, and take the CFI and lessons together.'],
     ['Do I need an account?', 'Yes, a free one. It keeps your result safe so you can come back, take the CFI again and see how you have improved.'],
   ];
 
@@ -5637,7 +5651,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
     function NFLegalLine() {
       return React.createElement("div", { style: { borderTop: '1px solid rgba(232,185,49,0.15)', marginTop: 8, paddingTop: 28, color: '#C5CFE6', fontFamily: "'DM Sans', sans-serif", fontSize: 15, lineHeight: 1.65, textAlign: 'left' } },
         '\u00A9 2026 ', React.createElement("span", { style: { color: '#E8B931' } }, 'Life Edet'),
-        ' \u00B7 NeuralFusion is a cognitive operating system for how you think. NeuralFusion is a trademark of Life Edet. The CFI is a proprietary self-report framework, not a clinical or diagnostic instrument. ',
+        ' \u00B7 NeuralFusion is a Cognitive Performance Operating System for how you think. NeuralFusion is a trademark of Life Edet. The CFI is a proprietary self-report framework, not a clinical or diagnostic instrument. ',
         React.createElement("a", { href: '/privacy', style: { color: '#FFD76A' } }, 'Privacy'), ' \u00B7 ', React.createElement("a", { href: '/terms', style: { color: '#FFD76A' } }, 'Terms'));
     }
     function Footer({ setView, user }) {
