@@ -177,16 +177,20 @@ const { useState, useEffect, useCallback, useRef, useMemo } = React;
     // brain: the matching key used by the lessons. lessonId: the lesson that practises it.
     // practice: a coaching suggestion, not a measured finding.
     const CFI_MODES = {
-      A: { name: 'Analytical', brain: 'analytical', lessonId: 2,
+      A: { name: 'Analytical', brain: 'analytical', lessonId: 2, tag: 'The Analyst',
+           cost: 'When Analytical is your lowest, options can win on feel or familiarity without being compared against clear criteria, so a good-sounding choice goes untested.',
            means: 'Breaking problems into parts, checking evidence, comparing options against criteria.',
            practice: 'Before your next decision, write down your options and the one or two criteria that matter most, then compare the options against them.' },
-      I: { name: 'Intuitive', brain: 'intuitive', lessonId: 5,
+      I: { name: 'Intuitive', brain: 'intuitive', lessonId: 5, tag: 'The Pattern-Reader',
+           cost: 'When Intuitive is your lowest, early signals (a sense that something is off, a pattern from experience) can get dismissed because they are hard to defend, and you may over-analyse a call you already half-knew.',
            means: 'Recognising patterns quickly and making fast judgements from experience.',
            practice: 'Next time you get a quick read on a familiar situation, write it down first, then check it against the evidence before you act.' },
-      S: { name: 'Associative', brain: 'associative', lessonId: 3,
+      S: { name: 'Associative', brain: 'associative', lessonId: 3, tag: 'The Connector',
+           cost: 'When Associative is your lowest, you may stay inside the first framing of a problem and see fewer options than are actually available.',
            means: 'Connecting ideas across fields, using analogy, generating many possibilities.',
            practice: 'Take one current problem and ask what someone in a very different field would do with it. Write three ideas before you choose.' },
-      R: { name: 'Reflective', brain: 'reflective', lessonId: 4,
+      R: { name: 'Reflective', brain: 'reflective', lessonId: 4, tag: 'The Examiner',
+           cost: 'When Reflective is your lowest, assumptions can go unchecked and decisions are rarely reviewed afterwards, so the same mistake can repeat without you seeing why.',
            means: 'Reviewing your own reasoning and questioning your own assumptions.',
            practice: 'After your next decision, spend two minutes writing how you reached it and one assumption you would test next time.' },
       C: { name: 'Coordination', brain: 'coordination', lessonId: 2,
@@ -326,6 +330,80 @@ const { useState, useEffect, useCallback, useRef, useMemo } = React;
       let lowest = CFI_SCALE_ORDER[0];
       CFI_SCALE_ORDER.forEach((s) => { if (scores[s] < scores[lowest]) lowest = s; });
       return { lowest, lessonId: CFI_MODES[lowest].lessonId };
+    }
+
+
+    // Highest of the four modes (ties go to A, I, S, R order). Used only to name the result card.
+    function cfiLeadMode(scores) {
+      let top = CFI_MODE_ORDER[0];
+      CFI_MODE_ORDER.forEach((s) => { if (scores[s] > scores[top]) top = s; });
+      return top;
+    }
+    // Draws the shareable result card to a canvas and returns a PNG Blob (or null if canvas is unavailable).
+    // Names and numbers come straight from the result. The wording is descriptive, never a diagnosis.
+    function nfBuildShareImage(result) {
+      return new Promise((resolve) => {
+        try {
+          const W = 1080, H = 1350;
+          const cv = document.createElement('canvas'); cv.width = W; cv.height = H;
+          const g = cv.getContext('2d'); if (!g) { resolve(null); return; }
+          const sc = result.scores, lead = CFI_MODES[cfiLeadMode(sc)], low = CFI_MODES[result.lowest];
+          const sans = "'Satoshi','DM Sans',Arial,sans-serif", head = "'Syne','Clash Display',Arial,sans-serif";
+          g.fillStyle = '#0A1D4A'; g.fillRect(0, 0, W, H);
+          g.fillStyle = '#E8B931'; g.fillRect(0, 0, W, 14);
+          const wrap = (text, x, y, maxW, lh) => {
+            const words = text.split(' '); let line = '';
+            words.forEach((w) => {
+              const t = line ? line + ' ' + w : w;
+              if (g.measureText(t).width > maxW && line) { g.fillText(line, x, y); line = w; y += lh; } else line = t;
+            });
+            if (line) { g.fillText(line, x, y); y += lh; }
+            return y;
+          };
+          g.textBaseline = 'alphabetic';
+          g.fillStyle = '#E8B931'; g.font = '700 30px ' + sans; g.fillText('NEURALFUSION  ·  MY THINKING RESULT', 80, 120);
+          g.fillStyle = '#FFFFFF'; g.font = '800 88px ' + head; g.fillText(lead.tag, 80, 250);
+          g.fillStyle = 'rgba(255,255,255,0.82)'; g.font = '500 38px ' + sans;
+          g.fillText('I lean on ' + lead.name + ' thinking.', 80, 320);
+          g.fillStyle = '#FFD76A'; g.font = '700 44px ' + sans;
+          let y = wrap('My blind spot: ' + low.name + '.', 80, 400, W - 160, 56);
+          g.fillStyle = 'rgba(255,255,255,0.82)'; g.font = '400 34px ' + sans;
+          y = wrap(low.cost, 80, y + 6, W - 160, 48);
+          // score bars
+          const rows = CFI_MODE_ORDER.map((s) => [CFI_MODES[s].name, sc[s]]).concat([['Coordination', sc.C]]);
+          let by = Math.max(y + 50, 760);
+          rows.forEach((r) => {
+            g.fillStyle = 'rgba(255,255,255,0.9)'; g.font = '600 30px ' + sans; g.fillText(r[0], 80, by);
+            g.fillStyle = 'rgba(255,255,255,0.14)'; g.fillRect(380, by - 26, 520, 22);
+            g.fillStyle = '#E8B931'; g.fillRect(380, by - 26, Math.max(4, 5.2 * r[1]), 22);
+            g.fillStyle = '#FFFFFF'; g.font = '700 30px ' + sans; g.fillText(String(r[1]), 930, by);
+            by += 64;
+          });
+          g.fillStyle = 'rgba(255,255,255,0.7)'; g.font = '400 26px ' + sans;
+          g.fillText('Self-reported. Not a diagnosis or a measure of intelligence.', 80, by + 20);
+          g.fillStyle = '#E8B931'; g.fillRect(0, H - 170, W, 170);
+          g.fillStyle = '#0A1D4A'; g.font = '800 44px ' + head; g.fillText('Which mode do you lean on?', 80, H - 94);
+          g.font = '600 32px ' + sans; g.fillText('Free 8-minute test: tryneuralfusion.com/cfi', 80, H - 44);
+          cv.toBlob((b) => resolve(b || null), 'image/png');
+        } catch (e) { resolve(null); }
+      });
+    }
+    // Saves a calendar reminder (all-day .ics, works in Apple, Google and Outlook calendars) for the next CFI.
+    function nfDownloadRetestReminder(days) {
+      const d = new Date(); d.setDate(d.getDate() + days);
+      const e = new Date(d); e.setDate(e.getDate() + 1);
+      const f = (x) => x.getFullYear() + String(x.getMonth() + 1).padStart(2, '0') + String(x.getDate()).padStart(2, '0');
+      const ics = ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//NeuralFusion//CFI Retest//EN', 'BEGIN:VEVENT',
+        'UID:nf-retest-' + Date.now() + '@tryneuralfusion.com', 'DTSTAMP:' + new Date().toISOString().replace(/[-:]/g, '').replace(/\.\d{3}/, ''),
+        'DTSTART;VALUE=DATE:' + f(d), 'DTEND;VALUE=DATE:' + f(e),
+        'SUMMARY:Retake your NeuralFusion CFI',
+        'DESCRIPTION:Retake the CFI to see whether your practice changed how you reported thinking. https://tryneuralfusion.com/cfi',
+        'URL:https://tryneuralfusion.com/cfi', 'BEGIN:VALARM', 'ACTION:DISPLAY', 'DESCRIPTION:Retake your NeuralFusion CFI', 'TRIGGER:PT9H', 'END:VALARM', 'END:VEVENT', 'END:VCALENDAR'].join('\r\n');
+      const url = URL.createObjectURL(new Blob([ics], { type: 'text/calendar' }));
+      const a = document.createElement('a'); a.href = url; a.download = 'neuralfusion-retake.ics';
+      document.body.appendChild(a); a.click(); document.body.removeChild(a);
+      setTimeout(() => URL.revokeObjectURL(url), 2000);
+      return d;
     }
 
     // Rebuild a result object from a saved cfi2_results row (so every reload shows exactly what was saved).
@@ -4479,14 +4557,34 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
       }, []);
 
       const shareUrl = 'https://tryneuralfusion.com/cfi';
-      const shareText = `My thinking result: ${CFI_SCALE_ORDER.map(s => `${CFI_MODES[s].name} ${scores[s]}`).concat(`Fragmentation ${cfiResult.fragmentation}`).join(', ')}. Discover how you think.`;
+      const leadMode = CFI_MODES[cfiLeadMode(scores)];
+      const shareText = `I'm "${leadMode.tag}". My least-used thinking mode is ${lowestMode.name}. Which mode do you lean on? Take the free 8-minute test:`;
+      const [reminderDate, setReminderDate] = useState(null);
+      const saveImage = (blob) => {
+        const url = URL.createObjectURL(blob); const a = document.createElement('a');
+        a.href = url; a.download = 'my-thinking-result.png'; document.body.appendChild(a); a.click(); document.body.removeChild(a);
+        setTimeout(() => URL.revokeObjectURL(url), 2000);
+      };
       const handleShare = async () => {
+        nfEvent('result_share_clicked', {});
+        const blob = await nfBuildShareImage(cfiResult);
+        const file = blob ? new File([blob], 'my-thinking-result.png', { type: 'image/png' }) : null;
+        if (file && navigator.canShare && navigator.canShare({ files: [file] })) {
+          try { await navigator.share({ files: [file], title: 'My thinking result', text: shareText + ' ' + shareUrl }); return; } catch (e) { return; /* user cancelled */ }
+        }
         if (navigator.share) {
-          try { await navigator.share({ title: 'My thinking result', text: shareText, url: shareUrl }); } catch (e) { /* user cancelled */ }
-        } else if (navigator.clipboard) {
-          try { await navigator.clipboard.writeText(`${shareText} ${shareUrl}`); setShareState('copied'); setTimeout(() => setShareState('idle'), 2200); } catch (e) { /* clipboard unavailable */ }
+          try { await navigator.share({ title: 'My thinking result', text: shareText, url: shareUrl }); return; } catch (e) { return; }
+        }
+        if (blob) saveImage(blob);
+        if (navigator.clipboard) {
+          try { await navigator.clipboard.writeText(`${shareText} ${shareUrl}`); setShareState('copied'); setTimeout(() => setShareState('idle'), 2600); } catch (e) { /* clipboard unavailable */ }
         }
       };
+      const handleDownloadImage = async () => {
+        const blob = await nfBuildShareImage(cfiResult);
+        if (blob) saveImage(blob);
+      };
+      const handleReminder = () => { nfEvent('retest_reminder_saved', {}); setReminderDate(nfDownloadRetestReminder(NF_RETEST_DAYS)); };
 
       return (
         React.createElement("div", { style: { background: CP.bg, paddingTop: 72, paddingBottom: 90 }, id: 'cfi-report' },
@@ -4500,6 +4598,13 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
             ),
 
             user && shareResultId && React.createElement(NFRetestShare, { user, resultId: shareResultId }),
+
+            // ── Your pattern (headline) ──
+            React.createElement(CPCard, { style: { padding: '28px 26px', marginBottom: 20, background: CP.ink, borderColor: CP.ink } },
+              React.createElement("div", { style: { ...mono, fontSize: 11, letterSpacing: 1.5, color: CP.gold, marginBottom: 10, textTransform: 'uppercase' } }, 'Your thinking pattern'),
+              React.createElement("h2", { style: { ...syne, fontSize: 'clamp(24px,6vw,32px)', fontWeight: 800, color: '#FFFFFF', marginBottom: 12, lineHeight: 1.15 } }, leadMode.tag),
+              React.createElement("div", { style: { fontSize: 14.5, color: 'rgba(255,255,255,0.85)', lineHeight: 1.75 } }, `You reported leaning on ${leadMode.name} thinking (${scores[cfiLeadMode(scores)]} / 100). Your blind spot is ${lowestMode.name} (${scores[cfiResult.lowest]} / 100): ${lowestMode.cost.replace(/^When \w+ is your lowest, /, '').replace(/^./, c => c.toUpperCase())}`)
+            ),
 
             // ── Four ways of thinking ──
             React.createElement(CPCard, { style: { padding: '28px 26px', marginBottom: 20 } },
@@ -4527,9 +4632,10 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
 
             // ── Where to start practising ──
             React.createElement(CPCard, { style: { padding: '30px 26px', marginBottom: 20, borderColor: CP.borderStrong } },
-              React.createElement(CPEyebrow, null, 'A place to start practising'),
-              React.createElement("h2", { style: { ...syne, fontSize: 18, fontWeight: 800, color: CP.ink, marginBottom: 10 } }, `${lowestMode.name} is the score you reported lowest`),
-              React.createElement("div", { style: { fontSize: 14, color: CP.text, lineHeight: 1.8, marginBottom: 14 } }, 'That means you said you do this less often than the others. It is a starting point for practice, not a verdict. You may use it less on purpose.'),
+              React.createElement(CPEyebrow, null, 'What this may be costing you'),
+              React.createElement("h2", { style: { ...syne, fontSize: 18, fontWeight: 800, color: CP.ink, marginBottom: 10 } }, `Your blind spot: ${lowestMode.name} thinking`),
+              React.createElement("div", { style: { fontSize: 14, color: CP.text, lineHeight: 1.8, marginBottom: 10 } }, lowestMode.cost),
+              React.createElement("div", { style: { fontSize: 12.5, color: CP.faint, lineHeight: 1.6, marginBottom: 14 } }, 'This is based on how you reported thinking. It is a pattern to test, not a verdict, and you may use this mode less on purpose. Practising it is how you find out.'),
               React.createElement("div", { style: { padding: '14px 16px', background: CP.surface, borderRadius: 12, border: `1px solid ${CP.border}`, marginBottom: 18 } },
                 React.createElement("div", { style: { ...mono, fontSize: 9, letterSpacing: 1, color: CP.faint, marginBottom: 6 } }, 'TRY THIS (A SUGGESTION, NOT A MEASURED FINDING)'),
                 React.createElement("div", { style: { fontSize: 13.5, color: CP.text, lineHeight: 1.7 } }, lowestMode.practice)
@@ -4602,6 +4708,11 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
                   React.createElement("span", null, CFI_MODES[s].name), React.createElement("span", { style: { color: CP.muted } }, cfiPointsText(sinceLast[s])))),
                 React.createElement("div", { style: { fontSize: 12.5, color: CP.faint, lineHeight: 1.6, marginTop: 10 } }, 'A higher mode score means you reported that kind of thinking more often, not that the result is better. For Fragmentation, lower means your thinking is working together more. Clarity Delta is the change in your reported Coordination score, and Fragmentation change is shown separately. These are self-reported differences. Scores move for many reasons, including how you felt on the day, so treat one change as a prompt for reflection, not proof of progress or a cause.')
               ),
+              React.createElement("div", { style: { padding: '14px 16px', background: CP.surface, borderRadius: 12, border: `1px solid ${CP.border}`, marginBottom: 16 } },
+                React.createElement("div", { style: { ...mono, fontSize: 9, letterSpacing: 1, color: CP.faint, marginBottom: 6 } }, `RETAKE IN ${NF_RETEST_DAYS} DAYS`),
+                React.createElement("div", { style: { fontSize: 13.5, color: CP.text, lineHeight: 1.7, marginBottom: 12 } }, reminderDate ? `Reminder saved for ${reminderDate.toLocaleDateString()}.` : 'Without a second reading you cannot tell whether your practice changed how you reported thinking. Put the retake in your calendar now.'),
+                !reminderDate && React.createElement(CPButton, { variant: 'outline', onClick: handleReminder }, 'Add retake reminder to my calendar')
+              ),
               React.createElement(CPButton, { variant: 'outline', onClick: () => setView('analytics') }, 'Open my progress →')
             ),
 
@@ -4611,6 +4722,8 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
               React.createElement("div", { style: { fontSize: 13.5, color: CP.muted, lineHeight: 1.7, marginBottom: 18, maxWidth: 440, margin: '0 auto 18px' } }, "You discovered how you think. Now invite someone else to discover theirs."),
               React.createElement("div", { style: { display: 'inline-block', textAlign: 'left', padding: '20px 24px', background: CP.ink, borderRadius: 14, marginBottom: 20 } },
                 React.createElement("div", { style: { ...syne, fontSize: 12, fontWeight: 800, color: CP.gold, letterSpacing: 1, marginBottom: 10 } }, 'NEURALFUSION · My thinking result'),
+                React.createElement("div", { style: { ...syne, fontSize: 20, fontWeight: 800, color: '#FFFFFF', marginBottom: 4 } }, leadMode.tag),
+                React.createElement("div", { style: { fontSize: 12.5, color: CP.gold, marginBottom: 10 } }, 'Blind spot: ' + lowestMode.name),
                 CFI_SCALE_ORDER.map(s => (
                   React.createElement("div", { key: s, style: { display: 'flex', justifyContent: 'space-between', gap: 24, fontSize: 12.5, color: 'rgba(255,255,255,0.85)', padding: '3px 0' } },
                     React.createElement("span", null, CFI_MODES[s].name), React.createElement("span", { style: { color: CP.gold, fontWeight: 700 } }, scores[s])
@@ -4619,10 +4732,13 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
                 React.createElement("div", { style: { display: 'flex', justifyContent: 'space-between', gap: 24, fontSize: 12.5, color: 'rgba(255,255,255,0.85)', padding: '3px 0' } },
                   React.createElement("span", null, 'Fragmentation'), React.createElement("span", { style: { color: CP.gold, fontWeight: 700 } }, cfiResult.fragmentation)
                 ),
-                React.createElement("div", { style: { fontSize: 10.5, color: 'rgba(255,255,255,0.8)', marginTop: 10 } }, 'Discover how you think. tryneuralfusion.com')
+                React.createElement("div", { style: { fontSize: 10.5, color: 'rgba(255,255,255,0.8)', marginTop: 10 } }, 'Which mode do you lean on? tryneuralfusion.com/cfi')
               ),
               React.createElement("div", null,
-                React.createElement(CPButton, { onClick: handleShare }, shareState === 'copied' ? 'Link copied ✓' : 'Share Profile')
+                React.createElement("div", { style: { display: 'flex', gap: 10, flexWrap: 'wrap', justifyContent: 'center' } },
+                  React.createElement(CPButton, { onClick: handleShare }, shareState === 'copied' ? 'Image saved, link copied ✓' : 'Share my result card'),
+                  React.createElement(CPButton, { variant: 'outline', onClick: handleDownloadImage }, 'Download image')
+                )
               )
             ),
 
