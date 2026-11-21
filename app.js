@@ -2997,12 +2997,14 @@ function LandingView({ setView, setShowAuth }) {
     { k: 'r', name: 'Reflective', what: 'Examine assumptions, experiences and the reasoning behind decisions.', glyph: E('g', { fill: 'none', stroke: 'currentColor', strokeWidth: 2.5 }, E('circle', { cx: 24, cy: 24, r: 15 }), E('circle', { cx: 24, cy: 24, r: 6 })) },
   ];
 
-  const ladder = [
-    ['Generating an answer', 'Fast, and increasingly easy to hand to a tool.'],
-    ['Understanding the answer', 'Knowing why it says what it says.'],
-    ['Evaluating the answer', 'Testing it against evidence, context and your own experience.'],
-    ['Reasoning through the problem', 'Working out the structure yourself, with or without help.'],
-    ['Fusing it into a decision', 'Bringing what you know and what you were given into a judgment you can stand behind.'],
+  const frag = [
+    ['Disconnected thinking', 'Ideas, evidence and instincts sit side by side without forming one view.'],
+    ['Mental overload', 'Too much information and too many open questions at the same time.'],
+    ['Difficulty organising information', 'You know a lot, but not how the pieces fit together.'],
+    ['Conflicting perspectives', 'Analysis points one way, instinct another, and nothing resolves them.'],
+    ['Overthinking', 'Circling the same considerations without moving forward.'],
+    ['Poorly structured decisions', 'Choices made without clear criteria, stated assumptions or a point to review them.'],
+    ['Trouble moving from ideas to conclusions', 'Plenty of options, but no position you can state and defend.'],
   ];
 
   const uses = [
@@ -3018,7 +3020,7 @@ function LandingView({ setView, setShowAuth }) {
   const faq = [
     ['Is this a medical test or a personality test?', 'No. The CFI is not a diagnosis, a personality label or an intelligence test. It describes how you report working through problems and decisions today.'],
     ['How long does the CFI take?', '40 questions, about 8 minutes.'],
-    ['Is NeuralFusion an AI chatbot?', 'No. NeuralFusion develops your own thinking. It does not think for you, and it is not against AI.'],
+    ['What is NeuralFusion?', 'A Cognitive Performance Operating System: a structured way to understand how you think, recognise cognitive fragmentation and practise integrating the Four Thinking Modes. It develops your own reasoning, problem-solving and decision-making.'],
     ['Is it free?', 'The CFI and the first lesson are free. Lessons 2 to 5 and the Supplementary Learning Resources are a one-time payment. Teams can share one link and take the CFI and lessons together.'],
     ['What happens to my data?', null],
   ];
@@ -3065,15 +3067,10 @@ function LandingView({ setView, setShowAuth }) {
     @keyframes nflDraw { to { stroke-dashoffset:0; } }
     @media (prefers-reduced-motion: reduce) { .nfl .draw { animation:none; stroke-dashoffset:0; } }
 
-    .nfl .ladder { list-style:none; margin:44px 0 0; padding:0; display:grid; grid-template-columns:repeat(5,1fr); gap:0; border-top:2px solid var(--ink); }
-    .nfl .ladder li { padding:20px 18px 6px 0; position:relative; }
-    .nfl .ladder li + li { padding-left:18px; border-left:1px solid var(--ln); }
-    .nfl .ladder h3 { font-size:17px; line-height:1.3; }
-    .nfl .ladder p { font-size:14.5px; color:var(--mu); margin-top:8px; }
-    .nfl .ladder .mark { display:block; height:6px; margin:-22px 0 16px; background:var(--ln); }
-    .nfl .ladder li:nth-child(n+3) .mark { background:var(--bl); }
-    .nfl .ladder-key { display:flex; flex-wrap:wrap; gap:20px; margin-top:22px; font-size:14px; color:var(--mu); }
-    .nfl .ladder-key i { display:inline-block; width:22px; height:6px; margin-right:8px; vertical-align:middle; }
+    .nfl .frag { list-style:none; margin:44px 0 0; padding:0; display:grid; grid-template-columns:repeat(auto-fit,minmax(230px,1fr)); border-top:2px solid var(--ink); }
+    .nfl .frag li { padding:20px 18px 18px 0; border-bottom:1px solid var(--ln); }
+    .nfl .frag h3 { font-size:17px; line-height:1.3; hyphens:manual; -webkit-hyphens:manual; overflow-wrap:normal; }
+    .nfl .frag p { font-size:14.5px; color:var(--mu); margin-top:8px; }
     .nfl .balance { font-size:17px; margin-top:34px; max-width:700px; border-left:3px solid var(--bl); padding-left:18px; }
 
     .nfl .three { display:grid; grid-template-columns:repeat(3,1fr); gap:28px; margin-top:44px; counter-reset:st; }
@@ -3159,9 +3156,6 @@ function LandingView({ setView, setShowAuth }) {
 
     @media (max-width: 960px) {
       .nfl .hero-grid, .nfl .cfi { grid-template-columns:1fr; gap:40px; }
-      .nfl .ladder { grid-template-columns:1fr; border-top:0; }
-      .nfl .ladder li, .nfl .ladder li + li { padding:18px 0; border-left:0; border-top:1px solid var(--ln); }
-      .nfl .ladder .mark { display:none; }
       .nfl .three, .nfl .five, .nfl .paths, .nfl .links { grid-template-columns:1fr; }
       .nfl .modes { grid-template-columns:repeat(2,1fr); }
       .nfl .mode + .mode { border-left:0; } .nfl .mode:nth-child(even) { border-left:1px solid #3A5CA8; } .nfl .mode:nth-child(n+3) { border-top:1px solid #3A5CA8; }
@@ -3181,15 +3175,15 @@ function LandingView({ setView, setShowAuth }) {
   const section = (id, cls, children) => E('section', { id, className: 'sec ' + (cls || ''), 'aria-labelledby': id ? id + '-h' : undefined }, E('div', { className: 'w' }, children));
   const h2 = (id, t) => E('h2', { key: 'h2', id: id + '-h' }, t);
 
-  // Hero figure: four modes converge into one judgment, inside a ring of AI support.
+  // Hero figure: four modes converge into one judgment.
   const node = (x, y, c, label, dy) => E('g', { key: label },
     E('circle', { cx: x, cy: y, r: 30, fill: '#0D2757', stroke: c, strokeWidth: 2.5 }),
     E('circle', { cx: x, cy: y, r: 9, fill: c }),
     E('text', { x, y: y + dy, textAnchor: 'middle', fill: '#DCE3F8', fontSize: 14, fontFamily: 'Satoshi,sans-serif' }, label));
   const curve = (d, c, k) => E('path', { key: k, d, pathLength: 1, className: 'draw', fill: 'none', stroke: c, strokeWidth: 2.5, strokeLinecap: 'round' });
-  const figure = E('svg', { viewBox: '0 0 480 460', role: 'img', 'aria-label': 'Four thinking modes, Analytical, Intuitive, Associative and Reflective, converging into one integrated judgment, surrounded by AI support.' },
+  const figure = E('svg', { viewBox: '0 0 480 460', role: 'img', 'aria-label': 'Four thinking modes, Analytical, Intuitive, Associative and Reflective, converging into one integrated judgment.' },
     E('circle', { cx: 240, cy: 230, r: 214, fill: 'none', stroke: '#33427F', strokeWidth: 1.5, strokeDasharray: '3 7' }),
-    E('text', { x: 240, y: 28, textAnchor: 'middle', fill: '#D3DCF0', fontSize: 13, fontFamily: 'Satoshi,sans-serif' }, 'AI: answers, drafts, options'),
+    E('text', { x: 240, y: 28, textAnchor: 'middle', fill: '#D3DCF0', fontSize: 13, fontFamily: 'Satoshi,sans-serif' }, 'Four modes, one coordinated process'),
     curve('M96 98 C 150 120 190 170 214 206', '#FFD76A', 'a'),
     curve('M384 98 C 330 120 290 170 266 206', '#7FB2FF', 'i'),
     curve('M96 362 C 150 340 190 290 214 254', '#F2A33A', 's'),
@@ -3207,9 +3201,9 @@ function LandingView({ setView, setShowAuth }) {
     // 1. Hero
     E('header', { className: 'hero' }, E('div', { className: 'w hero-grid' },
       E('div', null,
-        E('p', { className: 'eyebrow' }, 'A Cognitive Performance Operating System for how you think'),
-        E('h1', null, 'AI Can Expand Your Capabilities. But Who Is Developing Your Thinking?'),
-        E('p', { className: 'sub' }, 'NeuralFusion is a Cognitive Performance Operating System for how you think. It helps you understand your thinking patterns, practise cognitive integration and strengthen independent judgment in an increasingly AI-driven world.'),
+        E('p', { className: 'eyebrow' }, 'Cognitive Performance Operating System'),
+        E('h1', null, 'Train How You Think.'),
+        E('p', { className: 'sub' }, 'NeuralFusion is a Cognitive Performance Operating System designed to develop clearer reasoning, structured problem-solving and integrated thinking through a systematic approach to cognitive training.'),
         E('div', { className: 'cta' },
           E('button', { className: 'btn pri', onClick: () => goCfi('hero') }, 'Explore Your Thinking'),
           E('button', { className: 'btn ghost', onClick: () => scrollTo('how') }, 'Discover How NeuralFusion Works')),
@@ -3219,19 +3213,16 @@ function LandingView({ setView, setShowAuth }) {
 
     // 2. The problem
     section('problem', 'alt', [
-      h2('problem', 'Access to Intelligence Is Expanding. The Development of Human Thinking Must Keep Pace.'),
-      E('p', { key: 'l', className: 'lede' }, 'A tool can hand you an answer in seconds. Five different things can happen after that, and they are not the same.'),
-      E('ol', { key: 'o', className: 'ladder' }, ladder.map(([t, x]) => E('li', { key: t }, E('span', { className: 'mark', 'aria-hidden': 'true' }), E('h3', null, t), E('p', null, x)))),
-      E('div', { key: 'k', className: 'ladder-key', 'aria-hidden': 'true' },
-        E('span', null, E('i', { style: { background: '#E3EAFB' } }), 'Easy to delegate'),
-        E('span', null, E('i', { style: { background: '#E8B931' } }), 'Where your own judgment does the work')),
-      E('p', { key: 'b', className: 'balance' }, 'AI can support every one of these steps. The point is that a person stays an active part of the reasoning and the judgment, and that this is a skill you can practise.')
+      h2('problem', 'When Your Thinking Runs Apart, Decisions Get Harder.'),
+      E('p', { key: 'l', className: 'lede' }, 'Cognitive fragmentation is thinking that runs in separate directions: different ways of working on a problem that are not coordinated. People often notice it as:'),
+      E('ul', { key: 'o', className: 'frag' }, frag.map(([t, x]) => E('li', { key: t }, E('h3', null, t), E('p', null, x)))),
+      E('p', { key: 'b', className: 'balance' }, 'These are descriptions of how thinking can feel and function, not medical diagnoses. NeuralFusion treats them as patterns you can understand and practise working on, by integrating how you think into one coherent process.')
     ]),
 
     // 3. What NeuralFusion is
     section('how', '', [
       h2('how', 'A Structured Approach to Developing Human Cognitive Capabilities.'),
-      E('p', { key: 'l', className: 'lede' }, 'NeuralFusion is a Cognitive Performance Operating System. It trains people to integrate four thinking modes through a structured five-lesson programme. It is not a chatbot, a productivity app or a course to watch.'),
+      E('p', { key: 'l', className: 'lede' }, 'NeuralFusion is a Cognitive Performance Operating System. It trains people to integrate four thinking modes through a structured five-lesson programme, starting from an assessment of your current thinking patterns and moving into practice with the Core Loop.'),
       E('p', { key: 'pr', className: 'lede' }, 'The problem it addresses is cognitive fragmentation: thinking processes that run apart, difficulty coordinating different approaches to a complex problem, and decisions that vary from one occasion to the next.'),
       E('ol', { key: 't', className: 'five' },
         [['1', 'Assess', 'Complete the 40-item CFI-2.0.'],
@@ -3336,8 +3327,8 @@ function LandingView({ setView, setShowAuth }) {
 
     // 10. Final conversion
     E('section', { className: 'final', 'aria-labelledby': 'final-h' }, E('div', { className: 'w' },
-      E('h2', { id: 'final-h' }, 'Don\u2019t Just Adapt to the Future of Intelligence. Develop Your Own.'),
-      E('p', null, 'Start understanding and deliberately developing how you think.'),
+      E('h2', { id: 'final-h' }, 'Develop Clearer, More Integrated Thinking.'),
+      E('p', null, 'Start by understanding how you think today, then practise it deliberately.'),
       E('button', { className: 'btn pri', onClick: () => goCfi('final') }, 'Begin with NeuralFusion'))));
 }
 
@@ -3385,8 +3376,8 @@ function NFOnboarding({ user, setView, hasCfi }) {
   const last = step === titles.length - 1;
   const body = [
     E('div', { key: 0 },
-      E('p', null, 'NeuralFusion is a Cognitive Performance Operating System for how you think. It helps you understand your thinking patterns, practise thinking deliberately, and keep your own judgment active in a world where AI can answer for you.'),
-      E('p', null, 'It is not a chatbot, and it is not against AI. It develops the human thinking behind what AI helps you do.')),
+      E('p', null, 'NeuralFusion is a Cognitive Performance Operating System designed to develop clearer reasoning, structured problem-solving and integrated thinking through a systematic approach to cognitive training.'),
+      E('p', null, 'You start by understanding how you think today, then practise coordinating four thinking modes so your own judgment stays clear and independent.')),
     E('div', { key: 1 },
       E('ul', { className: 'nfo-modes' }, modes.map(m => E('li', { key: m[0] }, E('strong', null, m[0]), ' ', m[1]))),
       E('p', null, 'These are not four separate minds. They work together on the same problem, and good judgment depends on how well you coordinate them.')),
@@ -3848,7 +3839,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
               React.createElement("div", {style: { fontFamily:AC.font, fontSize:13, fontWeight:700, letterSpacing:'0.04em', color:AC.goldDark, marginBottom:16, textTransform:'uppercase' }}, 'The full picture'),
               React.createElement("div", {style: { fontSize:17, color:AC.text, lineHeight:1.8, marginBottom:20, padding:'18px 20px', background:AC.surfaceAlt, borderRadius:12, border:`1px solid ${AC.border}` }}, synthesis.insight),
               synthesis.uncertain && React.createElement("div", {style: { fontSize:13.5, color:AC.muted, lineHeight:1.7, marginBottom:8 }}, "This may be worth investigating further: parts of your own answers suggest you're still uncertain, and that uncertainty is worth sitting with rather than rushing past."),
-              React.createElement("div", {style: { fontSize:13, color:AC.muted, lineHeight:1.6, marginTop:12 }}, "NeuralFusion is not an AI decision-maker. You remain the intelligence. This is your thinking, organized and reflected back to you.")
+              React.createElement("div", {style: { fontSize:13, color:AC.muted, lineHeight:1.6, marginTop:12 }}, "You make the decision. This is your own thinking, organized and reflected back to you.")
             ),
 
             // Investigate the gap
