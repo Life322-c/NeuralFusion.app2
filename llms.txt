@@ -1,8 +1,8 @@
 # NeuralFusion
 
-> NeuralFusion is a Cognitive Performance Operating System for how you think. It helps people understand their thinking patterns, recognise cognitive fragmentation, practise integrating four thinking modes through the five-stage Core Loop, and make clearer decisions, built on the Four Thinking Modes Framework and the CFI (Cognitive Fragmentation Index).
+> NeuralFusion is a Cognitive Performance Operating System designed to develop clearer reasoning, structured problem-solving and integrated thinking through a systematic approach to cognitive training. It helps people understand their thinking patterns, recognise cognitive fragmentation, practise integrating four thinking modes through the five-stage Core Loop, and make clearer decisions, built on the Four Thinking Modes Framework and the CFI (Cognitive Fragmentation Index).
 
-NeuralFusion was founded by Life Edet. It is not an AI chatbot, a productivity app, a therapy platform, or a general wellness app. Its focus is human cognitive agency: preserving and developing human judgment and thinking capacity, particularly in an AI-heavy environment.
+NeuralFusion was founded by Life Edet. Its focus is human cognitive agency: developing independent judgment, structured reasoning, problem-solving and decision-making, including under pressure.
 
 ## Core Concepts
 
@@ -11,7 +11,7 @@ NeuralFusion was founded by Life Edet. It is not an AI chatbot, a productivity a
 - [Thinking & the Four Thinking Modes Framework](https://tryneuralfusion.com/thinking): Analytical, Intuitive, Associative, Reflective
 - [Decision-Making](https://tryneuralfusion.com/decision-making): structured decision-making under pressure
 - [CFI Methodology](https://tryneuralfusion.com/methodology): what the CFI measures, does not measure, and its current limitations
-- [Human Intelligence & AI](https://tryneuralfusion.com/human-intelligence-ai): human cognitive agency in the age of AI
+- [Human Intelligence & AI](https://tryneuralfusion.com/human-intelligence-ai): human cognitive agency and independent judgment
 
 ## Pathways
 
