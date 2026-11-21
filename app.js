@@ -5327,6 +5327,420 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
     // ═══════════════════════════════════════════════════════════════════
     //  LESSONS VIEW
     // ═══════════════════════════════════════════════════════════════════
+    // ═══════════════════════════════════════════════════════════════════
+    //  INTERACTIVE LESSON JOURNEY
+    //  One reusable engine, five lesson configs. All config text is drawn from
+    //  LESSON_CONTENT (same modes, Core Loop, Synthesis Framework, Stabilizers,
+    //  Fuse trigger, worksheets, reflection questions, assignments, key insights).
+    //  Persistence: table lesson_activity (see migration_lesson_activity.sql) plus
+    //  the existing lesson_progress table. A saved state is shown only after Supabase confirms it.
+    // ═══════════════════════════════════════════════════════════════════
+    const NF_MODE_LIST = [
+      { key:'A', name:'Analytical', tag:'Precision', sym:'\u25B0', best:'Decisions, planning and problem breakdown.', risk:'Overused, it produces rigidity and overthinking.', q:'What are the facts?', does:['Identify facts','Examine assumptions','Break down problems','Evaluate information','Establish structure'] },
+      { key:'I', name:'Intuitive', tag:'Insight', sym:'\u25B1', best:'Fast judgment, pattern sensing and direction.', risk:'Overused, it produces impulsiveness.', q:'Pause, then ask: What feels correct?', does:['Notice what stands out','Recognize patterns','Consider instinctive impressions','Tell intuition apart from unquestioned assumptions'] },
+      { key:'S', name:'Associative', tag:'Expansion', sym:'\u25B2', best:'Creativity, new ideas and connections.', risk:'Overused, it produces distraction.', q:'What else is this connected to?', does:['Generate alternative ideas','Connect seemingly unrelated information','Explore possibilities','Move beyond your first perspective'] },
+      { key:'R', name:'Reflective', tag:'Meaning', sym:'\u25B3', best:'Self-awareness, evaluation and learning.', risk:'Overused, it produces rumination.', q:'What does this mean for me?', does:['Observe your own thinking','Review decisions','Recognize patterns in your approach','Extract lessons from experience'] },
+    ];
+    const NF_REFLECT_NOTE = 'There are no right answers here. The aim is awareness, not judgment.';
+
+    const NF_JOURNEY = {
+      1: {
+        skill: 'Noticing which thinking mode is active',
+        introduces: 'The four thinking modes and the five-stage Core Loop.',
+        why: 'Every later skill (switching, synthesis, stabilization, fluency) builds on being able to name what is happening in your own mind. This lesson installs the map.',
+        outcome: ['Explain what NeuralFusion is and the problem it solves', 'Name the four thinking modes and what each does', 'Walk the Core Loop in order', 'Complete a first conscious cycle on a real issue'],
+        stages: [
+          { id:'open', type:'reveal', label:'Opening question', q:'Have you ever spent so much time thinking about a problem that you became less certain about what to do?', options:[{t:'Yes, more often than I would like'},{t:'Sometimes'},{t:'Rarely'}], after:'Whichever you chose, this is the problem NeuralFusion is built for. Several parts of your mind are working, but not together. NeuralFusion calls that fragmented thinking. It produces overthinking, confusion and poor decisions.' },
+          { id:'scn', type:'reveal', label:'A real situation', intro:'You receive a frustrating text message from someone you work with. You have a minute before you must reply. What do you do first?', q:'Pick the move closest to what you would actually do.', options:[
+            {t:'Reread it carefully to see what was actually said', n:'That was Analytical: reviewing what was said.'},
+            {t:'Go with the emotional charge I felt when I read it', n:'That was Intuitive: noticing the emotional charge.'},
+            {t:'Imagine other reasons they might have written it', n:'That was Associative: considering alternative interpretations.'},
+            {t:'Ask what kind of reply actually serves the relationship', n:'That was Reflective: asking what response serves the relationship.'}], after:'Each option was a different thinking mode. Most people default to one and never consult the other three. NeuralFusion trains you to hear all four before you respond.' },
+          { id:'cpt', type:'cards', label:'The idea', cards:[
+            {h:'What NeuralFusion is', b:'A trainable skill that fuses four natural thinking modes into one coordinated process.'},
+            {h:'The problem it solves', b:'Fragmented thinking: modes working against each other, or one mode running everything. The result is overthinking, confusion and poor decisions.'},
+            {h:'Mental leadership', b:'You are not your thoughts. You are the conductor of them. Awareness of your current mode is the first and most essential form of control.'}] },
+          { id:'exp', type:'explore', label:'The four modes', intro:'Tap each mode. None is better than another, and you are not assigned to one. You use all four.', items:'modes' },
+          { id:'ord', type:'order', label:'The Core Loop', intro:'The Core Loop is the engine of every later lesson. Tap the stages in the order they run.', items:['Decompose: write the issue in one sentence and list the facts','Sense: pause and note your immediate gut response','Expand: generate ideas and connections','Reflect: ask what this teaches you','Fuse: bring the four answers into one conclusion'], done:'Correct. Decompose, Sense, Expand, Reflect, Fuse. At the beginner stage a slow, deliberate loop is the goal.' },
+          { id:'gp', type:'guided', label:'Guided practice', intro:'Your first full pass through the Core Loop. Use a real, mildly unresolved issue, not a hypothetical. Writing it down keeps the modes from blurring together.', example:'Example. Issue: I keep postponing a call with my landlord. Facts: the rent review is due Friday; I have not read the new terms. Gut: dread, but also relief when I imagine it done. Ideas: email first, ask a friend to read the terms, call at lunch. Teaches me: avoiding it costs more than doing it. Fuse: read the terms tonight and call tomorrow at lunch.', steps:[
+            {label:'Decompose', prompt:'Write the issue in one sentence.'},
+            {label:'Analytical', prompt:'List facts only. No emotion, no interpretation.'},
+            {label:'Intuitive', prompt:'Pause, then write your immediate gut response.'},
+            {label:'Associative', prompt:'Write three ideas or connections related to the issue.'},
+            {label:'Reflective', prompt:'Ask: What does this teach me? Write the answer.'},
+            {label:'Fuse', prompt:'Write one sentence that brings your four answers into one conclusion.'},
+            {label:'Notice', prompt:'How has your sense of clarity changed compared to when you started?'}] },
+          { id:'app', type:'apply', label:'Apply it to your life', prompt:'Think of a recent moment when your thinking became chaotic or overwhelming. Which mode were you stuck in? Write one short reflection on what you noticed.' },
+          { id:'ref', type:'reflect', label:'Reflection', prompts:['Which of the four modes do you tend to trust the least, and why?','Describe a recent decision that might have gone differently if you had consciously used all four modes.','What does mental leadership mean to you after the first guided practice?'] },
+        ],
+        insight: 'You are not your thoughts. You are the conductor of them. NeuralFusion trains mental leadership: the ability to direct thinking rather than be directed by it.',
+        recap: ['NeuralFusion fuses four natural thinking modes into one coordinated process.','Fragmented thinking produces overthinking, confusion and poor decisions.','The Core Loop (Decompose, Sense, Expand, Reflect, Fuse) is the engine of every later lesson.','Awareness of your current mode is the first form of control.'],
+        assignment: ['Over the next 24 hours, observe when your thinking becomes chaotic.','Pause and ask: Which mode am I stuck in?','Write one short reflection on what you noticed.'],
+        next: 'You can now notice which mode is active. Lesson 2 teaches you to choose it.',
+      },
+      2: {
+        skill: 'Choosing and switching thinking modes on purpose',
+        introduces: 'What each mode is best for, the risk of overusing it, and the question that switches you into it.',
+        why: 'Lesson 1 taught you to notice the weather. Without a way to change it, awareness alone can become a passive habit: you see you are overthinking, but stay stuck. Mode activation gives you the lever.',
+        outcome: ['Name the best use and overuse risk of each mode', 'Use an activation question to switch modes', 'Run the Emergency Reset from memory', 'Complete the Switching Drill'],
+        stages: [
+          { id:'open', type:'reveal', label:'Opening question', q:'Have you ever noticed you were overthinking, but could not stop?', options:[{t:'Yes, I notice it but stay stuck'},{t:'Sometimes I can break out'},{t:'Not really'}], after:'Noticing is Lesson 1. Moving is Lesson 2. The gap between the two is the skill you are about to practice.' },
+          { id:'scn', type:'reveal', label:'A real situation', intro:'A sales lead has gone quiet after weeks of promising conversation. Your mind keeps replaying every message you sent.', q:'What would break the spiral fastest?', options:[
+            {t:'Keep replaying until I find the mistake', n:'This is Reflective overused: rumination.'},
+            {t:'Ask: What are the facts?', n:'This is the Analytical activation question.'},
+            {t:'Send three different follow-ups right now', n:'This is Intuitive running unchecked: impulsiveness.'}], after:'The default reaction is anxious rumination. The Analytical question interrupts it: the facts are that the deal is delayed, not dead. A question is a switch.' },
+          { id:'cpt', type:'cards', label:'The idea', cards:[
+            {h:'Reaction is the default', b:'Most people do not think, they react. Thoughts arrive through habit, emotion or urgency rather than deliberate selection.'},
+            {h:'Control begins at the point of choice', b:'It begins the moment you choose how to think about the situation, not after the thought has run its course.'},
+            {h:'Reaction is automatic. Activation is chosen.', b:'Every time you pause before a default pattern takes over, you are practicing NeuralFusion.'}] },
+          { id:'exp', type:'explore', label:'Mode toolkit', intro:'For each mode: what it is best for, what goes wrong when it is overused, and the question that switches you into it.', items:'modes2' },
+          { id:'ord', type:'order', label:'The Emergency Reset', intro:'When thoughts feel overwhelming, use this four-step reset. Tap the steps in order.', items:['Pause','Name the mode you are stuck in','Switch deliberately to Reflective mode','Ask: What is one thing I can control right now?'], done:'Correct. Naming the mode creates the separation you need to switch out of it. Use it early, not at peak overload.' },
+          { id:'gp', type:'guided', label:'Guided practice', intro:'The Switching Drill: about 60 seconds in each mode on the same neutral topic, for example your day so far. The goal is the felt texture of each mode, not the content.', example:'Example topic: my day so far. Analytical: two meetings, one deadline moved. Intuitive: the deadline change bothers me more than it should. Associative: this is like the project last spring. Reflective: I do better when I ask for clarity early.', steps:[
+            {label:'Choose a topic', prompt:'Pick a neutral topic, for example your day so far.'},
+            {label:'Analytical', prompt:'About 60 seconds: facts only.'},
+            {label:'Intuitive', prompt:'About 60 seconds: your gut response.'},
+            {label:'Associative', prompt:'About 60 seconds: ideas and connections.'},
+            {label:'Reflective', prompt:'About 60 seconds: meaning or lesson.'},
+            {label:'Texture', prompt:'How did each mode feel different from the inside?'}] },
+          { id:'app', type:'apply', label:'Apply it to your life', prompt:'Recall the last time you felt stuck in a thought loop. Which mode were you likely overusing? Which activation question would you use next time?' },
+          { id:'ref', type:'reflect', label:'Reflection', prompts:['What is your default mode, and in which situations does it serve you least well?','Which activation question was hardest to use naturally? What made it difficult?','Describe a moment this week when the Emergency Reset would have helped.'] },
+        ],
+        insight: 'Reaction is automatic. Activation is chosen. Mental freedom is the ability to switch your thoughts, not escape them.',
+        recap: ['Control begins at the point of choice.','Each mode has a best use and a risk when overused: rigidity, impulsiveness, distraction or rumination.','Each mode has an activation question that switches you into it.','The Emergency Reset interrupts overload in under a minute.'],
+        assignment: ['Over the next 48 hours, identify your default mode in three separate situations.','Practice switching mode deliberately at least once per day.','Write one sentence on what changed as a result.'],
+        next: 'You can now choose a mode. Lesson 3 teaches you to combine all four into one decision.',
+      },
+      3: {
+        skill: 'Turning four mode outputs into one decision',
+        introduces: 'The Synthesis Framework (Extract, Align, Compress, Decide) and the Commitment Lock.',
+        why: 'Most people are not short on information or ideas. They are short on a reliable method for integrating them. This is where separate skills become one usable decision.',
+        outcome: ['Produce four distinct mode outputs for one decision', 'Run Extract, Align, Compress, Decide', 'Write a one-sentence decision', 'Use the Commitment Lock'],
+        stages: [
+          { id:'open', type:'reveal', label:'Opening question', q:'When you have several good options, what usually happens?', options:[{t:'I go back and forth for a long time'},{t:'I choose quickly, then doubt it'},{t:'I wait until something forces my hand'}], after:'In each case the modes are arguing rather than cooperating. Decisions fail from fragmentation, not from a lack of intelligence.' },
+          { id:'scn', type:'reveal', label:'A real situation', intro:'A founder is deciding whether to enter a new market. Analytical finds strong demand data. Intuitive feels hesitation about timing. Associative suggests a phased entry. Reflective worries about spreading focus too thin.', q:'Which output should win?', options:[{t:'Analytical: the data is strong', n:'The data matters, but it is one advisor.'},{t:'Intuitive: trust the hesitation', n:'The hesitation matters, but it is one advisor.'},{t:'None should win outright', n:'Right. The modes are advisors, not rulers.'}], after:'Align: the hesitation and the focus concern point the same direction. Compress: enter, but only through the phased option. Decide: a limited pilot rather than a full launch. Every mode contributed, none dominated.' },
+          { id:'cpt', type:'cards', label:'The idea', cards:[
+            {h:'Synthesis is integration', b:'Every mode contributes, none dominates, one conclusion emerges.'},
+            {h:'Clarity is compression', b:'The framework forces several valid inputs down into one usable conclusion.'},
+            {h:'The Commitment Lock', b:'Once synthesis is complete, re-analysis stops and action begins, even if only a small first step. It trains decisiveness, not stubbornness.'}] },
+          { id:'exp', type:'explore', label:'The Synthesis Framework', intro:'Tap each step to see what it asks of you.', items:[
+            {h:'1. Extract', b:'Identify the single strongest output from each of the four thinking modes.'},
+            {h:'2. Align', b:'Check the four outputs for overlap and for direct contradiction. Disagreement is information, not a problem to eliminate.'},
+            {h:'3. Compress', b:'Reduce the aligned outputs into one core insight.'},
+            {h:'4. Decide', b:'Commit mentally to a single direction based on that insight.'}] },
+          { id:'ord', type:'order', label:'Build the sequence', intro:'Tap the four synthesis steps in their strict order.', items:['Extract','Align','Compress','Decide'], done:'Correct. Most people jump to compression too early. Extract all four outputs first.' },
+          { id:'gp', type:'guided', label:'Guided practice', intro:'The Full NeuralFusion Cycle: about 10 minutes, one real decision, one direction.', example:'Example decision: whether to accept a freelance project. Analytical: pays well, overlaps my exam week. Intuitive: excitement and dread together. Associative: start after exams, or take half the scope. Reflective: I value finishing what I start. Common theme: timing. Decision: I will accept it with a start date after exams.', steps:[
+            {label:'The decision', prompt:'Choose a real decision you are currently facing and describe it.'},
+            {label:'Analytical output', prompt:'Facts and constraints.'},
+            {label:'Intuitive output', prompt:'Your strongest gut signal.'},
+            {label:'Associative output', prompt:'Your best idea or option.'},
+            {label:'Reflective output', prompt:'The lesson or value at stake.'},
+            {label:'Common theme', prompt:'What do the four outputs share?'},
+            {label:'Your decision', prompt:'Write your decision as a single sentence. Then read it aloud, slowly.'}] },
+          { id:'app', type:'apply', label:'Apply it to your life', prompt:'Which real decision will you run through the Synthesis Framework, and what small first step will you take once you decide?' },
+          { id:'ref', type:'reflect', label:'Reflection', prompts:['What did the moment of compression feel like during your practice?','Where do you tend to break the Commitment Lock by re-analyzing after deciding?','Describe a past decision where one mode clearly dominated the others.'] },
+        ],
+        insight: 'Clarity is not finding the right answer; it is unifying the mind. NeuralFusion makes clarity repeatable.',
+        recap: ['Decisions fail from fragmentation, not from a lack of intelligence.','The Synthesis Framework runs Extract, Align, Compress, Decide.','The Commitment Lock stops re-analysis once synthesis is complete.','Doubt after a decision usually means a mode is reactivating, not that the decision was wrong.'],
+        assignment: ['Over the next 72 hours, apply the full Synthesis Framework to one real decision.','Act on it.','Record what changed, emotionally and mentally, after acting.'],
+        next: 'You can now reach a clear decision in calm conditions. Lesson 4 trains that clarity to survive pressure.',
+      },
+      4: {
+        skill: 'Holding a fused conclusion under pressure',
+        introduces: 'Stabilization and the three Stabilizers: Cognitive Anchor, Temporal Compression, Mode Containment.',
+        why: 'Lessons 1 to 3 build clarity in calm conditions. Real decisions happen under urgency and emotion, which is exactly when fused thinking is most likely to collapse.',
+        outcome: ['Name your default pressure response', 'Use the three Stabilizers', 'Run the relapse prevention protocol', 'Rehearse a stabilizer on a past event'],
+        stages: [
+          { id:'open', type:'reveal', label:'Opening question', q:'When pressure rises, what changes first for you?', options:[{t:'My emotions take over'},{t:'My attention narrows'},{t:'One way of thinking dominates'}], after:'Those are the three common responses: emotional hijacking, narrow attention and mode dominance. Under pressure the brain shifts toward survival prioritization. That is normal biology, not personal failure.' },
+          { id:'scn', type:'reveal', label:'A real situation', intro:'A founder receives an unexpectedly aggressive counteroffer minutes before a call.', q:'Which response is a stabilizer rather than an attempt to fight the pressure?', options:[{t:'Tell myself to stop feeling anxious', n:'That is suppression, which stabilization is not.'},{t:'Say: I already know my walk-away terms', n:'That is a Cognitive Anchor: it points to a completed synthesis.'},{t:'Reopen the whole analysis from scratch', n:'That is relapse into fragmented thinking.'}], after:'The anchor locks the earlier decision. Temporal Compression then narrows focus: what matters in the next 10 minutes is staying calm on the call. Containment names the flare of urgency and sets it back to one advisor among four.' },
+          { id:'cpt', type:'cards', label:'The idea', cards:[
+            {h:'Pressure is not the enemy', b:'Instability is. NeuralFusion does not fight pressure. It absorbs and stabilizes it.'},
+            {h:'Containment, not suppression', b:'Stabilization means holding one fused conclusion while emotion or urgency is present, without letting either take over.'},
+            {h:'What stable feels like', b:'Calm but alert, focused but flexible, certain without aggression.'}] },
+          { id:'exp', type:'explore', label:'The three Stabilizers', intro:'Tap each Stabilizer.', items:[
+            {h:'Cognitive Anchor', b:'A short internal statement that locks in a completed synthesis, such as "This is my decision" or "I have already fused this." It must refer to a real synthesis, not be empty self-talk.'},
+            {h:'Temporal Compression', b:'Pressure makes distant consequences feel as urgent as immediate ones. Ask: "What matters in the next 10 minutes?" to narrow the decision to what is actionable now.'},
+            {h:'Mode Containment', b:'When one mode flares up, most often emotion, do not eliminate it. Identify it, reduce its influence on this decision, and return authority to the completed synthesis.'}] },
+          { id:'ord', type:'order', label:'Relapse prevention', intro:'Relapse is normal and reversible. Tap the protocol steps in order.', items:['Recognize the trigger that caused the relapse','Re-state the fused conclusion you had already reached','Take one action aligned with that conclusion, however small'], done:'Correct. Action stabilizes thought. A small aligned action beats analyzing why the relapse happened.' },
+          { id:'gp', type:'guided', label:'Guided practice', intro:'Pressure Simulation, about 8 minutes. Rehearsing on a past event trains the same pathway as using it live, with none of the cost of getting it wrong.', example:'Example. Moment: a manager criticized my report in a meeting. Dominant mode: Intuitive, an emotional flare. Anchor: I wrote this carefully and can respond after the meeting. Next 10 minutes: listen and ask one clarifying question. Tension: lower than in my memory of it.', steps:[
+            {label:'The moment', prompt:'Recall a recent stressful moment in specific detail.'},
+            {label:'Dominant mode', prompt:'Which mode was dominant at the time?'},
+            {label:'Cognitive Anchor', prompt:'Write one anchor you could have used.'},
+            {label:'Temporal Compression', prompt:'What actually mattered in the next 10 minutes?'},
+            {label:'Notice', prompt:'How does the tension compare to your memory of the original moment?'}] },
+          { id:'app', type:'apply', label:'Apply it to your life', prompt:'Which upcoming situation is likely to put you under pressure, and which Stabilizer will you use? Avoid confidential or highly personal details.' },
+          { id:'ref', type:'reflect', label:'Reflection', prompts:['What is your default pressure response?','Which of the three Stabilizers feels most natural, and which feels hardest?','Describe a recent relapse into fragmented thinking after a decision felt settled.'] },
+        ],
+        insight: 'Mental mastery is not calm thinking; it is stable thinking. NeuralFusion creates stability that survives pressure, rather than clarity that only works when conditions are ideal.',
+        recap: ['Pressure triggers emotional hijacking, narrow attention and mode dominance in an untrained mind.','Stabilization is containment, not suppression.','The three Stabilizers are the Cognitive Anchor, Temporal Compression and Mode Containment.','Relapse is reversible through recognition, re-statement and one aligned action.'],
+        assignment: ['Over the next 72 hours, apply stabilization during one real stressful event.','Use at least one of the three Stabilizers deliberately.','Record the outcome, including what worked and what did not.'],
+        next: 'Your clarity can now hold under pressure. Lesson 5 turns this deliberate effort into fluency.',
+      },
+      5: {
+        skill: 'Running the Core Loop automatically',
+        introduces: 'Cognitive fluency, the three stages from skill to instinct, and the Automatic Fusion Trigger.',
+        why: 'Every lesson so far required deliberate effort. That is right for early training but it is not the end state. Lesson 5 trains NeuralFusion to run without conscious effort, like an experienced driver who no longer thinks about the clutch.',
+        outcome: ['Describe the three stages of skill development', 'Use the word Fuse as a trained trigger', 'Run a compressed Core Loop on a real situation', 'Set up daily integration'],
+        stages: [
+          { id:'open', type:'reveal', label:'Opening question', q:'Think of a skill you do without thinking. How did it feel when you first learned it?', options:[{t:'Slow and effortful'},{t:'Confusing at first'},{t:'I cannot remember'}], after:'Every trainable skill, physical or cognitive, passes through the same stages. The loop that took ten minutes of writing in Lesson 1 can eventually run in seconds.' },
+          { id:'scn', type:'reveal', label:'A real situation', intro:'An experienced founder is asked a difficult question in an investor meeting with no time to prepare.', q:'What makes a clear answer possible in seconds?', options:[{t:'Natural talent for thinking fast', n:'Talent is not the explanation in NeuralFusion.'},{t:'Extensive practice that a single cue now triggers', n:'Yes. The word Fuse runs the loop silently.'},{t:'Skipping the structure entirely', n:'The structure still runs. It has become unconscious.'}], after:'The same process from Lesson 1, now compressed and unconscious. The word is not magic. It works because of the practice behind it.' },
+          { id:'cpt', type:'cards', label:'The idea', cards:[
+            {h:'Cognitive fluency', b:'Thinking that is fast (the loop completes in seconds), stable (clarity holds under pressure) and adaptive (it applies itself to whatever is in front of you).'},
+            {h:'Mastery looks like less effort', b:'Not harder work indefinitely. The loop runs unnoticed.'},
+            {h:'Daily integration', b:'Faster decisions without a drop in quality, less overthinking, calm confidence, clearer priorities.'}] },
+          { id:'exp', type:'explore', label:'From skill to instinct', intro:'Tap each stage. Lessons 1 to 4 sit mainly in Stages 1 and 2. This lesson starts Stage 3.', items:[
+            {h:'Stage 1: Conscious Control', b:'Slow and effortful. Every step of the Core Loop is walked through deliberately, usually in writing.'},
+            {h:'Stage 2: Structured Practice', b:'Consistent and deliberate. The steps are familiar but still need attention.'},
+            {h:'Stage 3: Automatic Execution', b:'Fast and natural. The Core Loop runs without step-by-step effort.'}] },
+          { id:'ord', type:'order', label:'The Automatic Fusion Trigger', intro:'When you say "Fuse", the full loop runs. Tap what it does, in order.', items:['Decompose the situation automatically','Activate the relevant modes','Synthesize rapidly','Stabilize instantly'], done:'Correct. With repetition this becomes reflexive.' },
+          { id:'gp', type:'guided', label:'Guided practice', intro:'One-Word Fusion, about 6 minutes. Sit calmly, think of a real situation, say "Fuse" internally, and let your mind organize itself without forcing structure.', example:'Example situation: whether to reply to a difficult email today. After "Fuse": facts are clear, my gut says reply briefly, an alternative is to call, what matters is staying respectful. Result: send three calm sentences this afternoon.', steps:[
+            {label:'The situation', prompt:'Describe a current, real situation you are facing.'},
+            {label:'After "Fuse"', prompt:'Say "Fuse" internally and wait. What organized itself?'},
+            {label:'Clarity', prompt:'What clarity emerged, without straining for it?'},
+            {label:'Next step', prompt:'What is the next small action?'}] },
+          { id:'app', type:'apply', label:'Apply it to your life', prompt:'Where in your day will you use the Fuse trigger first? Name the situation and when it usually happens.' },
+          { id:'ref', type:'reflect', label:'Reflection', prompts:['Which of the four signs of completion do you already notice, and which not yet?','When does your clarity fade, and what structure will you return to then?'] },
+        ],
+        insight: 'You do not control the mind by force; you train it by structure.',
+        recap: ['Cognitive fluency is fast, stable and adaptive thinking that needs no deliberate effort.','Every skill passes through Conscious Control, Structured Practice and Automatic Execution.','Fuse is a trigger that activates the full Core Loop, once trained.','Return to conscious structure whenever clarity fades.'],
+        assignment: ['Use NeuralFusion daily through the automatic trigger and the loop beneath it.','Teach it through behavior, not words.','Return to conscious structure whenever clarity fades, rather than assuming fluency is permanent.'],
+        next: 'This completes the core system of NeuralFusion Level One. Keep practicing in your Decision Room and weekly challenges.',
+      },
+    };
+
+    const nfJourneyItems = (it) => it === 'modes'
+      ? NF_MODE_LIST.map(m => ({ h: m.sym + ' ' + m.name, tag: m.tag, b: m.tag + '. Learn to: ' + m.does.join('; ') + '.' }))
+      : it === 'modes2'
+      ? NF_MODE_LIST.map(m => ({ h: m.sym + ' ' + m.name, tag: m.tag, b: 'Best for: ' + m.best + ' ' + m.risk, q: m.q }))
+      : it;
+
+    function NFExplore({ s }) {
+      const E = React.createElement;
+      const items = nfJourneyItems(s.items);
+      const [sel, setSel] = useState(0);
+      const cur = items[sel];
+      return E('div', null,
+        s.intro && E('p', { style: { fontSize: 14, color: CP.muted, lineHeight: 1.7, marginBottom: 16 } }, s.intro),
+        E('div', { style: { display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 16 } }, items.map((it, i) =>
+          E('button', { key: i, type: 'button', onClick: () => setSel(i), 'aria-pressed': sel === i,
+            style: { minHeight: 44, padding: '10px 14px', borderRadius: 8, cursor: 'pointer', fontSize: 14, fontWeight: 600, border: '1px solid ' + (sel === i ? CP.goldDeep : CP.border), background: sel === i ? CP.goldTint : 'transparent', color: CP.ink } }, it.h))),
+        E(CPCard, { style: { padding: '20px 20px' } },
+          E('div', { style: { ...syne, fontSize: 16, fontWeight: 800, color: CP.ink, marginBottom: 8 } }, cur.h),
+          E('p', { style: { fontSize: 15, color: CP.text, lineHeight: 1.75, margin: 0 } }, cur.b),
+          cur.q && E('p', { style: { fontSize: 15, color: CP.goldDeep, lineHeight: 1.6, margin: '12px 0 0', fontWeight: 600 } }, 'Activation question: ' + cur.q)));
+    }
+
+    function NFOrder({ s, value, onChange }) {
+      const E = React.createElement;
+      const n = s.items.length;
+      const seq = (value && value.seq) || [];
+      const solved = !!(value && value.solved);
+      const [wrong, setWrong] = useState(false);
+      const order = s.items.map((_, i) => i).reverse();
+      const add = (i) => {
+        if (solved || seq.indexOf(i) !== -1) return;
+        const next = seq.concat([i]);
+        if (next.length < n) { setWrong(false); onChange({ seq: next, solved: false }); return; }
+        const ok = next.every((v, k) => v === k);
+        setWrong(!ok);
+        onChange(ok ? { seq: next, solved: true } : { seq: next, solved: false });
+      };
+      const btn = { minHeight: 48, width: '100%', textAlign: 'left', padding: '12px 14px', borderRadius: 8, fontSize: 14, lineHeight: 1.5, cursor: 'pointer', color: CP.ink };
+      return E('div', null,
+        E('p', { style: { fontSize: 14, color: CP.muted, lineHeight: 1.7, marginBottom: 16 } }, s.intro),
+        E('div', { style: { ...mono, fontSize: 10, letterSpacing: 1, color: CP.goldDeep, marginBottom: 8 } }, 'YOUR SEQUENCE'),
+        E('div', { style: { display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 18 } }, seq.length === 0
+          ? E('div', { style: { fontSize: 13, color: CP.faint } }, 'Tap steps below to build the sequence.')
+          : seq.map((i, k) => E('button', { key: k, type: 'button', disabled: solved, onClick: () => { setWrong(false); onChange({ seq: seq.slice(0, k), solved: false }); },
+              style: { ...btn, border: '1px solid ' + (solved ? CP.goldDeep : CP.border), background: CP.goldTint } }, (k + 1) + '. ' + s.items[i]))),
+        !solved && E('div', { style: { display: 'flex', flexDirection: 'column', gap: 8 } }, order.map(i => seq.indexOf(i) === -1 &&
+          E('button', { key: i, type: 'button', onClick: () => add(i), style: { ...btn, border: '1px solid ' + CP.border, background: 'transparent' } }, s.items[i]))),
+        wrong && !solved && E('div', { role: 'status', style: { marginTop: 14, fontSize: 14, color: '#C24545', lineHeight: 1.6 } }, 'That order is not quite right. Tap a step in your sequence to remove it from that point, then try again.'),
+        solved && E(CPCard, { style: { padding: '16px 18px', marginTop: 14 } }, E('p', { style: { fontSize: 14, color: CP.text, lineHeight: 1.7, margin: 0 } }, s.done)));
+    }
+
+    function LessonJourney({ lesson, user, lessonProgress, onProgress, onExit, onSignIn, onNext }) {
+      const E = React.createElement;
+      const cfg = NF_JOURNEY[lesson.id];
+      const li = LESSONS.findIndex(l => l.id === lesson.id);
+      const stages = [{ id: 'orient', type: 'orient', label: 'Where you are' }].concat(cfg.stages, [{ id: 'done', type: 'complete', label: 'Complete' }]);
+      const [pos, setPos] = useState(0);
+      const [ans, setAns] = useState({});
+      const [st, setSt] = useState({});
+      const [ready, setReady] = useState(false);
+      const [loadErr, setLoadErr] = useState(false);
+      const [finishing, setFinishing] = useState(false);
+      const timers = React.useRef({});
+      const topRef = React.useRef(null);
+      const completed = (lessonProgress[lesson.id] || 0) === 100;
+
+      useEffect(() => {
+        let dead = false;
+        if (!user) { setReady(true); return; }
+        sb.from('lesson_activity').select('step_key,response').eq('user_id', user.id).eq('lesson_id', lesson.id).then(({ data, error }) => {
+          if (dead) return;
+          if (error) { setLoadErr(true); setReady(true); return; }
+          const a = {}; let p = 0;
+          (data || []).forEach(r => { const v = r.response && r.response.v; if (r.step_key === '_pos') p = Math.max(0, Math.min(stages.length - 1, Number(v) || 0)); else a[r.step_key] = v; });
+          setAns(a); setPos(p); setReady(true);
+        });
+        return () => { dead = true; };
+      }, [lesson.id, user && user.id]);
+
+      const save = async (key, val) => {
+        if (!user) { setSt(s => ({ ...s, [key]: 'local' })); return false; }
+        setSt(s => ({ ...s, [key]: 'saving' }));
+        let ok = false;
+        try {
+          const { error } = await sb.from('lesson_activity').upsert({ user_id: user.id, lesson_id: lesson.id, step_key: key, response: { v: val }, updated_at: new Date().toISOString() }, { onConflict: 'user_id,lesson_id,step_key' });
+          ok = !error;
+        } catch (_) { ok = false; }
+        setSt(s => ({ ...s, [key]: ok ? 'saved' : 'error' }));
+        return ok;
+      };
+      const setVal = (key, val, instant) => {
+        setAns(a => ({ ...a, [key]: val }));
+        clearTimeout(timers.current[key]);
+        if (instant) save(key, val); else timers.current[key] = setTimeout(() => save(key, val), 800);
+      };
+      const flush = (key, val) => { clearTimeout(timers.current[key]); save(key, val); };
+
+      const filled = k => typeof ans[k] === 'string' && ans[k].trim().length >= 3;
+      const gp = cfg.stages.find(s => s.type === 'guided');
+      const ap = cfg.stages.find(s => s.type === 'apply');
+      const gpDone = gp.steps.every((_, i) => filled(gp.id + '.' + i));
+      const apDone = filled(ap.id);
+      const canFinish = gpDone && apDone;
+      const pctFor = n => Math.min(95, Math.round(100 * n / (stages.length - 1)));
+
+      const go = (n) => {
+        const t = Math.max(0, Math.min(stages.length - 1, n));
+        setPos(t);
+        if (topRef.current && topRef.current.scrollIntoView) topRef.current.scrollIntoView({ block: 'start' });
+        if (!user) return;
+        save('_pos', t);
+        const cur = lessonProgress[lesson.id] || 0, p = pctFor(t);
+        if (cur < 100 && p > cur && t < stages.length - 1) {
+          upsertLessonProgress(user.id, lesson.id, p).then(r => { if (r && !r.error) onProgress(lesson.id, p); });
+        }
+      };
+
+      const finish = async () => {
+        if (!user) { onSignIn(); return; }
+        setFinishing(true);
+        let ok = false;
+        try { const r = await upsertLessonProgress(user.id, lesson.id, 100); ok = !(r && r.error); } catch (_) { ok = false; }
+        setFinishing(false);
+        setSt(s => ({ ...s, _finish: ok ? 'saved' : 'error' }));
+        if (ok) { onProgress(lesson.id, 100); nfEvent('lesson_completed', { lesson: lesson.id }); }
+      };
+
+      const statusLine = (key) => {
+        const v = st[key];
+        const m = { saving: ['Saving...', CP.muted], saved: ['Saved to your account', '#3E7CA6'], error: ['Not saved. Check your connection and edit again to retry.', '#C24545'], local: ['Sign in to save your answers', CP.muted] }[v];
+        return m ? E('div', { role: 'status', style: { ...mono, fontSize: 10, letterSpacing: 0.5, color: m[1], marginTop: 6 } }, m[0]) : null;
+      };
+      const area = (key, ph, rows) => E('div', null,
+        E('textarea', { value: typeof ans[key] === 'string' ? ans[key] : '', rows: rows || 4, placeholder: ph || 'Write here', 'aria-label': ph || 'Your response',
+          onChange: e => setVal(key, e.target.value), onBlur: e => flush(key, e.target.value),
+          style: { width: '100%', boxSizing: 'border-box', fontSize: 16, lineHeight: 1.6, padding: '12px 14px', borderRadius: 8, border: '1px solid ' + CP.border, background: '#fff', color: CP.ink, fontFamily: "'DM Sans', sans-serif", resize: 'vertical' } }),
+        statusLine(key));
+      const h2 = (t) => E('h2', { style: { ...syne, fontSize: 'clamp(19px,5vw,24px)', fontWeight: 800, color: CP.ink, lineHeight: 1.25, margin: '0 0 14px' } }, t);
+      const p = (t, extra) => E('p', { style: { fontSize: 15, color: CP.text, lineHeight: 1.75, margin: '0 0 14px', ...(extra || {}) } }, t);
+      const chip = (on) => ({ minHeight: 48, width: '100%', textAlign: 'left', padding: '12px 14px', borderRadius: 8, fontSize: 15, lineHeight: 1.5, cursor: 'pointer', color: CP.ink, border: '1px solid ' + (on ? CP.goldDeep : CP.border), background: on ? CP.goldTint : 'transparent' });
+
+      const renderStage = (s) => {
+        if (s.type === 'orient') {
+          const learned = NF_SPEC.lessonTitles.slice(0, li);
+          return E('div', null,
+            E(CPEyebrow, null, 'Lesson ' + (li + 1) + ' of ' + LESSONS.length + ' | ' + lesson.duration),
+            h2(lesson.title),
+            E('div', { style: { display: 'flex', gap: 6, marginBottom: 18 } }, LESSONS.map((l, i) => E('div', { key: l.id, title: l.title, style: { flex: 1, height: 6, borderRadius: 3, background: (lessonProgress[l.id] || 0) === 100 ? '#3E7CA6' : i === li ? CP.goldDeep : CP.border } }))),
+            E(CPCard, { style: { padding: '18px 18px', marginBottom: 12 } },
+              E('div', { style: { ...mono, fontSize: 10, letterSpacing: 1, color: CP.goldDeep, marginBottom: 6 } }, 'CORE SKILL'), p(cfg.skill, { margin: 0, fontWeight: 600 })),
+            li > 0 && E(CPCard, { style: { padding: '18px 18px', marginBottom: 12 } },
+              E('div', { style: { ...mono, fontSize: 10, letterSpacing: 1, color: CP.goldDeep, marginBottom: 6 } }, 'WHAT YOU HAVE LEARNED'),
+              learned.map(l => p(l.num + '. ' + l.learner, { margin: '0 0 4px' }))),
+            E(CPCard, { style: { padding: '18px 18px', marginBottom: 12 } },
+              E('div', { style: { ...mono, fontSize: 10, letterSpacing: 1, color: CP.goldDeep, marginBottom: 6 } }, 'THIS LESSON INTRODUCES'), p(cfg.introduces, { margin: '0 0 12px' }),
+              E('div', { style: { ...mono, fontSize: 10, letterSpacing: 1, color: CP.goldDeep, marginBottom: 6 } }, 'WHY IT MATTERS'), p(cfg.why, { margin: 0 })),
+            E(CPCard, { style: { padding: '18px 18px' } },
+              E('div', { style: { ...mono, fontSize: 10, letterSpacing: 1, color: CP.goldDeep, marginBottom: 6 } }, 'BY THE END YOU WILL BE ABLE TO'),
+              cfg.outcome.map((o, i) => p('\u2022 ' + o, { margin: '0 0 4px' }))));
+        }
+        if (s.type === 'reveal') {
+          const pick = ans[s.id];
+          const o = typeof pick === 'number' ? s.options[pick] : null;
+          return E('div', null,
+            s.intro && E(CPCard, { style: { padding: '18px 18px', marginBottom: 16 } }, p(s.intro, { margin: 0 })),
+            h2(s.q),
+            E('div', { style: { display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 16 } }, s.options.map((op, i) => E('button', { key: i, type: 'button', 'aria-pressed': pick === i, onClick: () => setVal(s.id, i, true), style: chip(pick === i) }, op.t))),
+            statusLine(s.id),
+            o && E(CPCard, { style: { padding: '18px 18px', marginTop: 12, borderColor: CP.borderStrong } }, o.n && p(o.n, { fontWeight: 600, color: CP.goldDeep }), p(s.after, { margin: 0 })));
+        }
+        if (s.type === 'cards') {
+          return E('div', null, s.cards.map((c, i) => E(CPCard, { key: i, style: { padding: '18px 18px', marginBottom: 12 } }, E('div', { style: { ...syne, fontSize: 15, fontWeight: 800, color: CP.ink, marginBottom: 6 } }, c.h), p(c.b, { margin: 0 }))));
+        }
+        if (s.type === 'explore') return E(NFExplore, { s, key: s.id });
+        if (s.type === 'order') return E(NFOrder, { s, key: s.id, value: ans[s.id], onChange: v => setVal(s.id, v, true) });
+        if (s.type === 'guided') {
+          return E('div', null,
+            p(s.intro),
+            E('details', { style: { marginBottom: 18 } }, E('summary', { style: { cursor: 'pointer', minHeight: 44, display: 'flex', alignItems: 'center', fontSize: 14, fontWeight: 600, color: CP.goldDeep } }, 'See a worked example'),
+              E(CPCard, { style: { padding: '14px 16px', marginTop: 8 } }, p(s.example, { margin: 0, fontSize: 14 }))),
+            s.steps.map((st2, i) => E('div', { key: i, style: { marginBottom: 18 } },
+              E('div', { style: { ...mono, fontSize: 10, letterSpacing: 1, color: CP.goldDeep, marginBottom: 4 } }, 'STEP ' + (i + 1) + ' | ' + st2.label.toUpperCase()),
+              p(st2.prompt, { margin: '0 0 8px', fontWeight: 600 }), area(s.id + '.' + i, 'Your answer', 3))),
+            E('div', { style: { fontSize: 13, color: gpDone ? '#3E7CA6' : CP.muted } }, gpDone ? 'Guided practice complete.' : 'Fill every step to complete the guided practice.'));
+        }
+        if (s.type === 'apply') {
+          return E('div', null, p(s.prompt, { fontWeight: 600 }),
+            E('p', { style: { fontSize: 13, color: CP.muted, lineHeight: 1.6, margin: '0 0 12px' } }, 'Please avoid highly personal, confidential or sensitive details. ' + (user ? 'Your response is saved to your account so you can return to it.' : 'Sign in to save your response.')),
+            area(s.id, 'Your response', 6));
+        }
+        if (s.type === 'reflect') {
+          return E('div', null, E('p', { style: { fontSize: 14, color: CP.muted, lineHeight: 1.7, marginBottom: 16 } }, NF_REFLECT_NOTE + ' Every question is optional.'),
+            s.prompts.map((q, i) => E('div', { key: i, style: { marginBottom: 18 } }, p(q, { margin: '0 0 8px', fontWeight: 600 }), area(s.id + '.' + i, 'Optional', 3))));
+        }
+        if (s.type === 'complete') {
+          const nextL = LESSONS[li + 1];
+          const missing = [];
+          if (!gpDone) missing.push({ t: 'Finish the guided practice', at: stages.findIndex(x => x.type === 'guided') });
+          if (!apDone) missing.push({ t: 'Write your personal application', at: stages.findIndex(x => x.type === 'apply') });
+          return E('div', null,
+            E(CPEyebrow, null, completed ? 'Lesson complete' : 'Almost there'),
+            h2(completed ? 'You completed ' + lesson.title : 'Review and complete'),
+            E(CPCard, { style: { padding: '18px 18px', marginBottom: 12, borderColor: CP.borderStrong } }, E('div', { style: { ...mono, fontSize: 10, letterSpacing: 1, color: CP.goldDeep, marginBottom: 6 } }, 'KEY INSIGHT'), p(cfg.insight, { margin: 0, fontWeight: 600 })),
+            E(CPCard, { style: { padding: '18px 18px', marginBottom: 12 } }, E('div', { style: { ...mono, fontSize: 10, letterSpacing: 1, color: CP.goldDeep, marginBottom: 6 } }, 'SKILL PRACTICED'), p(cfg.skill, { margin: '0 0 12px' }),
+              E('div', { style: { ...mono, fontSize: 10, letterSpacing: 1, color: CP.goldDeep, marginBottom: 6 } }, 'WHAT YOU LEARNED'), cfg.recap.map((r, i) => p('\u2022 ' + r, { margin: '0 0 4px' }))),
+            E(CPCard, { style: { padding: '18px 18px', marginBottom: 12 } }, E('div', { style: { ...mono, fontSize: 10, letterSpacing: 1, color: CP.goldDeep, marginBottom: 6 } }, 'YOUR PERSONAL TAKEAWAY'), p(filled(ap.id) ? ans[ap.id] : 'Not written yet.', { margin: 0, whiteSpace: 'pre-wrap', overflowWrap: 'anywhere' })),
+            E(CPCard, { style: { padding: '18px 18px', marginBottom: 12 } }, E('div', { style: { ...mono, fontSize: 10, letterSpacing: 1, color: CP.goldDeep, marginBottom: 6 } }, 'YOUR ASSIGNMENT'), cfg.assignment.map((r, i) => p((i + 1) + '. ' + r, { margin: '0 0 4px' }))),
+            E(CPCard, { style: { padding: '18px 18px', marginBottom: 18 } }, E('div', { style: { ...mono, fontSize: 10, letterSpacing: 1, color: CP.goldDeep, marginBottom: 6 } }, 'NEXT'), p(cfg.next, { margin: 0 })),
+            !completed && missing.map((m, i) => E('button', { key: i, type: 'button', onClick: () => go(m.at), style: { ...chip(false), marginBottom: 8, color: '#C24545' } }, m.t + ' \u2192')),
+            !completed && E('button', { type: 'button', disabled: !canFinish || finishing, onClick: finish, style: { minHeight: 52, width: '100%', borderRadius: 8, border: 'none', fontSize: 15, fontWeight: 700, cursor: canFinish ? 'pointer' : 'not-allowed', background: canFinish ? CP.gold : CP.border, color: CP.ink } }, finishing ? 'Saving...' : user ? 'Complete lesson' : 'Sign in to complete'),
+            st._finish === 'error' && E('div', { role: 'alert', style: { marginTop: 10, fontSize: 14, color: '#C24545' } }, 'Your completion could not be saved. Check your connection and try again.'),
+            completed && nextL && E('button', { type: 'button', onClick: () => onNext(nextL.id), style: { minHeight: 52, width: '100%', borderRadius: 8, border: 'none', fontSize: 15, fontWeight: 700, cursor: 'pointer', background: CP.gold, color: CP.ink } }, 'Continue to Lesson ' + (li + 2)),
+            completed && !nextL && E('button', { type: 'button', onClick: onExit, style: { minHeight: 52, width: '100%', borderRadius: 8, border: 'none', fontSize: 15, fontWeight: 700, cursor: 'pointer', background: CP.gold, color: CP.ink } }, 'Back to lessons'));
+        }
+        return null;
+      };
+
+      const s = stages[pos];
+      const navBtn = { minHeight: 48, padding: '0 20px', borderRadius: 8, fontSize: 15, fontWeight: 700, cursor: 'pointer' };
+      return E('div', { style: { paddingTop: 80, paddingBottom: 60, minHeight: '100vh', background: CP.bg } },
+        E('div', { ref: topRef, style: { maxWidth: 680, margin: '0 auto', padding: '24px 18px' } },
+          E('div', { style: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14, gap: 12 } },
+            E('button', { type: 'button', onClick: onExit, style: { minHeight: 44, background: 'none', border: 'none', color: CP.muted, fontSize: 14, cursor: 'pointer', padding: 0 } }, '\u2190 Lessons'),
+            E('div', { style: { ...mono, fontSize: 10, letterSpacing: 1, color: CP.muted } }, 'STAGE ' + (pos + 1) + ' OF ' + stages.length)),
+          E('div', { style: { height: 4, background: CP.goldTint, borderRadius: 2, overflow: 'hidden', marginBottom: 10 } }, E('div', { style: { width: Math.round(100 * (pos + 1) / stages.length) + '%', height: '100%', background: CP.goldDeep, transition: 'width .3s' } })),
+          s.type !== 'orient' && s.type !== 'complete' && E('div', { style: { ...mono, fontSize: 11, letterSpacing: 1, color: CP.goldDeep, marginBottom: 14, textTransform: 'uppercase' } }, s.label),
+          loadErr && E('div', { role: 'alert', style: { fontSize: 13, color: '#C24545', marginBottom: 12 } }, 'Your saved answers could not be loaded. You can continue, but earlier answers may not appear.'),
+          !user && E('div', { style: { fontSize: 13, color: CP.muted, marginBottom: 12 } }, 'You are not signed in. Your answers will not be saved. ', E('button', { type: 'button', onClick: onSignIn, style: { background: 'none', border: 'none', padding: 0, font: 'inherit', color: CP.goldDeep, textDecoration: 'underline', cursor: 'pointer' } }, 'Sign in')),
+          !ready ? E('div', { style: { color: CP.muted, fontSize: 14 } }, 'Loading your lesson...') : E('div', { key: s.id }, renderStage(s)),
+          ready && E('div', { style: { display: 'flex', justifyContent: 'space-between', gap: 12, marginTop: 28 } },
+            E('button', { type: 'button', disabled: pos === 0, onClick: () => go(pos - 1), style: { ...navBtn, border: '1px solid ' + CP.border, background: 'transparent', color: CP.ink, opacity: pos === 0 ? 0.35 : 1 } }, '\u2190 Back'),
+            pos < stages.length - 1 && E('button', { type: 'button', onClick: () => go(pos + 1), style: { ...navBtn, border: 'none', background: CP.gold, color: CP.ink, flex: 1, maxWidth: 240 } }, 'Continue \u2192'))));
+    }
+
     function LessonsView({ setView, user, session, paystackKey, setShowAuth, isPro, setIsPro, cfiResult, cfiHistory, lessonProgress, setLessonProgress, proPrice = 600000 }) {
       const [activeLesson, setActiveLesson] = useState(null);
       const [page, setPage] = useState(0);
@@ -5410,6 +5824,15 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
       };
 
       const levelColors = { Foundation:C.cyan, Intermediate:'#FFD76A', Advanced:'#E8B931', Mastery:'#FFD76A', Reference:'#4CF7C0' };
+
+      if (activeLesson && NF_JOURNEY[activeLesson] && LESSONS.some(l => l.id === activeLesson)) {
+        const jl = LESSONS.find(l => l.id === activeLesson);
+        return React.createElement(LessonJourney, { key: activeLesson, lesson: jl, user, lessonProgress,
+          onProgress: (id, pp) => setLessonProgress(prev => ({ ...prev, [id]: pp })),
+          onExit: () => { setActiveLesson(null); setPage(0); },
+          onSignIn: () => setShowAuth(true),
+          onNext: (id) => { const nl = LESSONS.find(l => l.id === id); if (nl && (nl.free || isPro)) { setActiveLesson(id); } else { setActiveLesson(null); handleProPayment(); } } });
+      }
 
       if (activeLesson) {
         const isResource = !LESSONS.some(l=>l.id===activeLesson);
