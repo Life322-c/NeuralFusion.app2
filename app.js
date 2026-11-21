@@ -6627,7 +6627,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
 
 
     // ═══ NEURALFUSION_ORG_MODULE_START (self-serve team assessments, formerly org.js) ═══
-// NeuralFusion teams module: the ONE team system. Anyone creates a team (create_my_organisation), becomes its owner,
+// NeuralFusion teams module: the ONE team system. An ADMIN-APPROVED account creates a team (create_approved_organisation, see migration_team_approval.sql), becomes its owner,
 // and shares ONE team link (?team=TOKEN). People who open it sign up, auto-join and go straight into the assessment.
 // There are no cohort codes, facilitator portal, admin onboarding or email invitations any more.
 // See migration_self_serve_teams.sql and migration_unify_one_system.sql.
@@ -6677,6 +6677,8 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
     network: 'Network error. Please try again.', server_error: 'Something went wrong. Please try again.', request_failed: 'Something went wrong. Please try again.',
     invalid_team_link: 'This team link is not valid or was reset. Ask your team owner for the current link.',
     team_full: 'This team has no seats left. Ask your team owner to add seats.',
+    not_approved: 'Your account has not been approved to create a team yet. Request your team pilot and we will approve it.',
+    no_account: 'No account exists for that email yet. Ask the person to sign up first, then approve again.', invalid_email: 'Enter a valid email address.',
     team_limit: 'You have reached the limit for teams created from one account. Contact us if you need more.',
     challenge_not_open: 'This challenge is no longer open.', already_submitted: 'You have already submitted this challenge.',
     invalid_option: 'Choose one of the listed actions.', invalid_text: 'Your answers are too long (2000 characters maximum each).',
@@ -6787,28 +6789,77 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
     '&body=' + encodeURIComponent('Organisation:\nCountry:\nApproximate team size:\nWhat you want to achieve:\n');
 
 
-  // ---------- Team packages (USD per month; billed manually, see the invoice) ----------
-  const TEAM_PACKAGES = [
-    { seats: 10, price: 600,  per: 60, fit: 'A leadership team or a pilot' },
-    { seats: 25, price: 800,  per: 32, fit: 'A department or several teams' },
-    { seats: 50, price: 1000, per: 20, fit: 'A large team or multiple departments' },
+  // ---------- 4-Week Team Pilot: the single entry offer ----------
+  // CTA goes to the existing corporate enquiry form (preselects "Team pilot"). No checkout is implied.
+  const PILOT_ENQUIRY_URL = '/organisations?enquiry=team%20pilot#enquire';
+  const PILOT_INCLUDED = [
+    '40-question cognitive assessment',
+    'Five structured training lessons',
+    'Four thinking modes',
+    'Cognitive integration practice',
+    'Problem-solving exercises',
+    'Decision-making practice',
+    'Weekly thinking challenges',
+    'Team training experience',
+    'Training completion and review',
   ];
-  function packageMail(pkg, teamName) {
-    return 'mailto:' + FOUNDER_EMAIL + '?subject=' + encodeURIComponent('Team package: ' + pkg.seats + ' seats') +
-      '&body=' + encodeURIComponent('Team name: ' + (teamName || '') + '\nPackage: ' + pkg.seats + ' seats, $' + pkg.price + ' per month\nContact name:\nCountry:\n');
-  }
-  function TeamPackages({ teamName }) {
-    return h('div', { key: 'pricing', style: { marginBottom: 56 } },
-      h('div', { style: Object.assign({}, eyebrow, { marginBottom: 12 }) }, 'PRICING'),
-      h('div', { style: { fontSize: 16, color: C.muted, lineHeight: 1.7, marginBottom: 20 } }, 'One seat is one person. Prices are in US dollars, billed monthly. Create your team first and try it with the starter seats, then pick a package when you need more.'),
-      h('div', { style: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(220px,1fr))', gap: 16, marginBottom: 16 } },
-        TEAM_PACKAGES.map((p) => h('div', { key: p.seats, style: card() },
-          h('div', { style: { ...syne, fontSize: 20, fontWeight: 800, marginBottom: 4 } }, p.seats + ' seats'),
-          h('div', { style: { ...syne, fontSize: 30, fontWeight: 800, color: C.cyan } }, '$' + p.price.toLocaleString(), h('span', { style: { fontSize: 15, color: C.muted, fontWeight: 500 } }, ' / month')),
-          h('div', { style: { fontSize: 15, color: C.muted, margin: '6px 0 12px' } }, '$' + p.per + ' per seat per month'),
-          h('div', { style: { fontSize: 15, color: C.muted, lineHeight: 1.6, marginBottom: 16 } }, 'Best for: ' + p.fit),
-          h(LinkBtn, { href: packageMail(p, teamName), onClick: () => track('team_package_requested', { seats: p.seats }) }, 'REQUEST THIS PACKAGE')))),
-      h('div', { style: { fontSize: 14, color: C.muted, lineHeight: 1.7 } }, 'We email you an invoice with payment details. Packages renew monthly, you can cancel with 30 days\u2019 notice, and monthly payments are not refundable. More than 50 seats? ', h('a', { href: TEAM_MAILTO, style: { color: C.cyan } }, 'Email us for a custom price'), '.'));
+  const PILOT_MODES = [
+    ['01', 'ANALYTICAL', 'Precision, structure, evaluation, and problem breakdown.', '#E8EEF9', '#0A2A6B'],
+    ['02', 'INTUITIVE', 'Insight, pattern recognition, and directional judgment.', '#FFF6DB', '#8A6D2F'],
+    ['03', 'ASSOCIATIVE', 'Connections, possibilities, and creative expansion.', '#E6F4EF', '#14532D'],
+    ['04', 'REFLECTIVE', 'Awareness, evaluation, and learning from experience.', '#F1EAF7', '#4C1D95'],
+  ];
+  const PILOT_STEPS = [
+    ['01', 'ENROLL YOUR TEAM', 'Register 10 participants for the four-week programme.'],
+    ['02', 'COMPLETE THE TRAINING', 'Participants undertake the assessment and progress through the full five-lesson NeuralFusion programme and applicable exercises.'],
+    ['03', 'REVIEW THE EXPERIENCE', 'Complete the programme and review participation, assessment information, and available team insights.'],
+  ];
+  const pilotCta = (where) => h(LinkBtn, { href: PILOT_ENQUIRY_URL, onClick: () => track('team_pilot_requested', { where }), style: { minHeight: 56, padding: '14px 32px', fontSize: 17, letterSpacing: '0.04em', textTransform: 'uppercase' } }, 'REQUEST YOUR TEAM PILOT');
+  function TeamPilot({ user, openAuth, setShowAuth }) {
+    const fact = (big, small) => h('div', { key: big, style: { flex: '1 1 140px', minWidth: 0 } },
+      h('div', { style: { fontSize: 18, fontWeight: 800, color: AC.text, lineHeight: 1.3 } }, big),
+      small ? h('div', { style: { fontSize: 14, color: AC.muted, marginTop: 2 } }, small) : null);
+    return h('div', { key: 'pilot', id: 'nf-pilot', style: { marginBottom: 56 } },
+      h('div', { style: card({ padding: 0, overflow: 'hidden', border: '2px solid ' + AC.goldDark, boxShadow: '0 8px 28px rgba(10,42,107,0.10)' }) },
+        h('div', { style: { background: AC.goldDark, color: '#FFFFFF', padding: '14px 28px', display: 'flex', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap', alignItems: 'center' } },
+          h('div', { style: { fontSize: 15, fontWeight: 800, letterSpacing: '0.14em' } }, '4-WEEK TEAM PILOT'),
+          h('div', { style: { fontSize: 14, letterSpacing: '0.08em', color: AC.gold, fontWeight: 700 } }, 'FULL TRAINING ACCESS')),
+        h('div', { style: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(min(320px,100%),1fr))', gap: 0 } },
+          h('div', { style: { padding: 28, borderBottom: '1px solid ' + AC.border } },
+            h('div', { style: { display: 'flex', alignItems: 'baseline', gap: 10, flexWrap: 'wrap' } },
+              h('span', { style: { fontSize: 'clamp(52px,9vw,68px)', fontWeight: 800, color: AC.goldDark, lineHeight: 1 } }, '$300'),
+              h('span', { style: { fontSize: 16, fontWeight: 700, letterSpacing: '0.1em', color: AC.muted } }, 'TOTAL')),
+            h('div', { style: { fontSize: 17, color: AC.text, margin: '10px 0 22px' } }, '$30 per participant'),
+            h('div', { style: { display: 'flex', gap: 20, flexWrap: 'wrap', borderTop: '1px solid ' + AC.border, paddingTop: 18, marginBottom: 24 } },
+              fact('10 PARTICIPANTS', 'one team'), fact('4 WEEKS', 'one pilot')),
+            h('p', { style: { fontSize: 16, color: AC.muted, lineHeight: 1.7, margin: '0 0 22px' } }, 'One payment gives your team the complete NeuralFusion training programme for the four weeks. This is not a demo, a partial course or a trial with locked lessons.'),
+            h('div', { style: { display: 'flex', gap: 12, flexWrap: 'wrap', alignItems: 'center' } }, pilotCta('card'),
+              !user ? h(Btn, { variant: 'ghost', onClick: () => (openAuth ? openAuth('signup') : setShowAuth(true)), style: { minHeight: 56 } }, 'CREATE FREE ACCOUNT') : null),
+            h('p', { style: { fontSize: 14, color: AC.muted, lineHeight: 1.6, margin: '14px 0 0' } }, 'Create a free account first, then send your request using the same email so we can approve your account. Nothing is charged when you submit it. We reply by email with next steps.')),
+          h('div', { style: { padding: 28, background: AC.surfaceAlt, borderLeft: '1px solid ' + AC.border } },
+            h('div', { style: Object.assign({}, label, { marginBottom: 14 }) }, 'Included programme'),
+            h('ul', { style: { listStyle: 'none', margin: 0, padding: 0 } },
+              PILOT_INCLUDED.map((t) => h('li', { key: t, style: { display: 'flex', gap: 12, alignItems: 'flex-start', padding: '9px 0', borderBottom: '1px solid ' + AC.border, fontSize: 16, color: AC.text, lineHeight: 1.5 } },
+                h('span', { 'aria-hidden': 'true', style: { color: AC.goldDark, fontWeight: 800, flex: '0 0 auto' } }, '✓'), t)))))),
+      h('div', { style: { margin: '48px 0 0' } },
+        h('div', { style: Object.assign({}, eyebrow, { marginBottom: 8 }) }, 'THE FRAMEWORK'),
+        h('div', { style: { fontSize: 22, fontWeight: 800, color: AC.text, marginBottom: 18, lineHeight: 1.3 } }, 'Four thinking modes, one integrated approach'),
+        h('div', { style: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(min(220px,100%),1fr))', gap: 16 } },
+          PILOT_MODES.map(([n, t, d, bg, fg]) => h('div', { key: t, style: card({ background: bg, borderColor: fg, borderTop: '4px solid ' + fg }) },
+            h('div', { style: { fontSize: 13, fontWeight: 700, letterSpacing: '0.12em', color: fg, marginBottom: 8 } }, n),
+            h('div', { style: { fontSize: 18, fontWeight: 800, letterSpacing: '0.06em', color: AC.text, marginBottom: 8 } }, t),
+            h('div', { style: { fontSize: 15, color: AC.text, lineHeight: 1.6 } }, d))))),
+      h('div', { style: card({ margin: '32px 0 0', background: AC.goldTint, borderColor: AC.gold }) },
+        h('div', { style: Object.assign({}, eyebrow, { marginBottom: 8 }) }, 'Who this programme is for'),
+        h('p', { style: { fontSize: 17, color: AC.text, lineHeight: 1.7, margin: 0 } }, 'Organizations, teams, businesses, educational groups, and professionals who want to develop how their people approach thinking, problems, and decisions.')),
+      h('div', { id: 'nf-how', style: { margin: '48px 0 0' } },
+        h('div', { style: Object.assign({}, eyebrow, { marginBottom: 8 }) }, 'HOW THE PILOT WORKS'),
+        h('div', { style: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(min(260px,100%),1fr))', gap: 16, marginBottom: 28 } },
+          PILOT_STEPS.map(([n, t, d]) => h('div', { key: n, style: card() },
+            h('div', { style: Object.assign({}, eyebrow, { marginBottom: 10 }) }, 'STEP ' + n),
+            h('div', { style: { fontSize: 18, fontWeight: 800, marginBottom: 8, lineHeight: 1.3 } }, t),
+            h('div', { style: { fontSize: 15, color: AC.muted, lineHeight: 1.7 } }, d)))),
+        h('div', { style: { textAlign: 'center' } }, pilotCta('steps'))));
   }
 
   const TEAM_VALUES = [
@@ -6824,14 +6875,17 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
   function TeamsFAQ() {
     nfjEnsureStyles();
     const items = [
-      ['How does my team join?', 'You create your team, then share one link. Each person opens it, creates an account, and goes straight into the assessment.'],
-      ['What will each person do?', 'Each person completes the 40-item CFI (about eight minutes), then does the five-lesson training programme, then retakes the CFI to see their own change.'],
+      ['What is included in the pilot?', 'The full NeuralFusion training programme: the 40-question CFI assessment, an introduction to the four thinking modes, all five lessons, cognitive integration and problem-solving exercises, decision-making practice, weekly thinking challenges, the Team Decision Room, a post-training reassessment and team insights where enough people have completed.'],
+      ['Who can participate?', 'Teams, organizations, educational groups, and professionals interested in structured thinking development.'],
+      ['How many participants are included?', '10 participants.'],
+      ['How long does the programme last?', 'Four weeks.'],
+      ['How much does it cost?', '$300 for the entire 10-person, four-week programme.'],
+      ['Is this a limited version of NeuralFusion?', 'No. The pilot is intended to provide access to the full training programme included in the four-week experience.'],
+      ['What happens after the four weeks?', 'Participants complete the pilot and review their experience and available results. Any future engagement is discussed separately.'],
+      ['How does my team get started?', 'Create a free account and request your team pilot using the same email address. We review the request and approve your account. You then create your team, share one link, and your participants sign up, join and complete the assessment.'],
+      ['What will each person do?', 'Each person completes the 40-item CFI (about eight minutes), works through the five-lesson training programme, then retakes the CFI to see their own change.'],
       ['What does the CFI measure, and what does it not?', 'It measures how often you use four ways of thinking (analytical, intuitive, associative, reflective) when you work on a problem or decision, and how well you coordinate them, each on a 0 to 100 scale. From those scores it also works out a derived Fragmentation score. It is a new, early-stage instrument. It does not measure intelligence, personality, health or job performance.'],
       ['What will I see as the team owner?', 'Who has completed what, and aggregate team patterns once enough people have completed the CFI. Individual profiles stay private to each person.'],
-      ['Can we measure development over time?', 'Yes. After the training, each person retakes the CFI. If they choose to share the retest, the team before-and-after appears under Insights once enough people have shared.'],
-      ['What is the weekly challenge?', 'A short business scenario released each week. Each person works through the four ways of thinking and records a decision with their reasoning. You see who took part and how the team split, but not individual answers.'],
-      ['Can we use NeuralFusion for real decisions?', 'Yes. The Decision Room guides a real decision from facts to an agreed action, owner and review date. A decision is shared with your team only if the person saving it chooses to.'],
-      ['What if we need more seats?', 'Every new team starts with a few starter seats so you can try it. When you need more, pick a package (10, 25 or 50 seats) from the pricing section or the Plan and Seats tab.'],
     ];
     return h('div', { key: 'faq', style: { marginBottom: 56 } },
       h('div', { style: Object.assign({}, eyebrow, { marginBottom: 12 }) }, 'QUESTIONS'),
@@ -6889,6 +6943,14 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
     const [name, setName] = useState(() => { try { return sessionStorage.getItem(TEAM_NAME_KEY) || ''; } catch (_) { return ''; } });
     const [busy, setBusy] = useState(false);
     const [msg, setMsg] = useState(null);
+    const [access, setAccess] = useState('checking'); // checking | approved | pending
+    useEffect(() => {
+      if (!user) { setAccess('pending'); return; }
+      let live = true;
+      setAccess('checking');
+      rpc('my_team_creator_status').then((r) => { if (live) setAccess(r && r.ok && r.approved ? 'approved' : 'pending'); });
+      return () => { live = false; };
+    }, [user && user.id]);
     const create = async () => {
       const n = name.trim();
       if (n.length < 2 || n.length > 120) { setMsg({ type: 'error', text: ERR.invalid_org_name }); return; }
@@ -6898,21 +6960,31 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
         return;
       }
       setBusy(true); setMsg(null);
-      const r = await rpc('create_my_organisation', { p_name: n });
+      const r = await rpc('create_approved_organisation', { p_name: n });
       setBusy(false);
-      if (!r || !r.ok) { setMsg({ type: 'error', text: errText(r) }); return; }
+      if (!r || !r.ok) { if (r && r.error === 'not_approved') setAccess('pending'); setMsg({ type: 'error', text: errText(r) }); return; }
       try { sessionStorage.removeItem(TEAM_NAME_KEY); sessionStorage.setItem('nf_active_org', r.organisation_id); } catch (_) {}
       track('team_created', { organisation_id: r.organisation_id });
       const l = await loadMyOrgs();
       if (onOrgsChanged) onOrgsChanged(l);
       setView('org');
     };
+    if (access === 'checking') return h('div', { style: card({ maxWidth: 520, margin: '0 auto', color: AC.muted }) }, 'Checking your access...');
+    if (access === 'pending') return h('div', { style: card({ maxWidth: 520, margin: '0 auto' }) },
+      h('div', { style: label }, 'Team access is by approval'),
+      h('p', { style: { fontSize: 16, color: AC.text, lineHeight: 1.7, margin: '0 0 12px' } }, user
+        ? 'Your account is signed in but has not been approved to create a team yet. Request your team pilot using this account\u2019s email address and we will approve it.'
+        : 'Create a free account, then request your team pilot using the same email address. Once we approve your request you can create your team here and share one link with your participants.'),
+      h('div', { style: { display: 'flex', gap: 10, flexWrap: 'wrap' } },
+        !user ? h(Btn, { onClick: () => (openAuth ? openAuth('signup') : setShowAuth(true)) }, 'CREATE FREE ACCOUNT') : null,
+        !user ? h(Btn, { variant: 'ghost', onClick: () => (openAuth ? openAuth('login') : setShowAuth(true)) }, 'I HAVE AN ACCOUNT') : null,
+        h(LinkBtn, { href: PILOT_ENQUIRY_URL, onClick: () => track('team_pilot_requested', { where: 'access_card' }), style: user ? {} : { background: '#FFFFFF', color: AC.goldDark } }, 'REQUEST YOUR TEAM PILOT')));
     return h('div', { style: card({ maxWidth: 520, margin: '0 auto' }) },
       h('div', { style: label }, 'Team or organisation name'),
       h('input', { value: name, onChange: (e) => setName(e.target.value), onKeyDown: (e) => { if (e.key === 'Enter') create(); }, placeholder: 'For example: Acme Sales Team', maxLength: 120, style: Object.assign({}, inputStyle, { marginBottom: 14 }) }),
       h(Msg, { m: msg }),
       h(Btn, { onClick: create, disabled: busy, style: { width: '100%' } }, busy ? 'CREATING...' : (user ? 'CREATE MY TEAM' : 'SIGN UP AND CREATE MY TEAM')),
-      h('div', { style: { fontSize: 14, color: C.muted, marginTop: 12, lineHeight: 1.6 } }, 'Takes under a minute. You become the team owner and get one link to share. Nothing else to set up.'));
+      h('div', { style: { fontSize: 14, color: C.muted, marginTop: 12, lineHeight: 1.6 } }, 'Your request is approved. You become the team owner and get one link to share with your participants.'));
   }
 
   function TeamsLanding({ user, setShowAuth, openAuth, setView, onOrgsChanged }) {
@@ -6930,26 +7002,20 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
     return Shell([
       h('div', { key: 'hero', style: { textAlign: 'center', padding: '16px 0 40px', maxWidth: 720, margin: '0 auto' } },
         h('div', { style: Object.assign({}, eyebrow, { marginBottom: 20 }) }, 'NeuralFusion for Teams'),
-        h('h1', { style: { fontFamily: AC.font, fontSize: 'clamp(26px,5vw,34px)', fontWeight: 800, color: AC.text, margin: '0 0 20px', lineHeight: 1.3 } }, 'Measure and train how your team thinks.', h('br', null), h('span', { style: { color: AC.goldDark } }, 'One place.')),
-        h('p', { style: { fontSize: 19, color: AC.text, maxWidth: 560, margin: '0 auto 20px', lineHeight: 1.7 } }, 'Create your team, share one link, and everything else is guided: assessment, training, a weekly thinking challenge, team decisions, practice and results.'),
+        h('h1', { style: { fontFamily: AC.font, fontSize: 'clamp(28px,6vw,44px)', fontWeight: 800, color: AC.goldDark, margin: '0 0 20px', lineHeight: 1.15, letterSpacing: '0.01em' } }, 'TRAIN HOW YOUR TEAM THINKS.'),
+        h('p', { style: { fontSize: 19, color: AC.text, maxWidth: 620, margin: '0 auto 20px', lineHeight: 1.7 } }, 'NeuralFusion is a structured cognitive training programme designed to help participants develop, integrate, and apply different modes of thinking when approaching problems, evaluating situations, and making decisions.'),
         h('div', { role: 'note', style: { fontSize: 16, color: AC.text, lineHeight: 1.7, maxWidth: 560, margin: '0 auto', padding: '16px 20px', background: AC.goldTint, border: '1px solid ' + AC.gold, borderRadius: 16, textAlign: 'left' } }, 'You see how the team is doing, never anyone\u2019s personal answers. Small groups are hidden to protect individuals.')),
-      h('div', { key: 'create', style: { marginBottom: 56 } }, h(CreateTeamCard, { user, setShowAuth, openAuth, setView, onOrgsChanged })),
-      h('div', { key: 'how', id: 'nf-how', style: { marginBottom: 56 } },
-        h('div', { style: Object.assign({}, eyebrow, { marginBottom: 12 }) }, 'HOW IT WORKS'),
-        h('div', { style: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(260px,1fr))', gap: 16 } },
-          step(1, 'Create your team', 'Name your team. You are the owner and see everything in one dashboard.'),
-          step(2, 'Share one link', 'Copy it or send it on WhatsApp. People sign up and land straight in the assessment.'),
-          step(3, 'Assess, train, retake', 'Each person takes the CFI, does the five lessons, then retakes it. You see team results as they come in.'))),
+      h(TeamPilot, { key: 'pilot', user, openAuth, setShowAuth }),
+      h('div', { key: 'create', style: { marginBottom: 56 } }, h('div', { style: { textAlign: 'center', maxWidth: 520, margin: '0 auto 16px', fontSize: 16, color: AC.muted, lineHeight: 1.7 } }, 'Approved teams create their team here and share one link. Participants sign up, join and complete the assessment.'), h(CreateTeamCard, { user, setShowAuth, openAuth, setView, onOrgsChanged })),
       h('div', { key: 'values', id: 'nf-values', style: { marginBottom: 56 } },
         h('div', { style: Object.assign({}, eyebrow, { marginBottom: 12 }) }, 'WHAT YOUR TEAM GETS'),
         h('div', { style: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(min(260px,100%),1fr))', gap: 16 } },
           TEAM_VALUES.map(([t, d]) => h('div', { key: t, style: card() },
             h('div', { style: { ...syne, fontSize: 18, fontWeight: 800, marginBottom: 8 } }, t),
             h('div', { style: { fontSize: 15, color: C.muted, lineHeight: 1.7 } }, d))))),
-      h(TeamPackages, { key: 'pk', teamName: '' }),
       TeamsSampleReport(),
       TeamsFAQ(),
-      h('div', { key: 'more', style: { textAlign: 'center', fontSize: 15, color: C.muted, lineHeight: 1.7 } }, 'Questions about pricing or a custom plan? ', h('a', { href: TEAM_MAILTO, onClick: () => track('contact_founder_clicked'), style: { color: C.cyan } }, 'Email the founder'), '.'),
+      h('div', { key: 'more', style: { textAlign: 'center', fontSize: 15, color: C.muted, lineHeight: 1.7 } }, 'Questions about the pilot? ', h('a', { href: TEAM_MAILTO, onClick: () => track('contact_founder_clicked'), style: { color: C.cyan } }, 'Email the founder'), '.'),
     ]);
   }
 
@@ -7407,7 +7473,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
       h('div', { style: card({ marginBottom: 20 }) }, h('div', { style: label }, 'Your plan'),
         row('Organisation', org.name), row('Plan', (ov.plan && ov.plan.name) || 'Team'), row('Seats', ov.seats.limit), row('Used seats', ov.seats.used), row('Remaining seats', ov.seats.remaining),
         row('Created', ov.purchase_date ? new Date(ov.purchase_date).toLocaleDateString() : 'n/a')),
-      h(TeamPackages, { teamName: org.name }),
+      h('div', { style: card({ marginBottom: 20 }) }, h('div', { style: label }, 'Team pilot'), h('div', { style: { fontSize: 16, color: C.muted, lineHeight: 1.7, marginBottom: 16 } }, 'The 4-Week Team Pilot is $300 total for 10 participants and full training access. Request it through the enquiry form and we will reply with next steps.'), h(LinkBtn, { href: PILOT_ENQUIRY_URL, onClick: () => track('team_pilot_requested', { where: 'billing' }) }, 'REQUEST YOUR TEAM PILOT')),
       h('div', { style: { fontSize: 15, color: C.muted, lineHeight: 1.7 } }, 'Already paid or need a different number of seats? ', h('a', { href: seatMail, style: { color: C.cyan } }, 'Email us'), ' with your team name and we will update your seat limit.'));
   }
 
@@ -7546,7 +7612,33 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
     };
     const cell = { padding: '8px 6px', fontSize: 14, borderBottom: '1px solid ' + C.border };
     const list = orgs || [];
+    const [creators, setCreators] = useState(null); const [apEmail, setApEmail] = useState(''); const [apBusy, setApBusy] = useState(false);
+    const loadCreators = async () => { const r = await rpc('admin_list_team_creators'); setCreators(r && r.ok && Array.isArray(r.creators) ? r.creators : []); };
+    useEffect(() => { loadCreators(); }, []);
+    const approve = async () => {
+      const e = apEmail.trim();
+      if (!e) { setMsg({ type: 'error', text: ERR.invalid_email }); return; }
+      setApBusy(true); const r = await rpc('admin_approve_team_creator', { p_email: e }); setApBusy(false);
+      if (!r || !r.ok) { setMsg({ type: 'error', text: errText(r) }); return; }
+      setApEmail(''); setMsg({ type: 'ok', text: e + ' can now create a team.' }); loadCreators();
+    };
+    const revoke = async (c) => {
+      if (!window.confirm('Remove team creation access for ' + c.email + '? Teams they already created stay as they are.')) return;
+      const r = await rpc('admin_revoke_team_creator', { p_user: c.user_id });
+      if (!r || !r.ok) { setMsg({ type: 'error', text: errText(r) }); return; }
+      loadCreators();
+    };
     return h('div', { style: { marginBottom: 24 } }, h(Msg, { m: msg }),
+      h('div', { style: card({ marginBottom: 20 }) }, h('div', { style: label }, 'Approved team creators (' + (creators ? creators.length : '...') + ')'),
+        h('div', { style: { fontSize: 15, color: C.muted, lineHeight: 1.6, marginBottom: 12 } }, 'Only approved accounts can create a team. The person must already have signed up. Approve them with the email they signed up with, then they create their team and share the link.'),
+        h('div', { style: { display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 14 } },
+          h('input', { type: 'email', value: apEmail, placeholder: 'person@organisation.com', 'aria-label': 'Email to approve', onChange: (e) => setApEmail(e.target.value), onKeyDown: (e) => { if (e.key === 'Enter') approve(); }, style: Object.assign({}, inputStyle, { flex: '1 1 260px', width: 'auto' }) }),
+          h(Btn, { onClick: approve, disabled: apBusy, style: { padding: '8px 18px' } }, apBusy ? 'APPROVING...' : 'APPROVE')),
+        creators === null ? h('div', { style: { color: C.muted, fontSize: 15 } }, 'Loading...') :
+        creators.length === 0 ? h('div', { style: { color: C.muted, fontSize: 15 } }, 'No approved creators yet.') :
+        creators.map((c) => h('div', { key: c.user_id, style: { display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'center', padding: '8px 0', borderTop: '1px solid ' + C.border, flexWrap: 'wrap' } },
+          h('span', { style: { overflowWrap: 'anywhere', fontSize: 15 } }, c.email, h('span', { style: { color: C.muted, marginLeft: 8, fontSize: 13 } }, c.approved_at ? new Date(c.approved_at).toLocaleDateString() : '')),
+          h('button', { onClick: () => revoke(c), style: { fontFamily: AC.font, fontSize: 14, fontWeight: 700, background: '#FFFFFF', border: '1px solid ' + C.border, color: AC.error, padding: '6px 12px', borderRadius: 8, cursor: 'pointer' } }, 'Remove')))),
       h('div', { style: card({ marginBottom: 20, overflowX: 'auto' }) }, h('div', { style: label }, 'Teams (' + list.length + ')'),
         orgs === null ? h('div', { style: { color: C.muted, fontSize: 15 } }, 'Loading...') :
         list.length === 0 ? h('div', { style: { color: C.muted, fontSize: 15 } }, 'No teams yet. Teams appear here as people create them.') :
@@ -7923,6 +8015,11 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
             h('div', { style: { display: 'flex', gap: 8, flexWrap: 'wrap', padding: '0 14px 12px' } },
               h('button', { type: 'button', onClick: () => copyEmail(r), style: Object.assign({}, btn(false), { minHeight: 40, padding: '6px 14px' }) }, 'Copy Email'),
               h('button', { type: 'button', onClick: () => copyDetails(r), style: Object.assign({}, btn(false), { minHeight: 40, padding: '6px 14px' }) }, 'Copy Details'),
+              r.email ? h('button', { type: 'button', onClick: async () => {
+                const { data, error } = await sb.rpc('admin_approve_team_creator', { p_email: r.email, p_lead_id: r.id });
+                if (error || !data || !data.ok) notify(data && data.error === 'no_account' ? 'No account for ' + r.email + ' yet. Ask them to sign up first, then approve again.' : 'Could not approve. Run migration_team_approval.sql if you have not yet.', false);
+                else notify(r.email + ' can now create a team.', true);
+              }, style: Object.assign({}, btn(false), { minHeight: 40, padding: '6px 14px', color: AC.success, borderColor: AC.success }) }, 'Approve as team creator') : null,
               h('button', { type: 'button', onClick: () => setEditing(r), style: Object.assign({}, btn(false), { minHeight: 40, padding: '6px 14px' }) }, 'Edit Lead'),
               h('button', { type: 'button', onClick: () => setDeleting(r), style: Object.assign({}, btn(false), { minHeight: 40, padding: '6px 14px', color: AC.error, borderColor: AC.error }) }, 'Delete Lead'),
               h('a', { href: 'mailto:' + r.email, style: { fontFamily: AC.font, fontSize: 14, color: AC.goldDark, alignSelf: 'center', marginLeft: 4 } }, 'Open in email app')),
