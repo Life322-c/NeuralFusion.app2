@@ -172,3 +172,10 @@ select count(*) from public.business_leads
 
 ### Rollback
 The migration only adds objects. To disable the system without losing data: remove the Database Webhook, and revoke `execute` on `public.submit_business_lead` from `anon` and `authenticated`. To remove it entirely (destructive, you choose): `drop function` the seven functions, then `drop table public.business_leads`.
+
+
+## Team Cognitive Development Experience
+
+1. Supabase dashboard > SQL editor > run `migration_team_experience.sql`. Additive and idempotent: two tables in the `private` schema (RLS on, no policies, no direct access), ten `team_xp_*` functions for authenticated users only. It reads team membership and role from the existing `my_organisations()` function and reuses `platform_settings.org_min_report_threshold`. It does not alter or drop existing objects. Until it is run, owners see a setup message in the Team tabs and everything else keeps working.
+2. Deploy `team-content.js`, `team-experience.js`, `app.js` (`?v=80`) and `index.html` together.
+3. Content (lessons, challenges, scenarios, pilot path) lives in `team-content.js`; UI and the shared runner live in `team-experience.js`.
