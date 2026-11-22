@@ -6798,7 +6798,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
         return (
           teamH(TeamMain, {width: 'mid'},
             teamH("div", {className: "nf-team-section"}, teamH("button", {type: "button", className: "nf-team-btn nf-team-btn--ghost", onClick: ()=>setActiveLesson(null)}, '← Back to Programme')),
-            teamH(TeamHeader, {eyebrow: `Lesson ${L.num} · Week ${L.week} · ${L.level}`, title: L.title}),
+            teamH(TeamHeader, {eyebrow: `Session guide ${L.num} · ${L.level}`, title: L.title}),
             teamH("section", {className: "nf-team-card nf-team-card--tint nf-team-section"},
               teamH("h2", {className: "nf-team-h3"}, 'Session framing'),
               teamH("p", {className: "nf-team-text"}, L.framing)
@@ -6859,19 +6859,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
 
       return (
         teamH(TeamMain, {width: 'mid'},
-          teamH(TeamHeader, {eyebrow: 'Five lessons · Seven-week programme', title: 'Your Programme', lead: 'Work through the five lessons in order. Each lesson builds on the one before.'}),
-          teamH("div", {className: "nf-team-card nf-team-section"},
-            teamH("h3", {className: "nf-team-text", style: {fontWeight: 700, marginBottom: 8}}, 'Seven-week timetable'),
-            teamH("ul", {className: "nf-team-text", style: {margin: 0, paddingLeft: 20, lineHeight: 1.7}},
-              teamH("li", null, 'Week 1: orientation and baseline CFI (not a lesson).'),
-              teamH("li", null, 'Week 2: Lesson 1 and Lesson 2. The 24-hour assignment from Lesson 1 sits between the two sessions.'),
-              teamH("li", null, 'Week 3: Lesson 3.'),
-              teamH("li", null, 'Week 4: Lesson 4.'),
-              teamH("li", null, 'Week 5: Lesson 5.'),
-              teamH("li", null, 'Week 6: CFI retest (not a lesson).'),
-              teamH("li", null, 'Week 7: change report and programme review (not a lesson).')
-            )
-          ),
+          teamH(TeamHeader, {eyebrow: 'Five session guides', title: 'Facilitator guides', lead: 'Session plans for running the five core NeuralFusion lessons live with your team. Pilot teams follow the interactive Learning Journey; these guides are an optional companion.'}),
           openCount < 5 && teamH("div", {className: "nf-team-card nf-team-card--tint nf-team-section"}, teamH("p", {className: "nf-team-text"}, 'Your team has ' + (seatLimit != null ? seatLimit : 'a small number of') + ' seats, so Lesson 1 is open. Lessons 2 to 5 open when your team has ' + TEAM_FULL_PROGRAMME_SEATS + ' or more seats.')),
           teamH("div", {className: "nf-team-stack"}, TEAM_LESSONS.map((L,i) => (
             teamH("article", {key: i, className: "nf-team-card nf-team-card--interactive nf-team-lesson", onClick: ()=>{ if (L.num <= openCount) setActiveLesson(i); }, style: L.num > openCount ? { opacity: 0.65, cursor: 'default' } : undefined},
@@ -6881,8 +6869,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
                 teamH("p", {className: "nf-team-muted"}, L.skill),
                 teamH("div", {className: "nf-team-meta"},
                   teamH("span", {className: "nf-team-pill"}, L.duration, ' min'),
-                  teamH("span", {className: "nf-team-pill"}, 'Week ', L.week),
-                  teamH("span", {className: "nf-team-pill nf-team-pill--wait"}, L.level),
+                                    teamH("span", {className: "nf-team-pill nf-team-pill--wait"}, L.level),
                   done && done.indexOf(L.num) >= 0 && teamH("span", {className: "nf-team-pill"}, 'Completed'),
                   L.num > openCount && teamH("span", {className: "nf-team-pill"}, 'Locked')
                 )
@@ -7234,7 +7221,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
   ];
   const PILOT_STEPS = [
     ['01', 'ENROLL YOUR TEAM', 'Register 10 participants for the four-week programme.'],
-    ['02', 'COMPLETE THE TRAINING', 'Participants undertake the assessment and progress through the full five-lesson NeuralFusion programme and applicable exercises.'],
+    ['02', 'COMPLETE THE TRAINING', 'Participants take the baseline assessment and work through the four-week Learning Journey: eight interactive team lessons, five challenges, the Team Thinking Room and the Team Decision Lab.'],
     ['03', 'REVIEW THE EXPERIENCE', 'Complete the programme and review participation, assessment information, and available team insights.'],
   ];
   const pilotCta = (where) => h(LinkBtn, { href: PILOT_ENQUIRY_URL, onClick: () => track('team_pilot_requested', { where }), style: { minHeight: 56, padding: '14px 32px', fontSize: 17, letterSpacing: '0.04em', textTransform: 'uppercase' } }, 'REQUEST YOUR TEAM PILOT');
@@ -7287,9 +7274,11 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
 
   const TEAM_VALUES = [
     ['Measure how your team thinks', 'Each person takes the 40-item CFI in about eight minutes. You see aggregate team patterns across the four ways of thinking once enough people have completed it.'],
-    ['Train with five lessons', 'A guided five-lesson programme, with progress tracked for each person and a team progress summary for owners.'],
+    ['A structured Learning Journey', 'Eight interactive lessons across five stages (Recognize, Understand, Practice, Integrate, Apply), mapped to four pilot weeks, with progress saved for each person and team progress shown as aggregates.'],
+    ['Team Challenges', 'Five short challenges, one for each thinking mode and one that brings all four together. Answers are shared with the team without names; reflections stay private.'],
+    ['Team Thinking Room', 'Work one shared problem through an Analytical, Intuitive, Associative and Reflective round, then integrate the team\u2019s contributions into an outcome.'],
     ['Weekly thinking challenge', 'One realistic business scenario each week. Everyone works through it using the four ways of thinking and records a decision. Owners see participation and how the team split, never individual answers.'],
-    ['Decision room', 'Work a real decision through facts, signals, alternatives, reflection and a decision. Save it to the team with an agreed action, a responsible person and a review date.'],
+    ['Team Decision Lab', 'Take a real decision through DEFINE, ANALYZE, SENSE, EXPAND, REFLECT, INTEGRATE and DECIDE, and keep a Team Decision Record you can revisit, print or copy. Individual decisions can still be saved to the team with a review date.'],
     ['Recommended practice', 'A short practice matched to your team\u2019s results by simple, visible rules. With too little data you get a general practice instead of a guess.'],
     ['See change over time', 'Everyone retakes the CFI after training. If they choose to share the retest, your before-and-after appears in Insights once enough people have shared.'],
     ['Privacy built in', 'Owners see completion status and aggregates, never individual scores or answers. Small groups are hidden to protect individuals.'],
@@ -7298,7 +7287,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
   function TeamsFAQ() {
     nfjEnsureStyles();
     const items = [
-      ['What is included in the pilot?', 'The full NeuralFusion training programme: the 40-question CFI assessment, an introduction to the four thinking modes, all five lessons, cognitive integration and problem-solving exercises, decision-making practice, weekly thinking challenges, the Team Decision Room, a post-training reassessment and team insights where enough people have completed.'],
+      ['What is included in the pilot?', 'The full NeuralFusion training programme: the 40-question CFI assessment, an introduction to the four thinking modes, eight interactive team lessons, five team challenges, the Team Thinking Room, the Team Decision Lab with Team Decision Records, weekly thinking challenges, a post-training reassessment and team insights where enough people have completed.'],
       ['Who can participate?', 'Teams, organizations, educational groups, and professionals interested in structured thinking development.'],
       ['How many participants are included?', '10 participants.'],
       ['How long does the programme last?', 'Four weeks.'],
@@ -7306,7 +7295,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
       ['Is this a limited version of NeuralFusion?', 'No. The pilot is intended to provide access to the full training programme included in the four-week experience.'],
       ['What happens after the four weeks?', 'Participants complete the pilot and review their experience and available results. Any future engagement is discussed separately.'],
       ['How does my team get started?', 'Create a free account and request your team pilot using the same email address. We review the request and approve your account. You then create your team, share one link, and your participants sign up, join and complete the assessment.'],
-      ['What will each person do?', 'Each person completes the 40-item CFI (about eight minutes), works through the five-lesson training programme, then retakes the CFI to see their own change.'],
+      ['What will each person do?', 'Each person completes the 40-item CFI (about eight minutes), works through the four-week Learning Journey, then retakes the CFI to see their own change.'],
       ['What does the CFI measure, and what does it not?', 'It measures how often you use four ways of thinking (analytical, intuitive, associative, reflective) when you work on a problem or decision, and how well you coordinate them, each on a 0 to 100 scale. From those scores it also works out a derived Fragmentation score. It is a new, early-stage instrument. It does not measure intelligence, personality, health or job performance.'],
       ['What will I see as the team owner?', 'Who has completed what, and aggregate team patterns once enough people have completed the CFI. Individual profiles stay private to each person.'],
     ];
@@ -7467,7 +7456,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
       h('div', { style: { display: 'flex', gap: 12, alignItems: 'center', flexWrap: 'wrap' } },
         h('h1', { style: { fontFamily: AC.font, fontSize: 'clamp(26px,5vw,34px)', fontWeight: 800, color: AC.text, lineHeight: 1.3, margin: 0, overflowWrap: 'anywhere' } }, org.name),
         orgs.length > 1 ? h('select', { value: org.id, onChange: (e) => pick(e.target.value), style: Object.assign({}, inputStyle, { width: 'auto' }) }, orgs.map((o) => h('option', { key: o.id, value: o.id }, o.name))) : null));
-    const body = (org.role === 'owner' || org.role === 'admin') ? h(Dashboard, { key: org.id, org, user, session, reload, setView }) : h(ParticipantPanel, { key: org.id, org, setView });
+    const body = (org.role === 'owner' || org.role === 'admin') ? h(Dashboard, { key: org.id, org, user, session, reload, setView }) : h(ParticipantPanel, { key: org.id, org, setView, user, session });
     return Shell([h(Msg, { key: 'n', m: notice }), header, body]);
   }
 
@@ -7503,34 +7492,6 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
           h('button', { type: 'button', onClick: reset, style: { fontFamily: AC.font, fontSize: 16, fontWeight: 700, background: 'none', border: 'none', color: AC.muted, textDecoration: 'underline', cursor: 'pointer', minHeight: 48, padding: '0 12px' } }, 'Reset link')),
         h(Msg, { m: msg }),
         h('div', { style: { fontSize: 14, color: C.muted, marginTop: 12 } }, ov.seats.used + ' of ' + ov.seats.limit + ' seats used.')));
-  }
-
-  // One guided path for everyone: add team (owner), assess, train, retake, results.
-  function OrgJourney({ org, ov, role, setView, go }) {
-    const [st, setSt] = useState(null);
-    useEffect(() => { rpc('org_programme_state', { p_org: org.id }).then(setSt); }, [org.id]);
-    const lead = role === 'owner' || role === 'admin';
-    const done = (st && st.ok && st.completed_lessons) || [];
-    const assessed = !!ov.my_assessment_completed;
-    const trained = done.length >= 5;
-    const scrollTo = (id) => { const el = document.getElementById(id); if (el) el.scrollIntoView({ behavior: 'smooth' }); };
-    const steps = [];
-    if (lead) steps.push({ k: 'team', title: 'Add your team', text: ov.seats.used > 1 ? (ov.seats.used - 1) + ' teammate(s) joined so far.' : 'Share your team link below. People sign up and land straight in the assessment.', done: ov.seats.used > 1, open: true, cta: 'COPY TEAM LINK', act: () => scrollTo('nf-team-link') });
-    steps.push({ k: 'assess', title: 'Take the assessment', text: assessed ? 'Completed.' : CFI_ITEMS.length + ' questions, about ' + Math.ceil(CFI_ITEMS.length * 12 / 60) + ' minutes.', done: assessed, open: true, cta: 'START ASSESSMENT', act: () => startAssessment(org, setView) });
-    steps.push({ k: 'train', title: 'Do the training', text: assessed ? (done.length + ' of 5 lessons finished.') : 'Opens when you finish the assessment.', done: trained, open: assessed, cta: done.length ? 'CONTINUE TRAINING' : 'START TRAINING', act: () => { if (go) go('programme'); else scrollTo('nf-train'); } });
-    steps.push({ k: 'retake', title: 'Retake the assessment', text: trained ? 'Measure again to see your change.' : 'Opens when you finish the five lessons.', done: false, open: trained, cta: 'RETAKE THE CFI', act: () => setView('cfi') });
-    steps.push({ k: 'results', title: lead ? 'See team results' : 'See your results', text: lead ? (ov.completed >= ov.report_threshold ? 'Team results are ready.' : 'Team results appear once ' + ov.report_threshold + ' people have completed the assessment. ' + ov.completed + ' so far.') : 'Your own profile and change over time.', done: false, open: assessed, cta: lead ? 'OPEN TEAM RESULTS' : 'VIEW MY RESULT', act: () => { if (lead && go) go('results'); else setView('analytics'); } });
-    const current = steps.findIndex((x) => !x.done && x.open);
-    return h('div', { style: card({ marginBottom: 20 }) },
-      h('div', { style: label }, 'Your path'),
-      steps.map((x, i) => h('div', { key: x.k, style: { display: 'flex', gap: 14, alignItems: 'flex-start', padding: '14px 0', borderTop: i ? '1px solid ' + C.border : 'none', opacity: x.open ? 1 : 0.5 } },
-        h('div', { 'aria-hidden': true, style: { fontFamily: AC.font, fontWeight: 700, flex: '0 0 36px', height: 36, borderRadius: 18, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16,
-          background: x.done ? AC.success : (i === current ? AC.goldDark : '#FFFFFF'), color: (x.done || i === current) ? '#FFFFFF' : AC.muted,
-          border: '2px solid ' + (x.done ? AC.success : (i === current ? AC.goldDark : AC.border)) } }, x.done ? '✓' : String(i + 1)),
-        h('div', { style: { flex: 1, minWidth: 0 } },
-          h('div', { style: { ...syne, fontSize: 17, fontWeight: 800, marginBottom: 2 } }, x.title),
-          h('div', { style: { fontSize: 15, color: C.muted, lineHeight: 1.6 } }, x.text),
-          x.open && !(x.done && x.k !== 'train') ? h('div', { style: { marginTop: 10 } }, h(Btn, { onClick: x.act, variant: i === current ? undefined : 'ghost', style: { padding: '10px 18px', fontSize: 14 } }, x.cta)) : null))));
   }
 
   // ====================================================================
@@ -7608,7 +7569,7 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
     if (rec.state === 'insufficient') intro = 'Team-specific recommendations appear once ' + rec.threshold + ' people have completed the assessment (' + rec.completed + ' so far). Until then, here is a general practice.';
     else if (rec.state === 'unavailable') intro = 'Team results are not available to your role right now, so here is a general practice.';
     else if (rec.state === 'general') intro = rec.reason;
-    else intro = 'Your team\u2019s current development priority is ' + (rec.kind === 'integrated' ? 'Integrated Thinking' : MODE_NAME[rec.kind] + ' Thinking') + '. ' + rec.reason;
+    else intro = 'A suggested place to practise next is ' + (rec.kind === 'integrated' ? 'Integrated Thinking' : MODE_NAME[rec.kind] + ' Thinking') + '. ' + rec.reason;
     const p = rec.practice || general;
     return wrap(h('div', null,
       h('div', { style: { fontSize: 16, color: C.muted, lineHeight: 1.7, marginBottom: 12 } }, intro),
@@ -7727,50 +7688,47 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
             x.mine ? h('div', { style: { marginTop: 8 } }, h(Btn, { variant: isDue(x) ? 'primary' : 'ghost', onClick: () => { if (isDue(x)) nfSetReviewFocus(x.id); setView('decisions'); }, style: { padding: '8px 14px', fontSize: 14 } }, isDue(x) ? 'REVIEW THIS DECISION' : 'OPEN IN MY DECISIONS')) : null) : null))));
   }
 
-  function PracticeTab({ org, role, setView, go }) {
-    const lead = role === 'owner' || role === 'admin';
-    return h('div', null,
-      h(ChallengeCard, { org, role, go }),
-      lead ? h(ChallengeSummary, { org }) : null,
-      h(PracticeCard, { org, go, setView }),
-      h(DecisionEntry, { org, setView, role }));
-  }
-  function HomeCards({ org, role, go, setView }) {
-    return h('div', null,
-      h(ChallengeCard, { org, role, go, compact: true }),
-      h(PracticeCard, { org, go, setView, compact: true }),
-      h(DecisionEntry, { org, setView, compact: true, role }));
-  }
   function TabBar({ tabs, tab, setTab }) {
     return h('div', { role: 'tablist', 'aria-label': 'Team sections', style: { display: 'flex', gap: 8, marginBottom: 28, flexWrap: 'wrap' } }, tabs.map(([k, l]) => h('button', { key: k, type: 'button', role: 'tab', 'aria-selected': tab === k, className: 'nf-tab', onClick: () => setTab(k),
       style: { fontFamily: AC.font, fontSize: 16, fontWeight: 700, minHeight: 48, padding: '0 20px', cursor: 'pointer', borderRadius: 999, background: tab === k ? AC.goldTint : '#FFFFFF', color: tab === k ? AC.goldDark : AC.text, border: '1px solid ' + (tab === k ? AC.goldDark : AC.border) } }, l)));
   }
 
-  function TeamHome({ org, ov, setView, go, role }) {
-    return h('div', null,
-      h(TeamLinkCard, { org, ov }),
-      h(OrgJourney, { org, ov, role, setView, go }),
-      h(HomeCards, { org, role, go, setView }),
-      h('div', { style: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(150px,1fr))', gap: 14 } },
-        Stat('Seats', ov.seats.used + ' / ' + ov.seats.limit), Stat('Completed', ov.completed), Stat('Awaiting assessment', ov.awaiting_assessment), Stat('Completion rate', ov.completion_rate + '%')));
-  }
-
-  function Dashboard({ org, user, session, reload, setView }) {
+  // The Team workspace. Experience tabs (Overview, Learning Journey, Thinking Room, Challenges, Decision Lab, Insights)
+  // come from team-experience.js (window.NF_TEAMX). Existing features are kept and surfaced inside those tabs:
+  // team link and seats (Overview), facilitator guides (Journey), weekly challenge and recommended practice (Challenges),
+  // individual decisions shared with the team (Decision Lab), assessment results (Insights).
+  function Dashboard({ org, user, session, reload, setView, participant }) {
     const [tab, setTab] = useState('home');
     const [ov, setOv] = useState(null);
+    const closeRef = React.useRef(null);
+    const [nonce, setNonce] = useState(0);
     const refresh = async () => setOv(await rpc('org_overview', { p_org: org.id }));
     useEffect(() => { refresh(); }, [org.id]);
-    const tabs = [['home', 'Home'], ['practice', 'Practice'], ['programme', 'Training'], ['results', 'Insights'], ['team', 'People'], ['billing', 'Plan and Seats']];
+    const TX = window.NF_TEAMX;
+    const role = (ov && ov.role) || org.role;
+    const lead = role === 'owner' || role === 'admin';
+    const changeTab = (k) => { if (closeRef.current) closeRef.current(); setNonce((n) => n + 1); setTab(k); };
+    const go = (k) => changeTab(({ programme: 'journey', practice: 'challenges' })[k] || k);
+    const ctx = TX ? TX.useTeamData({ org, ov, sb, user, role, setView, startAssessment: () => startAssessment(org, setView), track, setTab: changeTab }) : null;
+    closeRef.current = ctx ? ctx.close : null;
     if (!ov) return h('div', { style: { color: C.muted } }, 'Loading...');
     if (!ov.ok) return h(Msg, { m: { type: 'error', text: errText(ov) } });
+    const tabs = (TX ? TX.TAB_LABELS : [['home', 'Home']]).concat(lead && !participant ? [['team', 'People'], ['billing', 'Plan and Seats']] : []);
+    const legacy = {
+      home: () => lead && !participant ? h('div', { style: { marginTop: 4 } }, h(TeamLinkCard, { org, ov }),
+        h('div', { style: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(150px,1fr))', gap: 14 } },
+          Stat('Seats', ov.seats.used + ' / ' + ov.seats.limit), Stat('Completed', ov.completed), Stat('Awaiting assessment', ov.awaiting_assessment), Stat('Completion rate', ov.completion_rate + '%'))) : null,
+      guides: () => h(ProgrammePanel, { key: org.id, org, role, setView, onStart: () => startAssessment(org, setView) }),
+      weekly: () => h('div', null, h(ChallengeCard, { org, role, go }), lead ? h(ChallengeSummary, { org }) : null, h(PracticeCard, { org, go, setView })),
+      decisions: () => h(DecisionEntry, { org, setView, role }),
+      results: () => lead ? h('div', null, h(TeamLoopCard, { org, setView, go }), h(ResultsTab, { org })) : null,
+    };
     return h('div', null,
-      h(TabBar, { tabs, tab, setTab }),
-      tab === 'home' ? h(TeamHome, { org, ov, setView, go: setTab, role: ov.role }) : null,
-      tab === 'practice' ? h(PracticeTab, { org, role: ov.role, setView, go: setTab }) : null,
-      tab === 'results' ? h('div', null, h(TeamLoopCard, { org, setView, go: setTab }), h(ResultsTab, { org })) : null,
-      tab === 'programme' ? h(ProgrammePanel, { key: org.id, org, role: ov.role, setView, onStart: () => startAssessment(org, setView) }) : null,
-      tab === 'team' ? h(TeamTab, { org, role: ov.role, refresh }) : null,
-      tab === 'billing' ? h(BillingTab, { org, ov }) : null);
+      h(TabBar, { tabs, tab, setTab: changeTab }),
+      TX && TX.TAB_KEYS.indexOf(tab) >= 0 ? h(TX.Section, { key: tab + ':' + nonce, tab, ctx, legacy }) : null,
+      tab === 'team' && lead && !participant ? h(TeamTab, { org, role, refresh }) : null,
+      tab === 'billing' && lead && !participant ? h(BillingTab, { org, ov }) : null,
+      participant ? h('div', { style: { fontSize: 14, color: C.muted, marginTop: 16, lineHeight: 1.7 } }, org.name + ' sees aggregate team results and whether you have completed each step. Your individual answers, scores and private reflections are not shown to your organisation or teammates.') : null);
   }
 
   // Team insight as a living loop, not a static report: practising -> deciding -> learning -> practise next.
@@ -7937,18 +7895,8 @@ function HomeView({ setView, user, setShowAuth, cfiResult, cfiHistory, lessonPro
       retake));
   }
 
-  function ParticipantPanel({ org, setView }) {
-    const [ov, setOv] = useState(null);
-    const [tab, setTab] = useState('home');
-    useEffect(() => { rpc('org_overview', { p_org: org.id }).then(setOv); }, [org.id]);
-    if (!ov) return h('div', { style: { color: C.muted } }, 'Loading...');
-    if (!ov.ok) return h(Msg, { m: { type: 'error', text: errText(ov) } });
-    return h('div', null,
-      h(TabBar, { tabs: [['home', 'Home'], ['practice', 'Practice'], ['programme', 'Training']], tab, setTab }),
-      tab === 'home' ? h('div', null, h(OrgJourney, { org, ov, role: org.role, setView, go: setTab }), h(HomeCards, { org, role: org.role, go: setTab, setView })) : null,
-      tab === 'practice' ? h(PracticeTab, { org, role: org.role, setView, go: setTab }) : null,
-      tab === 'programme' ? h('div', { id: 'nf-train' }, h(ProgrammePanel, { org, role: org.role, setView, onStart: () => startAssessment(org, setView) })) : null,
-      h('div', { style: { fontSize: 14, color: C.muted, marginTop: 16, lineHeight: 1.7 } }, org.name + ' sees aggregate team results and whether you have completed each step. Your individual answers and score are not shown to your organisation.'));
+  function ParticipantPanel({ org, setView, user, session }) {
+    return h(Dashboard, { org, user, session, reload: function () {}, setView, participant: true });
   }
 
   // ====================================================================
